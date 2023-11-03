@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:18:15
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-02 17:59:21
+LastEditTime: 2023-11-03 12:37:44
 FilePath: /Fast-Legged-Planner-Test/fast_legged_planner_py/robot_interface/ur5_robotinterface.py
 Description: file content
 '''
@@ -21,7 +21,7 @@ class UR5_RobotInterface(Base_RobotInterface):
         self.robot = robex.load('ur5')
         self.viz = MeshcatVisualizer(self.robot)
 
-    def get_target_cfg_3D(self, target, last_q=None):
+    def IK_end3D(self, target, last_q=None):
         """Get the target configuration
 
         Args:
@@ -47,11 +47,11 @@ class UR5_RobotInterface(Base_RobotInterface):
         self.viz.addSphere(ball_id, ball_rad, colors.red)
         q_ball = ball_position + [1, 0, 0, 0]
         self.viz.applyConfiguration(ball_id, q_ball)
-        cfg = self.get_target_cfg_3D(target, last_q)
+        cfg = self.IK_end3D(target, last_q)
         self.viz.display(cfg)
         return cfg
 
-    def get_target_cfg_6D(self, SE3target, last_q=None):
+    def IK_end6D(self, SE3target, last_q=None):
         """_summary_
 
         Args:
@@ -73,6 +73,15 @@ class UR5_RobotInterface(Base_RobotInterface):
         self.viz.addBox(cube_id, cube_dimension, colors.red)
         q_ball = pin.SE3ToXYZQUATtuple(SE3target)
         self.viz.applyConfiguration(cube_id, q_ball)
-        cfg = self.get_target_cfg_6D(SE3target, last_q)
+        cfg = self.IK_end6D(SE3target, last_q)
         self.viz.display(cfg)
         return cfg
+
+    # Debug
+    def print_joints(self):
+        for i in range(self.robot.model.njoints):
+            print(i, self.robot.model.names[i])
+
+    def print_frames(self):
+        for i in range(self.robot.model.nframes):
+            print(i, self.robot.model.frames[i].name)
