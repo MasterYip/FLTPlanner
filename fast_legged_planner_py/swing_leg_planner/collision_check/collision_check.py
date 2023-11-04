@@ -13,6 +13,7 @@ class CollisionSphere(object):
     def __init__(self, frame_name, radius):
         self.frame_name = frame_name
         self.radius = radius
+    # TODO: What about the sphere which is not at joint center?
 
 
 class UR5_Collision_Model(object):
