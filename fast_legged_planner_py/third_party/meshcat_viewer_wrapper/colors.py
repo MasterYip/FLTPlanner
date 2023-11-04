@@ -19,16 +19,17 @@ def rgb2int(r, g, b):
     return int((r << 16) + (g << 8) + b)
 
 
-def material(color, transparent=False):
-    mat = meshcat.geometry.MeshPhongMaterial()
-    mat.color = color
-    mat.transparent = transparent
-    return mat
+def material(color, transparent=False, opacity=1.0):
+    return meshcat.geometry.MeshPhongMaterial(color=color, transparent=transparent, opacity=opacity)
 
 
 red = material(color=rgb2int(255, 0, 0), transparent=False)
+red_transparent = material(color=rgb2int(
+    255, 0, 0), transparent=True, opacity=0.5)
 blue = material(color=rgb2int(0, 0, 255), transparent=False)
 green = material(color=rgb2int(0, 255, 0), transparent=False)
+green_transparent = material(color=rgb2int(
+    0, 255, 0), transparent=True, opacity=0.2)
 yellow = material(color=rgb2int(255, 255, 0), transparent=False)
 magenta = material(color=rgb2int(255, 0, 255), transparent=False)
 cyan = material(color=rgb2int(0, 255, 255), transparent=False)
@@ -38,8 +39,10 @@ grey = material(color=rgb2int(120, 120, 120), transparent=False)
 
 colormap = {
     'red': red,
+    'red_transparent': red_transparent,
     'blue': blue,
     'green': green,
+    'green_transparent': green_transparent,
     'yellow': yellow,
     'magenta': magenta,
     'cyan': cyan,
