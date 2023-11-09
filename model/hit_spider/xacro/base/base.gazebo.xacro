@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:macro name="IMUsensor"  params="load_imu_sensor link_name x y z ">
+        <xacro:if value="${load_imu_sensor}">
+            <link name="imu_link">
+            </link>
+            <joint name="imu_joint" type="fixed">
+                <parent link="${link_name}"/>
+                <child link="imu_link"/>
+                <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
+                <axis xyz="0 0 1"/>
+            </joint>
+            <gazebo>
+                <plugin name="imu_plugin" filename="libgazebo_ros_imu.so">  
+                    <alwaysOn>true</alwaysOn>  
+                    <updateRate>100.0</updateRate>  
+                    <bodyName>imu_link</bodyName>
+                    <frameName>imu_link</frameName>
+                    <topicName>EISpider/imu_data</topicName>
+                    <gaussianNoise>1e-6</gaussianNoise>
+                </plugin>  
+             </gazebo>
+        </xacro:if>
+	</xacro:macro>
+</robot>

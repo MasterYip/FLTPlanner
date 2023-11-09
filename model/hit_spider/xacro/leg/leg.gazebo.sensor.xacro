@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+	<xacro:macro name="legFTsensor" params="LegName">
+		<gazebo reference="link_${LegName}_foot">
+			<maxContacts>1</maxContacts>
+			<sensor name="sensor_${LegName}_ft_contact_sensor" type="contact">
+				<always_on>true</always_on>
+				<update_rate>100.0</update_rate>
+				<contact>
+					  <!-- ${name}_lowerleg  ${name}_foot_joint  ${name}_foot 
+					<collision>${name}_lowerleg_fixed_joint_lump__${name}_foot_collision_1</collision-->
+					<collision>link_${LegName}_3_fixed_joint_lump__link_${LegName}_foot_collision_1</collision>
+				</contact>
+				<plugin name="${LegName}_foot_bumper" filename="libgazebo_ros_bumper.so">
+					<bumperTopicName>/EISpider/leg_${LegName}/contact_force</bumperTopicName>
+					<frameName>base_link</frameName>
+					<robotNamespace>EISpider</robotNamespace>
+				</plugin>
+			</sensor>
+		</gazebo>
+	</xacro:macro>
+</robot>

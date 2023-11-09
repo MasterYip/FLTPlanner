@@ -8,6 +8,7 @@ set(MSG_DEP_SET
   std_msgs
   geometry_msgs
   actionlib_msgs
+  sensor_msgs
 )
 
 ## Find catkin macros and libraries
@@ -171,7 +172,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 # catkin_install_python(PROGRAMS
 #   scripts/talker.py
-#   scripts/hit_spider_listener.py
+#   scripts/hit_spider_planner.py
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 

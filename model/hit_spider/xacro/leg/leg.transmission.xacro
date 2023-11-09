@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+	<!--leg joint transmission-->
+	<xacro:macro name="leg_transmission" params="LegName">
+
+        <!--joint 1 transmission-->
+		<transmission name="tran_joint_${LegName}_1">  
+			<type>transmission_interface/SimpleTransmission</type>  
+			<joint name="joint_${LegName}_1">  
+				<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>  
+			</joint>  
+			<actuator name="motor_joint_${LegName}_1">  
+				<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>  
+				<mechanicalReduction>1</mechanicalReduction>  
+			</actuator>  
+		</transmission>
+
+        <!--joint 2 transmission-->
+		<transmission name="tran_joint_${LegName}_2">  
+			<type>transmission_interface/SimpleTransmission</type>  
+			<joint name="joint_${LegName}_2">  
+				<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>  
+			</joint>  
+			<actuator name="motor_joint_${LegName}_2">  
+				<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>  
+				<mechanicalReduction>1</mechanicalReduction>  
+			</actuator>  
+		</transmission>  
+
+         <!--joint 3 transmission-->
+		<transmission name="tran_joint_${LegName}_3">  
+			<type>transmission_interface/SimpleTransmission</type>  
+			<joint name="joint_${LegName}_3">  
+				<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>  
+			</joint>  
+			<actuator name="motor_joint_${LegName}_3">  
+				<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>  
+				<mechanicalReduction>1</mechanicalReduction>  
+			</actuator>  
+		</transmission> 
+
+	</xacro:macro>
+</robot>
