@@ -6,6 +6,7 @@ import math
 import numpy as np
 import fast_legged_planner_py
 from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import linear_evaluate, cubic_evaluate, bezier_evaluate, cubic_bezier_evaluate
+from fast_legged_planner_py.robot_interface.hitspider_robotinterface import HITSpider_RobotInterface
 # 导入mgs
 from fast_legged_planner.msg import hexapod_State, hexapod_Base_Pose
 from sensor_msgs.msg import JointState
@@ -13,6 +14,7 @@ from sensor_msgs.msg import JointState
 
 class HITSpiderPlanner(object):
     def __init__(self) -> None:
+        self.rbtinterface = HITSpider_RobotInterface(rospy.get_param("robot_description"))
         rospy.init_node('hit_spider_planner', anonymous=False)
         rospy.Subscriber('supportStateTopic', hexapod_State, self.callback)
         self.joint_state_pub = rospy.Publisher(
