@@ -3,7 +3,7 @@ Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:18:15
 LastEditors: RaymonYip-NUC11
 LastEditTime: 2023-11-04 09:33:33
-FilePath: /Fast-Legged-Planner-Test/fast_legged_planner_py/robot_interface/ur5_robotinterface.py
+FilePath: /fast_legged_planner/fast_legged_planner_py/robot_interface/ur5_robotinterface.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-

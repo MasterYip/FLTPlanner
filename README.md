@@ -1,4 +1,4 @@
-# Fast-Legged-Planner-Test
+# fast_legged_planner
 
 Test repo for Fast-Legged-Planner
 
