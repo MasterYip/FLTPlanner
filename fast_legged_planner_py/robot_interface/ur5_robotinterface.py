@@ -2,8 +2,8 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:18:15
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-04 09:33:33
-FilePath: /fast_legged_planner/fast_legged_planner_py/robot_interface/ur5_robotinterface.py
+LastEditTime: 2023-11-10 09:31:23
+FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/robot_interface/ur5_robotinterface.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
@@ -21,6 +21,7 @@ from ..swing_leg_planner.collision_check.collision_check import UR5_Collision_Mo
 class UR5_RobotInterface(Base_RobotInterface):
 
     def __init__(self):
+        super().__init__()
         self.robot = robex.load('ur5')
         self.collmodel = UR5_Collision_Model()
         self.viz = MeshcatVisualizer(self.robot)
@@ -97,11 +98,3 @@ class UR5_RobotInterface(Base_RobotInterface):
             self.viz.applyConfiguration(
                 viz_id, self.robot.framePlacement(q, self.robot.model.getFrameId(collsphere.frame_name)))
 
-    # Debug
-    def print_joints(self):
-        for i in range(self.robot.model.njoints):
-            print(i, self.robot.model.names[i])
-
-    def print_frames(self):
-        for i in range(self.robot.model.nframes):
-            print(i, self.robot.model.frames[i].name)

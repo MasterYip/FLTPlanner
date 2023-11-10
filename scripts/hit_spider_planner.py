@@ -11,14 +11,22 @@ from fast_legged_planner_py.robot_interface.hitspider_robotinterface import HITS
 from fast_legged_planner.msg import hexapod_State, hexapod_Base_Pose
 from sensor_msgs.msg import JointState
 
+HEXAPOD_JOINT_STATE_NAME = ["joint_lf_1", "joint_lf_2", "joint_lf_3",
+                            "joint_lm_1", "joint_lm_2", "joint_lm_3",
+                            "joint_lh_1", "joint_lh_2", "joint_lh_3",
+                            "joint_rf_1", "joint_rf_2", "joint_rf_3",
+                            "joint_rm_1", "joint_rm_2", "joint_rm_3",
+                            "joint_rh_1", "joint_rh_2", "joint_rh_3"]
+
 
 class HITSpiderPlanner(object):
     def __init__(self) -> None:
-        self.rbtinterface = HITSpider_RobotInterface(rospy.get_param("robot_description"))
+        self.robotinterface = HITSpider_RobotInterface(
+            rospy.get_param("robot_description"))
         rospy.init_node('hit_spider_planner', anonymous=False)
         rospy.Subscriber('supportStateTopic', hexapod_State, self.callback)
         self.joint_state_pub = rospy.Publisher(
-            'joint_state', JointState, queue_size=10)
+            'joint_states', JointState, queue_size=10)
         self.odom_pub = tf.TransformBroadcaster()
         self.MCT_solution = []
         self.interp_frame = 100
@@ -35,15 +43,16 @@ class HITSpiderPlanner(object):
             self.traj_planner()
 
     def traj_planner(self):
-        for i in range(len(self.MCT_solution)):
+        for i in range(len(self.MCT_solution)-1):
             state_0 = self.MCT_solution[i]
             # FIXME: or use state_next in state_0
             state_1 = self.MCT_solution[i+1]
             for j in range(self.interp_frame):
-                # state_interp = self.interp_joint_state(state, j/self.interp_frame)
+                state_interp = self.interp_joint_state(
+                    state_0, state_1, j/self.interp_frame)
                 odom_interp = self.interp_odom(
                     state_0, state_1, float(j/self.interp_frame))
-                # self.joint_state_pub.publish(state_interp)
+                self.joint_state_pub.publish(state_interp)
                 self.odom_pub.sendTransform((odom_interp.position.x, odom_interp.position.y, odom_interp.position.z),
                                             tf.transformations.quaternion_from_euler(
                                                 odom_interp.orientation.roll, odom_interp.orientation.pitch, odom_interp.orientation.yaw),
@@ -51,6 +60,23 @@ class HITSpiderPlanner(object):
                                             "link_base",
                                             "odom")
                 rospy.sleep(1.0/self.interp_frame)
+
+    def interp_joint_state(self, state_0, state_1, t):
+        """
+        Interpolate joint state between state_0 and state_1
+
+        """
+        state_interp = JointState()
+        # state_interp.name.resize(18)
+        # state_interp.position.resize(18)
+        # state_interp.velocity.resize(18)
+        # state_interp.effort.resize(18)
+        state_interp.header.stamp = rospy.Time.now()
+        state_interp.header.frame_id = "link_base"
+        state_interp.name = HEXAPOD_JOINT_STATE_NAME
+        q0 = self.robotinterface.robot.q0
+        state_interp.position = q0
+        return state_interp
 
     def interp_odom(self, state_0, state_1, t):
         odom_interp = hexapod_Base_Pose()
