@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-09 17:00:38
+LastEditTime: 2023-11-10 22:14:42
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/traj_gen/traj_gen.py
 Description: file content
 '''
@@ -30,7 +30,7 @@ def linear_evaluate(knots: np.ndarray, t):
     if type(t) is not np.ndarray:
         t = np.array([t])
     t_vec = np.array([np.ones(t.shape), t]).T
-    return t_vec @ LINEAR_MAT @ knots
+    return (t_vec @ LINEAR_MAT @ knots).flatten()
 
 
 def cubic_evaluate(knots: np.ndarray, t, para_mat: np.ndarray):

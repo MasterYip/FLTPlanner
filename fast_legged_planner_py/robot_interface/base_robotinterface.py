@@ -11,7 +11,13 @@ import os
 import tempfile
 import pinocchio as pin
 from abc import abstractmethod, ABCMeta
-from ..third_party.meshcat_viewer_wrapper.visualizer import MeshcatVisualizer, colors
+
+MeshcatFound = False
+try:
+    from ..third_party.meshcat_viewer_wrapper.visualizer import MeshcatVisualizer, colors
+    MeshcatFound = True
+except ImportError:
+    pass
 
 
 class Base_RobotInterface(metaclass=ABCMeta):
@@ -33,7 +39,8 @@ class Base_RobotInterface(metaclass=ABCMeta):
             # print("\033[91mWarning: URDF file or string are not specified.\033[0m")
             raise ValueError("URDF file or string are not specified.")
         # Meshcat Vis
-        self.viz = MeshcatVisualizer(self.robot)
+        if MeshcatFound:
+            self.viz = MeshcatVisualizer(self.robot)
 
     # Debug
 
