@@ -34,14 +34,12 @@ class Base_RobotInterface(metaclass=ABCMeta):
             raise ValueError("URDF file or string are not specified.")
         # Meshcat Vis
         self.viz = MeshcatVisualizer(self.robot)
-        
-
-
 
     # Debug
+
     def get_frameid(self, frame_name):
         return self.robot.model.getFrameId(frame_name)
-    
+
     def get_frame_placement(self, q, frame_name):
         """
         :param q: joint angles

@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-10 14:55:39
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-10 17:44:36
+LastEditTime: 2023-11-10 20:55:32
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/robot_interface/pin_IK.py
 Description: file content
 '''
@@ -24,14 +24,18 @@ IK_default_settings = {
 
 
 def pinIK(model, data, oMdes: pin.SE3, q0, id, id_mode='frame', mode=6,
-             IK_settings: dict = IK_default_settings):
+          IK_settings: dict = IK_default_settings):
     """Inverse kinematics for a 6D target placement
-    TODO: Solution contiuity insurement(near singularity)
-    
+
+    TODO:
+    1. Solution contiuity insurement(near singularity)
+    2. Not compitable with legged robot
+    3. Not outperform scipy.optimize.fmin_bfgs method
+
     Args:
         model (pin.Model): model
         data (pin.Data): data
-        oMdes (pin.SE3): desired placement
+        oMdes (pin.SE3): desired placement. Rotation is ignored if mode=3
         q0 (np.ndarray): initial configuration
         id (int): frame id or joint id
         id_mode (str, optional): 'frame' or 'joint'. Defaults to 'frame'.
@@ -68,7 +72,7 @@ def pinIK(model, data, oMdes: pin.SE3, q0, id, id_mode='frame', mode=6,
             err = pin.log(iMd).vector  # in (joint) frame
         else:
             err = pin.log(iMd).vector[:3]  # FIXME: is velocity?
-        
+
         if norm(err) < eps:
             success = True
             break
@@ -86,6 +90,7 @@ def pinIK(model, data, oMdes: pin.SE3, q0, id, id_mode='frame', mode=6,
         else:
             J = J[:3, :]
             v = - J.T.dot(solve(J.dot(J.T) + damp * np.eye(3), err))
+        # FIXME: It seems it can solve 3D IK for 6DOF robot, what's going on?
         q = pin.integrate(model, q, v*DT)
         if not i % 10 and verbose:
             print('%d: error = %s' % (i, err.T))

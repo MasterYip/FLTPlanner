@@ -6,7 +6,7 @@ import math
 import numpy as np
 import fast_legged_planner_py
 from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import linear_evaluate, cubic_evaluate, bezier_evaluate, cubic_bezier_evaluate
-from fast_legged_planner_py.robot_interface.hitspider_robotinterface import HITSpider_RobotInterface, HEXAPOD_JOINT_STATE_NAME
+from fast_legged_planner_py.robot_interface.hitspider_robotinterface import HITSpider_RobotInterface, JOINT_STATE_NAME
 from fast_legged_planner.msg import hexapod_State, hexapod_Base_Pose
 from sensor_msgs.msg import JointState
 
@@ -76,7 +76,7 @@ class HITSpiderPlanner(object):
         """
         state_interp = JointState()
         state_interp.header.stamp = rospy.Time.now()
-        state_interp.name = HEXAPOD_JOINT_STATE_NAME
+        state_interp.name = JOINT_STATE_NAME
         q0 = self.robotinterface.robot.q0
         state_interp.position = q0
         return state_interp
