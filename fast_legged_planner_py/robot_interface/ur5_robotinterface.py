@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:18:15
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-10 09:31:23
+LastEditTime: 2023-11-10 14:17:36
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/robot_interface/ur5_robotinterface.py
 Description: file content
 '''
@@ -21,7 +21,7 @@ from ..swing_leg_planner.collision_check.collision_check import UR5_Collision_Mo
 class UR5_RobotInterface(Base_RobotInterface):
 
     def __init__(self):
-        super().__init__()
+        # super().__init__()
         self.robot = robex.load('ur5')
         self.collmodel = UR5_Collision_Model()
         self.viz = MeshcatVisualizer(self.robot)

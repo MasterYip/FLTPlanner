@@ -6,28 +6,41 @@ import math
 import numpy as np
 import fast_legged_planner_py
 from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import linear_evaluate, cubic_evaluate, bezier_evaluate, cubic_bezier_evaluate
-from fast_legged_planner_py.robot_interface.hitspider_robotinterface import HITSpider_RobotInterface
-# 导入mgs
+from fast_legged_planner_py.robot_interface.hitspider_robotinterface import HITSpider_RobotInterface, HEXAPOD_JOINT_STATE_NAME
 from fast_legged_planner.msg import hexapod_State, hexapod_Base_Pose
 from sensor_msgs.msg import JointState
 
-HEXAPOD_JOINT_STATE_NAME = ["joint_lf_1", "joint_lf_2", "joint_lf_3",
-                            "joint_lm_1", "joint_lm_2", "joint_lm_3",
-                            "joint_lh_1", "joint_lh_2", "joint_lh_3",
-                            "joint_rf_1", "joint_rf_2", "joint_rf_3",
-                            "joint_rm_1", "joint_rm_2", "joint_rm_3",
-                            "joint_rh_1", "joint_rh_2", "joint_rh_3"]
+
+class HITSpider_ROS_RobotInterface(HITSpider_RobotInterface):
+    def __init__(self, urdf: str) -> None:
+        """
+        :param urdf: URDF file path OR URDF string
+        """
+        super().__init__(urdf)
+        # Publish joint state & odom
+        self.joint_state_pub = rospy.Publisher(
+            'joint_states', JointState, queue_size=10)
+        self.odom_pub = tf.TransformBroadcaster()
+
+    def pub_joint_state(self, joint_state: JointState):
+        self.joint_state_pub.publish(joint_state)
+
+    def pub_odom(self, odom: hexapod_Base_Pose):
+        self.odom_pub.sendTransform((odom.position.x, odom.position.y, odom.position.z),
+                                    tf.transformations.quaternion_from_euler(
+                                    odom.orientation.roll, odom.orientation.pitch, odom.orientation.yaw),
+                                    rospy.Time.now(),
+                                    "link_base",
+                                    "odom")
 
 
 class HITSpiderPlanner(object):
     def __init__(self) -> None:
-        self.robotinterface = HITSpider_RobotInterface(
+        self.robotinterface = HITSpider_ROS_RobotInterface(
             rospy.get_param("robot_description"))
         rospy.init_node('hit_spider_planner', anonymous=False)
         rospy.Subscriber('supportStateTopic', hexapod_State, self.callback)
-        self.joint_state_pub = rospy.Publisher(
-            'joint_states', JointState, queue_size=10)
-        self.odom_pub = tf.TransformBroadcaster()
+
         self.MCT_solution = []
         self.interp_frame = 100
 
@@ -52,13 +65,8 @@ class HITSpiderPlanner(object):
                     state_0, state_1, j/self.interp_frame)
                 odom_interp = self.interp_odom(
                     state_0, state_1, float(j/self.interp_frame))
-                self.joint_state_pub.publish(state_interp)
-                self.odom_pub.sendTransform((odom_interp.position.x, odom_interp.position.y, odom_interp.position.z),
-                                            tf.transformations.quaternion_from_euler(
-                                                odom_interp.orientation.roll, odom_interp.orientation.pitch, odom_interp.orientation.yaw),
-                                            rospy.Time.now(),
-                                            "link_base",
-                                            "odom")
+                self.robotinterface.pub_joint_state(state_interp)
+                self.robotinterface.pub_odom(odom_interp)
                 rospy.sleep(1.0/self.interp_frame)
 
     def interp_joint_state(self, state_0, state_1, t):
@@ -67,12 +75,7 @@ class HITSpiderPlanner(object):
 
         """
         state_interp = JointState()
-        # state_interp.name.resize(18)
-        # state_interp.position.resize(18)
-        # state_interp.velocity.resize(18)
-        # state_interp.effort.resize(18)
         state_interp.header.stamp = rospy.Time.now()
-        state_interp.header.frame_id = "link_base"
         state_interp.name = HEXAPOD_JOINT_STATE_NAME
         q0 = self.robotinterface.robot.q0
         state_interp.position = q0
