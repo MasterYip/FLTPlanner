@@ -97,20 +97,13 @@ grid_map::GridMap init_grid_map(std::string MapFilePath)
 
 int main(int argc, char *argv[])
 {
-    // std::cout << "argc: " << argc << std::endl;
-    // for (int i = 0; i < argc; ++i)
-    // {
-    //     std::cout << "argv[" << i << "]: " << argv[i] << std::endl;
-    // }
-    if (argc < 4)
-    {
-        std::cout << "Usage: rosrun fast_legged_planner grid_map_pub [MapFilePath]" << std::endl;
-        exit(1);
-    }
-    std::string MapFilePath = argv[1];
     setlocale(LC_ALL, "");
     ros::init(argc, argv, "grid_map_pub");
     ros::NodeHandle nh;
+    ros::Rate loop_rate(10.0);
+
+    std::string MapFilePath;
+    nh.getParam("terrain_file", MapFilePath);
 
     //------静态地图相关------
     ros::Publisher gridMapPub = nh.advertise<grid_map_msgs::GridMap>("grid_map", 1, true); // 地图锁存住
@@ -122,10 +115,14 @@ int main(int argc, char *argv[])
     grid_map_msgs::GridMap gm_message;                             // 创建grid_map消息
     grid_map::GridMapRosConverter::toMessage(mapData, gm_message); // 把grid_map地图转换为ros消息格式
 
-    gridMapPub.publish(gm_message);
+    while (ros::ok())
+    {
+        gridMapPub.publish(gm_message);
+        loop_rate.sleep();
+    }
 
     //------ros回头------
-    ros::spin();
+    // ros::spin();
 
     return 0;
 }

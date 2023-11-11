@@ -10,8 +10,14 @@
     <node pkg="fast_legged_planner" type="hit_spider_planner.py" name="footend_planner" output="screen" />
 
     <!-- GridMap Pub -->
-    <node pkg="fast_legged_planner" type="grid_map_pub" name="grid_map_pub" output="screen" args="$(find fast_legged_planner)/data/terrain4.txt">
-    </node>
+    <param name="terrain_file" value="$(find fast_legged_planner)/data/terrain4.txt" />
+    <param name="grid_map_topic" value="grid_map" />
+    <param name="point_cloud_topic" value="point_cloud" />
+    <!-- elevation_layer name is setted in grid_map_pub (ghost value needed being handled) -->
+    <param name="elevation_layer" value="elevation" />
+
+    <node pkg="fast_legged_planner" type="grid_map_pub" name="grid_map_pub" output="screen"/>
+    <node pkg="fast_legged_planner" type="sdf_pub" name="sdf_pub" output="screen"/>
 
     <node pkg="grid_map_visualization" type="grid_map_visualization" name="grid_map_visualization" output="screen">
         <rosparam command="load" file="$(find fast_legged_planner)/config/mapVisual.yaml" />
