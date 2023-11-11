@@ -7,7 +7,7 @@ import tf
 import math
 import numpy as np
 import pinocchio as pin
-from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import linear_evaluate, cubic_evaluate, bezier_evaluate, cubic_bezier_evaluate
+from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import cubic_hermite_evaluate, linear_evaluate, cubic_evaluate, bezier_evaluate, cubic_bezier_evaluate
 from fast_legged_planner_py.robot_interface.hitspider_robotinterface import HITSpider_RobotInterface, JOINT_STATE_NAME
 from fast_legged_planner.msg import hexapod_State, hexapod_Base_Pose, FeetPosition
 from sensor_msgs.msg import JointState
@@ -152,9 +152,17 @@ class HITSpiderPlanner(object):
         footend_list1 = FeetPos2PosList(state_1.feetPositionNow)
         footend_interp = []
         for i in range(6):
-            footend_interp.append(linear_evaluate(
-                np.array([footend_list0[i], footend_list1[i]]), t))
+            if state_1.support_State_Now[i] == 1:
+                footend_interp.append(footend_list0[i])
+            else:
+                footend_interp.append(self.footend_traj_evaluate(
+                    footend_list0[i], footend_list1[i], t))
         return footend_interp
+
+    def footend_traj_evaluate(self, p0, p1, t):
+        v = np.array([0, 0, 0.8])
+        return cubic_hermite_evaluate(
+            np.array([p0, v, p1, -v]), t)
 
     def interp_odom(self, state_0, state_1, t):
         pose0 = XYZRPY2SE3(state_0.base_Pose_Now)

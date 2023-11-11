@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-10 22:14:42
+LastEditTime: 2023-11-11 09:17:34
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/traj_gen/traj_gen.py
 Description: file content
 '''
@@ -44,7 +44,7 @@ def cubic_evaluate(knots: np.ndarray, t, para_mat: np.ndarray):
         t = np.array([t])
     t_vec = np.array([np.ones(t.shape), t, t**2, t**3]).T
     point = t_vec @ para_mat @ knots
-    return point
+    return point.flatten()
 
 
 def bezier_evaluate(knots, t):
@@ -80,3 +80,4 @@ def cubic_hermite_evaluate(knots: np.ndarray, t):
     :return: point on hermite curve
     """
     return cubic_evaluate(knots, t, HERMITE_MAT)
+
