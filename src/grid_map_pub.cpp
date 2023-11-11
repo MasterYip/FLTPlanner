@@ -8,8 +8,8 @@
 #include <fstream>
 
 /* external project header files */
-#include <grid_map_ros/grid_map_ros.hpp> //grid_map地图
-#include <grid_map_msgs/GridMap.h>
+#include <ros/ros.h>
+#include <grid_map_ros/grid_map_ros.hpp>
 /* internal project header files */
 
 grid_map::GridMap init_grid_map(std::string MapFilePath)
@@ -97,7 +97,12 @@ grid_map::GridMap init_grid_map(std::string MapFilePath)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    // std::cout << "argc: " << argc << std::endl;
+    // for (int i = 0; i < argc; ++i)
+    // {
+    //     std::cout << "argv[" << i << "]: " << argv[i] << std::endl;
+    // }
+    if (argc < 4)
     {
         std::cout << "Usage: rosrun fast_legged_planner grid_map_pub [MapFilePath]" << std::endl;
         exit(1);

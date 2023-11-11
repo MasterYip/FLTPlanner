@@ -1,16 +1,17 @@
 <launch>
-    
+
     <!-- Robot related -->
-	<param name="robot_description" command="$(find xacro)/xacro $(find fast_legged_planner)/model/hit_spider/xacro/EISpider.xacro" />
+    <param name="robot_description" command="$(find xacro)/xacro $(find fast_legged_planner)/model/hit_spider/xacro/EISpider.xacro" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
     <!-- Rviz -->
-	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_legged_planner)/config/walking_rviz.rviz" output="screen" />
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_legged_planner)/config/walking_rviz.rviz" output="screen" />
 
     <!-- Foot end Planner -->
     <node pkg="fast_legged_planner" type="hit_spider_planner.py" name="footend_planner" output="screen" />
 
     <!-- GridMap Pub -->
-    <!-- <node pkg="hit_spider" type="static_information_publisher" name="static_information_publisher" output="screen" /> -->
+    <node pkg="fast_legged_planner" type="grid_map_pub" name="grid_map_pub" output="screen" args="$(find fast_legged_planner)/data/terrain4.txt">
+    </node>
 
     <node pkg="grid_map_visualization" type="grid_map_visualization" name="grid_map_visualization" output="screen">
         <rosparam command="load" file="$(find fast_legged_planner)/config/mapVisual.yaml" />
