@@ -11,6 +11,20 @@ set(MSG_DEP_SET
   sensor_msgs
 )
 
+set(GRID_MAP_SET
+  grid_map_core
+  grid_map_ros
+  # grid_map_cv
+  grid_map_filters
+  grid_map_loader
+  grid_map_msgs
+  # grid_map_octomap
+  grid_map_rviz_plugin
+  grid_map_visualization
+  # pcl_ros
+  # pcl_conversions
+)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -19,6 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   message_generation
   ${MSG_DEP_SET}
+  ${GRID_MAP_SET}
 )
 
 ## System dependencies are found with CMake's conventions
@@ -28,6 +43,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
+
+# FIXME: It seems useless to add new script in setup.py
 catkin_python_setup()
 
 ################################################
@@ -145,6 +162,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/fast_legged_planner_node.cpp)
+# add_executable(grid_map_pub src/grid_map_pub.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,7 +172,7 @@ include_directories(
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(grid_map_pub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -170,11 +188,12 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# catkin_install_python(PROGRAMS
-#   scripts/talker.py
-#   scripts/hit_spider_planner.py
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+catkin_install_python(PROGRAMS
+  scripts/talker.py
+  scripts/hit_spider_planner.py
+  scripts/sub_grid_map_test.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

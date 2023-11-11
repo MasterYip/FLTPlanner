@@ -2,12 +2,12 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-11 09:17:34
+LastEditTime: 2023-11-11 10:15:20
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/traj_gen/traj_gen.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
-# from scipy.interpolate import interp1d, LinearNDInterpolator
+from scipy.interpolate import BSpline, CubicSpline
 import numpy as np
 # from abc import abstractmethod, ABCMeta
 
@@ -31,6 +31,10 @@ def linear_evaluate(knots: np.ndarray, t):
         t = np.array([t])
     t_vec = np.array([np.ones(t.shape), t]).T
     return (t_vec @ LINEAR_MAT @ knots).flatten()
+
+################################################
+# Cubic Curve
+################################################
 
 
 def cubic_evaluate(knots: np.ndarray, t, para_mat: np.ndarray):
@@ -81,3 +85,17 @@ def cubic_hermite_evaluate(knots: np.ndarray, t):
     """
     return cubic_evaluate(knots, t, HERMITE_MAT)
 
+################################################
+# Cubic Spline
+################################################
+
+# CubicSpline()
+
+# def cubic_spline_evaluate(knots: np.ndarray, t):
+#     """
+#     Evaluate cubic spline curve at parameter t
+#     :param knots: control points, literally `np.ndarray([p0, p1, p2, p3])`
+#     :param t: parameter vector range from 0 to 1
+#     :return: point on spline curve
+#     """
+#     return cubic_evaluate(knots, t, UNI_B_MAT)
