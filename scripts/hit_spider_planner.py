@@ -8,6 +8,7 @@ import math
 import numpy as np
 import pinocchio as pin
 from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import cubic_hermite_evaluate, linear_evaluate, cubic_evaluate, bezier_evaluate, cubic_bezier_evaluate
+from fast_legged_planner_py.perception_interface.gridmap_interface_ros import GridMap_Interface
 from fast_legged_planner_py.robot_interface.hitspider_robotinterface import HITSpider_RobotInterface, JOINT_STATE_NAME
 from fast_legged_planner.msg import hexapod_State, hexapod_Base_Pose, FeetPosition
 from sensor_msgs.msg import JointState
@@ -106,11 +107,11 @@ class HITSpider_ROS_RobotInterface(HITSpider_RobotInterface):
 
 class HITSpiderPlanner(object):
     def __init__(self) -> None:
-        self.robotinterface = HITSpider_ROS_RobotInterface(
-            rospy.get_param("robot_description"))
         rospy.init_node('hit_spider_planner', anonymous=False)
+        self.robot_interface = HITSpider_ROS_RobotInterface(
+            rospy.get_param("robot_description"))
         rospy.Subscriber('supportStateTopic', hexapod_State, self.callback)
-
+        self.gridmap_interface = GridMap_Interface("grid_map")
         self.MCT_solution = []
         self.interp_frame = 100
 
@@ -138,9 +139,9 @@ class HITSpiderPlanner(object):
                 for i in range(6):
                     footend_interp[i] = point_SE3Act(
                         odom_interp, footend_interp[i])
-                self.robotinterface.pub_joint_state_from_footendpos(
+                self.robot_interface.pub_joint_state_from_footendpos(
                     footend_interp)
-                self.robotinterface.pub_odom(odom_interp)
+                self.robot_interface.pub_odom(odom_interp)
                 rospy.sleep(1.0/self.interp_frame)
 
     def interp_footend(self, state_0, state_1, t):

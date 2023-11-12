@@ -212,9 +212,8 @@ target_link_libraries(sdf_pub
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/talker.py
   scripts/hit_spider_planner.py
-  scripts/sub_grid_map_test.py
+  scripts/gridmap_sub.py
   scripts/pointcloud_parser.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
