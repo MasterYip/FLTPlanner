@@ -14,7 +14,8 @@
     <param name="grid_map_topic" value="grid_map" />
     <param name="point_cloud_topic" value="point_cloud" />
     <!-- elevation_layer name is setted in grid_map_pub (ghost value needed being handled) -->
-    <param name="elevation_layer" value="elevation" />
+    <!-- <param name="elevation_layer" value="elevation" /> -->
+    <param name="elevation_layer" value="3D_feeling" />
 
     <node pkg="fast_legged_planner" type="grid_map_pub" name="grid_map_pub" output="screen"/>
     <node pkg="fast_legged_planner" type="sdf_pub" name="sdf_pub" output="screen"/>

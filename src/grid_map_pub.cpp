@@ -16,9 +16,10 @@ grid_map::GridMap init_grid_map(std::string MapFilePath)
 {
     setlocale(LC_ALL, ""); // 可输出中文
 
-    // grid_map对象,地图大小设置,坐标系设置
+    // grid_map setup (pose, size, frame, resolution)
     grid_map::GridMap mapData;
-    mapData.setGeometry(grid_map::Length(30, 20), 0.1);
+    mapData.setGeometry(grid_map::Length(15, 7), 0.1);
+    mapData.setPosition(grid_map::Position(4, 0));
     mapData.setFrameId("odom");
 
     // 添加图层

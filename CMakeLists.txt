@@ -215,6 +215,7 @@ catkin_install_python(PROGRAMS
   scripts/talker.py
   scripts/hit_spider_planner.py
   scripts/sub_grid_map_test.py
+  scripts/pointcloud_parser.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

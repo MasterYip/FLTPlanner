@@ -45,6 +45,7 @@ namespace grid_map_demos
 
     // Generate SDF.
     const float heightMargin{0.1};
+    // ROS_INFO("minCoef:%f", elevationData.minCoeffOfFinites());
     const float minValue{elevationData.minCoeffOfFinites() - heightMargin};
     const float maxValue{elevationData.maxCoeffOfFinites() + heightMargin};
     grid_map::SignedDistanceField sdf(map, elevationLayer_, minValue, maxValue);
