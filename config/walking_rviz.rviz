@@ -6,8 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /GridMap1
-        - /PointCloud21
       Splitter Ratio: 0.5
     Tree Height: 667
   - Class: rviz/Selection
@@ -306,6 +304,14 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Show Trail: false
       Value: false
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /hit_spider_expected_traj
+      Name: MarkerArray
+      Namespaces:
+        foot_traj: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
@@ -334,7 +340,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.975147724151611
+      Distance: 10.356864929199219
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -342,17 +348,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 6.514163017272949
-        Y: 1.547724962234497
-        Z: -1.3360555171966553
+        X: 2.1216299533843994
+        Y: 3.3811392784118652
+        Z: -3.053382635116577
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5547972917556763
+      Pitch: 0.6647971868515015
       Target Frame: <Fixed Frame>
-      Yaw: 3.928199052810669
+      Yaw: 4.538201332092285
     Saved: ~
 Window Geometry:
   Displays:

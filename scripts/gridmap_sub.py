@@ -2,7 +2,7 @@
 # coding=utf-8
 
 import rospy
-from fast_legged_planner_py.perception_interface.gridmap_interface_ros import GridMap_Interface
+from fast_legged_planner_py.perception_interface.gridmap_interface_ros import GridMap_Interface, SignedDistanceField
 
 
 if __name__ == '__main__':
@@ -15,6 +15,7 @@ if __name__ == '__main__':
             try:
                 # print(gmI.grid_map.get('3D_feeling'))
                 print(gmI.grid_map.at('3D_feeling', [0, 0]))
+                print(gmI.sdf.derivative([5, 1, 0]))
             except:
                 print("Layer not found!")
             rospy.sleep(1)
