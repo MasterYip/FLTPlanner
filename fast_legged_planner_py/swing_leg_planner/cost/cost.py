@@ -71,7 +71,7 @@ class CostCollection(object):
         return derivative
 
 
-class kinematicCost(CostBase):
+class KinematicCost(CostBase):
     def __init__(self, spline: HermiteSpline):
         super().__init__()
         self.spline = spline

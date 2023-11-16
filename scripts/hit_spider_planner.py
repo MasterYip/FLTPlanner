@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # coding=utf-8
 
+from panel import state
 import rospy
 import numpy as np
 import pinocchio as pin
-from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import cubic_hermite_evaluate
+from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import cubic_hermite_evaluate, HermiteSpline
 from fast_legged_planner_py.perception_interface.gridmap_interface_ros import GridMap_Interface
 from fast_legged_planner_py.robot_interface.hitspider_robotinterface_ros import HITSpider_RobotInterface_ROS, \
     FeetPos2PosList, XYZRPY2SE3, point_SE3Act
+from fast_legged_planner_py.swing_leg_planner.cost.cost import CostCollection, KinematicCost, CollisionCost
+from fast_legged_planner_py.swing_leg_planner.traj_opt.traj_opt import TrajOptProblem
 from fast_legged_planner.msg import hexapod_State
 
 
@@ -25,10 +28,14 @@ class HITSpiderPlanner(object):
         self.rate = 30
         self.ros_rate = rospy.Rate(self.rate)
         self.delta_length = self.base_speed / self.rate
-        
+
         # This are auto computed
         self._interp_frame = 20
         self._state_time = 0.5
+
+        # Optimized data
+        self.opt_traj = None
+        self.opt_state = None  # used for opt_traj validation
 
     def callback(self, msg):
         self.MCT_solution.append(msg)
@@ -47,7 +54,6 @@ class HITSpiderPlanner(object):
             # FIXME: or use state_next in state_0
             state_1 = self.MCT_solution[i+1]
             self.update_state_time(state_0, state_1)
-
             for j in range(self._interp_frame):
                 odom_interp = self.interp_odom(
                     state_0, state_1, float(j/self._interp_frame))
@@ -64,7 +70,7 @@ class HITSpiderPlanner(object):
                 self.ros_rate.sleep()
 
     def get_interp_foottraj(self, state_list):
-        # TrajViz
+        # For TrajViz
         foot_traj_list = [[] for _ in range(6)]
         for i in range(len(state_list)-1):
             for j in range(self._interp_frame):
@@ -82,18 +88,36 @@ class HITSpiderPlanner(object):
         footend_list0 = FeetPos2PosList(state_0.feetPositionNow)
         footend_list1 = FeetPos2PosList(state_1.feetPositionNow)
         footend_interp = []
+        # Optimize traj for each state transition and cache it
+        if self.opt_traj is None or self.opt_state != state_0:
+            self.opt_traj = [None for i in range(6)]
+            self.opt_state = state_0
+            for i in range(6):
+                if state_1.support_State_Now[i] != 1:
+                    v = np.array([0, 0, 0.8])
+                    spline = HermiteSpline(
+                        np.array([footend_list0[i], v, footend_list1[i], -v]))
+                    costs = CostCollection([
+                        KinematicCost(spline),
+                        CollisionCost(spline, self.gridmap_interface)
+                    ])
+                    TrajOptProblem(spline, costs, None,
+                                   spline.knots).optimize()
+                    self.opt_traj[i] = spline
+        # Prepare footend_interp
         for i in range(6):
             if state_1.support_State_Now[i] == 1:
                 footend_interp.append(footend_list0[i])
             else:
-                footend_interp.append(self.footend_traj_evaluate(
-                    footend_list0[i], footend_list1[i], t))
+                footend_interp.append(self.opt_traj[i].evaluate(t))
+                # footend_interp.append(self.footend_traj_evaluate(
+                #     footend_list0[i], footend_list1[i], t))
         return footend_interp
 
-    def footend_traj_evaluate(self, p0, p1, t):
-        v = np.array([0, 0, 0.8])
-        return cubic_hermite_evaluate(
-            np.array([p0, v, p1, -v]), t)
+    # def footend_traj_evaluate(self, p0, p1, t):
+    #     v = np.array([0, 0, 0.8])
+    #     return cubic_hermite_evaluate(
+    #         np.array([p0, v, p1, -v]), t)
 
     def interp_odom(self, state_0, state_1, t):
         pose0 = XYZRPY2SE3(state_0.base_Pose_Now)

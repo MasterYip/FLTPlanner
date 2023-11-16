@@ -135,7 +135,7 @@ class HermiteSpline(SplineBase):
 
     def update(self, knots):
         self.knots = knots
-        self.n = knots.shape[0]
+        self.n = knots.shape[0]  # Hermite case: pos poitns = n/2
         self.t_range = [0, self.n-1]
 
     def get_poslist(self):
