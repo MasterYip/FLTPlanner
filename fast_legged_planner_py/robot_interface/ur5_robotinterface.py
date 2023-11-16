@@ -1,9 +1,9 @@
 '''
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:18:15
-LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-10 17:40:38
-FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/robot_interface/ur5_robotinterface.py
+LastEditors: NUC12
+LastEditTime: 2023-11-16 10:20:39
+FilePath: \Fast-Legged-Planner-Test\fast_legged_planner_py\robot_interface\ur5_robotinterface.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
@@ -16,7 +16,7 @@ from numpy.linalg import norm
 from scipy.optimize import fmin_bfgs
 import pinocchio as pin
 
-from ..swing_leg_planner.collision_check.collision_check import UR5_Collision_Model
+from ..swing_leg_planner.collision.collision import UR5_Collision_Model
 
 
 class UR5_RobotInterface(Base_RobotInterface):

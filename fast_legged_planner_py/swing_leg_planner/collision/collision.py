@@ -3,7 +3,7 @@ Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-03 21:37:53
 LastEditors: RaymonYip-NUC11
 LastEditTime: 2023-11-04 09:33:17
-FilePath: /fast_legged_planner/fast_legged_planner_py/swing_leg_planner/collision_check/collision_check.py
+FilePath: /fast_legged_planner/fast_legged_planner_py/swing_leg_planner/collision/collision.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-

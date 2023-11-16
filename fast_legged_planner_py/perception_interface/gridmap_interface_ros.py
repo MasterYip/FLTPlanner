@@ -44,3 +44,9 @@ class GridMap_Interface(object):
         if self.sdf is None:
             return None
         return self.sdf.value(position)
+
+    def sdf_derivative(self, position):
+        if self.sdf is None:
+            return None
+        return self.sdf.derivative(position)
+    
