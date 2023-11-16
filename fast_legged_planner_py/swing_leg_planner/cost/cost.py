@@ -1,9 +1,9 @@
 '''
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 10:25:09
-LastEditors: NUC12
-LastEditTime: 2023-11-16 14:36:19
-FilePath: \Fast-Legged-Planner-Test\fast_legged_planner_py\swing_leg_planner\cost\cost.py
+LastEditors: RaymonYip-NUC11
+LastEditTime: 2023-11-16 17:00:53
+FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/cost/cost.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -112,13 +112,20 @@ class CollisionCost(CostBase):
         self.spline = spline
         self.interface = interface
         self.sdf_margin = 0.1
+
+        self.resolution = 10
+        self.ts = np.linspace(
+            self.spline.t_range[0], self.spline.t_range[1], self.resolution)
         pass
 
     def get_cost(self, state=None):
         cost = 0
-        for p in self.spline.get_poslist():
-            if self.interface.sdf_value(p) < self.sdf_margin:
-                cost += -self.interface.sdf_value(p)
+        # for p in self.spline.get_poslist():
+        # TODO: waiting for Spline.evaluate optimization
+        for p in [self.spline.evaluate(t) for t in self.ts]:
+            c = self.sdf_margin - self.interface.sdf_value(p)
+            if c > 0:
+                cost += c
         return cost
 
     # FIXME:
