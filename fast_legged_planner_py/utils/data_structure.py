@@ -31,7 +31,9 @@ class CircleQueue(object):
 
     def is_valid(self, index):
         pos = (self.front + index) % self.size
-        return not ((self.rear >= self.front and (pos > self.rear or pos < self.front)) or (self.rear < self.front and pos > self.rear and pos < self.front) or (index >= self.size-1 or index < 0))
+        return not ((self.rear >= self.front and (pos >= self.rear or pos < self.front)) or
+                    (self.rear < self.front and pos > self.rear and pos < self.front) or
+                    (index >= self.size-1 or index < 0))
 
     def enqueue(self, item):
         """进队"""

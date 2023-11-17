@@ -61,9 +61,14 @@ class HITSpiderPlanner(object):
         while (self.whole_body_planner.get_state_traj_length() > 0):
             state_traj = self.whole_body_planner.get_state_traj(0)
 
+            odom_interp = state_traj.eval_torso_traj(t)
+            footend_interp = state_traj.eval_foot_traj(t)
+            for k in range(6):
+                footend_interp[k] = point_SE3Act(
+                    odom_interp, footend_interp[k])
             self.robot_interface.pub_joint_state_from_footendpos(
-                state_traj.eval_foot_traj(t))
-            self.robot_interface.pub_odom(state_traj.eval_torso_traj(t))
+                footend_interp)
+            self.robot_interface.pub_odom(odom_interp)
             self.robot_interface.pub_foot_trajectory(
                 self.whole_body_planner.get_foot_traj(t, 80, 0.05))
 
