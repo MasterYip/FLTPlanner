@@ -2,12 +2,13 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-17 11:49:35
 LastEditors: NUC12
-LastEditTime: 2023-11-17 14:58:46
-FilePath: \Fast-Legged-Planner-Test\fast_legged_planner_py\utils\data_structure.py
+LastEditTime: 2023-11-17 15:46:56
+FilePath: \\Fast-Legged-Planner-Test\\fast_legged_planner_py\\utils\\data_structure.py
 Description: file content
 '''
 #!/usr/bin/env python
 # coding=utf-8
+
 
 class CircleQueue(object):
     """环形队列"""
@@ -30,8 +31,7 @@ class CircleQueue(object):
 
     def is_valid(self, index):
         pos = (self.front + index) % self.size
-        return not ((self.rear >= self.front and (pos > self.rear or pos < self.front)) or\
-                (self.rear < self.front and pos > self.rear and pos < self.front) or (index >= self.size-1 or index < 0))
+        return not ((self.rear >= self.front and (pos > self.rear or pos < self.front)) or (self.rear < self.front and pos > self.rear and pos < self.front) or (index >= self.size-1 or index < 0))
 
     def enqueue(self, item):
         """进队"""
