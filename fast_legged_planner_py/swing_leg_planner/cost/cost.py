@@ -111,7 +111,7 @@ class CollisionCost(CostBase):
         super().__init__()
         self.spline = spline
         self.interface = interface
-        self.sdf_margin = 0.1
+        self.sdf_margin = 0.2
 
         self.resolution = 10
         self.ts = np.linspace(

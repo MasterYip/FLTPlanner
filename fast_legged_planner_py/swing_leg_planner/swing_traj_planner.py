@@ -21,7 +21,7 @@ class SwingTrajPlanner(object):
         self.robot_interface = robot_interface
         pass
 
-    def opt_traj(self, default_traj, torso_traj=None, ret=False):
+    def opt_traj(self, default_traj, torso_traj=None, maxiter=30, ret=False):
         """Get the swing trajectory
         :param default_traj: default swing trajectory (with time) (param by reference)
         :param torso_traj: torso trajectory (with time)
@@ -33,6 +33,6 @@ class SwingTrajPlanner(object):
             CollisionCost(spline, self.map_interface)
         ])
         TrajOptProblem(spline, costs, None,
-                       spline.knots).optimize()
+                       spline.knots).optimize(maxiter=maxiter)
         if ret:
             return spline

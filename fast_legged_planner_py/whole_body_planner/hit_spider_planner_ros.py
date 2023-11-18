@@ -2,12 +2,13 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-17 11:44:52
 LastEditors: NUC12
-LastEditTime: 2023-11-18 22:30:10
+LastEditTime: 2023-11-18 22:38:35
 FilePath: \\Fast-Legged-Planner-Test\\fast_legged_planner_py\\whole_body_planner\\hit_spider_planner_ros.py
 Description: file content
 '''
 #!/usr/bin/env python
 # coding=utf-8
+from turtle import pos
 import numpy as np
 from abc import abstractmethod, ABCMeta
 import pinocchio as pin
@@ -45,12 +46,22 @@ class HITSpiderStateTraj(object):
             self.state1.support_State_Now[i] == 0 for i in range(6)]
         # Default swing trajectory
         v = np.array([0, 0, 0.8])
+        dh = 0.5
         for i in range(6):
             if self.swingtraj_isneeded[i]:
+                # 2 Knots
+                # self.swingtraj[i] = HermiteSpline(
+                #     np.array([self.footpos_list0[i], v, self.footpos_list1[i], -v]))
+
+                # 3 Knots
+                v_mid = (self.footpos_list1[i]-self.footpos_list0[i])*0.5
+                pos_mid = (
+                    self.footpos_list0[i]+self.footpos_list1[i])+np.array([0, 0, dh])
                 self.swingtraj[i] = HermiteSpline(
-                    np.array([self.footpos_list0[i], v, self.footpos_list1[i], -v]))
+                    np.array([self.footpos_list0[i], v, pos_mid, v_mid, self.footpos_list1[i], -v]))
 
     # Traj evaluation
+
     def eval_torso_traj(self, t):
         """Evaluate torso trajectory at time t
         Args:
