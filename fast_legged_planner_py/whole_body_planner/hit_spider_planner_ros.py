@@ -2,8 +2,8 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-17 11:44:52
 LastEditors: NUC12
-LastEditTime: 2023-11-17 15:24:22
-FilePath: \Fast-Legged-Planner-Test\fast_legged_planner_py\whole_body_planner\hit_spider_planner_ros.py
+LastEditTime: 2023-11-18 22:30:10
+FilePath: \\Fast-Legged-Planner-Test\\fast_legged_planner_py\\whole_body_planner\\hit_spider_planner_ros.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -67,6 +67,7 @@ class HITSpiderStateTraj(object):
     def eval_foot_traj(self, t, auto_opt=True):
         """
         Evaluate foot position between state0 and state1
+        :param t: normalized interpolation time (from 0 to 1)
         """
         footend_interp = []
         for i in range(6):
@@ -74,7 +75,7 @@ class HITSpiderStateTraj(object):
                 # TODO: Note: traj should be optimized parallelly, this is just a temporary solution
                 if not self.swingtraj_isopt[i] and auto_opt:
                     self.opt_swing_traj(i)
-                footend_interp.append(self.swingtraj[i].evaluate(t))
+                footend_interp.append(self.swingtraj[i].evaluate_normalized(t))
             else:
                 footend_interp.append(self.footpos_list0[i])
         return footend_interp
@@ -113,14 +114,14 @@ class HITSpiderWholeBodyPlanner(WholeBodyPlanner):
 
     def get_state_traj(self, index):
         return self.state_trajs.at(index)
-    
+
     def get_state_traj_length(self):
         return self.state_trajs.get_length()
 
     # Visualization
     def get_foot_traj(self, t, point_num=80, delta=0.05):
         """Get foot trajectory
-        :param t: interpolation time
+        :param t: normalized interpolation time
         :param point_num: number of points in the trajectory
         :param delta: time interval between two points
         :return: foot trajectory list (6xpoint_num)

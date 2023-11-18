@@ -1,9 +1,9 @@
 '''
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
-LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-16 16:59:00
-FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/traj_gen/traj_gen.py
+LastEditors: NUC12
+LastEditTime: 2023-11-18 22:26:17
+FilePath: \\Fast-Legged-Planner-Test\\fast_legged_planner_py\\swing_leg_planner\\traj_gen\\traj_gen.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
@@ -133,10 +133,19 @@ class HermiteSpline(SplineBase):
             return cubic_evaluate(self.knots[-4:], 1, self.para_mat)
         return cubic_evaluate(self.knots[index:index+4], t-int(t), self.para_mat)
 
+    def evaluate_normalized(self, t_norm):
+        """Evaluate spline at normalized parameter t
+        :param t_norm: normalized parameter t
+        """
+        return self.evaluate(t_norm*(self.t_range[1]-self.t_range[0])+self.t_range[0])
+
     def update(self, knots):
         self.knots = knots
         self.n = knots.shape[0]  # Hermite case: pos poitns = n/2
         self.t_range = [0, self.n//2-1]
+
+    def get_range(self):
+        return self.t_range
 
     def get_poslist(self):
         return self.knots[::2]
