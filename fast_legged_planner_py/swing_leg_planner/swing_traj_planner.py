@@ -1,9 +1,9 @@
 '''
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 21:49:12
-LastEditors: NUC12
-LastEditTime: 2023-11-17 11:43:30
-FilePath: \Fast-Legged-Planner-Test\fast_legged_planner_py\swing_leg_planner\swing_traj_planner.py
+LastEditors: RaymonYip-NUC11
+LastEditTime: 2023-11-19 12:21:38
+FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/swing_traj_planner.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -21,7 +21,7 @@ class SwingTrajPlanner(object):
         self.robot_interface = robot_interface
         pass
 
-    def opt_traj(self, default_traj, torso_traj=None, maxiter=30, ret=False):
+    def opt_traj(self, default_traj, torso_traj=None, maxiter=20, ret=False):
         """Get the swing trajectory
         :param default_traj: default swing trajectory (with time) (param by reference)
         :param torso_traj: torso trajectory (with time)
@@ -29,8 +29,8 @@ class SwingTrajPlanner(object):
 
         spline = default_traj
         costs = CostCollection([
-            KinematicCost(spline),
-            CollisionCost(spline, self.map_interface)
+            KinematicCost(spline, 1),
+            CollisionCost(spline, self.map_interface, 1)
         ])
         TrajOptProblem(spline, costs, None,
                        spline.knots).optimize(maxiter=maxiter)

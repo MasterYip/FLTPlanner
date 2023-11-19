@@ -2,12 +2,13 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 10:25:09
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-16 17:00:53
+LastEditTime: 2023-11-19 12:25:08
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/cost/cost.py
 Description: file content
 '''
 #!/usr/bin/env python
 # coding=utf-8
+from typing_extensions import deprecated
 import numpy as np
 from abc import abstractmethod, ABCMeta
 from ..traj_gen.traj_gen import SplineBase, HermiteSpline
@@ -72,9 +73,10 @@ class CostCollection(object):
 
 
 class KinematicCost(CostBase):
-    def __init__(self, spline: HermiteSpline):
+    def __init__(self, spline: HermiteSpline, weight=1.):
         super().__init__()
         self.spline = spline
+        self.weight = weight
 
     def get_length_cost(self):
         cost = 0
@@ -84,14 +86,32 @@ class KinematicCost(CostBase):
         return cost
 
     def get_vel_cost(self):
+        return self.vel_cost_cardinal()+self.vel_cost_diff()+self.vel_cost_endpoint_vertical()*0.8
+
+    def vel_cost_endpoint_vertical(self):
+        vel_list = self.spline.get_vellist()
+        return np.linalg.norm(vel_list[0][:2])/np.linalg.norm(vel_list[0])+np.linalg.norm(vel_list[-1][:2])/np.linalg.norm(vel_list[-1])
+
+    # @deprecated
+    def vel_cost_diff(self):
         cost = 0
         vel_list = self.spline.get_vellist()
         for i in range(vel_list.shape[0]-1):
             cost += np.linalg.norm(vel_list[i]-vel_list[i+1])
         return cost
 
+    def vel_cost_cardinal(self, scale=0.5):
+        cost = 0
+        vel_list = self.spline.get_vellist()
+        pos_list = self.spline.get_poslist()
+        # check_num = 1 + vel_list.shape[0]-2  # Make sure it is not zero
+        for i in range(1, vel_list.shape[0]-1):
+            cost += np.linalg.norm((pos_list[i+1] -
+                                   pos_list[i-1])*scale - vel_list[i])
+        return cost
+
     def get_cost(self, state):
-        return self.get_length_cost() + self.get_vel_cost()
+        return (self.get_length_cost() + self.get_vel_cost())*self.weight
 
     # def get_cost_derivative(self, state):
     #     derivative = []
@@ -102,7 +122,7 @@ class KinematicCost(CostBase):
 
 class CollisionCost(CostBase):
 
-    def __init__(self, spline: HermiteSpline, interface):
+    def __init__(self, spline: HermiteSpline, interface, weight=1.):
         # def __init__(self, spline: HermiteSpline, interface: GridMap_Interface):
         """
         :param spline: spline to be evaluated (reference)
@@ -111,7 +131,8 @@ class CollisionCost(CostBase):
         super().__init__()
         self.spline = spline
         self.interface = interface
-        self.sdf_margin = 0.2
+        self.weight = weight
+        self.sdf_margin = 0.1
 
         self.resolution = 10
         self.ts = np.linspace(
@@ -122,13 +143,14 @@ class CollisionCost(CostBase):
         cost = 0
         # for p in self.spline.get_poslist():
         # TODO: waiting for Spline.evaluate optimization
-        for p in [self.spline.evaluate(t) for t in self.ts]:
+        # Remove endpoints collision cost
+        for p in [self.spline.evaluate(t) for t in self.ts[1:-1]]:
             c = self.sdf_margin - self.interface.sdf_value(p)
             if c > 0:
                 cost += c
-        return cost
+        return cost/self.resolution*self.weight
 
-    # FIXME:
+    # FIXME: Not used
     def get_cost_derivative(self):
         derivative = []
         for p in self.spline.get_poslist():

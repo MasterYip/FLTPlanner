@@ -46,7 +46,7 @@ class HITSpiderStateTraj(object):
             self.state1.support_State_Now[i] == 0 for i in range(6)]
         # Default swing trajectory
         v = np.array([0, 0, 0.8])
-        dh = 0.5
+        dh = 0.3
         for i in range(6):
             if self.swingtraj_isneeded[i]:
                 # 2 Knots
@@ -56,7 +56,7 @@ class HITSpiderStateTraj(object):
                 # 3 Knots
                 v_mid = (self.footpos_list1[i]-self.footpos_list0[i])*0.5
                 pos_mid = (
-                    self.footpos_list0[i]+self.footpos_list1[i])+np.array([0, 0, dh])
+                    self.footpos_list0[i]+self.footpos_list1[i])*0.5+np.array([0, 0, dh])
                 self.swingtraj[i] = HermiteSpline(
                     np.array([self.footpos_list0[i], v, pos_mid, v_mid, self.footpos_list1[i], -v]))
 
