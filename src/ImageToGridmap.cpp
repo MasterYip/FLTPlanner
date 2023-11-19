@@ -45,11 +45,14 @@ void ImageToGridmapDemo::imageCallback(const sensor_msgs::Image& msg)
   }
   grid_map::GridMapRosConverter::addLayerFromImage(msg, "elevation", map_, minHeight_, maxHeight_);
   grid_map::GridMapRosConverter::addColorLayerFromImage(msg, "color", map_);
+  map_.setFrameId(mapFrameId_);
+  map_.add("normal_x");
+  map_.add("normal_y");
+  map_.add("normal_z");
 
   // Publish as grid map.
   grid_map_msgs::GridMap mapMessage;
   grid_map::GridMapRosConverter::toMessage(map_, mapMessage);
-  mapMessage.info.header.frame_id = mapFrameId_;
   gridMapPublisher_.publish(mapMessage);
 }
 

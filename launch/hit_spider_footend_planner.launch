@@ -2,19 +2,22 @@
 
     <!-- Settings -->
     <!-- value: image/txt -->
-    <arg name="grid_map_fmt" value="txt" />
+    <arg name="grid_map_fmt" value="image" />
     <!-- GridMap -->
     <!-- image to gridmap -->
-    <arg name="grid_map_file" value="$(find fast_legged_planner)/data/heightmap_generated.png" />
+    <arg name="grid_map_file" value="$(find fast_legged_planner)/data/terrain.png" />
     <!-- txt to gridmap -->
     <param name="terrain_file" value="$(find fast_legged_planner)/data/terrain4.txt" />
 
     <param name="grid_map_topic" value="grid_map" />
     <param name="point_cloud_topic" value="point_cloud" />
     <!-- elevation_layer name is setted in grid_map_pub.cpp (ghost value needed being handled) -->
-    <!-- <param name="elevation_layer" value="elevation" /> -->
-    <param name="elevation_layer" value="3D_feeling" />  <!-- This is needed when using txt files -->
-
+    <group if="$(eval grid_map_fmt=='image')">
+        <param name="elevation_layer" value="elevation" />
+    </group>
+    <group if="$(eval grid_map_fmt=='txt')">
+        <param name="elevation_layer" value="3D_feeling" />  <!-- This is needed when using txt files -->
+    </group>
 
     <!-- Launch -->
     <!-- Foot traj Planner -->
