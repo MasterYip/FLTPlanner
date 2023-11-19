@@ -2,7 +2,7 @@
 
     <!-- Settings -->
     <!-- value: image/txt -->
-    <arg name="grid_map_fmt" value="image" />
+    <arg name="grid_map_fmt" value="txt" />
     <!-- GridMap -->
     <!-- image to gridmap -->
     <arg name="grid_map_file" value="$(find fast_legged_planner)/data/heightmap_generated.png" />
@@ -12,8 +12,8 @@
     <param name="grid_map_topic" value="grid_map" />
     <param name="point_cloud_topic" value="point_cloud" />
     <!-- elevation_layer name is setted in grid_map_pub.cpp (ghost value needed being handled) -->
-    <param name="elevation_layer" value="elevation" />
-    <!-- <param name="elevation_layer" value="3D_feeling" /> -->
+    <!-- <param name="elevation_layer" value="elevation" /> -->
+    <param name="elevation_layer" value="3D_feeling" />  <!-- This is needed when using txt files -->
 
 
     <!-- Launch -->
