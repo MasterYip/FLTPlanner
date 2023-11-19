@@ -15,7 +15,9 @@ class GridMap_Interface(object):
         self.grid_map = GridMap()
         self.sdf = None
 
-        self.elevation_layer = "3D_feeling"
+        # FIXME
+        self.elevation_layer = rospy.get_param(
+            "elevation_layer", "elevation")
 
     def callback(self, msg):
         self.msg = msg

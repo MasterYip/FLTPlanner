@@ -181,9 +181,9 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-
 add_library(${PROJECT_NAME}
   src/SdfPub.cpp
+  src/ImageToGridmap.cpp
 )
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
@@ -193,6 +193,13 @@ add_executable(grid_map_pub src/grid_map_pub.cpp)
 # add_dependencies(grid_map_pub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(grid_map_pub
   ${catkin_LIBRARIES}
+)
+
+add_executable(image_to_gridmap src/image_to_gridmap_node.cpp)
+# add_dependencies(grid_map_pub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(image_to_gridmap
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
 )
 
 add_executable(sdf_pub src/sdf_pub_node.cpp)
@@ -213,6 +220,8 @@ target_link_libraries(sdf_pub
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/hit_spider_planner.py
+  scripts/image_publisher.py
+
   scripts/gridmap_sub.py
   scripts/pointcloud_parser.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

@@ -10,7 +10,6 @@ grid_map_visualizations:
       line_width: 0.005
       color: 15600153 # red
 
-
   # - name: elevation_points
   #   type: point_cloud
   #   params:

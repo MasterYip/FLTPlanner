@@ -1,27 +1,51 @@
 <launch>
 
+    <!-- Settings -->
+    <!-- value: image/txt -->
+    <arg name="grid_map_fmt" value="image" />
+    <!-- GridMap -->
+    <!-- image to gridmap -->
+    <arg name="grid_map_file" value="$(find fast_legged_planner)/data/heightmap_generated.png" />
+    <!-- txt to gridmap -->
+    <param name="terrain_file" value="$(find fast_legged_planner)/data/terrain4.txt" />
+
+    <param name="grid_map_topic" value="grid_map" />
+    <param name="point_cloud_topic" value="point_cloud" />
+    <!-- elevation_layer name is setted in grid_map_pub.cpp (ghost value needed being handled) -->
+    <param name="elevation_layer" value="elevation" />
+    <!-- <param name="elevation_layer" value="3D_feeling" /> -->
+
+
+    <!-- Launch -->
+    <!-- Foot traj Planner -->
+    <node pkg="fast_legged_planner" type="hit_spider_planner.py" name="footend_planner" output="screen" />
+
+    <!-- GridMap -->
+    <group if="$(eval grid_map_fmt=='image')">
+        <!-- <rosparam command="load" file="$(find grid_map_demos)/config/image_to_gridmap_demo.yaml" /> -->
+
+        <!-- Load the image. -->
+        <node pkg="fast_legged_planner" type="image_publisher.py" name="image_publisher" output="screen">
+            <param name="image_path" value="$(arg grid_map_file)" />
+            <param name="topic" value="~image" />
+        </node>
+        <node pkg="fast_legged_planner" type="image_to_gridmap" name="image_to_gridmap" output="screen">
+            <rosparam command="load" file="$(find fast_legged_planner)/config/image_to_gridmap.yaml" />
+        </node>
+    </group>
+    <group if="$(eval grid_map_fmt=='txt')">
+        <node pkg="fast_legged_planner" type="grid_map_pub" name="grid_map_pub" output="screen"/>
+    </group>
+    <!-- sdf_pub for SDF visualization (pointcloud) -->
+    <node pkg="fast_legged_planner" type="sdf_pub" name="sdf_pub" output="screen"/>
+    <node pkg="grid_map_visualization" type="grid_map_visualization" name="grid_map_visualization" output="screen">
+        <rosparam command="load" file="$(find fast_legged_planner)/config/mapVisual.yaml" />
+    </node>
+
     <!-- Robot related -->
     <param name="robot_description" command="$(find xacro)/xacro $(find fast_legged_planner)/model/hit_spider/xacro/EISpider.xacro" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
     <!-- Rviz -->
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_legged_planner)/config/walking_rviz.rviz" output="screen" />
-
-    <!-- Foot end Planner -->
-    <node pkg="fast_legged_planner" type="hit_spider_planner.py" name="footend_planner" output="screen" />
-
-    <!-- GridMap Pub -->
-    <param name="terrain_file" value="$(find fast_legged_planner)/data/terrain4.txt" />
-    <param name="grid_map_topic" value="grid_map" />
-    <param name="point_cloud_topic" value="point_cloud" />
-    <!-- elevation_layer name is setted in grid_map_pub (ghost value needed being handled) -->
-    <!-- <param name="elevation_layer" value="elevation" /> -->
-    <param name="elevation_layer" value="3D_feeling" />
-
-    <node pkg="fast_legged_planner" type="grid_map_pub" name="grid_map_pub" output="screen"/>
-    <node pkg="fast_legged_planner" type="sdf_pub" name="sdf_pub" output="screen"/>
-
-    <node pkg="grid_map_visualization" type="grid_map_visualization" name="grid_map_visualization" output="screen">
-        <rosparam command="load" file="$(find fast_legged_planner)/config/mapVisual.yaml" />
-    </node>
 
 </launch>
