@@ -45,6 +45,8 @@ class TrajOptProblem(object):
         #                           maxiter=maxiter, full_output=False)).reshape(-1, 3)
         opt_state = np.array(fmin_bfgs(self.get_cost, self.initial_guess, fprime=self.get_cost_derivative if use_fprime else None,
                                        maxiter=maxiter, full_output=False, disp=disp)).reshape(-1, 3)
+        # NOTE: This enable consecutive optimization
+        self.initial_guess = opt_state
         # Fix the start and end point
         # opt_state[0, :] = self.initial_guess[0, :]
         # opt_state[-2, :] = self.initial_guess[-2, :]
