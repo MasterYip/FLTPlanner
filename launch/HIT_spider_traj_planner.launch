@@ -1,4 +1,5 @@
 <launch>
+    <!-- HIT Spider MCTs + foot trajectory optimization -->
 
     <!-- Settings -->
     <!-- value: image/txt -->

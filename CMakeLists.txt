@@ -220,6 +220,7 @@ target_link_libraries(sdf_pub
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/hit_spider_planner.py
+  scripts/traj_opt_demo.py
   scripts/image_publisher.py
 
   scripts/gridmap_sub.py

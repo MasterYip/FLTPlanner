@@ -24,7 +24,10 @@ class GridMap_Interface(object):
         if self.sdf is None:
             self.update()
 
-    def update(self):
+    def update(self, block=True):
+        while self.msg.data == []:
+            rospy.logwarn("GridMap_Interface - GridMap is not subscribed!")
+            rospy.sleep(0.5)
         self.update_gridmap()
         self.update_sdf(self.elevation_layer)
 

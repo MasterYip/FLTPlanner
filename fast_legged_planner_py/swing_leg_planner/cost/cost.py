@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 10:25:09
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-19 20:49:03
+LastEditTime: 2023-11-20 14:31:13
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/cost/cost.py
 Description: file content
 '''
@@ -134,7 +134,7 @@ class CollisionCost(CostBase):
         self.weight = weight
         self.sdf_margin = 0.1
 
-        self.resolution = 20
+        self.resolution = 40
         self.ts = np.linspace(
             self.spline.t_range[0], self.spline.t_range[1], self.resolution)
         pass
