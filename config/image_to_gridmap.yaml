@@ -2,4 +2,4 @@ image_topic: "/image_publisher/image"
 resolution: 0.05
 map_frame_id: "odom"
 min_height: 0
-max_height: 1
+max_height: 0.5

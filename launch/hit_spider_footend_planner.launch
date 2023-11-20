@@ -5,7 +5,7 @@
     <arg name="grid_map_fmt" value="image" />
     <!-- GridMap -->
     <!-- image to gridmap -->
-    <arg name="grid_map_file" value="$(find fast_legged_planner)/data/terrain.png" />
+    <arg name="grid_map_file" value="$(find fast_legged_planner)/data/Terrain1.png" />
     <!-- txt to gridmap -->
     <param name="terrain_file" value="$(find fast_legged_planner)/data/terrain4.txt" />
 

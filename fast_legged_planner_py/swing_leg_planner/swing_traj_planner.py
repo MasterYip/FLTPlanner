@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 21:49:12
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-19 12:21:38
+LastEditTime: 2023-11-19 20:49:23
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/swing_traj_planner.py
 Description: file content
 '''
@@ -29,8 +29,8 @@ class SwingTrajPlanner(object):
 
         spline = default_traj
         costs = CostCollection([
-            KinematicCost(spline, 1),
-            CollisionCost(spline, self.map_interface, 1)
+            # KinematicCost(spline, 1),
+            CollisionCost(spline, self.map_interface, 10)
         ])
         TrajOptProblem(spline, costs, None,
                        spline.knots).optimize(maxiter=maxiter)

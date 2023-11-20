@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 10:25:09
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-19 12:25:08
+LastEditTime: 2023-11-19 20:49:03
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/cost/cost.py
 Description: file content
 '''
@@ -134,7 +134,7 @@ class CollisionCost(CostBase):
         self.weight = weight
         self.sdf_margin = 0.1
 
-        self.resolution = 10
+        self.resolution = 20
         self.ts = np.linspace(
             self.spline.t_range[0], self.spline.t_range[1], self.resolution)
         pass
@@ -148,7 +148,8 @@ class CollisionCost(CostBase):
             c = self.sdf_margin - self.interface.sdf_value(p)
             if c > 0:
                 cost += c
-        return cost/self.resolution*self.weight
+        # print("Collision cost: ", cost)
+        return cost*self.weight/self.resolution
 
     # FIXME: Not used
     def get_cost_derivative(self):
