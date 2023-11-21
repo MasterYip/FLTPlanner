@@ -33,11 +33,11 @@ class TrajOptProblem(object):
         # Fix the start and end point pos&vel
         # state[0:1, :] = self.initial_guess[0:1, :]
         # state[-2:, :] = self.initial_guess[-2:, :]
-        self.spline.update(state)
+        self.spline.set(state)
         return self.costs.get_cost(state)
 
     def get_cost_derivative(self, state):
-        self.spline.update(state)
+        self.spline.set(state)
         return self.costs.get_cost_derivative(state)
 
     def optimize(self, use_fprime=False, maxiter=100, disp=False):

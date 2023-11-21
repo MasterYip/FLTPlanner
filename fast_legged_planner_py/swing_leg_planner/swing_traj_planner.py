@@ -33,6 +33,6 @@ class SwingTrajPlanner(object):
             CollisionCost(spline, self.map_interface, 10)
         ])
         TrajOptProblem(spline, costs, None,
-                       spline.knots).optimize(maxiter=maxiter)
+                       spline.get()).optimize(maxiter=maxiter)
         if ret:
             return spline

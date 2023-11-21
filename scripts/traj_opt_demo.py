@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-21 11:41:40
+LastEditTime: 2023-11-21 16:34:26
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -60,7 +60,7 @@ class TrajOptDemo(object):
             CollisionCost(self.spline, self.map_interface, 10)
         ])
         self.prob = TrajOptProblem(self.spline, self.costs, None,
-                                   self.spline.knots)
+                                   self.spline.get())
         while (not rospy.is_shutdown() and cnt < maxiter):
             self.viz_traj()
             self.prob.optimize(maxiter=1)
@@ -83,5 +83,5 @@ if __name__ == "__main__":
     rospy.sleep(1)
     demo.spline.insert_normalized(np.linspace(0, 1, 5)[1:-1])
     demo.viz_traj()
-    # demo.optimize_viz()
+    demo.optimize_viz()
     rospy.spin()
