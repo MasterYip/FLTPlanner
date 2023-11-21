@@ -2,8 +2,8 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 10:25:09
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-20 14:31:13
-FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/cost/cost.py
+LastEditTime: 2023-11-21 11:02:40
+FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//cost//cost.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -78,13 +78,25 @@ class KinematicCost(CostBase):
         self.spline = spline
         self.weight = weight
 
-    def get_length_cost(self):
+    # Pos Cost
+    def get_pos_cost(self):
+        return self.pos_cost_length()+self.pos_cost_distance_diff()*0.3
+
+    def pos_cost_length(self):
         cost = 0
         pos_list = self.spline.get_poslist()
         for i in range(pos_list.shape[0]-1):
             cost += np.linalg.norm(pos_list[i]-pos_list[i+1])
         return cost
 
+    def pos_cost_distance_diff(self):
+        cost = 0
+        pos_list = self.spline.get_poslist()
+        for i in range(pos_list.shape[0]-2):
+            cost += np.linalg.norm(pos_list[i]+pos_list[i+2]-2*pos_list[i+1])
+        return cost
+
+    # Vel Cost
     def get_vel_cost(self):
         return self.vel_cost_cardinal()+self.vel_cost_diff()+self.vel_cost_endpoint_vertical()*0.8
 
@@ -92,7 +104,6 @@ class KinematicCost(CostBase):
         vel_list = self.spline.get_vellist()
         return np.linalg.norm(vel_list[0][:2])/np.linalg.norm(vel_list[0])+np.linalg.norm(vel_list[-1][:2])/np.linalg.norm(vel_list[-1])
 
-    # @deprecated
     def vel_cost_diff(self):
         cost = 0
         vel_list = self.spline.get_vellist()
@@ -110,8 +121,9 @@ class KinematicCost(CostBase):
                                    pos_list[i-1])*scale - vel_list[i])
         return cost
 
+    # Interface
     def get_cost(self, state):
-        return (self.get_length_cost() + self.get_vel_cost())*self.weight
+        return (self.get_pos_cost() + self.get_vel_cost())*self.weight
 
     # def get_cost_derivative(self, state):
     #     derivative = []
@@ -134,22 +146,37 @@ class CollisionCost(CostBase):
         self.weight = weight
         self.sdf_margin = 0.1
 
+        # cost_sample_points
         self.resolution = 40
         self.ts = np.linspace(
             self.spline.t_range[0], self.spline.t_range[1], self.resolution)
         pass
 
-    def get_cost(self, state=None):
+    def point_collision_cost(self, p):
+        c = self.sdf_margin - self.interface.sdf_value(p)
         cost = 0
-        # for p in self.spline.get_poslist():
+        if c > self.sdf_margin:
+            cost = c**2 + c
+        elif c > 0:
+            cost = c
+        return cost
+
+    def cost_sample_points(self):
+        cost = 0
         # TODO: waiting for Spline.evaluate optimization
         # Remove endpoints collision cost
         for p in [self.spline.evaluate(t) for t in self.ts[1:-1]]:
-            c = self.sdf_margin - self.interface.sdf_value(p)
-            if c > 0:
-                cost += c
-        # print("Collision cost: ", cost)
-        return cost*self.weight/self.resolution
+            cost += self.point_collision_cost(p)
+        return cost/self.resolution  # FIXME: should not be divided by resolution
+
+    def cost_knot(self):
+        cost = 0
+        for p in self.spline.get_poslist()[1:-1]:
+            cost += self.point_collision_cost(p)
+        return cost
+
+    def get_cost(self, state=None):
+        return (self.cost_knot())*self.weight
 
     # FIXME: Not used
     def get_cost_derivative(self):

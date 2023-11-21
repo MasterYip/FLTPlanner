@@ -35,6 +35,22 @@ def get_curve_marker(points: list, frame_id: str, namespace: str,
     return marker
 
 
+def get_points_marker(points: list, frame_id: str, namespace: str,
+                      color: ColorRGBA = COLOR_RED, scale: Vector3 = SCALE_MEDIUM):
+    marker = Marker()
+    marker.header.frame_id = frame_id
+    marker.header.stamp = rospy.Time.now()
+    marker.ns = namespace
+
+    marker.action = Marker.ADD
+    marker.type = Marker.POINTS
+    marker.pose.orientation.w = 1.0
+    marker.scale = scale
+    marker.color = color
+    marker.points = [Point(x, y, z) for x, y, z in points]
+    return marker
+
+
 def get_spheres_marker(points: list, frame_id: str, namespace: str,
                        color: ColorRGBA = COLOR_RED, scale: Vector3 = SCALE_MEDIUM):
     marker = Marker()
@@ -63,6 +79,15 @@ class TrajViz(object):
                   linewidth: float = SCALE_SMALL.x):
         marker = get_curve_marker(
             points, self.frame_id, namespace, color, linewidth)
+        marker.id = self.id_cnt
+        self.id_cnt += 1
+        self.msg.markers.append(marker)
+
+    def add_points(self, points: list, namespace: str = "default_points",
+                   color: ColorRGBA = COLOR_RED,
+                   scale: Vector3 = SCALE_MEDIUM):
+        marker = get_points_marker(
+            points, self.frame_id, namespace, color, scale)
         marker.id = self.id_cnt
         self.id_cnt += 1
         self.msg.markers.append(marker)

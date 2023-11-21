@@ -161,7 +161,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 0; 0; 0
       Min Color: 239; 41; 41
@@ -176,13 +176,14 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /traj_opt
       Name: FootTraj
       Namespaces:
         default_curve: true
+        default_foothold: true
       Queue Size: 100
       Value: true
   Enabled: true
