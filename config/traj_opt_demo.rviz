@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /SDF1
         - /FootTraj1
       Splitter Ratio: 0.5
     Tree Height: 667
@@ -149,7 +150,7 @@ Visualization Manager:
       Unreliable: false
       Use ColorMap: true
       Value: false
-    - Alpha: 0.6000000238418579
+    - Alpha: 0.4000000059604645
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 0.5
@@ -214,7 +215,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.8351712226867676
+      Distance: 2.794344902038574
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -222,17 +223,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.21030068397521973
-        Y: -1.0718224048614502
-        Z: 0.5288731455802917
+        X: -0.22166049480438232
+        Y: -0.8778478503227234
+        Z: 0.5159963965415955
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.08979763835668564
+      Pitch: 0.15479770302772522
       Target Frame: <Fixed Frame>
-      Yaw: 4.291381359100342
+      Yaw: 4.456390380859375
     Saved: ~
 Window Geometry:
   Displays:

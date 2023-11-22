@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-22 20:58:07
+LastEditTime: 2023-11-22 21:27:42
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -64,7 +64,7 @@ class TrajOptDemo(object):
         self.map_interface = GridMap_Interface()
         self.map_interface.update()
 
-    def optimize_viz(self, maxiter=20):
+    def optimize_viz(self, maxiter=10):
         cnt = 0
         # self.costs = CostCollection([
         #     KinematicCost(self.spline, 0.3),
@@ -75,7 +75,7 @@ class TrajOptDemo(object):
         self.prob = UniBSplineOptProb(self.spline, self.map_interface)
         while self.prob.get_max_collision_index() is not None and rospy.is_shutdown() is False:
             if cnt > 0:
-                self.spline.insert(self.prob.get_max_collision_index())
+                self.spline.insert(self.prob.get_max_collision_index(), normalized=True)
                 rospy.logwarn("Insert knot at %f for further opt." % self.prob.get_first_collision_index())
             cnt = 0
             while (not rospy.is_shutdown() and cnt < maxiter):
@@ -97,7 +97,7 @@ class TrajOptDemo(object):
 if __name__ == "__main__":
     demo = TrajOptDemo()
     demo.viz_traj()
-    rospy.sleep(0.5)
+    rospy.sleep(5)
     # demo.spline.insert_normalized(np.linspace(0, 1, 5)[1:-1])
     demo.viz_traj()
     demo.optimize_viz()
