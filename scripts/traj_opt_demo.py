@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-22 19:38:57
+LastEditTime: 2023-11-22 20:58:07
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -24,9 +24,9 @@ from fast_legged_planner_py.utils.rviz_vis.traj_viz import TrajViz, COLOR_GREEN,
 
 
 def get_1stage_traj():
-    p_start = np.array([-0.6, 0.5, 0])
-    p_end = np.array([0.6, -0.5, 0])
-    v = np.array([0, 0, 0])
+    p_start = np.array([-1.4, 1, 0])
+    p_end = np.array([0.3, -1, 0])
+    v = np.array([0, 0, 1])
     return HermiteSpline(
         np.array([p_start, v, p_end, -v]))
 
@@ -73,12 +73,17 @@ class TrajOptDemo(object):
         # self.prob = HermiteOptProb(self.spline, self.costs, None,
         #                            self.spline.get())
         self.prob = UniBSplineOptProb(self.spline, self.map_interface)
-        while (not rospy.is_shutdown() and cnt < maxiter):
-            self.viz_traj()
-            self.prob.optimize(maxiter=1, use_fprime=False, disp=False)
-            self.rate.sleep()
-            cnt += 1
-            rospy.loginfo("Optimize %d times" % cnt)
+        while self.prob.get_max_collision_index() is not None and rospy.is_shutdown() is False:
+            if cnt > 0:
+                self.spline.insert(self.prob.get_max_collision_index())
+                rospy.logwarn("Insert knot at %f for further opt." % self.prob.get_first_collision_index())
+            cnt = 0
+            while (not rospy.is_shutdown() and cnt < maxiter):
+                self.viz_traj()
+                self.prob.optimize(maxiter=1, use_fprime=False, disp=False)
+                self.rate.sleep()
+                cnt += 1
+                rospy.loginfo("Optimize %d times" % cnt)
 
     def viz_traj(self):
         self.traj_viz.add_curve([self.spline.evaluate(t, normalized=True)
