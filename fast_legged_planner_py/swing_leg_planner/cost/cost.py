@@ -71,7 +71,7 @@ class CostCollection(object):
             derivative += cost_i.get_cost_derivative(state)
         return derivative
 
-
+@deprecated("Needs moved to traj_opt")
 class KinematicCost(CostBase):
     def __init__(self, spline: HermiteSpline, weight=1.):
         super().__init__()
@@ -131,7 +131,7 @@ class KinematicCost(CostBase):
     #         derivative.append(p / np.linalg.norm(p))
     #     return np.array(derivative)
 
-
+@deprecated("Needs moved to traj_opt")
 class CollisionCost(CostBase):
 
     def __init__(self, spline: HermiteSpline, interface, weight=1.):

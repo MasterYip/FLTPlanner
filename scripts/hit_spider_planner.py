@@ -9,7 +9,7 @@ from fast_legged_planner_py.perception_interface.gridmap_interface_ros import Gr
 from fast_legged_planner_py.robot_interface.hitspider_robotinterface_ros import HITSpider_RobotInterface_ROS, \
     FeetPos2PosList, XYZRPY2SE3, point_SE3Act
 from fast_legged_planner_py.swing_leg_planner.cost.cost import CostCollection, KinematicCost, CollisionCost
-from fast_legged_planner_py.swing_leg_planner.traj_opt.traj_opt import TrajOptProblem
+from fast_legged_planner_py.swing_leg_planner.traj_opt.traj_opt import HermiteOptProb
 from fast_legged_planner_py.whole_body_planner.hit_spider_planner_ros import HITSpiderWholeBodyPlanner
 from fast_legged_planner.msg import hexapod_State
 

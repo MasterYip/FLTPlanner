@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-21 17:48:16
+LastEditTime: 2023-11-22 16:18:46
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_gen//traj_gen.py
 Description: file content
 '''
@@ -110,24 +110,37 @@ class SplineBase(object):
 
     params = None
 
+    # Methods
     @abstractmethod
     def evaluate(self, t: float, d_order: int = 0, normalized: bool = False):
-        raise NotImplementedError(
-            "Subclasses must implement the insert method")
+        """Evaluate spline at parameter t"""
+        pass
 
     @abstractmethod
     def set(self, params: np.ndarray):
-        raise NotImplementedError(
-            "Subclasses must implement the insert method")
+        """Set spline parameters (decision variables)"""
+        pass
 
     @abstractmethod
     def get(self):
-        raise NotImplementedError(
-            "Subclasses must implement the insert method")
+        """Get spline parameters (decision variables)"""
+        pass
 
+    @abstractmethod
     def insert(self, t):
-        raise NotImplementedError(
-            "Subclasses must implement the insert method")
+        """Insert knot at parameter t"""
+        pass
+
+    # Attrs
+    @abstractmethod
+    def get_range(self):
+        """Get spline parameter t range"""
+        pass
+
+    @abstractmethod
+    def get_dimen(self):
+        """Get spline dimension"""
+        pass
 
 
 class HermiteSpline(SplineBase):
@@ -153,8 +166,10 @@ class HermiteSpline(SplineBase):
         return self.params
 
     @override
-    def evaluate(self, t, eval_mode="pos"):
+    def evaluate(self, t, eval_mode="pos", normalized=False):
         # TODO: implement t_vec input
+        if normalized:
+            t = t*(self.t_range[1]-self.t_range[0])+self.t_range[0]
         if t < self.t_range[0] or t > self.t_range[1]:
             raise ValueError("Parameter t out of range")
         index = 2*int(t)
@@ -162,6 +177,7 @@ class HermiteSpline(SplineBase):
             return cubic_evaluate(self.params[-4:], 1, self.para_mat, eval_mode)
         return cubic_evaluate(self.params[index:index+4], t-int(t), self.para_mat, eval_mode)
 
+    @deprecated("Use evaluate instead")
     def evaluate_normalized(self, t_norm):
         """Evaluate spline at normalized parameter t
         :param t_norm: normalized parameter t
@@ -232,14 +248,15 @@ class UniBSpline(SplineBase):
 
     @override
     def set(self, params: np.ndarray):
-        self.params = params
+        self.params = np.array(params, dtype=np.float64)
         self.n = params.shape[0]
+        self.dimen = params.shape[1]
         self.t_range = [0, self.n-1]
+
         self._t = np.concatenate((np.zeros(self._k), np.arange(
             self.n), np.ones(self._k)*self.t_range[1]))
-        dimen = params.shape[1]
         self.bspline = interpolate.BSpline(self._t, np.concatenate(
-            (self.params[0].reshape(1, dimen), self.params, self.params[-1].reshape(1, dimen))), self._k)
+            (self.params[0].reshape(1, self.dimen), self.params, self.params[-1].reshape(1, self.dimen))), self._k)
 
     @override
     def get(self):
@@ -247,4 +264,54 @@ class UniBSpline(SplineBase):
 
     @override
     def evaluate(self, t, d_order: int = 0, normalized: bool = False):
+        """Evaluate spline at parameter t (TODO)
+
+        Args:
+            t (_type_): _description_
+            d_order (int, optional): _description_. Defaults to 0.
+            normalized (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            _type_: position
+        """
+        if normalized:
+            t = t*(self.t_range[1]-self.t_range[0])+self.t_range[0]
         return self.bspline(t)
+
+    @override
+    def insert(self, t, pos: np.ndarray = None, normalized: bool = False, insert_mode="interp"):
+        """Insert knot at parameter t
+
+        Args:
+            t (_type_): parameter t
+            pos (np.ndarray, optional): Insert position. Defaults to None.
+            normalized (bool, optional): Normalized parameter t. Defaults to False.
+            insert_mode (str, optional): Insert mode("interp" or "eval"), only used when pos is None. Defaults to "interp".
+        """
+        if normalized:
+            t = t*(self.t_range[1]-self.t_range[0])+self.t_range[0]
+        if pos is None:
+            if insert_mode == "eval":
+                pos = self.evaluate(t)
+            elif insert_mode == "interp":
+                # Use the linear interp of 2 knots
+                t_frac = t-int(t)
+                pos = self.params[int(t)]*(1-t_frac) + \
+                    self.params[int(t)+1]*t_frac
+            else:
+                raise ValueError("Invalid insert_mode")
+        self.set(np.insert(self.params, int(t)+1, pos, axis=0))
+
+    @override
+    def get_range(self):
+        return self.t_range
+
+    @override
+    def get_dimen(self):
+        return self.dimen
+
+    def get_n(self):
+        return self.n
+
+    def get_poslist(self):
+        return self.params.tolist()

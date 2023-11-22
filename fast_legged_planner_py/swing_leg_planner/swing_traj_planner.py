@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 21:49:12
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-20 16:15:18
+LastEditTime: 2023-11-22 15:13:02
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//swing_traj_planner.py
 Description: file content
 '''
@@ -11,7 +11,7 @@ Description: file content
 import numpy as np
 from ..perception_interface.gridmap_interface_ros import GridMap_Interface
 from .traj_gen.traj_gen import HermiteSpline
-from .traj_opt.traj_opt import TrajOptProblem
+from .traj_opt.traj_opt import HermiteOptProb
 from .cost.cost import CostCollection, KinematicCost, CollisionCost
 
 
@@ -32,7 +32,7 @@ class SwingTrajPlanner(object):
             KinematicCost(spline, 0.1),
             CollisionCost(spline, self.map_interface, 10)
         ])
-        TrajOptProblem(spline, costs, None,
+        HermiteOptProb(spline, costs, None,
                        spline.get()).optimize(maxiter=maxiter)
         if ret:
             return spline
