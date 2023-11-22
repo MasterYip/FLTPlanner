@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 21:49:12
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-22 15:13:02
+LastEditTime: 2023-11-22 19:43:54
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//swing_traj_planner.py
 Description: file content
 '''
@@ -11,7 +11,7 @@ Description: file content
 import numpy as np
 from ..perception_interface.gridmap_interface_ros import GridMap_Interface
 from .traj_gen.traj_gen import HermiteSpline
-from .traj_opt.traj_opt import HermiteOptProb
+from .traj_opt.traj_opt import HermiteOptProb, UniBSplineOptProb
 from .cost.cost import CostCollection, KinematicCost, CollisionCost
 
 
@@ -21,18 +21,19 @@ class SwingTrajPlanner(object):
         self.robot_interface = robot_interface
         pass
 
-    def opt_traj(self, default_traj, torso_traj=None, maxiter=50, ret=False):
+    def opt_traj(self, default_traj, torso_traj=None, maxiter=20, ret=False):
         """Get the swing trajectory
         :param default_traj: default swing trajectory (with time) (param by reference)
         :param torso_traj: torso trajectory (with time)
         """
 
         spline = default_traj
-        costs = CostCollection([
-            KinematicCost(spline, 0.1),
-            CollisionCost(spline, self.map_interface, 10)
-        ])
-        HermiteOptProb(spline, costs, None,
-                       spline.get()).optimize(maxiter=maxiter)
+        # costs = CostCollection([
+        #     KinematicCost(spline, 0.1),
+        #     CollisionCost(spline, self.map_interface, 10)
+        # ])
+        # HermiteOptProb(spline, costs, None,
+        #                spline.get()).optimize(maxiter=maxiter)
+        UniBSplineOptProb(spline, self.map_interface).optimize(maxiter=maxiter)
         if ret:
             return spline

@@ -36,10 +36,6 @@ class HITSpiderPlanner(object):
         self._interp_frame = 20
         self._state_time = 0.5
 
-        # Optimized data
-        self.opt_traj = None
-        self.opt_state = None  # used for opt_traj validation
-
     def callback(self, msg):
         self.MCT_solution.append(msg)
         if msg.remarks.data == "end_flag":

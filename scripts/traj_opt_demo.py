@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-22 17:28:02
+LastEditTime: 2023-11-22 19:38:57
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -26,7 +26,7 @@ from fast_legged_planner_py.utils.rviz_vis.traj_viz import TrajViz, COLOR_GREEN,
 def get_1stage_traj():
     p_start = np.array([-0.6, 0.5, 0])
     p_end = np.array([0.6, -0.5, 0])
-    v = np.array([0, 0, 1])
+    v = np.array([0, 0, 0])
     return HermiteSpline(
         np.array([p_start, v, p_end, -v]))
 
@@ -53,7 +53,7 @@ class TrajOptDemo(object):
     def __init__(self) -> None:
         # ROS init
         rospy.init_node("traj_opt_demo")
-        self.rate = rospy.Rate(2)
+        self.rate = rospy.Rate(5)
         # Config Spline
         self.spline = get_bspline()
         # self.spline.insert_normalized(np.linspace(0, 1, 10)[1:-1])
@@ -64,7 +64,7 @@ class TrajOptDemo(object):
         self.map_interface = GridMap_Interface()
         self.map_interface.update()
 
-    def optimize_viz(self, maxiter=100):
+    def optimize_viz(self, maxiter=20):
         cnt = 0
         # self.costs = CostCollection([
         #     KinematicCost(self.spline, 0.3),
@@ -75,14 +75,12 @@ class TrajOptDemo(object):
         self.prob = UniBSplineOptProb(self.spline, self.map_interface)
         while (not rospy.is_shutdown() and cnt < maxiter):
             self.viz_traj()
-            self.prob.optimize(maxiter=1, use_fprime=False, disp=True)
+            self.prob.optimize(maxiter=1, use_fprime=False, disp=False)
             self.rate.sleep()
             cnt += 1
             rospy.loginfo("Optimize %d times" % cnt)
 
     def viz_traj(self):
-        for p in self.spline.get_poslist():
-            print(p)
         self.traj_viz.add_curve([self.spline.evaluate(t, normalized=True)
                                  for t in np.linspace(0, 1, self.resolution)],
                                 color=COLOR_GREEN, linewidth=0.02)
@@ -94,7 +92,7 @@ class TrajOptDemo(object):
 if __name__ == "__main__":
     demo = TrajOptDemo()
     demo.viz_traj()
-    rospy.sleep(1)
+    rospy.sleep(0.5)
     # demo.spline.insert_normalized(np.linspace(0, 1, 5)[1:-1])
     demo.viz_traj()
     demo.optimize_viz()
