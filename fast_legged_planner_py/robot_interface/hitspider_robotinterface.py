@@ -2,8 +2,8 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-09 21:32:46
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-10 22:43:52
-FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/robot_interface/hitspider_robotinterface.py
+LastEditTime: 2023-11-25 19:20:04
+FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//robot_interface//hitspider_robotinterface.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
@@ -14,6 +14,8 @@ from .base_robotinterface import Base_RobotInterface
 # from .pin_IK import pinIK
 from scipy.optimize import fmin_bfgs
 from numpy.linalg import norm
+from ..third_party.meshcat_viewer_wrapper.visualizer import colors
+from ..swing_leg_planner.collision.collision import HITSpider_Collision_Model
 
 JOINT_STATE_NAME = ["joint_lf_1", "joint_lf_2", "joint_lf_3",
                     "joint_lh_1", "joint_lh_2", "joint_lh_3",
@@ -29,6 +31,7 @@ FOOT_LINK_NAME = ["link_lf_foot", "link_lh_foot", "link_lm_foot",
 class HITSpider_RobotInterface(Base_RobotInterface):
     def __init__(self, urdf: str, package_dirs=None) -> None:
         super().__init__(urdf, package_dirs)
+        self.collmodel = HITSpider_Collision_Model()
 
     def get_full_q(self, q_leg, footlink_num):
         q = np.zeros(18)
@@ -59,3 +62,13 @@ class HITSpider_RobotInterface(Base_RobotInterface):
         for i in range(6):
             q[3*i:3*i+3] = self.IK_foot(i, target_list[i])
         return q
+
+    # Collision Viz (Meshcat)
+    def vis_collision_model(self, q):
+        for collsphere in self.collmodel.collspheres:
+            viz_id = "world/collsphere/"+collsphere.frame_name
+            self.viz.addSphere(
+                viz_id, collsphere.radius, colors.green_transparent)
+            self.viz.applyConfiguration(
+                viz_id, self.robot.framePlacement(q, self.robot.model.getFrameId(collsphere.frame_name)))
+
