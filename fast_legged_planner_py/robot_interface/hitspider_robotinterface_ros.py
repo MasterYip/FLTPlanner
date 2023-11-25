@@ -12,6 +12,7 @@ from sensor_msgs.msg import JointState
 from ..utils.rviz_vis import traj_viz
 from ..utils.rviz_vis.traj_viz import TrajViz
 
+
 def XYZRPY2SE3(pose: hexapod_Base_Pose):
     """Convert Pose(xyzrpy) to SE3
 
@@ -103,12 +104,14 @@ class HITSpider_RobotInterface_ROS(HITSpider_RobotInterface):
                                     "link_base",
                                     "odom")
 
-    def pub_foot_trajectory(self, foot_traj_list: list):
+    def pub_foot_trajectory(self, foot_traj_list: tuple):
         """Publish foot trajectory
 
         Args:
-            foot_traj_list (list): list of foot trajectory(list of list of points)
+            foot_traj_list (default, optimized): list of foot trajectory(list of list of points)
         """
-        for traj in foot_traj_list:
+        for traj in foot_traj_list[0]:
             self.traj_viz.add_curve(traj, "foot_traj", traj_viz.COLOR_RED)
+        for traj in foot_traj_list[1]:
+            self.traj_viz.add_curve(traj, "foot_traj", traj_viz.COLOR_GREEN)
         self.traj_viz.publish()

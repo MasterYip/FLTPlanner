@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-17 11:44:52
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-22 19:47:33
+LastEditTime: 2023-11-25 15:54:38
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//whole_body_planner//hit_spider_planner_ros.py
 Description: file content
 '''
@@ -18,7 +18,7 @@ from ..swing_leg_planner.traj_gen.traj_gen import HermiteSpline, UniBSpline
 from .whole_body_planner import WholeBodyPlanner
 from ..swing_leg_planner.swing_traj_planner import SwingTrajPlanner
 from ..swing_leg_planner.traj_gen.traj_gen import linear_evaluate
-
+from ..utils.rviz_vis.traj_viz import COLOR_GREEN, COLOR_RED
 from ..robot_interface.hitspider_robotinterface_ros import HITSpider_RobotInterface_ROS, \
     FeetPos2PosList, XYZRPY2SE3, point_SE3Act
 
@@ -145,19 +145,24 @@ class HITSpiderWholeBodyPlanner(WholeBodyPlanner):
         :param t: normalized interpolation time
         :param point_num: number of points in the trajectory
         :param delta: time interval between two points
-        :return: foot trajectory list (6xpoint_num)
+        :return: foot trajectory list (default_traj_list, opt_traj_list)
         """
         # For TrajViz
-        foot_traj_list = [[] for _ in range(6)]
+        default_traj_list = [[] for _ in range(6)]
+        opt_traj_list = [[] for _ in range(6)]
         index = 0
         while (point_num > 0 and self.state_trajs.is_valid(index)):
             state_traj = self.state_trajs.at(index)
             while (t < 1 and point_num > 0):
                 foot_pos_list = state_traj.eval_foot_traj(t, False)
                 for j in range(6):
-                    foot_traj_list[j].append(foot_pos_list[j])
+                    # FIXME: It is not recommanded to use private var
+                    if state_traj.opt_check(j) and state_traj.swingtraj_isneeded[j]:
+                        opt_traj_list[j].append(foot_pos_list[j])
+                    else:
+                        default_traj_list[j].append(foot_pos_list[j])
                 point_num -= 1
                 t += delta
             index += 1
             t = 0
-        return foot_traj_list
+        return default_traj_list, opt_traj_list
