@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-03 21:37:53
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-26 18:02:28
+LastEditTime: 2023-11-26 21:15:53
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//collision//collision.py
 Description: file content
 '''
@@ -55,7 +55,7 @@ class HITLeg_Collision_Model(object):
         self.map_interface = map_interface
         self.leg_index = leg_index
 
-        size_map = {"1": 0.15, "2": 0.15, "3": 0.15, "foot": 0.1}
+        size_map = {"1": 0.15, "2": 0.15, "3": 0.15, "foot": 0.02}
         self.collspheres = []
         for name in JOINT_STATE_NAME[self.leg_index*3:self.leg_index*3+3]:
             self.collspheres.append(CollisionSphere(name, size_map[name[-1]]))
@@ -69,9 +69,11 @@ class HITLeg_Collision_Model(object):
         """
         cost = 0
         q = self.robot_interface.get_full_q(q_leg, self.leg_index)
+        self.robot_interface.update_kinematics(q)
         for sphere in self.collspheres:
             # placement under base frame
-            m = self.robot_interface.get_frame_placement(q, sphere.frame_name)
+            m = self.robot_interface.get_frame_placement(
+                q, sphere.frame_name, update_kinematics=False)
             # FIXME Is this correct?
             m_world = pose_base * m
             p = m_world.translation
@@ -85,8 +87,9 @@ class HITLeg_Collision_Model(object):
         :param pose_base: base pose
         """
         pos_foot_base = pose_base.inverse() * pos_foot
-        q_leg = self.robot_interface.IK_foot(self.leg_index, pos_foot_base)
-        return self.getCollCost(q_leg, pose_base)
+        # q_leg = self.robot_interface.IK_foot(self.leg_index, pos_foot_base)
+        return self.collspheres[-1].getCollCost(self.map_interface.sdf_value(pos_foot))
+        # return self.getCollCost(q_leg, pose_base)
 
     def vis_collision_model(self, q_leg, type="meshcat"):
         q = self.robot_interface.get_full_q(q_leg, self.leg_index)

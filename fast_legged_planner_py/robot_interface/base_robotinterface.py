@@ -2,8 +2,8 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 15:47:47
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-10 14:34:25
-FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/robot_interface/base_robotinterface.py
+LastEditTime: 2023-11-26 19:54:02
+FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//robot_interface//base_robotinterface.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
@@ -41,19 +41,21 @@ class Base_RobotInterface(metaclass=ABCMeta):
         # Meshcat Vis
         if MeshcatFound:
             self.viz = MeshcatVisualizer(self.robot)
-
-    # Debug
+            
+    def update_kinematics(self, q):
+        pin.forwardKinematics(self.robot.model, self.robot.data, q)
 
     def get_frameid(self, frame_name):
         return self.robot.model.getFrameId(frame_name)
 
-    def get_frame_placement(self, q, frame_name):
+    def get_frame_placement(self, q, frame_name, update_kinematics=True):
         """
         :param q: joint angles
         :param frame_name: frame name
         """
-        return self.robot.framePlacement(q, self.get_frameid(frame_name))
+        return self.robot.framePlacement(q, self.get_frameid(frame_name), update_kinematics)
 
+    # Debug
     def print_joints(self):
         for i in range(self.robot.model.njoints):
             print(i, self.robot.model.names[i])

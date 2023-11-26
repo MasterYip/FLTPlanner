@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-26 17:57:25
+LastEditTime: 2023-11-26 20:26:56
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
@@ -223,19 +223,24 @@ class Legged_UniBSplineOptProb(UniBSplineOptProb):
     def collision_cost(self):
         cost = 0
         for t in self.get_collsample_index():
+            # cost += self.collmodel.getCollCost_IK(
+            #     self.spline.evaluate(t, normalized=True),
+            #     0)
             cost += self.collmodel.getCollCost_IK(
                 self.spline.evaluate(t, normalized=True),
                 self.torso_traj(t))
+            # cost += self.point_collision_cost(
+            #     self.spline.evaluate(t, normalized=True))
         return cost
 
-    def get_collsample_index(self):
-        # FIXME: How to set the number of sample points
-        # Use distance metric temporarily
-        end_distance = np.linalg.norm(
-            self.spline.get()[0, :]-self.spline.get()[-1, :])
-        # FIXME: End point is extracted
-        # NOTE: More sample points should be assigned at ends(Use Sin(x) mapping)
-        point_num = self.spline.get_n()*int(6*end_distance)
-        t_arithmetic = np.linspace(0, 1, point_num)
-        # return t_arithmetic
-        return 0.5*np.sin(t_arithmetic*np.pi-np.pi/2)+0.5
+    # def get_collsample_index(self):
+    #     # FIXME: How to set the number of sample points
+    #     # Use distance metric temporarily
+    #     end_distance = np.linalg.norm(
+    #         self.spline.get()[0, :]-self.spline.get()[-1, :])
+    #     # FIXME: End point is extracted
+    #     # NOTE: More sample points should be assigned at ends(Use Sin(x) mapping)
+    #     point_num = self.spline.get_n()*int(6*end_distance)
+    #     t_arithmetic = np.linspace(0, 1, point_num)
+    #     # return t_arithmetic
+    #     return 0.5*np.sin(t_arithmetic*np.pi-np.pi/2)+0.5
