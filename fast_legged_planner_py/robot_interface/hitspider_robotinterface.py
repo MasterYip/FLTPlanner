@@ -10,6 +10,7 @@ Description: file content
 
 
 import numpy as np
+from typing_extensions import deprecated
 from .base_robotinterface import Base_RobotInterface
 # from .pin_IK import pinIK
 from scipy.optimize import fmin_bfgs
@@ -31,7 +32,7 @@ FOOT_LINK_NAME = ["link_lf_foot", "link_lh_foot", "link_lm_foot",
 class HITSpider_RobotInterface(Base_RobotInterface):
     def __init__(self, urdf: str, package_dirs=None) -> None:
         super().__init__(urdf, package_dirs)
-        self.collmodel = HITSpider_Collision_Model()
+        # self.collmodel = HITSpider_Collision_Model()
 
     def get_full_q(self, q_leg, footlink_num):
         q = np.zeros(18)
@@ -64,11 +65,11 @@ class HITSpider_RobotInterface(Base_RobotInterface):
         return q
 
     # Collision Viz (Meshcat)
+    @deprecated("Do not us this function")
     def vis_collision_model(self, q):
         for collsphere in self.collmodel.collspheres:
             viz_id = "world/collsphere/"+collsphere.frame_name
             self.viz.addSphere(
                 viz_id, collsphere.radius, colors.green_transparent)
             self.viz.applyConfiguration(
-                viz_id, self.robot.framePlacement(q, self.robot.model.getFrameId(collsphere.frame_name)))
-
+                viz_id, self.get_frame_placement(q, collsphere.frame_name))
