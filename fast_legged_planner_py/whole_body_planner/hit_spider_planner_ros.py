@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-17 11:44:52
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-25 15:54:38
+LastEditTime: 2023-11-26 17:53:12
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//whole_body_planner//hit_spider_planner_ros.py
 Description: file content
 '''
@@ -68,7 +68,8 @@ class HITSpiderStateTraj(object):
                 hermite = HermiteSpline(
                     np.array([self.footpos_list0[i], v, pos_mid, v_mid, self.footpos_list1[i], -v]))
                 knot_num = 5
-                self.swingtraj[i] = UniBSpline(np.array([hermite.evaluate(t, normalized=True) for t in np.linspace(0, 1, knot_num)]))
+                self.swingtraj[i] = UniBSpline(np.array(
+                    [hermite.evaluate(t, normalized=True) for t in np.linspace(0, 1, knot_num)]))
 
     # Traj evaluation
 
@@ -96,7 +97,8 @@ class HITSpiderStateTraj(object):
                 # TODO: Note: traj should be optimized parallelly, this is just a temporary solution
                 if not self.swingtraj_isopt[i] and auto_opt:
                     self.opt_swing_traj(i)
-                footend_interp.append(self.swingtraj[i].evaluate(t, normalized=True))
+                footend_interp.append(
+                    self.swingtraj[i].evaluate(t, normalized=True))
             else:
                 footend_interp.append(self.footpos_list0[i])
         return footend_interp
@@ -108,7 +110,7 @@ class HITSpiderStateTraj(object):
             index (int): index of swing leg
         """
         if not self.opt_check(index):
-            self.swing_traj_planner.opt_traj(self.swingtraj[index])
+            self.swing_traj_planner.opt_traj(self.swingtraj[index], self.eval_torso_traj, index)
             self.swingtraj_isopt[index] = True
 
     def opt_check(self, index=None):

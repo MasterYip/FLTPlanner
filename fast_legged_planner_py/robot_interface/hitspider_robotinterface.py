@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-09 21:32:46
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-25 19:20:04
+LastEditTime: 2023-11-26 17:49:13
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//robot_interface//hitspider_robotinterface.py
 Description: file content
 '''
@@ -16,7 +16,6 @@ from .base_robotinterface import Base_RobotInterface
 from scipy.optimize import fmin_bfgs
 from numpy.linalg import norm
 from ..third_party.meshcat_viewer_wrapper.visualizer import colors
-from ..swing_leg_planner.collision.collision import HITSpider_Collision_Model
 
 JOINT_STATE_NAME = ["joint_lf_1", "joint_lf_2", "joint_lf_3",
                     "joint_lh_1", "joint_lh_2", "joint_lh_3",

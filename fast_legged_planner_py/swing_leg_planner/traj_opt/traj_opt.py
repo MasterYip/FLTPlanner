@@ -1,9 +1,9 @@
 '''
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
-LastEditors: NUC12
-LastEditTime: 2023-11-26 17:34:37
-FilePath: \\fast_legged_planner\\fast_legged_planner_py\\swing_leg_planner\\traj_opt\\traj_opt.py
+LastEditors: RaymonYip-NUC11
+LastEditTime: 2023-11-26 17:57:25
+FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -216,6 +216,7 @@ class Legged_UniBSplineOptProb(UniBSplineOptProb):
                  map_interface: GridMap_Interface, collmodel):
         super().__init__(spline, map_interface)
         self.collmodel = collmodel
+        # FIXME: a function or class?
         self.torso_traj = torso_traj
 
     @override
@@ -224,7 +225,7 @@ class Legged_UniBSplineOptProb(UniBSplineOptProb):
         for t in self.get_collsample_index():
             cost += self.collmodel.getCollCost_IK(
                 self.spline.evaluate(t, normalized=True),
-                self.torso_traj.evaluate(t, normalized=True))
+                self.torso_traj(t))
         return cost
 
     def get_collsample_index(self):

@@ -25,7 +25,7 @@ class SwingTrajPlanner(object):
     def opt_traj(self, default_traj, torso_traj=None, leg_index=None, maxiter=20, ret=False):
         """Get the swing trajectory
         :param default_traj: default swing trajectory (with time) (param by reference)
-        :param torso_traj: torso trajectory (with time)
+        :param torso_traj: torso trajectory (with time) (FIXME: class for function?)
         """
 
         spline = default_traj
@@ -45,6 +45,7 @@ class SwingTrajPlanner(object):
 
         # Uniform B-Spline with Leg Collision
         Legged_UniBSplineOptProb(
-            spline, torso_traj, self.map_interface, collmodel).optimize(maxiter=maxiter)
+            spline, torso_traj, self.map_interface, collmodel
+            ).optimize(maxiter=maxiter, disp=True)
         if ret:
             return spline

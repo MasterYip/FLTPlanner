@@ -1,9 +1,9 @@
 '''
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-03 21:37:53
-LastEditors: NUC12
-LastEditTime: 2023-11-26 17:33:29
-FilePath: \\fast_legged_planner\\fast_legged_planner_py\\swing_leg_planner\\collision\\collision.py
+LastEditors: RaymonYip-NUC11
+LastEditTime: 2023-11-26 18:02:28
+FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//collision//collision.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
@@ -75,7 +75,7 @@ class HITLeg_Collision_Model(object):
             # FIXME Is this correct?
             m_world = pose_base * m
             p = m_world.translation
-            sdf_value = self.map_interface.get_sdf_value(p)
+            sdf_value = self.map_interface.sdf_value(p)
             cost += sphere.getCollCost(sdf_value)
         return cost
 
