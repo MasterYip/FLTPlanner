@@ -1,10 +1,20 @@
 # This file is subject to the terms and conditions defined in
 # file 'LICENSE', which is part of this source code package.
 
+from genericpath import isdir
 import plotly as py
+import os
 from plotly import graph_objs as go
 
 colors = ['darkblue', 'teal']
+
+# Directory Management
+try:
+    # Run in Terminal
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+except:
+    # Run in ipykernel & interactive
+    ROOT_DIR = os.getcwd()
 
 
 class Plot(object):
@@ -13,7 +23,11 @@ class Plot(object):
         Create a plot
         :param filename: filename
         """
-        self.filename = "../../output/visualizations/" + filename + ".html"
+        dir_path = os.path.join(ROOT_DIR, "..", "..",
+                                "output", "visualizations")
+        if os.path.isdir(dir_path) is False:
+            os.makedirs(dir_path)
+        self.filename = os.path.join(dir_path, filename + ".html")
         self.data = []
         self.layout = {'title': 'Plot',
                        'showlegend': False
@@ -100,9 +114,12 @@ class Plot(object):
         elif X.dimensions == 3:  # plot in 3D
             for O_i in O:
                 obs = go.Mesh3d(
-                    x=[O_i[0], O_i[0], O_i[3], O_i[3], O_i[0], O_i[0], O_i[3], O_i[3]],
-                    y=[O_i[1], O_i[4], O_i[4], O_i[1], O_i[1], O_i[4], O_i[4], O_i[1]],
-                    z=[O_i[2], O_i[2], O_i[2], O_i[2], O_i[5], O_i[5], O_i[5], O_i[5]],
+                    x=[O_i[0], O_i[0], O_i[3], O_i[3],
+                        O_i[0], O_i[0], O_i[3], O_i[3]],
+                    y=[O_i[1], O_i[4], O_i[4], O_i[1],
+                        O_i[1], O_i[4], O_i[4], O_i[1]],
+                    z=[O_i[2], O_i[2], O_i[2], O_i[2],
+                        O_i[5], O_i[5], O_i[5], O_i[5]],
                     i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
                     j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
                     k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],

@@ -44,6 +44,22 @@ Visualization examples can be found for rrt and rrt* in both 2 and 3 dimensions.
 - [2D Heuristic Bidirectional RRT*](https://plot.ly/~szanlongo/91/plot/)
 - [3D Heuristic Bidirectional RRT*](https://plot.ly/~szanlongo/93/plot/)
 
+#### Note
+when running examples, you may need to add this for dir managment:
+```python
+import os
+import sys
+# Directory Management
+try:
+    # Run in Terminal
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+except:
+    # Run in ipykernel & interactive
+    ROOT_DIR = os.getcwd()
+if os.path.join(ROOT_DIR, '..', '..') not in sys.path:
+    sys.path.append(os.path.join(ROOT_DIR, '..', '..'))
+```
+
 ## Contributing
 
 1. Fork it!
