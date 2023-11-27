@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-27 15:49:24
+LastEditTime: 2023-11-27 16:49:24
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -21,7 +21,8 @@ from fast_legged_planner_py.swing_leg_planner.cost.cost import CostCollection, K
 from fast_legged_planner_py.utils.rviz_vis.traj_viz import TrajViz, COLOR_GREEN, COLOR_RED, SCALE_MEDIUM, SCALE_LARGE
 from fast_legged_planner_py.swing_leg_planner.traj_opt.rrt.rrt_interface import Gridmap_SearchSpace
 from fast_legged_planner_py.third_party.rrt_algorithms.src.rrt.rrt_connect import RRTConnect
-
+from fast_legged_planner_py.third_party.rrt_algorithms.src.rrt.rrt_star_bid_h import RRTStarBidirectionalHeuristic
+from fast_legged_planner_py.third_party.rrt_algorithms.src.utilities.plotting import Plot
 # Hermite
 
 
@@ -77,8 +78,10 @@ class TrajOptDemo(object):
         self.prob = UniBSplineOptProb(self.spline, self.map_interface)
         while self.prob.get_max_collision_index() is not None and rospy.is_shutdown() is False:
             if cnt > 0:
-                self.spline.insert(self.prob.get_max_collision_index(), normalized=True)
-                rospy.logwarn("Insert knot at %f for further opt." % self.prob.get_first_collision_index())
+                self.spline.insert(
+                    self.prob.get_max_collision_index(), normalized=True)
+                rospy.logwarn("Insert knot at %f for further opt." %
+                              self.prob.get_first_collision_index())
             cnt = 0
             while (not rospy.is_shutdown() and cnt < maxiter):
                 self.viz_traj()
@@ -87,22 +90,6 @@ class TrajOptDemo(object):
                 cnt += 1
                 rospy.loginfo("Optimize %d times" % cnt)
 
-    def optimize_viz_rrt(self):
-        x_init = (-1.0, 0., 0.1)  # starting location
-        x_goal = (1, 0., 0.1)  # goal location
-
-        Q = np.array([0.3])  # length of tree edges
-        r = 0.05  # length of smallest edge to check for intersection with obstacles
-        max_samples = 9024  # max number of samples to take before timing out
-        prc = 0.1  # probability of checking for a connection to goal
-        X = Gridmap_SearchSpace(self.map_interface)
-        # create rrt_search
-        rrt_connect = RRTConnect(X, Q, x_init, x_goal, max_samples, r, prc)
-        path = rrt_connect.rrt_connect(verbose=False)
-        if path is not None:
-            self.traj_viz.add_curve(path, color=COLOR_RED, linewidth=0.02)
-            self.traj_viz.publish()
-
     def viz_traj(self):
         self.traj_viz.add_curve([self.spline.evaluate(t, normalized=True)
                                  for t in np.linspace(0, 1, self.resolution)],
@@ -110,6 +97,52 @@ class TrajOptDemo(object):
         self.traj_viz.add_spheres(
             self.spline.get_poslist(), color=COLOR_GREEN, scale=SCALE_MEDIUM)
         self.traj_viz.publish()
+
+    def optimize_viz_rrt(self):
+        x_init = (-1.0, 0., 0.1)  # starting location
+        x_goal = (1.0, 0., 0.1)  # goal location
+
+        # RRT_Connect
+        # Q = np.array([0.3])  # length of tree edges
+        # r = 0.05  # length of smallest edge to check for intersection with obstacles
+        # max_samples = 9024  # max number of samples to take before timing out
+        # prc = 0.1  # probability of checking for a connection to goal
+        # X = Gridmap_SearchSpace(self.map_interface)
+        # rrt_connect = RRTConnect(X, Q, x_init, x_goal, max_samples, r, prc)
+        # path = rrt_connect.rrt_connect(verbose=False)
+        # self.rrt_viz_traj(path)
+        # self.rrt_webplot(X, x_init, x_goal, rrt_connect, path=path)
+
+        # RRT*_Connect_h
+        Q = np.array([(0.1, 4)])  # length of tree edges
+        r = 0.01  # length of smallest edge to check for intersection with obstacles
+        max_samples = 1024  # max number of samples to take before timing out
+        rewire_count = 32  # optional, number of nearby branches to rewire
+        prc = 0.01  # probability of checking for a connection to goal
+
+        X = Gridmap_SearchSpace(self.map_interface)
+        rrt_star_bid_h = RRTStarBidirectionalHeuristic(
+            X, Q, x_init, x_goal, max_samples, r, prc, rewire_count)
+        path = rrt_star_bid_h.rrt_star_bid_h(verbose=False)
+        self.rrt_viz_traj(path)
+        self.rrt_webplot(X, x_init, x_goal, rrt_star_bid_h, path=path)
+        
+
+    def rrt_viz_traj(self, path):
+        if path is not None:
+            self.traj_viz.add_curve(path, color=COLOR_RED, linewidth=0.02)
+            self.traj_viz.publish()
+
+    def rrt_webplot(self, X, x_init, x_goal, rrt, path=None):
+        # plot
+        plot = Plot("rrt_connect_3d")
+        plot.plot_tree(X, rrt.trees)
+        if path is not None:
+            plot.plot_path(X, path)
+        # plot.plot_obstacles(X, Obstacles)
+        plot.plot_start(X, x_init)
+        plot.plot_goal(X, x_goal)
+        plot.draw(auto_open=True)
 
 
 if __name__ == "__main__":
@@ -121,7 +154,7 @@ if __name__ == "__main__":
     # demo.viz_traj()
     # demo.optimize_viz()
     # rospy.spin()
-    
+
     # RRT
     demo = TrajOptDemo()
     rospy.sleep(1)

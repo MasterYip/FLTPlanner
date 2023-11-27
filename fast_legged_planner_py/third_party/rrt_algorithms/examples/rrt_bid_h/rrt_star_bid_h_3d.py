@@ -1,7 +1,18 @@
 # This file is subject to the terms and conditions defined in
 # file 'LICENSE', which is part of this source code package.
 import numpy as np
-
+import os
+import sys
+# Directory Management
+try:
+    # Run in Terminal
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+except:
+    # Run in ipykernel & interactive
+    ROOT_DIR = os.getcwd()
+if os.path.join(ROOT_DIR, '..', '..') not in sys.path:
+    sys.path.append(os.path.join(ROOT_DIR, '..', '..'))
+    
 from src.rrt.rrt_star_bid_h import RRTStarBidirectionalHeuristic
 from src.search_space.search_space import SearchSpace
 from src.utilities.plotting import Plot

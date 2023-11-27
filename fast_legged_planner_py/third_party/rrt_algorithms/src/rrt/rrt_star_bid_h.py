@@ -2,8 +2,8 @@
 # file 'LICENSE', which is part of this source code package.
 import random
 
-from src.rrt.rrt_star_bid import RRTStarBidirectional
-from src.utilities.geometry import dist_between_points, pairwise
+from .rrt_star_bid import RRTStarBidirectional
+from ..utilities.geometry import dist_between_points, pairwise
 
 
 class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
@@ -26,7 +26,7 @@ class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
                          1 if conditional_rewire else rewire_count)
         self.original_rewire_count = rewire_count
 
-    def rrt_star_bid_h(self):
+    def rrt_star_bid_h(self, verbose=False):
         """
         Bidirectional RRT* using added heuristics
         :return: set of Vertices; Edges in form: vertex: [neighbor_1, neighbor_2, ...]
@@ -42,7 +42,7 @@ class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
 
         while True:
             for q in self.Q:  # iterate over different edge lengths
-                for i in range(q[1]):  # iterate over number of edges of given length to add
+                for i in range(int(q[1])):  # iterate over number of edges of given length to add
                     x_new, x_nearest = self.new_and_near(0, q)
                     if x_new is None:
                         continue
