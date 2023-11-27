@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-27 16:49:24
+LastEditTime: 2023-11-27 17:27:08
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -10,7 +10,7 @@ Description: file content
 #!/usr/bin/env python
 # coding=utf-8
 
-from matplotlib import use
+import matplotlib.pyplot as plt
 import rospy
 import numpy as np
 from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import HermiteSpline, UniBSpline
@@ -126,7 +126,6 @@ class TrajOptDemo(object):
         path = rrt_star_bid_h.rrt_star_bid_h(verbose=False)
         self.rrt_viz_traj(path)
         self.rrt_webplot(X, x_init, x_goal, rrt_star_bid_h, path=path)
-        
 
     def rrt_viz_traj(self, path):
         if path is not None:

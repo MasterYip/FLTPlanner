@@ -25,23 +25,29 @@ class GridMap_Interface(object):
         if self.sdf is None:
             self.update()
 
-    def update(self, block=True):
+    def update(self, block=True, sdf_margin=0.2):
         while self.msg.data == []:
             rospy.logwarn("GridMap_Interface - GridMap is not subscribed!")
             rospy.sleep(0.5)
         self.update_gridmap()
-        self.update_sdf(self.elevation_layer)
+        self.update_sdf(self.elevation_layer, margin=sdf_margin)
 
     def update_gridmap(self):
         self.grid_map = GridMap.from_msg(self.msg)
 
-    def update_sdf(self, layer_name: str, min_height=None, max_height=None):
+    def update_sdf(self, layer_name: str, min_height=None, max_height=None, margin=0.2):
+        """
+        :param layer_name: layer name of the elevation layer
+        :param min_height: minimum height of the SDF
+        :param max_height: maximum height of the SDF
+        :param margin: margin of the SDF (When min/max_height is None)
+        """
         try:
             elevationData = self.grid_map.get(layer_name)
             if min_height is None:
-                min_height = elevationData.min()
+                min_height = elevationData.min()-margin
             if max_height is None:
-                max_height = elevationData.max()
+                max_height = elevationData.max()+margin
             self.sdf = SignedDistanceField(
                 self.grid_map, layer_name, min_height, max_height)
             range = self.get_range()
