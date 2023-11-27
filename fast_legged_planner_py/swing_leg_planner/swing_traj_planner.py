@@ -23,7 +23,7 @@ class SwingTrajPlanner(object):
         self.robot_interface = robot_interface
         pass
 
-    @do_cprofile()
+    @do_cprofile(save=True)
     def opt_traj(self, default_traj, torso_traj=None, leg_index=None, maxiter=20, ret=False):
         """Get the swing trajectory
         :param default_traj: default swing trajectory (with time) (param by reference)

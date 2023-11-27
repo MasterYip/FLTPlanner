@@ -1,13 +1,26 @@
 import cProfile
 import pstats
 import os
+from .prof2png import prof2png
+
+# Directory Management
+try:
+    # Run in Terminal
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+except:
+    # Run in ipykernel & interactive
+    ROOT_DIR = os.getcwd()
 
 # Settings
 DO_PROF = True
-PRINT = True
+VERBOSE = True
+SAVE = False
+
+if not os.path.isdir(os.path.join(ROOT_DIR, "log")):
+    os.mkdir(os.path.join(ROOT_DIR, "log"))
 
 
-def do_cprofile(filename=None):
+def do_cprofile(filename=None, verbose=VERBOSE, save=SAVE):
     """
     Decorator for function profiling.
     """
@@ -23,9 +36,16 @@ def do_cprofile(filename=None):
                 # Sort stat by internal time.
                 sortby = "tottime"
                 ps = pstats.Stats(profile).strip_dirs().sort_stats(sortby)
-                if filename:
-                    ps.dump_stats(filename)
-                if PRINT:
+                if save:
+                    if filename:
+                        ps.dump_stats(filename)
+                        prof2png(filename)
+                    else:
+                        default_name = os.path.join(
+                            ROOT_DIR, "log", func.__name__+".prof")
+                        ps.dump_stats(default_name)
+                        prof2png(default_name)
+                if verbose:
                     ps.print_stats(10, 1.0, '.*')
             else:
                 result = func(*args, **kwargs)
