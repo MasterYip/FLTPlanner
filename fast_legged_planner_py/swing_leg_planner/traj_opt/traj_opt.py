@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-27 17:00:50
+LastEditTime: 2023-11-27 22:31:13
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
@@ -18,6 +18,8 @@ from scipy.optimize import fmin_bfgs, fmin_l_bfgs_b
 from ..traj_gen.traj_gen import HermiteSpline, UniBSpline
 from ..cost.cost import CostCollection
 from ...perception_interface.gridmap_interface_ros import GridMap_Interface
+from .rrt.rrt_interface import Gridmap_SearchSpace
+from ...third_party.rrt_algorithms.src.rrt.rrt_star_bid_h import RRTStarBidirectionalHeuristic
 
 
 class SplineOptBase(object):
@@ -211,6 +213,32 @@ class UniBSplineOptProb(SplineOptBase):
         return None
 
 
+class RRTBSplineOptProb(object):
+    def __init__(self, spline, map_interface: GridMap_Interface,
+                 z_margin=.3, obs_clearance=0.04, end_ignore_dia=0.05):
+        self.spline = spline
+        self.map_interface = map_interface
+        self.search_space = Gridmap_SearchSpace(
+            map_interface, spline.get_start(), spline.get_end(),
+            z_margin=z_margin, obs_clearance=obs_clearance, end_ignore_dia=end_ignore_dia)
+
+    def optimize(self, Q=np.array([(0.1, 4)]), r=0.01, max_samples=1024, rewire_count=32, prc=0.01):
+        self.Q = Q  # length of tree edges
+        self.r = r  # length of smallest edge to check for intersection with obstacles
+        self.max_samples = max_samples  # max number of samples to take before timing out
+        self.rewire_count = rewire_count  # optional, number of nearby branches to rewire
+        self.prc = prc  # probability of checking for a connection to goal
+        self.rrt = RRTStarBidirectionalHeuristic(
+            self.search_space, self.Q, tuple(
+                self.spline.get_start()), tuple(self.spline.get_end()),
+            self.max_samples, self.r, self.prc, self.rewire_count)
+        self.path = self.rrt.rrt_star_bid_h(verbose=False)
+        if self.path is not None:
+            self.spline.set(np.array(self.path))
+            return True
+        else:
+            print("RRT failed")
+            return False
 
 
 class Legged_UniBSplineOptProb(UniBSplineOptProb):

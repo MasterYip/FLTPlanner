@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-27 17:27:08
+LastEditTime: 2023-11-27 21:54:41
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -99,8 +99,8 @@ class TrajOptDemo(object):
         self.traj_viz.publish()
 
     def optimize_viz_rrt(self):
-        x_init = (-1.0, 0., 0.1)  # starting location
-        x_goal = (1.0, 0., 0.1)  # goal location
+        x_init = (-1.0, 0., 0.)  # starting location
+        x_goal = (1.0, 0., 0.)  # goal location
 
         # RRT_Connect
         # Q = np.array([0.3])  # length of tree edges
@@ -120,7 +120,7 @@ class TrajOptDemo(object):
         rewire_count = 32  # optional, number of nearby branches to rewire
         prc = 0.01  # probability of checking for a connection to goal
 
-        X = Gridmap_SearchSpace(self.map_interface)
+        X = Gridmap_SearchSpace(self.map_interface, x_init, x_goal)
         rrt_star_bid_h = RRTStarBidirectionalHeuristic(
             X, Q, x_init, x_goal, max_samples, r, prc, rewire_count)
         path = rrt_star_bid_h.rrt_star_bid_h(verbose=False)
@@ -149,7 +149,6 @@ if __name__ == "__main__":
     # demo = TrajOptDemo()
     # demo.viz_traj()
     # rospy.sleep(5)
-    # # demo.spline.insert_normalized(np.linspace(0, 1, 5)[1:-1])
     # demo.viz_traj()
     # demo.optimize_viz()
     # rospy.spin()

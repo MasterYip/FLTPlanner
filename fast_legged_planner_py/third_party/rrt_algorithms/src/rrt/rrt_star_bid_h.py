@@ -31,6 +31,10 @@ class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
         Bidirectional RRT* using added heuristics
         :return: set of Vertices; Edges in form: vertex: [neighbor_1, neighbor_2, ...]
         """
+        def v_print(*args):
+            if verbose:
+                print(*args)
+
         # tree a
         self.add_vertex(0, self.x_init)
         self.add_edge(0, self.x_init, None)
@@ -42,7 +46,8 @@ class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
 
         while True:
             for q in self.Q:  # iterate over different edge lengths
-                for i in range(int(q[1])):  # iterate over number of edges of given length to add
+                # iterate over number of edges of given length to add
+                for i in range(int(q[1])):
                     x_new, x_nearest = self.new_and_near(0, q)
                     if x_new is None:
                         continue
@@ -58,7 +63,8 @@ class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
                         self.rewire(0, x_new, L_near)
 
                         # nearby vertices from opposite tree and cost-to-come
-                        L_near = self.get_nearby_vertices(1, self.x_goal, x_new)
+                        L_near = self.get_nearby_vertices(
+                            1, self.x_goal, x_new)
 
                         self.connect_trees(0, 1, x_new, L_near)
                         self.rewire_count = self.original_rewire_count
@@ -66,9 +72,10 @@ class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
                     self.lazy_shortening()
 
                     if self.prc and random.random() < self.prc:  # probabilistically check if solution found
-                        print("Checking if can connect to goal at", str(self.samples_taken), "samples")
+                        v_print("Checking if can connect to goal at",
+                                str(self.samples_taken), "samples")
                         if self.sigma_best is not None:
-                            print("Can connect to goal")
+                            v_print("Can connect to goal")
                             self.unswap()
 
                             return self.sigma_best
@@ -77,11 +84,11 @@ class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
                         self.unswap()
 
                         if self.sigma_best is not None:
-                            print("Can connect to goal")
+                            v_print("Can connect to goal")
 
                             return self.sigma_best
                         else:
-                            print("Could not connect to goal")
+                            v_print("Could not connect to goal")
 
                         return self.sigma_best
 
@@ -116,7 +123,9 @@ class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
 
                 # update best path
                 # remove cost of removed edges
-                self.c_best -= sum(dist_between_points(i, j) for i, j in pairwise(self.sigma_best[a:b + 1]))
+                self.c_best -= sum(dist_between_points(i, j)
+                                   for i, j in pairwise(self.sigma_best[a:b + 1]))
                 # add cost of new edge
-                self.c_best += dist_between_points(self.sigma_best[a], self.sigma_best[b])
+                self.c_best += dist_between_points(
+                    self.sigma_best[a], self.sigma_best[b])
                 self.sigma_best = self.sigma_best[:a + 1] + self.sigma_best[b:]

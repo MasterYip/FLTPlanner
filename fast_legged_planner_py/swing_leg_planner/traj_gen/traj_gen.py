@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-22 16:18:46
+LastEditTime: 2023-11-27 22:08:57
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_gen//traj_gen.py
 Description: file content
 '''
@@ -141,6 +141,16 @@ class SplineBase(object):
     def get_dimen(self):
         """Get spline dimension"""
         pass
+    
+    @abstractmethod
+    def get_start(self):
+        """Get spline start point"""
+        pass
+    
+    @abstractmethod
+    def get_end(self):
+        """Get spline end point"""
+        pass
 
 
 class HermiteSpline(SplineBase):
@@ -226,8 +236,17 @@ class HermiteSpline(SplineBase):
         self.n = params.shape[0]  # Hermite case: pos poitns = n/2
         self.t_range = [0, self.n//2-1]
 
+    @override
     def get_range(self):
         return self.t_range
+
+    @override
+    def get_start(self):
+        return self.get()[0]
+    
+    @override
+    def get_end(self):
+        return self.get()[-2]
 
     def get_poslist(self):
         return self.params[::2]
@@ -310,8 +329,18 @@ class UniBSpline(SplineBase):
     def get_dimen(self):
         return self.dimen
 
+    @override
+    def get_start(self):
+        return self.get()[0]
+    
+    @override
+    def get_end(self):
+        return self.get()[-1]
+    
     def get_n(self):
         return self.n
 
     def get_poslist(self):
         return self.params.tolist()
+    
+    
