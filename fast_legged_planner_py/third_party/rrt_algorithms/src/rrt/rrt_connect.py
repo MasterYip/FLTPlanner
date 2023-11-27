@@ -2,8 +2,8 @@ import enum
 
 import numpy as np
 
-from src.rrt.rrt_base import RRTBase
-from src.utilities.geometry import steer
+from .rrt_base import RRTBase
+from ..utilities.geometry import steer
 
 
 class Status(enum.Enum):
@@ -58,7 +58,7 @@ class RRTConnect(RRTBase):
             x_new, S = self.extend(tree, x)
         return x_new, S
 
-    def rrt_connect(self):
+    def rrt_connect(self, verbose=False):
         """
         RRTConnect
         :return: set of Vertices; Edges in form: vertex: [neighbor_1, neighbor_2, ...]
@@ -81,3 +81,5 @@ class RRTConnect(RRTBase):
                     return first_part + second_part
             self.swap_trees()
             self.samples_taken += 1
+            if verbose:
+                print(self.samples_taken, self.trees[0])

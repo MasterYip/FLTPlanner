@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 21:49:12
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-26 21:46:59
+LastEditTime: 2023-11-27 14:08:35
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//swing_traj_planner.py
 Description: file content
 '''
@@ -23,7 +23,7 @@ class SwingTrajPlanner(object):
         self.robot_interface = robot_interface
         pass
 
-    @do_cprofile(save=True)
+    # @do_cprofile(save=True)
     def opt_traj(self, default_traj, torso_traj=None, leg_index=None, maxiter=20, ret=False):
         """Get the swing trajectory
         :param default_traj: default swing trajectory (with time) (param by reference)
@@ -43,10 +43,10 @@ class SwingTrajPlanner(object):
         #                spline.get()).optimize(maxiter=maxiter)
 
         # Uniform B-Spline
-        # UniBSplineOptProb(spline, self.map_interface).optimize(maxiter=maxiter, disp=True)
+        UniBSplineOptProb(spline, self.map_interface).optimize(maxiter=maxiter, disp=True)
 
         # Uniform B-Spline with Leg Collision
-        Legged_UniBSplineOptProb(spline, torso_traj, self.map_interface, collmodel).optimize(
-            maxiter=maxiter, disp=True)
+        # Legged_UniBSplineOptProb(spline, torso_traj, self.map_interface, collmodel).optimize(
+        #     maxiter=maxiter, disp=True)
         if ret:
             return spline

@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-22 21:27:42
+LastEditTime: 2023-11-27 15:49:24
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -19,6 +19,8 @@ from fast_legged_planner_py.swing_leg_planner.swing_traj_planner import SwingTra
 from fast_legged_planner_py.swing_leg_planner.traj_opt.traj_opt import HermiteOptProb, UniBSplineOptProb
 from fast_legged_planner_py.swing_leg_planner.cost.cost import CostCollection, KinematicCost, CollisionCost
 from fast_legged_planner_py.utils.rviz_vis.traj_viz import TrajViz, COLOR_GREEN, COLOR_RED, SCALE_MEDIUM, SCALE_LARGE
+from fast_legged_planner_py.swing_leg_planner.traj_opt.rrt.rrt_interface import Gridmap_SearchSpace
+from fast_legged_planner_py.third_party.rrt_algorithms.src.rrt.rrt_connect import RRTConnect
 
 # Hermite
 
@@ -85,6 +87,22 @@ class TrajOptDemo(object):
                 cnt += 1
                 rospy.loginfo("Optimize %d times" % cnt)
 
+    def optimize_viz_rrt(self):
+        x_init = (-1.0, 0., 0.1)  # starting location
+        x_goal = (1, 0., 0.1)  # goal location
+
+        Q = np.array([0.3])  # length of tree edges
+        r = 0.05  # length of smallest edge to check for intersection with obstacles
+        max_samples = 9024  # max number of samples to take before timing out
+        prc = 0.1  # probability of checking for a connection to goal
+        X = Gridmap_SearchSpace(self.map_interface)
+        # create rrt_search
+        rrt_connect = RRTConnect(X, Q, x_init, x_goal, max_samples, r, prc)
+        path = rrt_connect.rrt_connect(verbose=False)
+        if path is not None:
+            self.traj_viz.add_curve(path, color=COLOR_RED, linewidth=0.02)
+            self.traj_viz.publish()
+
     def viz_traj(self):
         self.traj_viz.add_curve([self.spline.evaluate(t, normalized=True)
                                  for t in np.linspace(0, 1, self.resolution)],
@@ -95,10 +113,17 @@ class TrajOptDemo(object):
 
 
 if __name__ == "__main__":
+    # Optimize-based
+    # demo = TrajOptDemo()
+    # demo.viz_traj()
+    # rospy.sleep(5)
+    # # demo.spline.insert_normalized(np.linspace(0, 1, 5)[1:-1])
+    # demo.viz_traj()
+    # demo.optimize_viz()
+    # rospy.spin()
+    
+    # RRT
     demo = TrajOptDemo()
-    demo.viz_traj()
-    rospy.sleep(5)
-    # demo.spline.insert_normalized(np.linspace(0, 1, 5)[1:-1])
-    demo.viz_traj()
-    demo.optimize_viz()
+    rospy.sleep(1)
+    demo.optimize_viz_rrt()
     rospy.spin()
