@@ -2,23 +2,22 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-27 22:31:13
+LastEditTime: 2023-11-28 17:31:13
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
 #!/usr/bin/env python
 # coding=utf-8
 
-from math import cos
 from typing_extensions import override
 import numpy as np
 from abc import abstractmethod, ABCMeta
 from scipy.optimize import fmin_bfgs, fmin_l_bfgs_b
 
-from ..traj_gen.traj_gen import HermiteSpline, UniBSpline
+from ..traj_gen.traj_gen import HermiteSpline, UniBSpline, TimedLinearSpline
 from ..cost.cost import CostCollection
 from ...perception_interface.gridmap_interface_ros import GridMap_Interface
-from .rrt.rrt_interface import Gridmap_SearchSpace
+from .rrt.rrt_interface import Gridmap_SearchSpace, HITSpiderCfg_SearchSpace
 from ...third_party.rrt_algorithms.src.rrt.rrt_star_bid_h import RRTStarBidirectionalHeuristic
 
 
@@ -239,6 +238,64 @@ class RRTBSplineOptProb(object):
         else:
             print("RRT failed")
             return False
+
+
+class RRTCfg_BSplineOptProb(object):
+    """RRT Search under HIT Spider Config space"""
+
+    def __init__(self, spline, torso_tarj, leg_index,
+                 map_interface: GridMap_Interface, robot_interface,
+                 end_ignore_dia=0.05):
+        self.leg_index = leg_index
+        self.torso_tarj = torso_tarj
+        self.robot_interface = robot_interface
+        self.map_interface = map_interface
+
+        self.spline = spline
+
+        t = self.robot_interface.IK_foot(leg_index, torso_tarj(0).inverse() * spline.get_start()).tolist()
+        t.insert(0, 0.)
+        self.start = tuple(t)
+        t = self.robot_interface.IK_foot(leg_index, torso_tarj(1).inverse() * spline.get_start()).tolist()
+        t.insert(0, 1.)
+        self.end = tuple(t)
+        self.search_space = HITSpiderCfg_SearchSpace(robot_interface, map_interface,
+                                                     torso_tarj, leg_index,
+                                                     self.start, self.end,
+                                                     end_ignore_dia=end_ignore_dia)
+
+    def optimize(self, Q=np.array([(0.1, 4)]), r=0.01, max_samples=1024, rewire_count=32, prc=0.01):
+        """
+        :param Q: length of tree edges
+        :param r: length of smallest edge to check for intersection with obstacles
+        :param max_samples: max number of samples to take before timing out
+        :param rewire_count: optional, number of nearby branches to rewire
+        :param prc: probability of checking for a connection to goal
+        :return: `TimedLinearSpline`
+        """
+        self.Q = Q  # length of tree edges
+        self.r = r  # length of smallest edge to check for intersection with obstacles
+        self.max_samples = max_samples  # max number of samples to take before timing out
+        self.rewire_count = rewire_count  # optional, number of nearby branches to rewire
+        self.prc = prc  # probability of checking for a connection to goal
+        self.rrt = RRTStarBidirectionalHeuristic(
+            self.search_space, self.Q, self.start, self.end,
+            self.max_samples, self.r, self.prc, self.rewire_count)
+        self.path = self.rrt.rrt_star_bid_h(verbose=True)
+        if self.path is not None:
+            # TODO: How to generate a spline in work space from a timed path in config space?
+            workspace_path = []
+            for path in self.path:
+                m = self.robot_interface.get_foot_placement(
+                    path[1:], self.leg_index)
+                m_world = self.torso_tarj(path[0]) * m
+                workspace_path.append(np.concatenate(
+                    ([path[0]], m_world.translation)))
+            # print(workspace_path)
+            return TimedLinearSpline(np.array(workspace_path))
+        else:
+            print("RRT failed")
+            return self.spline
 
 
 class Legged_UniBSplineOptProb(UniBSplineOptProb):

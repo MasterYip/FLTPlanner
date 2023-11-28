@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-27 22:08:57
+LastEditTime: 2023-11-28 17:43:34
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_gen//traj_gen.py
 Description: file content
 '''
@@ -36,6 +36,7 @@ def linear_evaluate(knots: np.ndarray, t):
     if type(t) is not np.ndarray:
         t = np.array([t])
     t_vec = np.array([np.ones(t.shape), t]).T
+    # print(t_vec, LINEAR_MAT, knots)
     return (t_vec @ LINEAR_MAT @ knots).flatten()
 
 ################################################
@@ -141,16 +142,60 @@ class SplineBase(object):
     def get_dimen(self):
         """Get spline dimension"""
         pass
-    
+
     @abstractmethod
     def get_start(self):
         """Get spline start point"""
         pass
-    
+
     @abstractmethod
     def get_end(self):
         """Get spline end point"""
         pass
+
+
+class TimedLinearSpline(SplineBase):
+    """
+    Timed linear spline class
+    """
+
+    def __init__(self, params: np.ndarray):
+        """Timed linear spline initialization
+        :param params: control points, literally `np.ndarray([p0, p1, p2, p3,..., pn])`
+        each point is np.ndarray([t, x1, x2, ...])
+        """
+        self.set(params)
+
+    @override
+    def set(self, params: np.ndarray):
+        self.params = params
+        self.n = params.shape[0]
+        self.t_range = [params[0, 0], params[-1, 0]]
+
+    @override
+    def get(self):
+        return self.params
+
+    @override
+    def evaluate(self, t, normalized=False):
+        if normalized:
+            t = t*(self.t_range[1]-self.t_range[0])+self.t_range[0]
+        if t < self.t_range[0] or t > self.t_range[1]:
+            raise ValueError("Parameter t out of range")
+        index = np.searchsorted(self.params[:, 0], t, 'right')-1
+        if index == self.n-1:  # Special case
+            return linear_evaluate(self.params[-2:], 1)[1:]  # Discard time
+        print(index, t)
+        return linear_evaluate(self.params[index:index+2],
+                               (t-self.params[index, 0])/(self.params[index+1, 0]-self.params[index, 0]))[1:]
+
+    @override
+    def get_start(self):
+        return self.get()[0, 1:]
+
+    @override
+    def get_end(self):
+        return self.get()[-1, 1:]
 
 
 class HermiteSpline(SplineBase):
@@ -243,7 +288,7 @@ class HermiteSpline(SplineBase):
     @override
     def get_start(self):
         return self.get()[0]
-    
+
     @override
     def get_end(self):
         return self.get()[-2]
@@ -332,15 +377,13 @@ class UniBSpline(SplineBase):
     @override
     def get_start(self):
         return self.get()[0]
-    
+
     @override
     def get_end(self):
         return self.get()[-1]
-    
+
     def get_n(self):
         return self.n
 
     def get_poslist(self):
         return self.params.tolist()
-    
-    

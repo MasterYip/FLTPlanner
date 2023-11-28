@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-27 13:47:50
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-27 22:14:14
+LastEditTime: 2023-11-28 14:59:07
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//rrt//rrt_interface.py
 Description: file content
 '''
@@ -11,6 +11,63 @@ Description: file content
 import numpy as np
 from typing_extensions import override
 from ....third_party.rrt_algorithms.src.search_space.search_space import SearchSpace
+from ...collision.collision import HITLeg_Collision_Model
+
+
+class HITSpiderCfg_SearchSpace(SearchSpace):
+    def __init__(self, robot_interface, map_interface,
+                 torso_traj, leg_index, start, goal,
+                 end_ignore_dia=0.05):
+        """
+        :param robot_interface: Robot_Interface
+        :param map_interface: GridMap_Interface
+        :param torso_traj: torso trajectory (t in [0, 1]) (FIXME: Temporarily a function)
+        :param leg_index: leg index
+        :param start: start position
+        :param goal: goal position
+        :param end_ignore_dia: start and goal obstacles ignoring (should be larger than obs_clearance)
+        TODO: start/end ignore should be improved
+        """
+        dimension_lengths = np.concatenate(
+            ([[0., 1.]], robot_interface.get_leg_cfg_space()))
+        super().__init__(dimension_lengths, None)
+
+        self.map_interface = map_interface
+        self.robot_interface = robot_interface
+        self.collmodel = HITLeg_Collision_Model(
+            self.robot_interface, self.map_interface, leg_index)
+        self.leg_index = leg_index
+        # torso trajectory evaluation
+        self.eval_torso_traj = torso_traj
+        # Start and goal obstacles ignoring
+        self.end_ignore_dia = end_ignore_dia
+        # Start and goal (config space)
+        self.start = start
+        self.goal = goal
+
+    @override
+    def obstacle_free(self, x_cfg, use_sdf=True):
+        """
+        Check if a location resides inside of an obstacle
+        :param x: location to check
+        :param use_sdf: use GridMap_SDF or GridMap
+        :return: True if not inside an obstacle, False otherwise
+        """
+
+        try:
+            if use_sdf:
+                ret = self.collmodel.checkCollision(
+                    q_leg=x_cfg[1:], pose_base=self.eval_torso_traj(x_cfg[0]))
+            else:
+                raise NotImplementedError("Not use_sdf is Not implemented")
+        except:
+            print("Out of range:", x_cfg)
+            ret = True  # Because the barrier height may occupy the entire height range, blocking the robot from moving
+        # Start and goal obstacles ignoring (NOTE this is 4 dimen sphere)
+        if np.linalg.norm(np.array(x_cfg) - self.start) < self.end_ignore_dia\
+                or np.linalg.norm(np.array(x_cfg) - self.goal) < self.end_ignore_dia:
+            ret = True
+        return ret
 
 
 class Gridmap_SearchSpace(SearchSpace):

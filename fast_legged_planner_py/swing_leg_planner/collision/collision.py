@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-03 21:37:53
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-26 21:15:53
+LastEditTime: 2023-11-28 14:54:47
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//collision//collision.py
 Description: file content
 '''
@@ -61,6 +61,25 @@ class HITLeg_Collision_Model(object):
             self.collspheres.append(CollisionSphere(name, size_map[name[-1]]))
         self.collspheres.append(CollisionSphere(
             FOOT_LINK_NAME[self.leg_index], size_map["foot"]))
+
+    def checkCollision(self, q_leg, pose_base):
+        """Check if the leg is in collision
+        :param q_leg: leg joint angles
+        :param pose_base: base pose
+        """
+        q = self.robot_interface.get_full_q(q_leg, self.leg_index)
+        self.robot_interface.update_kinematics(q)
+        for sphere in self.collspheres:
+            # placement under base frame
+            m = self.robot_interface.get_frame_placement(
+                q, sphere.frame_name, update_kinematics=False)
+            # FIXME Is this correct?
+            m_world = pose_base * m
+            p = m_world.translation
+            sdf_value = self.map_interface.sdf_value(p)
+            if sdf_value < sphere.radius:
+                return True
+        return False
 
     def getCollCost(self, q_leg, pose_base):
         """Compute the collision cost

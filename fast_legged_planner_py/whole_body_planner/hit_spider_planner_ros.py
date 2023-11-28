@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-17 11:44:52
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-26 17:53:12
+LastEditTime: 2023-11-28 15:39:17
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//whole_body_planner//hit_spider_planner_ros.py
 Description: file content
 '''
@@ -24,15 +24,26 @@ from ..robot_interface.hitspider_robotinterface_ros import HITSpider_RobotInterf
 
 from fast_legged_planner.msg import hexapod_State
 
+# Settings(FIXME: Temporarily here)
+USE_RET_SPLINE = True
 
 class HITSpiderStateTraj(object):
     """State transfer trajectory of HITSpider(state0 to state1)"""
 
-    def __init__(self, state0: hexapod_State, state1: hexapod_State, swing_traj_planner: SwingTrajPlanner) -> None:
+    def __init__(self, state0: hexapod_State, state1: hexapod_State,
+                 swing_traj_planner: SwingTrajPlanner,
+                 use_ret_spline=USE_RET_SPLINE) -> None:
+        """
+        :param state0: start state
+        :param state1: end state
+        :param swing_traj_planner: swing trajectory planner
+        :param use_ret_spline: use returned spline from swing_traj_planner other than update spline without changing reference
+        """
         self.swing_traj_planner = swing_traj_planner
         self.state0 = state0
         self.state1 = state1
         self.torso_traj = None
+        self.use_ret_spline = use_ret_spline
         '''Torso Trajectory'''
         # TODO:
         '''Swing Trajectory'''
@@ -110,7 +121,12 @@ class HITSpiderStateTraj(object):
             index (int): index of swing leg
         """
         if not self.opt_check(index):
-            self.swing_traj_planner.opt_traj(self.swingtraj[index], self.eval_torso_traj, index)
+            if self.use_ret_spline:
+                self.swingtraj[index] = self.swing_traj_planner.opt_traj(
+                    self.swingtraj[index], self.eval_torso_traj, index, ret=True)
+            else:
+                self.swing_traj_planner.opt_traj(
+                    self.swingtraj[index], self.eval_torso_traj, index)
             self.swingtraj_isopt[index] = True
 
     def opt_check(self, index=None):

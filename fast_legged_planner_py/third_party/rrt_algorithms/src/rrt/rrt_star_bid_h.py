@@ -44,13 +44,18 @@ class RRTStarBidirectionalHeuristic(RRTStarBidirectional):
         self.add_vertex(1, self.x_goal)
         self.add_edge(1, self.x_goal, None)
 
-        while True:
+        # NOTE: It is possible the start point stuck in obstacle (infinite loop)
+        max_try = 2000
+        cnt = 0
+        while cnt < max_try:
             for q in self.Q:  # iterate over different edge lengths
                 # iterate over number of edges of given length to add
                 for i in range(int(q[1])):
                     x_new, x_nearest = self.new_and_near(0, q)
                     if x_new is None:
+                        cnt += 1
                         continue
+                    cnt = 0
 
                     # get nearby vertices and cost-to-come
                     L_near = self.get_nearby_vertices(0, self.x_init, x_new)
