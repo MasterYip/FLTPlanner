@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-28 17:43:34
+LastEditTime: 2023-11-28 17:54:50
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_gen//traj_gen.py
 Description: file content
 '''
@@ -181,11 +181,11 @@ class TimedLinearSpline(SplineBase):
         if normalized:
             t = t*(self.t_range[1]-self.t_range[0])+self.t_range[0]
         if t < self.t_range[0] or t > self.t_range[1]:
-            raise ValueError("Parameter t out of range")
+            raise ValueError("Parameter t={t} out of range")
         index = np.searchsorted(self.params[:, 0], t, 'right')-1
         if index == self.n-1:  # Special case
             return linear_evaluate(self.params[-2:], 1)[1:]  # Discard time
-        print(index, t)
+        # print(index, t)
         return linear_evaluate(self.params[index:index+2],
                                (t-self.params[index, 0])/(self.params[index+1, 0]-self.params[index, 0]))[1:]
 
