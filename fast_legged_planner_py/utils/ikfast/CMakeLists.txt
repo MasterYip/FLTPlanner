@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 # add_compile_options(-O2 -Wall -Wextra -Wpedantic -fPIC)
 
 ## Settings
-set(PYBIND_NAME pyik) # Change this to the name of your python module
+set(PYBIND_NAME pyikfast_hitspider) # Change this to the name of your python module
 set(SOURCES
     ikfast_interface.cpp
     ikfast_gen.cpp
