@@ -253,10 +253,12 @@ class RRTCfg_BSplineOptProb(object):
 
         self.spline = spline
 
-        t = self.robot_interface.IK_foot(leg_index, torso_tarj(0).inverse() * spline.get_start()).tolist()
+        t = self.robot_interface.IKFast_foot(
+            leg_index, torso_tarj(0).inverse() * spline.get_start()).tolist()
         t.insert(0, 0.)
         self.start = tuple(t)
-        t = self.robot_interface.IK_foot(leg_index, torso_tarj(1).inverse() * spline.get_start()).tolist()
+        t = self.robot_interface.IKFast_foot(leg_index, torso_tarj(
+            1).inverse() * spline.get_start()).tolist()
         t.insert(0, 1.)
         self.end = tuple(t)
         self.search_space = HITSpiderCfg_SearchSpace(robot_interface, map_interface,

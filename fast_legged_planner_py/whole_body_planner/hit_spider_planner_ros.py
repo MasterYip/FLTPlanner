@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-17 11:44:52
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-28 15:39:17
+LastEditTime: 2023-11-29 20:10:51
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//whole_body_planner//hit_spider_planner_ros.py
 Description: file content
 '''
@@ -25,7 +25,7 @@ from ..robot_interface.hitspider_robotinterface_ros import HITSpider_RobotInterf
 from fast_legged_planner.msg import hexapod_State
 
 # Settings(FIXME: Temporarily here)
-USE_RET_SPLINE = True
+USE_RET_SPLINE = False
 
 class HITSpiderStateTraj(object):
     """State transfer trajectory of HITSpider(state0 to state1)"""

@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 21:49:12
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-28 17:33:55
+LastEditTime: 2023-11-29 20:10:21
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//swing_traj_planner.py
 Description: file content
 '''
@@ -50,10 +50,10 @@ class SwingTrajPlanner(object):
         #                   z_margin=0.5, obs_clearance=0.05,
         #                   end_ignore_dia=0.08).optimize(Q=np.array([[0.1, 4]]), max_samples=1024)
         # RRT Cfg Search
-        spline = RRTCfg_BSplineOptProb(spline, torso_traj, leg_index, self.map_interface, self.robot_interface,
-                                       end_ignore_dia=0.07).optimize(Q=np.array([[0.05, 4]]), max_samples=1024)
+        # spline = RRTCfg_BSplineOptProb(spline, torso_traj, leg_index, self.map_interface, self.robot_interface,
+        #                                end_ignore_dia=0.07).optimize(Q=np.array([[0.05, 4]]), max_samples=1024)
         # Uniform B-Spline with Leg Collision
-        # Legged_UniBSplineOptProb(spline, torso_traj, self.map_interface, collmodel).optimize(
-        #     maxiter=maxiter, disp=True)
+        Legged_UniBSplineOptProb(spline, torso_traj, self.map_interface, collmodel).optimize(
+            maxiter=maxiter, disp=True)
         if ret:
             return spline

@@ -19,6 +19,12 @@ SCALE_MEDIUM = Vector3(0.05, 0.05, 0.05)
 SCALE_LARGE = Vector3(0.1, 0.1, 0.1)
 
 
+def get_scale_vector3(scale: list):
+    return Vector3(scale[0], scale[1], scale[2])
+
+# Get Marker
+
+
 def get_curve_marker(points: list, frame_id: str, namespace: str,
                      color: ColorRGBA = COLOR_RED, linewidth: float = SCALE_SMALL.x):
     marker = Marker()
@@ -92,7 +98,7 @@ class TrajViz(object):
         self.id_cnt += 1
         self.msg.markers.append(marker)
 
-    def add_spheres(self, points: list, namespace: str = "default_foothold",
+    def add_spheres(self, points: list, namespace: str = "default_spheres",
                     color: ColorRGBA = COLOR_RED,
                     scale: Vector3 = SCALE_MEDIUM):
         marker = get_spheres_marker(

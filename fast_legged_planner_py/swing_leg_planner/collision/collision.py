@@ -2,13 +2,13 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-03 21:37:53
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-28 14:54:47
+LastEditTime: 2023-11-29 21:08:33
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//collision//collision.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
 from ...third_party.meshcat_viewer_wrapper.visualizer import colors
-
+from ...utils.rviz_vis.traj_viz import COLOR_GREEN, COLOR_RED, get_scale_vector3
 
 # FIXME: This is defined repeatedly
 JOINT_STATE_NAME = ["joint_lf_1", "joint_lf_2", "joint_lf_3",
@@ -106,18 +106,31 @@ class HITLeg_Collision_Model(object):
         :param pose_base: base pose
         """
         pos_foot_base = pose_base.inverse() * pos_foot
-        # q_leg = self.robot_interface.IK_foot(self.leg_index, pos_foot_base)
-        return self.collspheres[-1].getCollCost(self.map_interface.sdf_value(pos_foot))
-        # return self.getCollCost(q_leg, pose_base)
+        q_leg = self.robot_interface.IKFast_foot(self.leg_index, pos_foot_base, valid_check=False)
+        # return self.collspheres[-1].getCollCost(self.map_interface.sdf_value(pos_foot))
+        return self.getCollCost(q_leg, pose_base)
 
-    def vis_collision_model(self, q_leg, type="meshcat"):
+    def vis_collision_model(self, q_leg, type="meshcat", base_pose=None):
         q = self.robot_interface.get_full_q(q_leg, self.leg_index)
-        for collsphere in self.collspheres:
-            viz_id = "world/collsphere/"+collsphere.frame_name
-            self.viz.addSphere(
-                viz_id, collsphere.radius, colors.green_transparent)
-            self.viz.applyConfiguration(
-                viz_id, self.robot_interface.get_frame_placement(q, collsphere.frame_name))
+        if type == "meshcat":
+            for collsphere in self.collspheres:
+                viz_id = "world/collsphere/"+collsphere.frame_name
+                self.viz.addSphere(
+                    viz_id, collsphere.radius, colors.green_transparent)
+                self.viz.applyConfiguration(
+                    viz_id, self.robot_interface.get_frame_placement(q, collsphere.frame_name))
+        elif type == "Rviz" and base_pose is not None:
+            for collsphere in self.collspheres:
+                self.robot_interface.traj_viz.add_spheres(
+                    base_pose.act(self.robot_interface.get_frame_placement(
+                        q, collsphere.frame_name)),
+                    scale=get_scale_vector3([1, 1, 1]*collsphere.radius),
+                    color=colors.green_transparent)
+            self.robot_interface.traj_viz.publish()
+        else:
+            raise ValueError(
+                "Supported type: meshcat, Rviz. Rviz type need base_pose")
+        
 
 
 # class HITSpider_Collision_Model(object):
