@@ -1,13 +1,13 @@
-# FILEPATH: /home/yip/CodeSpace/Fast-Legged-Planner_ws/flplanner_ws/src/fast_legged_planner/src/ikfast/CMakeLists.txt
-
 cmake_minimum_required(VERSION 3.0.2)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-add_compile_options(-O3 -Wall -shared -fPIC)
-# add_compile_options(-O2 -Wall -Wextra -Wpedantic -fPIC)
 project(IKFast)
 
+add_compile_options(-O3 -Wall -shared -fPIC)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+# add_compile_options(-O2 -Wall -Wextra -Wpedantic -fPIC)
 
+## Settings
+set(PYBIND_NAME pyik) # Change this to the name of your python module
 set(SOURCES
     ikfast_interface.cpp
     ikfast_gen.cpp
@@ -23,10 +23,10 @@ target_compile_options(${PROJECT_NAME} PRIVATE -DIKFAST_NO_MAIN)
 
 # Python Bindings
 find_package(pybind11)
-pybind11_add_module(pyikfast SHARED ik_bindings.cpp)
-target_link_libraries(pyikfast PRIVATE ${PROJECT_NAME})
-# add_library(pyikfast MODULE ik_bindings.cpp)
-# target_link_libraries(pyikfast PRIVATE pybind11::module)
+# configure_file(config.h.in ${CMAKE_BINARY_DIR}/config.h @ONLY)
+configure_file(config.h.in ${CMAKE_SOURCE_DIR}/config.h @ONLY)
+pybind11_add_module(${PYBIND_NAME} SHARED ik_bindings.cpp)
+target_link_libraries(${PYBIND_NAME} PRIVATE ${PROJECT_NAME})
 
 # Test
 add_executable(test_ik test_ik.cpp)
