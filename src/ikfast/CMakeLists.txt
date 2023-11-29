@@ -2,22 +2,32 @@
 
 cmake_minimum_required(VERSION 3.0.2)
 
-# Add any additional compiler flags here
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+add_compile_options(-O3 -Wall -shared -fPIC)
+# add_compile_options(-O2 -Wall -Wextra -Wpedantic -fPIC)
 project(IKFast)
 
-# Add your source files here
+
 set(SOURCES
-    test_leg.cpp
+    ikfast_interface.cpp
+    ikfast_gen.cpp
 )
 
-# Add any additional include directories here
-message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
 include_directories(
     ${PROJECT_SOURCE_DIR}
 )
 
-# Create the executable
-add_executable(${PROJECT_NAME} ${SOURCES})
+# IKFast Library
+add_library(${PROJECT_NAME} ${SOURCES})
+target_compile_options(${PROJECT_NAME} PRIVATE -DIKFAST_NO_MAIN)
 
+# Python Bindings
+find_package(pybind11)
+pybind11_add_module(pyikfast SHARED ik_bindings.cpp)
+target_link_libraries(pyikfast PRIVATE ${PROJECT_NAME})
+# add_library(pyikfast MODULE ik_bindings.cpp)
+# target_link_libraries(pyikfast PRIVATE pybind11::module)
+
+# Test
+add_executable(test_ik test_ik.cpp)
+target_link_libraries(test_ik PRIVATE ${PROJECT_NAME})
