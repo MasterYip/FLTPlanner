@@ -2,13 +2,13 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-09 21:32:46
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-29 20:05:53
+LastEditTime: 2023-11-29 22:00:23
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//robot_interface//hitspider_robotinterface.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
 
-
+import hashlib
 import numpy as np
 import pinocchio as pin
 from typing_extensions import deprecated
@@ -62,7 +62,7 @@ class HITSpider_RobotInterface(Base_RobotInterface):
                 return False
         return True
 
-    def IKFast_foot(self, foot_index, target: np.ndarray, valid_check=True):
+    def IKFast_foot(self, foot_index, target: np.ndarray, valid_check=True, fall_back=True):
         """Get the target configuration using IKFast
         Args:
             foot_index (int): 0-5
@@ -75,8 +75,11 @@ class HITSpider_RobotInterface(Base_RobotInterface):
         for i in range(len(sol)):
             if self.check_legcfg_valid(sol[i]) or not valid_check:
                 return np.array(sol[i])
-        print("Warning: IKFast failed, fall back on IK_foot")
-        return self.IK_foot(foot_index, target)  # Fall back
+        if fall_back:
+            print("Warning: IKFast failed, fall back on IK_foot")
+            return self.IK_foot(foot_index, target)  # Fall back
+        else:
+            raise Exception("IKFast failed")
 
     def IK_foot(self, foot_index, target, q_leg0=np.zeros(3)):
         """Get the target configuration
@@ -95,10 +98,11 @@ class HITSpider_RobotInterface(Base_RobotInterface):
 
         return fmin_bfgs(cost, q_leg0, disp=False, gtol=1e-4)
 
-    def IKFast_foots(self, target_list):
+    def IKFast_foots(self, target_list, valid_check=True, fall_back=True):
         q = np.zeros(18)
         for i in range(6):
-            q[3*i:3*i+3] = self.IKFast_foot(i, target_list[i])
+            q[3*i:3*i+3] = self.IKFast_foot(i, target_list[i],
+                                            valid_check, fall_back)
         return q
 
     def IK_foots(self, target_list, q0=np.zeros(18)):
@@ -116,3 +120,12 @@ class HITSpider_RobotInterface(Base_RobotInterface):
                 viz_id, collsphere.radius, colors.green_transparent)
             self.viz.applyConfiguration(
                 viz_id, self.get_frame_placement(q, collsphere.frame_name))
+
+    def viz_add_sphere(self, pos, radius=0.1, color=colors.red, name=None):
+        if name is None:
+            name = hashlib.md5(str(np.random.rand()).encode()).hexdigest()
+        self.viz.addSphere("world/Sphere/"+name, radius, color)
+        self.viz.applyConfiguration("world/Sphere/" + name, pin.SE3(np.eye(3), np.array(pos)))
+    
+    def viz_clear(self, name_space="world/Sphere"):
+        self.viz.delete(name_space)
