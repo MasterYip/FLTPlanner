@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 21:49:12
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-29 20:10:21
+LastEditTime: 2023-11-30 09:24:59
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//swing_traj_planner.py
 Description: file content
 '''
@@ -23,7 +23,7 @@ class SwingTrajPlanner(object):
         self.robot_interface = robot_interface
         pass
 
-    # @do_cprofile(save=True)
+    @do_cprofile(save=True)
     def opt_traj(self, default_traj, torso_traj=None, leg_index=None, maxiter=20, ret=False):
         """Get the swing trajectory
         :param default_traj: default swing trajectory (with time) (param by reference)

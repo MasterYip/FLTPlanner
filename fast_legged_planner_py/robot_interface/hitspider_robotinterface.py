@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-09 21:32:46
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-29 22:00:23
+LastEditTime: 2023-11-30 09:38:52
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//robot_interface//hitspider_robotinterface.py
 Description: file content
 '''
@@ -62,20 +62,30 @@ class HITSpider_RobotInterface(Base_RobotInterface):
                 return False
         return True
 
-    def IKFast_foot(self, foot_index, target: np.ndarray, valid_check=True, fall_back=True):
+    def IKFast_foot(self, foot_index, target: np.ndarray, valid_check=True, fall_back=True, ray_approx=True):
         """Get the target configuration using IKFast
         Args:
             foot_index (int): 0-5
             target (np.ndarray(3,)): target 3d position relative to base
+            valid_check (bool, optional): check if the solution is valid. Defaults to True.
+            fall_back (bool, optional): fall back to IK_foot if IKFast failed. Defaults to True.
+            ray_approx (bool, optional): use ray approximation. Defaults to True.
         """
         th_2 = self.rot_mat[foot_index]/2
         m = pin.XYZQUATToSE3([0, 0, 0, 0, 0, np.sin(th_2), np.cos(th_2)])
         pos = m.actInv(target)
-        sol = ik.IKFast_trans3D(list(pos))
-        for i in range(len(sol)):
-            if self.check_legcfg_valid(sol[i]) or not valid_check:
-                return np.array(sol[i])
-        if fall_back:
+        # Ray approximation
+        ray_approx_factor = 0.9
+        max_try = 10 if ray_approx else 1
+        while max_try > 0:
+            sol = ik.IKFast_trans3D(list(pos))
+            for i in range(len(sol)):
+                if self.check_legcfg_valid(sol[i]) or not valid_check:  # Valid check
+                    return np.array(sol[i])
+            max_try -= 1
+            pos *= ray_approx_factor
+        # Fall back
+        if fall_back is True:
             print("Warning: IKFast failed, fall back on IK_foot")
             return self.IK_foot(foot_index, target)  # Fall back
         else:
@@ -125,7 +135,8 @@ class HITSpider_RobotInterface(Base_RobotInterface):
         if name is None:
             name = hashlib.md5(str(np.random.rand()).encode()).hexdigest()
         self.viz.addSphere("world/Sphere/"+name, radius, color)
-        self.viz.applyConfiguration("world/Sphere/" + name, pin.SE3(np.eye(3), np.array(pos)))
-    
+        self.viz.applyConfiguration(
+            "world/Sphere/" + name, pin.SE3(np.eye(3), np.array(pos)))
+
     def viz_clear(self, name_space="world/Sphere"):
         self.viz.delete(name_space)
