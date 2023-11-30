@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-09 21:32:46
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-30 09:38:52
+LastEditTime: 2023-11-30 14:44:12
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//robot_interface//hitspider_robotinterface.py
 Description: file content
 '''
@@ -29,7 +29,7 @@ JOINT_STATE_NAME = ["joint_lf_1", "joint_lf_2", "joint_lf_3",
 FOOT_LINK_NAME = ["link_lf_foot", "link_lh_foot", "link_lm_foot",
                   "link_rf_foot", "link_rh_foot", "link_rm_foot"]
 
-LEG_CFG_DEG_RANGE = [90, 90, 90]  # Deg
+LEG_CFG_DEG_RANGE = [100, 120, 120]  # Deg
 LEG_CFG_SPACE = np.array([[np.deg2rad(-LEG_CFG_DEG_RANGE[0]),
                            np.deg2rad(LEG_CFG_DEG_RANGE[0])],
                           [np.deg2rad(-LEG_CFG_DEG_RANGE[1]),

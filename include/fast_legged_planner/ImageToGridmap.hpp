@@ -46,6 +46,8 @@ class ImageToGridmapDemo
 
   void imageCallback(const sensor_msgs::Image& msg);
 
+  void imageCeilingCallback(const sensor_msgs::Image& msg);
+
  private:
 
   //! ROS nodehandle.
@@ -59,9 +61,13 @@ class ImageToGridmapDemo
 
   //! Image subscriber
   ros::Subscriber imageSubscriber_;
+  bool withCeiling_;
+  ros::Subscriber imageCeilingSubscriber_;
+  sensor_msgs::Image ceilingImgBuffer_;
 
   //! Name of the grid map topic.
   std::string imageTopic_;
+  std::string imageCeilingTopic_;
 
   //! Length of the grid map in x direction.
   double mapLengthX_;

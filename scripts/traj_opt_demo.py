@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-30 14:17:31
+LastEditTime: 2023-11-30 17:10:43
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -147,13 +147,13 @@ class TrajOptDemo(object):
         path = rrt_star_bid_h.rrt_star_bid_h(verbose=False)
         # self.rrt_viz_traj(path)
         timed_path = []
+        if webplot:
+            self.rrt_webplot(X, x_init, x_goal, rrt_star_bid_h, path=path)
         for i in range(len(path)):
             t = [i/len(path)] + list(path[i])
             timed_path.append(np.array(t))
         self.spline = TimedLinearSpline(np.array(timed_path))
         self.viz_traj()
-        if webplot:
-            self.rrt_webplot(X, x_init, x_goal, rrt_star_bid_h, path=path)
 
     def rrt_viz_traj(self, path):
         if path is not None:
@@ -173,12 +173,10 @@ class TrajOptDemo(object):
 
     # RRT Cfg TrajOpt
     def optimize_viz_rrt_cfg(self):
-        cnt = 0
         prob = RRTCfg_BSplineOptProb(self.spline, torso_traj, self.leg_index,
                                      self.map_interface, self.robot_interface,
                                      end_ignore_dia=0.07)
         self.spline = prob.optimize(Q=np.array([[0.05, 4]]), max_samples=1024)
-
 
     # Robot Viz
 
@@ -201,8 +199,11 @@ if __name__ == "__main__":
     demo = TrajOptDemo()
     demo.viz_traj()
     rospy.sleep(1)
-    demo.optimize_viz_rrt()
+    demo.optimize_viz_rrt(webplot=True)
+    # demo.optimize_viz_rrt_cfg()
     # demo.optimize_viz()
+    print(demo.map_interface.sdf_value(np.array([0, 0, 0])))
+    print(demo.map_interface.sdf_value(np.array([0, 0, 1])))
     while rospy.is_shutdown() is False:
         demo.viz_robot_traj()
         rospy.sleep(1)

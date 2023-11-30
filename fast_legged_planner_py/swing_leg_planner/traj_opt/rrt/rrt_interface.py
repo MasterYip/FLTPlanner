@@ -98,7 +98,7 @@ class Gridmap_SearchSpace(SearchSpace):
         self.goal = goal
 
     @override
-    def obstacle_free(self, x, use_sdf=False):
+    def obstacle_free(self, x, use_sdf=True):
         """
         Check if a location resides inside of an obstacle
         :param x: location to check
@@ -111,6 +111,7 @@ class Gridmap_SearchSpace(SearchSpace):
                 ret = self.map_interface.sdf_value(
                     np.array(x)) > self.obs_clearance
             else:
+                # FIXME: This do not support ground & ceiling map
                 ret = x[-1] > (self.map_interface.value(
                     np.array(x[:2])) + self.obs_clearance)
         except:

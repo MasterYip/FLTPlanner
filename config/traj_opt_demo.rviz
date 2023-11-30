@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /SDF1
         - /FootTraj1
       Splitter Ratio: 0.5
     Tree Height: 667
@@ -27,7 +26,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: SDF
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -63,6 +62,140 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        link_base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lf_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lf_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lf_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lf_foot:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lh_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lh_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lh_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lh_foot:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lm_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lm_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lm_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_lm_foot:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rf_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rf_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rf_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rf_foot:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rh_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rh_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rh_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rh_foot:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rm_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rm_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rm_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_rm_foot:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_trunk:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -133,7 +266,7 @@ Visualization Manager:
       Color Layer: elevation
       Color Transformer: IntensityLayer
       ColorMap: anybotics
-      Enabled: false
+      Enabled: true
       Grid Cell Decimation: 2
       Grid Line Thickness: 0.10000000149011612
       Height Layer: elevation
@@ -144,12 +277,36 @@ Visualization Manager:
       Max Intensity: 10
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: Image2Gridmap
+      Name: Image2Gridmap_ground
       Show Grid Lines: true
       Topic: /grid_map
       Unreliable: false
       Use ColorMap: true
-      Value: false
+      Value: true
+    - Alpha: 0.5
+      Autocompute Intensity Bounds: true
+      Class: grid_map_rviz_plugin/GridMap
+      Color: 200; 200; 200
+      Color Layer: elevation
+      Color Transformer: IntensityLayer
+      ColorMap: anybotics
+      Enabled: true
+      Grid Cell Decimation: 2
+      Grid Line Thickness: 0.10000000149011612
+      Height Layer: ceiling
+      Height Transformer: Layer
+      History Length: 1
+      Invert ColorMap: false
+      Max Color: 255; 255; 255
+      Max Intensity: 10
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: Image2Gridmap_ceiling
+      Show Grid Lines: true
+      Topic: /grid_map
+      Unreliable: false
+      Use ColorMap: true
+      Value: true
     - Alpha: 0.4000000059604645
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -162,7 +319,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 0; 0; 0
       Min Color: 239; 41; 41
@@ -177,14 +334,14 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /traj_opt
       Name: FootTraj
       Namespaces:
         default_curve: true
-        default_foothold: true
+        default_spheres: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -223,17 +380,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.22166049480438232
-        Y: -0.8778478503227234
-        Z: 0.5159963965415955
+        X: -0.5026089549064636
+        Y: -0.4678969979286194
+        Z: 0.4741993844509125
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.15479770302772522
+      Pitch: 0.13479773700237274
       Target Frame: <Fixed Frame>
-      Yaw: 4.456390380859375
+      Yaw: 3.481391191482544
     Saved: ~
 Window Geometry:
   Displays:

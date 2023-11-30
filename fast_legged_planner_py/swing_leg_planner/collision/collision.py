@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-03 21:37:53
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-30 09:48:47
+LastEditTime: 2023-11-30 15:30:46
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//collision//collision.py
 Description: file content
 '''
@@ -100,7 +100,7 @@ class HITLeg_Collision_Model(object):
             cost += sphere.getCollCost(sdf_value)
         return cost
 
-    def getCollCost_IK(self, pos_foot, pose_base, infeasible_cost=None):
+    def getCollCost_IK(self, pos_foot, pose_base, infeasible_cost=100):
         """Compute the collision cost
         :param pos_foot: foot position in world frame
         :param pose_base: base pose
