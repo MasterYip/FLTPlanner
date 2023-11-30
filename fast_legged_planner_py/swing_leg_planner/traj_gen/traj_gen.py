@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-28 17:54:50
+LastEditTime: 2023-11-30 14:18:33
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_gen//traj_gen.py
 Description: file content
 '''
@@ -197,6 +197,8 @@ class TimedLinearSpline(SplineBase):
     def get_end(self):
         return self.get()[-1, 1:]
 
+    def get_poslist(self):
+        return self.params[:, 1:]
 
 class HermiteSpline(SplineBase):
     """
