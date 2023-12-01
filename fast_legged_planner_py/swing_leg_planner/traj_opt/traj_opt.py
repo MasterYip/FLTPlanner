@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-01 09:47:18
+LastEditTime: 2023-12-01 11:04:07
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
@@ -98,6 +98,10 @@ class HermiteOptProb(SplineOptBase):
         # opt_state[-2:, :] = self.initial_guess[-2:, :]
         return opt_state
 
+
+################################################
+# Uniform B-Spline
+################################################
 
 class UniBSplineOptProb(SplineOptBase):
     def __init__(self, spline: UniBSpline, map_interface: GridMap_Interface):
@@ -212,6 +216,31 @@ class UniBSplineOptProb(SplineOptBase):
         return None
 
 
+class Legged_UniBSplineOptProb(UniBSplineOptProb):
+    def __init__(self, spline: UniBSpline, torso_traj,
+                 map_interface: GridMap_Interface, collmodel):
+        super().__init__(spline, map_interface)
+        self.collmodel = collmodel
+        # FIXME: a function or class?
+        self.torso_traj = torso_traj
+
+    @override
+    def collision_cost(self):
+        cost = 0
+        for t in self.get_collsample_index():
+            cost += self.collmodel.getCollCost_IK(
+                self.spline.evaluate(t, normalized=True),
+                self.torso_traj(t))
+            # cost += self.point_collision_cost(
+            #     self.spline.evaluate(t, normalized=True))
+        return cost
+
+
+################################################
+# RRT Search
+################################################
+
+
 class RRTBSplineOptProb(object):
     def __init__(self, spline, map_interface: GridMap_Interface,
                  z_margin=.3, obs_clearance=0.04, end_ignore_dia=0.05):
@@ -298,38 +327,3 @@ class RRTCfg_OptProb(object):
         else:
             print("RRT failed")
             return self.spline
-
-
-class Legged_UniBSplineOptProb(UniBSplineOptProb):
-    def __init__(self, spline: UniBSpline, torso_traj,
-                 map_interface: GridMap_Interface, collmodel):
-        super().__init__(spline, map_interface)
-        self.collmodel = collmodel
-        # FIXME: a function or class?
-        self.torso_traj = torso_traj
-
-    @override
-    def collision_cost(self):
-        cost = 0
-        for t in self.get_collsample_index():
-            # cost += self.collmodel.getCollCost_IK(
-            #     self.spline.evaluate(t, normalized=True),
-            #     0)
-            cost += self.collmodel.getCollCost_IK(
-                self.spline.evaluate(t, normalized=True),
-                self.torso_traj(t))
-            # cost += self.point_collision_cost(
-            #     self.spline.evaluate(t, normalized=True))
-        return cost
-
-    # def get_collsample_index(self):
-    #     # FIXME: How to set the number of sample points
-    #     # Use distance metric temporarily
-    #     end_distance = np.linalg.norm(
-    #         self.spline.get()[0, :]-self.spline.get()[-1, :])
-    #     # FIXME: End point is extracted
-    #     # NOTE: More sample points should be assigned at ends(Use Sin(x) mapping)
-    #     point_num = self.spline.get_n()*int(6*end_distance)
-    #     t_arithmetic = np.linspace(0, 1, point_num)
-    #     # return t_arithmetic
-    #     return 0.5*np.sin(t_arithmetic*np.pi-np.pi/2)+0.5

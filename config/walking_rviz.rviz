@@ -274,7 +274,7 @@ Visualization Manager:
       Color Layer: elevation
       Color Transformer: IntensityLayer
       ColorMap: anybotics
-      Enabled: false
+      Enabled: true
       Grid Cell Decimation: 2
       Grid Line Thickness: 0.10000000149011612
       Height Layer: elevation
@@ -285,12 +285,36 @@ Visualization Manager:
       Max Intensity: 10
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: Image2Gridmap
+      Name: Image2Gridmap_ground
       Show Grid Lines: true
       Topic: /grid_map
       Unreliable: false
       Use ColorMap: true
-      Value: false
+      Value: true
+    - Alpha: 0.5
+      Autocompute Intensity Bounds: true
+      Class: grid_map_rviz_plugin/GridMap
+      Color: 200; 200; 200
+      Color Layer: elevation
+      Color Transformer: IntensityLayer
+      ColorMap: anybotics
+      Enabled: true
+      Grid Cell Decimation: 2
+      Grid Line Thickness: 0.10000000149011612
+      Height Layer: ceiling
+      Height Transformer: Layer
+      History Length: 1
+      Invert ColorMap: false
+      Max Color: 255; 255; 255
+      Max Intensity: 10
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: Image2Gridmap_ceiling
+      Show Grid Lines: true
+      Topic: /grid_map
+      Unreliable: false
+      Use ColorMap: true
+      Value: true
     - Alpha: 0.6000000238418579
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -303,7 +327,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: true
       Max Color: 0; 0; 0
       Min Color: 239; 41; 41
@@ -318,7 +342,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /hit_spider_expected_traj
@@ -355,7 +379,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.727685928344727
+      Distance: 2.494950771331787
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -363,17 +387,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.49753034114837646
-        Y: -1.1390833854675293
-        Z: -0.1817556768655777
+        X: -0.47226426005363464
+        Y: -0.608601450920105
+        Z: 0.512637734413147
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3247975707054138
+      Pitch: 0.029797447845339775
       Target Frame: <Fixed Frame>
-      Yaw: 6.191383361816406
+      Yaw: 3.881380796432495
     Saved: ~
 Window Geometry:
   Displays:

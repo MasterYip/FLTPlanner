@@ -32,7 +32,6 @@
         </node>
     </group>
     <node pkg="fast_legged_planner" type="image_to_gridmap" name="image_to_gridmap" output="screen">
-        <!-- Not using image_to_gridmap.yaml here -->
         <param name="with_ceiling" value="$(arg with_ceiling)" />
         <param name="image_topic" value="/image_publisher/image" />
         <param name="image_ceiling_topic" value="/image_ceiling_publisher/image" />

@@ -2,7 +2,7 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 21:49:12
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-30 09:24:59
+LastEditTime: 2023-12-01 10:57:20
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//swing_traj_planner.py
 Description: file content
 '''
@@ -29,12 +29,12 @@ class SwingTrajPlanner(object):
         :param default_traj: default swing trajectory (with time) (param by reference)
         :param torso_traj: torso trajectory (with time) (FIXME: class for function?)
         """
-
+        # Init
         spline = default_traj
         collmodel = HITLeg_Collision_Model(
             self.robot_interface, self.map_interface, leg_index)
 
-        # Hermite
+        # Hermite Opt
         # costs = CostCollection([
         #     KinematicCost(spline, 0.1),
         #     CollisionCost(spline, self.map_interface, 10)
@@ -44,6 +44,10 @@ class SwingTrajPlanner(object):
 
         # Uniform B-Spline
         # UniBSplineOptProb(spline, self.map_interface).optimize(maxiter=maxiter, disp=True)
+        # Uniform B-Spline with Leg Collision
+        Legged_UniBSplineOptProb(spline, torso_traj, self.map_interface, collmodel).optimize(
+            maxiter=maxiter, disp=True)
+
 
         # RRT Search
         # RRTBSplineOptProb(spline, self.map_interface,
@@ -52,8 +56,6 @@ class SwingTrajPlanner(object):
         # RRT Cfg Search
         # spline = RRTCfg_OptProb(spline, torso_traj, leg_index, self.map_interface, self.robot_interface,
         #                                end_ignore_dia=0.07).optimize(Q=np.array([[0.05, 4]]), max_samples=1024)
-        # Uniform B-Spline with Leg Collision
-        Legged_UniBSplineOptProb(spline, torso_traj, self.map_interface, collmodel).optimize(
-            maxiter=maxiter, disp=True)
+        
         if ret:
             return spline

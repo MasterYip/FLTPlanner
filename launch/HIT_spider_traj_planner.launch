@@ -2,11 +2,16 @@
     <!-- HIT Spider MCTs + foot trajectory optimization -->
 
     <!-- Settings -->
-    <!-- value: image/txt -->
+    <!-- value: image/txt --> <!-- txt Deprecated -->
     <arg name="grid_map_fmt" value="image" />
+    <arg name="with_ceiling" value="true" />
+    <arg name="max_height" value="1.0" />
+    <arg name="elevation_layer" value="elevation" />
+    <arg name="ceiling_layer" value="ceiling" />
     <!-- GridMap -->
-    <!-- image to gridmap -->
-    <arg name="grid_map_file" value="$(find fast_legged_planner)/data/Terrain1.png" />
+    <!-- image to gridmap -->    <!-- Ground & Ceiling (must be of the same size) -->
+    <arg name="grid_map_file" value="$(find fast_legged_planner)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ground.png" />
+    <arg name="grid_map_file_ceiling" value="$(find fast_legged_planner)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ceiling.png" />
     <!-- txt to gridmap -->
     <param name="terrain_file" value="$(find fast_legged_planner)/data/terrain4.txt" />
 
@@ -14,10 +19,12 @@
     <param name="point_cloud_topic" value="point_cloud" />
     <!-- elevation_layer name is setted in grid_map_pub.cpp (ghost value needed being handled) -->
     <group if="$(eval grid_map_fmt=='image')">
-        <param name="elevation_layer" value="elevation" />
+        <param name="elevation_layer" value="$(arg elevation_layer)" />
+        <param name="ceiling_layer" value="$(arg ceiling_layer)" />
     </group>
     <group if="$(eval grid_map_fmt=='txt')">
-        <param name="elevation_layer" value="3D_feeling" />  <!-- This is needed when using txt files -->
+        <!-- This is needed when using txt files -->
+        <param name="elevation_layer" value="3D_feeling" />
     </group>
 
     <!-- Launch -->
@@ -33,8 +40,22 @@
             <param name="image_path" value="$(arg grid_map_file)" />
             <param name="topic" value="~image" />
         </node>
+        <group if="$(arg with_ceiling)">
+            <node pkg="fast_legged_planner" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
+                <param name="image_path" value="$(arg grid_map_file_ceiling)" />
+                <param name="topic" value="~image" />
+            </node>
+        </group>
         <node pkg="fast_legged_planner" type="image_to_gridmap" name="image_to_gridmap" output="screen">
-            <rosparam command="load" file="$(find fast_legged_planner)/config/image_to_gridmap.yaml" />
+            <param name="with_ceiling" value="$(arg with_ceiling)" />
+            <param name="image_topic" value="/image_publisher/image" />
+            <param name="image_ceiling_topic" value="/image_ceiling_publisher/image" />
+            <param name="resolution" value="0.05" />
+            <param name="map_frame_id" value="odom" />
+            <param name="min_height" value="0" />
+            <param name="max_height" value="$(arg max_height)" />
+            <remap from="/elevation" to="/$(arg elevation_layer)"/>
+            <remap from="/ceiling" to="/$(arg ceiling_layer)"/>
         </node>
     </group>
     <group if="$(eval grid_map_fmt=='txt')">
