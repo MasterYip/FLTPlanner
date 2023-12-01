@@ -11,7 +11,7 @@ except:
     # Run in ipykernel & interactive
     ROOT_DIR = os.getcwd()
 
-# Settings
+# Default Settings
 DO_PROF = True
 VERBOSE = True
 SAVE = False
@@ -20,15 +20,14 @@ if not os.path.isdir(os.path.join(ROOT_DIR, "log")):
     os.mkdir(os.path.join(ROOT_DIR, "log"))
 
 
-def do_cprofile(filename=None, verbose=VERBOSE, save=SAVE):
+def do_cprofile(filename=None, do_prof=DO_PROF, verbose=VERBOSE, save=SAVE):
     """
     Decorator for function profiling.
     """
     def wrapper(func):
         def profiled_func(*args, **kwargs):
             # Flag for do profiling or not.
-            # DO_PROF = os.getenv("PROFILING")
-            if DO_PROF:
+            if do_prof:
                 profile = cProfile.Profile()
                 profile.enable()
                 result = func(*args, **kwargs)

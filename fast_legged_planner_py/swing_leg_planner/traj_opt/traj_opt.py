@@ -295,7 +295,7 @@ class RRTCfg_OptProb(object):
                                                      self.start, self.end,
                                                      end_ignore_dia=end_ignore_dia)
 
-    def optimize(self, Q=np.array([(0.1, 4)]), r=0.01, max_samples=1024, rewire_count=32, prc=0.01):
+    def optimize(self, Q=np.array([(0.1, 4)]), r=0.01, max_samples=1024, rewire_count=32, prc=0.01, verbose=True):
         """
         :param Q: length of tree edges
         :param r: length of smallest edge to check for intersection with obstacles
@@ -312,7 +312,7 @@ class RRTCfg_OptProb(object):
         self.rrt = RRTStarBidirectionalHeuristic(
             self.search_space, self.Q, self.start, self.end,
             self.max_samples, self.r, self.prc, self.rewire_count)
-        self.path = self.rrt.rrt_star_bid_h(verbose=True)
+        self.path = self.rrt.rrt_star_bid_h(verbose=verbose)
         if self.path is not None:
             # TODO: How to generate a spline in work space from a timed path in config space?
             workspace_path = []
