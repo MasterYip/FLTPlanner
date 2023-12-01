@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-01 09:48:37
+LastEditTime: 2023-12-01 20:10:18
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     rospy.sleep(1)
 
     # Optimizaiton Methods
-    # demo.optimize_viz_rrt(webplot=False)
+    # demo.optimize_viz_rrt(webplot=True)
     demo.optimize_viz_rrt_cfg()
     # demo.optimize_viz()
 

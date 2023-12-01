@@ -2,14 +2,14 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-01 11:04:07
+LastEditTime: 2023-12-01 20:53:07
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
 #!/usr/bin/env python
 # coding=utf-8
 
-from typing_extensions import override
+from typing_extensions import deprecated, override
 import numpy as np
 from abc import abstractmethod, ABCMeta
 from scipy.optimize import fmin_bfgs, fmin_l_bfgs_b
@@ -20,14 +20,61 @@ from ...perception_interface.gridmap_interface_ros import GridMap_Interface
 from .rrt.rrt_interface import Gridmap_SearchSpace, HITSpiderCfg_SearchSpace
 from ...third_party.rrt_algorithms.src.rrt.rrt_star_bid_h import RRTStarBidirectionalHeuristic
 
+################################################
+# Initial Trajectory Generation
+################################################
 
-class SplineOptBase(object):
 
-    spline = None
+def default_1stage_hermite(start, end, v_lift=0.8):
+    """Generate a 1-stage Hermite Spline
+    :param start: start point
+    :param end: end point
+    :param v_lift: lift velocity
+    """
+    v = np.array([0, 0, v_lift])
+    return HermiteSpline(
+        np.array([start, v, end, -v]))
 
-    def __init__(self, spline) -> None:
-        self.spline = spline
 
+def default_2stage_hermite(start, end, v_lift=0.8, h_lift=0.3):
+    """Generate a 2-stage Hermite Spline
+    :param start: start point
+    :param end: end point
+    :param v_lift: lift velocity
+    """
+    v = np.array([0, 0, v_lift])
+    p_mid = (start+end)*0.5
+    p_mid[-1] += h_lift
+    v_mid = (start-end)*0.5  # Cardinal Spline
+    return HermiteSpline(
+        np.array([start, v, p_mid, v_mid, end, -v]))
+
+
+def default_bspline(start, end, res=5, k=3, v_lift=0.8, h_lift=0.3):
+    """Generate a B-Spline
+    :param start: start point
+    :param end: end point
+    :param res: resolution
+    :param k: order
+    :param v_lift: lift velocity
+    :param h_lift: lift height
+    """
+    hermite = default_2stage_hermite(start, end, v_lift, h_lift)
+    return UniBSpline(np.array([hermite.evaluate(t, normalized=True) for t in np.linspace(0, 1, res)]), k)
+
+
+################################################
+# Optimization Problem Base
+################################################
+
+
+class OptProbBase(object):
+
+    @abstractmethod
+    def __init__(self, start, goal) -> None:
+        pass
+
+    """ Decision """
     @abstractmethod
     def get_decision_var(self):
         """Return the decision variable"""
@@ -38,6 +85,7 @@ class SplineOptBase(object):
         """Set the decision variable"""
         pass
 
+    """ Cost """
     @abstractmethod
     def get_cost(self, state):
         """Update the spline and return the cost"""
@@ -52,14 +100,40 @@ class SplineOptBase(object):
     def get_quadratic_approx(self, state):
         pass
 
+    """ Optimization """
+    @abstractmethod
+    def init_solution(self):
+        pass
+
     def optimize(self, maxiter=20, use_fprime=False, disp=False):
         return np.array(fmin_bfgs(self.get_cost, self.get_decision_var(),
                                   fprime=self.get_cost_derivative if use_fprime else None,
                                   maxiter=maxiter, full_output=False, disp=disp,
                                   callback=self.set_decision_var)).reshape(-1, self.spline.get_dimen())
 
+    """ Benchmark """
+    @abstractmethod
+    def in_collision(self):
+        pass
 
-class HermiteOptProb(SplineOptBase):
+    @abstractmethod
+    def time_cost(self):
+        pass
+
+    @abstractmethod
+    def get_grade(self):
+        pass
+
+################################################
+# Optimization Problem
+################################################
+
+
+""" Hermite Spline """
+
+
+@deprecated("Too old problem formulation")
+class HermiteOptProb(OptProbBase):
     def __init__(self, spline: HermiteSpline, costs: CostCollection, constraints, initial_guess, method='L-BFGS-B'):
         self.costs = costs
         self.constraints = constraints
@@ -99,13 +173,13 @@ class HermiteOptProb(SplineOptBase):
         return opt_state
 
 
-################################################
-# Uniform B-Spline
-################################################
+""" Uniform B-Spline """
 
-class UniBSplineOptProb(SplineOptBase):
+
+class UniBSplineOptProb(OptProbBase):
     def __init__(self, spline: UniBSpline, map_interface: GridMap_Interface):
-        super().__init__(spline)
+        # super().__init__(spline)
+        self.spline = spline
         self.map_interface = map_interface
         self.sdf_margin = 0.02
 
@@ -236,9 +310,7 @@ class Legged_UniBSplineOptProb(UniBSplineOptProb):
         return cost
 
 
-################################################
-# RRT Search
-################################################
+""" RRT Search """
 
 
 class RRTBSplineOptProb(object):

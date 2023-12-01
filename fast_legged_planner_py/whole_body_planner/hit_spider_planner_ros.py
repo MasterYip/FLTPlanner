@@ -2,30 +2,26 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-17 11:44:52
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-01 11:41:24
+LastEditTime: 2023-12-01 20:51:35
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//whole_body_planner//hit_spider_planner_ros.py
 Description: file content
 '''
 #!/usr/bin/env python
 # coding=utf-8
-from locale import normalize
-from turtle import pos
+
 import numpy as np
-from abc import abstractmethod, ABCMeta
 import pinocchio as pin
 from ..utils.data_structure import CircleQueue
-from ..swing_leg_planner.traj_gen.traj_gen import HermiteSpline, UniBSpline
 from .whole_body_planner import WholeBodyPlanner
 from ..swing_leg_planner.swing_traj_planner import SwingTrajPlanner
-from ..swing_leg_planner.traj_gen.traj_gen import linear_evaluate
-from ..utils.rviz_vis.traj_viz import COLOR_GREEN, COLOR_RED
-from ..robot_interface.hitspider_robotinterface_ros import HITSpider_RobotInterface_ROS, \
-    FeetPos2PosList, XYZRPY2SE3, point_SE3Act
+from ..robot_interface.hitspider_robotinterface_ros import FeetPos2PosList, XYZRPY2SE3
+from ..swing_leg_planner.traj_opt.traj_opt import default_bspline
 
 from fast_legged_planner.msg import hexapod_State
 
 # Settings(FIXME: Temporarily here)
 USE_RET_SPLINE = False
+
 
 class HITSpiderStateTraj(object):
     """State transfer trajectory of HITSpider(state0 to state1)"""
@@ -57,30 +53,12 @@ class HITSpiderStateTraj(object):
         self.swingtraj_isneeded = [
             self.state1.support_State_Now[i] == 0 for i in range(6)]
         # Default swing trajectory
-        v = np.array([0, 0, 0.8])
-        dh = 0.3
+        v_lift = 0.8
+        h_lift = 0.3
         for i in range(6):
             if self.swingtraj_isneeded[i]:
-                # 2 Knots
-                # self.swingtraj[i] = HermiteSpline(
-                #     np.array([self.footpos_list0[i], v, self.footpos_list1[i], -v]))
-
-                # 3 Knots
-                # v_mid = (self.footpos_list1[i]-self.footpos_list0[i])*0.5
-                # pos_mid = (
-                #     self.footpos_list0[i]+self.footpos_list1[i])*0.5+np.array([0, 0, dh])
-                # self.swingtraj[i] = HermiteSpline(
-                #     np.array([self.footpos_list0[i], v, pos_mid, v_mid, self.footpos_list1[i], -v]))
-
-                # Uni B
-                v_mid = (self.footpos_list1[i]-self.footpos_list0[i])*0.5
-                pos_mid = (
-                    self.footpos_list0[i]+self.footpos_list1[i])*0.5+np.array([0, 0, dh])
-                hermite = HermiteSpline(
-                    np.array([self.footpos_list0[i], v, pos_mid, v_mid, self.footpos_list1[i], -v]))
-                knot_num = 5
-                self.swingtraj[i] = UniBSpline(np.array(
-                    [hermite.evaluate(t, normalized=True) for t in np.linspace(0, 1, knot_num)]))
+                self.swingtraj[i] = default_bspline(self.footpos_list0[i], self.footpos_list1[i],
+                                                    v_lift=v_lift, h_lift=h_lift)
 
     # Traj evaluation
 
