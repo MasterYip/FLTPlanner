@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-28 17:31:13
+LastEditTime: 2023-12-01 09:47:18
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
@@ -240,7 +240,7 @@ class RRTBSplineOptProb(object):
             return False
 
 
-class RRTCfg_BSplineOptProb(object):
+class RRTCfg_OptProb(object):
     """RRT Search under HIT Spider Config space"""
 
     def __init__(self, spline, torso_tarj, leg_index,
@@ -258,7 +258,7 @@ class RRTCfg_BSplineOptProb(object):
         t.insert(0, 0.)
         self.start = tuple(t)
         t = self.robot_interface.IKFast_foot(leg_index, torso_tarj(
-            1).inverse() * spline.get_start()).tolist()
+            1).inverse() * spline.get_end()).tolist()
         t.insert(0, 1.)
         self.end = tuple(t)
         self.search_space = HITSpiderCfg_SearchSpace(robot_interface, map_interface,

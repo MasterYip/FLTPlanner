@@ -11,7 +11,7 @@ Description: file content
 import numpy as np
 from ..perception_interface.gridmap_interface_ros import GridMap_Interface
 from .traj_gen.traj_gen import HermiteSpline
-from .traj_opt.traj_opt import HermiteOptProb, UniBSplineOptProb, Legged_UniBSplineOptProb, RRTBSplineOptProb, RRTCfg_BSplineOptProb
+from .traj_opt.traj_opt import HermiteOptProb, UniBSplineOptProb, Legged_UniBSplineOptProb, RRTBSplineOptProb, RRTCfg_OptProb
 from .cost.cost import CostCollection, KinematicCost, CollisionCost
 from .collision.collision import HITLeg_Collision_Model
 from ..utils.benchmark.benchmark import do_cprofile
@@ -50,7 +50,7 @@ class SwingTrajPlanner(object):
         #                   z_margin=0.5, obs_clearance=0.05,
         #                   end_ignore_dia=0.08).optimize(Q=np.array([[0.1, 4]]), max_samples=1024)
         # RRT Cfg Search
-        # spline = RRTCfg_BSplineOptProb(spline, torso_traj, leg_index, self.map_interface, self.robot_interface,
+        # spline = RRTCfg_OptProb(spline, torso_traj, leg_index, self.map_interface, self.robot_interface,
         #                                end_ignore_dia=0.07).optimize(Q=np.array([[0.05, 4]]), max_samples=1024)
         # Uniform B-Spline with Leg Collision
         Legged_UniBSplineOptProb(spline, torso_traj, self.map_interface, collmodel).optimize(

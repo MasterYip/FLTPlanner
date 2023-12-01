@@ -36,7 +36,6 @@ class GridMap_Interface(object):
             rospy.sleep(0.5)
         self.update_gridmap()
         self.update_sdf(self.ground_layer, margin=sdf_margin)
-        print(self.msg.layers)
         if self.ceiling_layer in self.msg.layers:
             self.update_sdf(self.ceiling_layer, index=1, margin=sdf_margin)
 

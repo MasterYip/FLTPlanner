@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-27 13:47:50
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-28 14:59:07
+LastEditTime: 2023-12-01 09:31:15
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//rrt//rrt_interface.py
 Description: file content
 '''
@@ -56,7 +56,7 @@ class HITSpiderCfg_SearchSpace(SearchSpace):
 
         try:
             if use_sdf:
-                ret = self.collmodel.checkCollision(
+                ret = not self.collmodel.checkCollision(
                     q_leg=x_cfg[1:], pose_base=self.eval_torso_traj(x_cfg[0]))
             else:
                 raise NotImplementedError("Not use_sdf is Not implemented")
@@ -85,7 +85,7 @@ class Gridmap_SearchSpace(SearchSpace):
         """
         # z margin for search space
         dimension_lengths = np.array(map_interface.get_sdfrange())
-        dimension_lengths[-1] += z_margin
+        dimension_lengths[-1][1] += z_margin
         self.map_interface = map_interface
         super().__init__(dimension_lengths, None)
 

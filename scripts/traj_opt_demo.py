@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-30 17:10:43
+LastEditTime: 2023-12-01 09:48:37
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -18,7 +18,7 @@ from fast_legged_planner_py.robot_interface.hitspider_robotinterface_ros import 
 from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import HermiteSpline, UniBSpline, TimedLinearSpline
 from fast_legged_planner_py.perception_interface.gridmap_interface_ros import GridMap_Interface
 from fast_legged_planner_py.swing_leg_planner.swing_traj_planner import SwingTrajPlanner
-from fast_legged_planner_py.swing_leg_planner.traj_opt.traj_opt import HermiteOptProb, UniBSplineOptProb, Legged_UniBSplineOptProb, RRTBSplineOptProb, RRTCfg_BSplineOptProb
+from fast_legged_planner_py.swing_leg_planner.traj_opt.traj_opt import HermiteOptProb, UniBSplineOptProb, Legged_UniBSplineOptProb, RRTBSplineOptProb, RRTCfg_OptProb
 from fast_legged_planner_py.swing_leg_planner.cost.cost import CostCollection, KinematicCost, CollisionCost
 from fast_legged_planner_py.utils.rviz_vis.traj_viz import TrajViz, COLOR_GREEN, COLOR_RED, SCALE_MEDIUM, SCALE_LARGE
 from fast_legged_planner_py.swing_leg_planner.traj_opt.rrt.rrt_interface import Gridmap_SearchSpace
@@ -120,8 +120,10 @@ class TrajOptDemo(object):
 
     # RRT TrajOpt
     def optimize_viz_rrt(self, webplot=False):
-        x_init = (-1.0, 0., 0.)  # starting location
-        x_goal = (1.0, 0., 0.)  # goal location
+        x_init = tuple(self.spline.get_start())
+        x_goal = tuple(self.spline.get_end())
+        # x_init = (-1.0, 0., 0.1)  # starting location
+        # x_goal = (1.0, 0., 0.1)  # goal location
 
         # RRT_Connect
         # Q = np.array([0.3])  # length of tree edges
@@ -135,13 +137,14 @@ class TrajOptDemo(object):
         # self.rrt_webplot(X, x_init, x_goal, rrt_connect, path=path)
 
         # RRT*_Connect_h
-        Q = np.array([(0.1, 4)])  # length of tree edges
+        Q = np.array([(0.05, 4)])  # length of tree edges
         r = 0.01  # length of smallest edge to check for intersection with obstacles
         max_samples = 1024  # max number of samples to take before timing out
         rewire_count = 32  # optional, number of nearby branches to rewire
         prc = 0.01  # probability of checking for a connection to goal
 
-        X = Gridmap_SearchSpace(self.map_interface, x_init, x_goal)
+        X = Gridmap_SearchSpace(
+            self.map_interface, x_init, x_goal, end_ignore_dia=0.2)
         rrt_star_bid_h = RRTStarBidirectionalHeuristic(
             X, Q, x_init, x_goal, max_samples, r, prc, rewire_count)
         path = rrt_star_bid_h.rrt_star_bid_h(verbose=False)
@@ -173,9 +176,9 @@ class TrajOptDemo(object):
 
     # RRT Cfg TrajOpt
     def optimize_viz_rrt_cfg(self):
-        prob = RRTCfg_BSplineOptProb(self.spline, torso_traj, self.leg_index,
-                                     self.map_interface, self.robot_interface,
-                                     end_ignore_dia=0.07)
+        prob = RRTCfg_OptProb(self.spline, torso_traj, self.leg_index,
+                                              self.map_interface, self.robot_interface,
+                                              end_ignore_dia=0.07)
         self.spline = prob.optimize(Q=np.array([[0.05, 4]]), max_samples=1024)
 
     # Robot Viz
@@ -195,22 +198,19 @@ class TrajOptDemo(object):
 
 if __name__ == "__main__":
 
-    # Optimize-based
+    # Init
     demo = TrajOptDemo()
     demo.viz_traj()
     rospy.sleep(1)
-    demo.optimize_viz_rrt(webplot=True)
-    # demo.optimize_viz_rrt_cfg()
+
+    # Optimizaiton Methods
+    # demo.optimize_viz_rrt(webplot=False)
+    demo.optimize_viz_rrt_cfg()
     # demo.optimize_viz()
-    print(demo.map_interface.sdf_value(np.array([0, 0, 0])))
-    print(demo.map_interface.sdf_value(np.array([0, 0, 1])))
+
+    # Visualization
+    demo.viz_traj()
     while rospy.is_shutdown() is False:
         demo.viz_robot_traj()
         rospy.sleep(1)
     rospy.spin()
-
-    # RRT
-    # demo = TrajOptDemo()
-    # rospy.sleep(1)
-    # demo.optimize_viz_rrt()
-    # rospy.spin()
