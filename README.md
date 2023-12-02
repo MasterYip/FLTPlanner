@@ -12,6 +12,11 @@ Create and activate conda environment:
 conda env create -f robotic_course_env.yml
 ```
 
+### Deps(TODO)
+
+ - grid_map
+ - ompl(with python binding)
+
 ## Note
 
 - chmod python scripts under /scripts in order to run it

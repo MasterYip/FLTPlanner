@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-27 13:47:50
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-01 09:31:15
+LastEditTime: 2023-12-02 21:51:53
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//rrt//rrt_interface.py
 Description: file content
 '''
@@ -10,6 +10,17 @@ Description: file content
 # coding=utf-8
 import numpy as np
 from typing_extensions import override
+
+
+################################################
+# Ompl interface
+################################################
+# from ompl import base, control, geometric, tools, util
+# dir(base), dir(control), dir(geometric), dir(tools), dir(util)
+
+################################################
+# rrt_algorithm interface
+################################################
 from ....third_party.rrt_algorithms.src.search_space.search_space import SearchSpace
 from ...collision.collision import HITLeg_Collision_Model
 

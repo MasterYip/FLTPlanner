@@ -20,7 +20,7 @@ if not os.path.isdir(os.path.join(ROOT_DIR, "log")):
     os.mkdir(os.path.join(ROOT_DIR, "log"))
 
 
-def do_cprofile(filename=None, do_prof=DO_PROF, verbose=VERBOSE, save=SAVE):
+def do_cprofile(filename=None, do_prof=DO_PROF, verbose=VERBOSE, save=SAVE, sortby="tottime"):
     """
     Decorator for function profiling.
     """
@@ -33,7 +33,6 @@ def do_cprofile(filename=None, do_prof=DO_PROF, verbose=VERBOSE, save=SAVE):
                 result = func(*args, **kwargs)
                 profile.disable()
                 # Sort stat by internal time.
-                sortby = "tottime"
                 ps = pstats.Stats(profile).strip_dirs().sort_stats(sortby)
                 if save:
                     if filename:

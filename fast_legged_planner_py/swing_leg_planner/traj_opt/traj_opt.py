@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-01 20:53:07
+LastEditTime: 2023-12-02 11:29:42
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
@@ -70,9 +70,14 @@ def default_bspline(start, end, res=5, k=3, v_lift=0.8, h_lift=0.3):
 
 class OptProbBase(object):
 
+    spline = None
+
     @abstractmethod
-    def __init__(self, start, goal) -> None:
-        pass
+    def __init__(self, spline) -> None:
+        self.spline = spline
+    # @abstractmethod
+    # def __init__(self, start, goal) -> None:
+    #     pass
 
     """ Decision """
     @abstractmethod
@@ -178,8 +183,8 @@ class HermiteOptProb(OptProbBase):
 
 class UniBSplineOptProb(OptProbBase):
     def __init__(self, spline: UniBSpline, map_interface: GridMap_Interface):
-        # super().__init__(spline)
-        self.spline = spline
+        super().__init__(spline)
+        # self.spline = spline
         self.map_interface = map_interface
         self.sdf_margin = 0.02
 
