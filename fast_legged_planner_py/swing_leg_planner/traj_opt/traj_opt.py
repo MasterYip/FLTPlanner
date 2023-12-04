@@ -1,9 +1,9 @@
 '''
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
-LastEditors: MasterYip
-LastEditTime: 2023-12-04 12:30:45
-FilePath: \Fast-Legged-Planner-Test\fast_legged_planner_py\swing_leg_planner\traj_opt\traj_opt.py
+LastEditors: RaymonYip-NUC11
+LastEditTime: 2023-12-04 14:49:57
+FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -409,7 +409,7 @@ class OMPL_RRTCfg_OptProb(object):
             goal[i] = self.end[i]
         self.pdef.setStartAndGoalStates(start, goal)
 
-    def optimize(self, maxtime=0.3, type="informed_rrt_star"):
+    def optimize(self, maxtime=2, type="informed_rrt_star"):
         si = self.search_space.get_space_instance()
         if type == "rrt":
             planner = geometric.RRT(si)
@@ -430,9 +430,17 @@ class OMPL_RRTCfg_OptProb(object):
         planner.setup()
         solved = planner.solve(maxtime)
         if solved:
-            path = self.pdef.getSolutionPath()
+            path_cfg = self.pdef.getSolutionPath().getStates()
+            workspace_path = []
+            for path in path_cfg:
+                path = [path[i] for i in range(self.search_space.get_dimen())]
+                m = self.robot_interface.get_foot_placement(
+                    path[1:], self.leg_index)
+                m_world = self.torso_tarj(path[0]) * m
+                workspace_path.append(np.concatenate(
+                    ([path[0]], m_world.translation)))
             self.spline = TimedLinearSpline(
-                np.array([[t for t in state] for state in path.getStates()]))
+                np.array(workspace_path))
         else:
             print("OMPL RRT failed")
         return self.spline

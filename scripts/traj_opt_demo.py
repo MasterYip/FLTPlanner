@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-04 12:44:06
+LastEditTime: 2023-12-04 14:54:46
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -218,8 +218,8 @@ if __name__ == "__main__":
     # Optimizaiton Methods
     # demo.optimize_viz_rrt(webplot=True)
     # demo.optimize_viz_rrt_cfg()
-    demo.optimize_viz_ompl_rrt(maxtime=0.05, type="informed_rrt_star")
-    # demo.optimize_viz_ompl_rrt_cfg(maxtime=5, type="informed_rrt_star")
+    # demo.optimize_viz_ompl_rrt(maxtime=0.05, type="informed_rrt_star")
+    demo.optimize_viz_ompl_rrt_cfg(maxtime=1, type="informed_rrt_star")
     # demo.optimize_viz()
 
     # Visualization

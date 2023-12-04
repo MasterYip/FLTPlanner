@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-27 13:47:50
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-04 12:37:41
+LastEditTime: 2023-12-04 14:46:02
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//rrt//rrt_interface.py
 Description: file content
 '''
@@ -87,7 +87,7 @@ class OMPL_HITSpiderCfg_SearchSpace(object):
         :param use_sdf: use GridMap_SDF or GridMap
         :return: True if not inside an obstacle, False otherwise
         """
-        x_cfg = np.array([x for x in x_cfg])
+        x_cfg = np.array([x_cfg[i] for i in range(self.dimen)])
         try:
             if use_sdf:
                 ret = not self.collmodel.checkCollision(
@@ -158,7 +158,7 @@ class OMPL_GridmapSearchSpace(object):
         :param use_sdf: use GridMap_SDF or GridMap
         :return: True if not inside an obstacle, False otherwise
         """
-        x = np.array([t for t in x])
+        x = np.array([x[0], x[1], x[2]])
         try:
             if use_sdf:
                 ret = self.map_interface.sdf_value(
@@ -228,7 +228,7 @@ class HITSpiderCfg_SearchSpace(SearchSpace):
                     q_leg=x_cfg[1:], pose_base=self.eval_torso_traj(x_cfg[0]))
             else:
                 raise NotImplementedError("Not use_sdf is Not implemented")
-        except:
+        except Exception:
             print("Out of range:", x_cfg)
             ret = True  # Because the barrier height may occupy the entire height range, blocking the robot from moving
         # Start and goal obstacles ignoring (NOTE this is 4 dimen sphere)
