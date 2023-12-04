@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-02 11:29:42
+LastEditTime: 2023-12-04 12:15:53
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
 Description: file content
 '''
@@ -17,9 +17,12 @@ from scipy.optimize import fmin_bfgs, fmin_l_bfgs_b
 from ..traj_gen.traj_gen import HermiteSpline, UniBSpline, TimedLinearSpline
 from ..cost.cost import CostCollection
 from ...perception_interface.gridmap_interface_ros import GridMap_Interface
-from .rrt.rrt_interface import Gridmap_SearchSpace, HITSpiderCfg_SearchSpace
+from .rrt.rrt_interface import Gridmap_SearchSpace, HITSpiderCfg_SearchSpace, OMPL_GridmapSearchSpace
 from ...third_party.rrt_algorithms.src.rrt.rrt_star_bid_h import RRTStarBidirectionalHeuristic
 
+# OMPL
+from ompl import base
+from ompl import geometric
 ################################################
 # Initial Trajectory Generation
 ################################################
@@ -316,6 +319,57 @@ class Legged_UniBSplineOptProb(UniBSplineOptProb):
 
 
 """ RRT Search """
+
+
+class OMPL_RRTBSplineOptProb(object):
+    def __init__(self, spline, map_interface,
+                 z_margin=.3, obs_clearance=0.04, end_ignore_dia=0.05):
+        self.spline = spline
+        self.map_interface = map_interface
+        self.search_space = OMPL_GridmapSearchSpace(
+            map_interface, spline.get_start(), spline.get_end(),
+            z_margin=z_margin, obs_clearance=obs_clearance, end_ignore_dia=end_ignore_dia)
+
+        # Create an instance of the problem definition
+        self.pdef = base.ProblemDefinition(
+            self.search_space.get_space_instance())
+
+        # Set the start and goal states
+        start = base.State(self.search_space.get_space_info())
+        start[0] = spline.get_start()[0]
+        start[1] = spline.get_start()[1]
+        start[2] = spline.get_start()[2]
+        goal = base.State(self.search_space.get_space_info())
+        goal[0] = spline.get_end()[0]
+        goal[1] = spline.get_end()[1]
+        goal[2] = spline.get_end()[2]
+        self.pdef.setStartAndGoalStates(start, goal)
+
+    def optimize(self, maxtime=0.1, type="informed_rrt_star"):
+        si = self.search_space.get_space_instance()
+        if type == "rrt":
+            planner = geometric.RRT(si)
+        elif type == "informed_rrt_star":
+            planner = geometric.InformedRRTstar(si)
+        elif type == "rrt_star":
+            planner = geometric.RRTstar(si)
+
+        # Set the problem definition for the planner
+        planner.setProblemDefinition(self.pdef)
+        # TODO
+        # # Set the maximum propagation distance for the planner
+        # planner.setRange(0.1)
+        # # Set the maximum number of iterations for the planner
+        # planner.setMaxIterations(10000)
+
+        # Set the maximum time for the planner
+        planner.setup()
+        solved = planner.solve(maxtime)
+        if solved:
+            path = self.pdef.getSolutionPath()
+            self.spline.set(
+                np.array([[state[0], state[1], state[2]] for state in path.getStates()]))
+        return solved
 
 
 class RRTBSplineOptProb(object):

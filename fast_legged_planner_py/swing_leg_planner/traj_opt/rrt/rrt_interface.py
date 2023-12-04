@@ -2,12 +2,15 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-27 13:47:50
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-02 21:51:53
+LastEditTime: 2023-12-04 12:07:09
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//rrt//rrt_interface.py
 Description: file content
 '''
 #!/usr/bin/env python
 # coding=utf-8
+from tkinter import E
+from ...collision.collision import HITLeg_Collision_Model
+from ....third_party.rrt_algorithms.src.search_space.search_space import SearchSpace
 import numpy as np
 from typing_extensions import override
 
@@ -15,14 +18,86 @@ from typing_extensions import override
 ################################################
 # Ompl interface
 ################################################
-# from ompl import base, control, geometric, tools, util
-# dir(base), dir(control), dir(geometric), dir(tools), dir(util)
+from ompl import base
+from ompl import geometric
+
+
+class OMPL_GridmapSearchSpace(object):
+    def __init__(self, map_interface, start, goal,
+                 z_margin=1.0, obs_clearance=0.04,
+                 end_ignore_dia=0.05):
+        """
+        :param map_interface: GridMap_Interface
+        :param start: start position
+        :param goal: goal position
+        :param z_margin: z margin for search space
+        :param obs_clearance: obstacle clearance
+        :param end_ignore_dia: start and goal obstacles ignoring (should be larger than obs_clearance)
+        """
+        # z margin for search space
+        dimension_lengths = np.array(map_interface.get_sdfrange())
+        dimension_lengths[-1][1] += z_margin
+        self.map_interface = map_interface
+
+        # Border clearance
+        self.obs_clearance = obs_clearance
+        # Start and goal obstacles ignoring
+        self.end_ignore_dia = end_ignore_dia
+        # Start and goal
+        self.start = start
+        self.goal = goal
+
+        # OMPL space
+        # Create an instance of the state space
+        self.space = base.RealVectorStateSpace(3)
+        # Set bounds for the state space
+        bounds = base.RealVectorBounds(3)
+        # FIXME:
+        for i in range(3):
+            bounds.setLow(i, dimension_lengths[i][0])
+            bounds.setHigh(i, dimension_lengths[i][1])
+        self.space.setBounds(bounds)
+
+        # Create an instance of the space information
+        self.space_instance = base.SpaceInformation(self.space)
+        self.space_instance.setStateValidityChecker(
+            base.StateValidityCheckerFn(self.obstacle_free))
+
+    def get_space_instance(self):
+        return self.space_instance
+
+    def get_space_info(self):
+        return self.space
+
+    def obstacle_free(self, x, use_sdf=True):
+        """
+        Check if a location resides inside of an obstacle
+        :param x: location to check
+        :param use_sdf: use GridMap_SDF or GridMap
+        :return: True if not inside an obstacle, False otherwise
+        """
+        x = np.array([x[0], x[1], x[2]])
+        try:
+            if use_sdf:
+                ret = self.map_interface.sdf_value(
+                    np.array(x)) > self.obs_clearance
+            else:
+                # FIXME: This do not support ground & ceiling map
+                ret = x[-1] > (self.map_interface.value(
+                    np.array(x[:2])) + self.obs_clearance)
+        except Exception:
+            print("Out of range:", x)
+            ret = True  # Because the barrier height may occupy the entire height range, blocking the robot from moving
+        # Start and goal obstacles ignoring
+        if np.linalg.norm(np.array(x) - self.start) < self.end_ignore_dia\
+                or np.linalg.norm(np.array(x) - self.goal) < self.end_ignore_dia:
+            ret = True
+        return ret
+
 
 ################################################
 # rrt_algorithm interface
 ################################################
-from ....third_party.rrt_algorithms.src.search_space.search_space import SearchSpace
-from ...collision.collision import HITLeg_Collision_Model
 
 
 class HITSpiderCfg_SearchSpace(SearchSpace):

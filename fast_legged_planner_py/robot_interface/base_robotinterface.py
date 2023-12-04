@@ -8,16 +8,19 @@ Description: file content
 '''
 # -*- coding: utf-8 -*-
 import os
+from re import L
 import tempfile
 import pinocchio as pin
 from abc import abstractmethod, ABCMeta
 
+Load_Meshcat = False
 MeshcatFound = False
-try:
-    from ..third_party.meshcat_viewer_wrapper.visualizer import MeshcatVisualizer, colors
-    MeshcatFound = True
-except ImportError:
-    pass
+if Load_Meshcat:
+    try:
+        from ..third_party.meshcat_viewer_wrapper.visualizer import MeshcatVisualizer, colors
+        MeshcatFound = True
+    except ImportError:
+        pass
 
 
 class Base_RobotInterface(metaclass=ABCMeta):
