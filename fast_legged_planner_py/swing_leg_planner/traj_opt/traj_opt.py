@@ -1,9 +1,9 @@
 '''
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
-LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-04 12:15:53
-FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
+LastEditors: MasterYip
+LastEditTime: 2023-12-04 12:30:45
+FilePath: \Fast-Legged-Planner-Test\fast_legged_planner_py\swing_leg_planner\traj_opt\traj_opt.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -17,7 +17,7 @@ from scipy.optimize import fmin_bfgs, fmin_l_bfgs_b
 from ..traj_gen.traj_gen import HermiteSpline, UniBSpline, TimedLinearSpline
 from ..cost.cost import CostCollection
 from ...perception_interface.gridmap_interface_ros import GridMap_Interface
-from .rrt.rrt_interface import Gridmap_SearchSpace, HITSpiderCfg_SearchSpace, OMPL_GridmapSearchSpace
+from .rrt.rrt_interface import Gridmap_SearchSpace, HITSpiderCfg_SearchSpace, OMPL_GridmapSearchSpace, OMPL_HITSpiderCfg_SearchSpace
 from ...third_party.rrt_algorithms.src.rrt.rrt_star_bid_h import RRTStarBidirectionalHeuristic
 
 # OMPL
@@ -364,12 +364,78 @@ class OMPL_RRTBSplineOptProb(object):
 
         # Set the maximum time for the planner
         planner.setup()
+        # FIXME: Update the ret strategy
         solved = planner.solve(maxtime)
         if solved:
             path = self.pdef.getSolutionPath()
             self.spline.set(
                 np.array([[state[0], state[1], state[2]] for state in path.getStates()]))
         return solved
+
+
+class OMPL_RRTCfg_OptProb(object):
+    def __init__(self, spline, torso_tarj, leg_index,
+                 map_interface: GridMap_Interface, robot_interface,
+                 end_ignore_dia=0.05):
+        self.leg_index = leg_index
+        self.torso_tarj = torso_tarj
+        self.robot_interface = robot_interface
+        self.map_interface = map_interface
+
+        self.spline = spline
+
+        t = self.robot_interface.IKFast_foot(
+            leg_index, torso_tarj(0).inverse() * spline.get_start()).tolist()
+        t.insert(0, 0.)
+        self.start = tuple(t)
+        t = self.robot_interface.IKFast_foot(leg_index, torso_tarj(
+            1).inverse() * spline.get_end()).tolist()
+        t.insert(0, 1.)
+        self.end = tuple(t)
+        self.search_space = OMPL_HITSpiderCfg_SearchSpace(robot_interface, map_interface,
+                                                          torso_tarj, leg_index,
+                                                          self.start, self.end,
+                                                          end_ignore_dia=end_ignore_dia)
+        # OMPL
+        # Create an instance of the problem definition
+        self.pdef = base.ProblemDefinition(
+            self.search_space.get_space_instance())
+
+        # Set the start and goal states
+        start = base.State(self.search_space.get_space_info())
+        goal = base.State(self.search_space.get_space_info())
+        for i in range(len(self.start)):
+            start[i] = self.start[i]
+            goal[i] = self.end[i]
+        self.pdef.setStartAndGoalStates(start, goal)
+
+    def optimize(self, maxtime=0.3, type="informed_rrt_star"):
+        si = self.search_space.get_space_instance()
+        if type == "rrt":
+            planner = geometric.RRT(si)
+        elif type == "informed_rrt_star":
+            planner = geometric.InformedRRTstar(si)
+        elif type == "rrt_star":
+            planner = geometric.RRTstar(si)
+
+        # Set the problem definition for the planner
+        planner.setProblemDefinition(self.pdef)
+        # TODO
+        # # Set the maximum propagation distance for the planner
+        # planner.setRange(0.1)
+        # # Set the maximum number of iterations for the planner
+        # planner.setMaxIterations(10000)
+
+        # Set the maximum time for the planner
+        planner.setup()
+        solved = planner.solve(maxtime)
+        if solved:
+            path = self.pdef.getSolutionPath()
+            self.spline = TimedLinearSpline(
+                np.array([[t for t in state] for state in path.getStates()]))
+        else:
+            print("OMPL RRT failed")
+        return self.spline
 
 
 class RRTBSplineOptProb(object):
@@ -392,6 +458,7 @@ class RRTBSplineOptProb(object):
                 self.spline.get_start()), tuple(self.spline.get_end()),
             self.max_samples, self.r, self.prc, self.rewire_count)
         self.path = self.rrt.rrt_star_bid_h(verbose=False)
+        # TODO: update the ret strategy
         if self.path is not None:
             self.spline.set(np.array(self.path))
             return True
