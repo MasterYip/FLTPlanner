@@ -1,9 +1,9 @@
 '''
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-27 13:47:50
-LastEditors: MasterYip
-LastEditTime: 2023-12-04 12:24:13
-FilePath: \Fast-Legged-Planner-Test\fast_legged_planner_py\swing_leg_planner\traj_opt\rrt\rrt_interface.py
+LastEditors: RaymonYip-NUC11
+LastEditTime: 2023-12-04 12:37:41
+FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//rrt//rrt_interface.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -38,7 +38,6 @@ class OMPL_HITSpiderCfg_SearchSpace(object):
         """
         dimension_lengths = np.concatenate(
             ([[0., 1.]], robot_interface.get_leg_cfg_space()))
-        super().__init__(dimension_lengths, None)
 
         self.map_interface = map_interface
         self.robot_interface = robot_interface
@@ -76,7 +75,7 @@ class OMPL_HITSpiderCfg_SearchSpace(object):
 
     def get_space_info(self):
         return self.space
-    
+
     def get_dimen(self):
         return self.dimen
 

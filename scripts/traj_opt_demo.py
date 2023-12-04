@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-04 11:50:26
+LastEditTime: 2023-12-04 12:44:06
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -18,7 +18,7 @@ from fast_legged_planner_py.robot_interface.hitspider_robotinterface_ros import 
 from fast_legged_planner_py.swing_leg_planner.traj_gen.traj_gen import HermiteSpline, UniBSpline, TimedLinearSpline
 from fast_legged_planner_py.perception_interface.gridmap_interface_ros import GridMap_Interface
 from fast_legged_planner_py.swing_leg_planner.swing_traj_planner import SwingTrajPlanner
-from fast_legged_planner_py.swing_leg_planner.traj_opt.traj_opt import HermiteOptProb, UniBSplineOptProb, Legged_UniBSplineOptProb, RRTBSplineOptProb, RRTCfg_OptProb, OMPL_RRTBSplineOptProb
+from fast_legged_planner_py.swing_leg_planner.traj_opt.traj_opt import HermiteOptProb, UniBSplineOptProb, Legged_UniBSplineOptProb, RRTBSplineOptProb, RRTCfg_OptProb, OMPL_RRTBSplineOptProb, OMPL_RRTCfg_OptProb
 from fast_legged_planner_py.swing_leg_planner.cost.cost import CostCollection, KinematicCost, CollisionCost
 from fast_legged_planner_py.utils.rviz_vis.traj_viz import TrajViz, COLOR_GREEN, COLOR_RED, SCALE_MEDIUM, SCALE_LARGE
 from fast_legged_planner_py.swing_leg_planner.traj_opt.rrt.rrt_interface import Gridmap_SearchSpace
@@ -119,12 +119,12 @@ class TrajOptDemo(object):
         self.traj_viz.publish()
 
     # RRT TrajOpt
-    def optimize_viz_ompl_rrt(self, type="informed_rrt_star"):
+    def optimize_viz_ompl_rrt(self, maxtime=0.1, type="informed_rrt_star"):
         prob = OMPL_RRTBSplineOptProb(self.spline, self.map_interface,
-                               z_margin=0.5, obs_clearance=0.05,
-                               end_ignore_dia=0.08)
-        prob.optimize(maxtime=0.05, type=type)
-    
+                                      z_margin=0.5, obs_clearance=0.05,
+                                      end_ignore_dia=0.08)
+        prob.optimize(maxtime=maxtime, type=type)
+
     def optimize_viz_rrt(self, webplot=False):
         x_init = tuple(self.spline.get_start())
         x_goal = tuple(self.spline.get_end())
@@ -183,9 +183,15 @@ class TrajOptDemo(object):
     # RRT Cfg TrajOpt
     def optimize_viz_rrt_cfg(self):
         prob = RRTCfg_OptProb(self.spline, torso_traj, self.leg_index,
-                                              self.map_interface, self.robot_interface,
-                                              end_ignore_dia=0.07)
+                              self.map_interface, self.robot_interface,
+                              end_ignore_dia=0.07)
         self.spline = prob.optimize(Q=np.array([[0.05, 4]]), max_samples=1024)
+
+    def optimize_viz_ompl_rrt_cfg(self, maxtime=1, type="informed_rrt_star"):
+        prob = OMPL_RRTCfg_OptProb(self.spline, torso_traj, self.leg_index,
+                                   self.map_interface, self.robot_interface,
+                                   end_ignore_dia=0.07)
+        self.spline = prob.optimize(maxtime=maxtime, type=type)
 
     # Robot Viz
 
@@ -212,7 +218,8 @@ if __name__ == "__main__":
     # Optimizaiton Methods
     # demo.optimize_viz_rrt(webplot=True)
     # demo.optimize_viz_rrt_cfg()
-    demo.optimize_viz_ompl_rrt(type="informed_rrt_star")
+    demo.optimize_viz_ompl_rrt(maxtime=0.05, type="informed_rrt_star")
+    # demo.optimize_viz_ompl_rrt_cfg(maxtime=5, type="informed_rrt_star")
     # demo.optimize_viz()
 
     # Visualization
