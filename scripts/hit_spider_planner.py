@@ -28,7 +28,7 @@ class HITSpiderPlanner(object):
 
         # TODO: use speed
         self.base_speed = 0.2
-        self.rate = 30
+        self.rate = 15
         self.ros_rate = rospy.Rate(self.rate)
         self.delta_length = self.base_speed / self.rate
 

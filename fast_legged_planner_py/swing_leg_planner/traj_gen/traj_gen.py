@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-30 14:18:33
+LastEditTime: 2023-12-04 15:19:53
 FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_gen//traj_gen.py
 Description: file content
 '''
@@ -171,6 +171,9 @@ class TimedLinearSpline(SplineBase):
         self.params = params
         self.n = params.shape[0]
         self.t_range = [params[0, 0], params[-1, 0]]
+        for i in range(self.n-1):
+            if params[i, 0] > params[i+1, 0]:
+                print("Warning: time not increasing")
 
     @override
     def get(self):
@@ -199,6 +202,7 @@ class TimedLinearSpline(SplineBase):
 
     def get_poslist(self):
         return self.params[:, 1:]
+
 
 class HermiteSpline(SplineBase):
     """

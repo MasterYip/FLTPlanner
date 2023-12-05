@@ -109,7 +109,7 @@ class HITLeg_Collision_Model(object):
         pos_foot_base = pose_base.inverse() * pos_foot
         try:
             q_leg = self.robot_interface.IKFast_foot(self.leg_index, pos_foot_base,
-                                                     valid_check=False, fall_back=False, ray_approx=True)
+                                                     valid_check=False, fall_back=False, ray_approx=False)
             # return self.collspheres[-1].getCollCost(self.map_interface.sdf_value(pos_foot))
             return self.getCollCost(q_leg, pose_base)
         except Exception as e:

@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-04 14:54:46
+LastEditTime: 2023-12-05 09:13:59
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -20,6 +20,7 @@ from fast_legged_planner_py.perception_interface.gridmap_interface_ros import Gr
 from fast_legged_planner_py.swing_leg_planner.swing_traj_planner import SwingTrajPlanner
 from fast_legged_planner_py.swing_leg_planner.traj_opt.traj_opt import HermiteOptProb, UniBSplineOptProb, Legged_UniBSplineOptProb, RRTBSplineOptProb, RRTCfg_OptProb, OMPL_RRTBSplineOptProb, OMPL_RRTCfg_OptProb
 from fast_legged_planner_py.swing_leg_planner.cost.cost import CostCollection, KinematicCost, CollisionCost
+from fast_legged_planner_py.swing_leg_planner.collision.collision import HITLeg_Collision_Model
 from fast_legged_planner_py.utils.rviz_vis.traj_viz import TrajViz, COLOR_GREEN, COLOR_RED, SCALE_MEDIUM, SCALE_LARGE
 from fast_legged_planner_py.swing_leg_planner.traj_opt.rrt.rrt_interface import Gridmap_SearchSpace
 from fast_legged_planner_py.third_party.rrt_algorithms.src.rrt.rrt_connect import RRTConnect
@@ -87,7 +88,7 @@ class TrajOptDemo(object):
             self.robot_interface.pub_joint_state(self.robot_interface.robot.q0)
 
     # BSpline TrajOpt
-    def optimize_viz(self, maxiter=10):
+    def optimize_bspline(self, maxiter=10):
         cnt = 0
         # self.costs = CostCollection([
         #     KinematicCost(self.spline, 0.3),
@@ -110,22 +111,34 @@ class TrajOptDemo(object):
                 cnt += 1
                 rospy.loginfo("Optimize %d times" % cnt)
 
-    def viz_traj(self):
-        self.traj_viz.add_curve([self.spline.evaluate(t, normalized=True)
-                                 for t in np.linspace(0, 1, self.resolution)],
-                                color=COLOR_GREEN, linewidth=0.02)
-        self.traj_viz.add_spheres(
-            self.spline.get_poslist(), color=COLOR_GREEN, scale=SCALE_MEDIUM)
-        self.traj_viz.publish()
+    def optimize_bspline_cfg(self, maxiter=10):
+        cnt = 0
+        collmodel = HITLeg_Collision_Model(
+            self.robot_interface, self.map_interface, self.leg_index)
+        self.prob = Legged_UniBSplineOptProb(
+            self.spline, torso_traj, self.map_interface, collmodel)
+        while self.prob.get_max_collision_index() is not None and rospy.is_shutdown() is False:
+            if cnt > 0:
+                self.spline.insert(
+                    self.prob.get_max_collision_index(), normalized=True)
+                rospy.logwarn("Insert knot at %f for further opt." %
+                              self.prob.get_first_collision_index())
+            cnt = 0
+            while (not rospy.is_shutdown() and cnt < maxiter):
+                self.viz_traj()
+                self.prob.optimize(maxiter=1, use_fprime=False, disp=False)
+                self.rate.sleep()
+                cnt += 1
+                rospy.loginfo("Optimize %d times" % cnt)
 
     # RRT TrajOpt
-    def optimize_viz_ompl_rrt(self, maxtime=0.1, type="informed_rrt_star"):
+    def optimize_ompl_rrt(self, maxtime=0.1, type="informed_rrt_star"):
         prob = OMPL_RRTBSplineOptProb(self.spline, self.map_interface,
                                       z_margin=0.5, obs_clearance=0.05,
                                       end_ignore_dia=0.08)
         prob.optimize(maxtime=maxtime, type=type)
 
-    def optimize_viz_rrt(self, webplot=False):
+    def optimize_rrt(self, webplot=False):
         x_init = tuple(self.spline.get_start())
         x_goal = tuple(self.spline.get_end())
         # x_init = (-1.0, 0., 0.1)  # starting location
@@ -139,7 +152,6 @@ class TrajOptDemo(object):
         # X = Gridmap_SearchSpace(self.map_interface)
         # rrt_connect = RRTConnect(X, Q, x_init, x_goal, max_samples, r, prc)
         # path = rrt_connect.rrt_connect(verbose=False)
-        # self.rrt_viz_traj(path)
         # self.rrt_webplot(X, x_init, x_goal, rrt_connect, path=path)
 
         # RRT*_Connect_h
@@ -154,7 +166,6 @@ class TrajOptDemo(object):
         rrt_star_bid_h = RRTStarBidirectionalHeuristic(
             X, Q, x_init, x_goal, max_samples, r, prc, rewire_count)
         path = rrt_star_bid_h.rrt_star_bid_h(verbose=False)
-        # self.rrt_viz_traj(path)
         timed_path = []
         if webplot:
             self.rrt_webplot(X, x_init, x_goal, rrt_star_bid_h, path=path)
@@ -163,11 +174,6 @@ class TrajOptDemo(object):
             timed_path.append(np.array(t))
         self.spline = TimedLinearSpline(np.array(timed_path))
         self.viz_traj()
-
-    def rrt_viz_traj(self, path):
-        if path is not None:
-            self.traj_viz.add_curve(path, color=COLOR_RED, linewidth=0.02)
-            self.traj_viz.publish()
 
     def rrt_webplot(self, X, x_init, x_goal, rrt, path=None):
         # plot
@@ -181,19 +187,27 @@ class TrajOptDemo(object):
         plot.draw(auto_open=True)
 
     # RRT Cfg TrajOpt
-    def optimize_viz_rrt_cfg(self):
+    def optimize_rrt_cfg(self):
         prob = RRTCfg_OptProb(self.spline, torso_traj, self.leg_index,
                               self.map_interface, self.robot_interface,
                               end_ignore_dia=0.07)
         self.spline = prob.optimize(Q=np.array([[0.05, 4]]), max_samples=1024)
 
-    def optimize_viz_ompl_rrt_cfg(self, maxtime=1, type="informed_rrt_star"):
+    def optimize_ompl_rrt_cfg(self, maxtime=1, type="informed_rrt_star"):
         prob = OMPL_RRTCfg_OptProb(self.spline, torso_traj, self.leg_index,
                                    self.map_interface, self.robot_interface,
                                    end_ignore_dia=0.07)
         self.spline = prob.optimize(maxtime=maxtime, type=type)
 
     # Robot Viz
+
+    def viz_traj(self):
+        self.traj_viz.add_curve([self.spline.evaluate(t, normalized=True)
+                                 for t in np.linspace(0, 1, self.resolution)],
+                                color=COLOR_GREEN, linewidth=0.02)
+        self.traj_viz.add_spheres(
+            self.spline.get_poslist(), color=COLOR_GREEN, scale=SCALE_MEDIUM)
+        self.traj_viz.publish()
 
     def viz_robot_traj(self):
         res = 100
@@ -216,11 +230,12 @@ if __name__ == "__main__":
     rospy.sleep(1)
 
     # Optimizaiton Methods
-    # demo.optimize_viz_rrt(webplot=True)
-    # demo.optimize_viz_rrt_cfg()
-    # demo.optimize_viz_ompl_rrt(maxtime=0.05, type="informed_rrt_star")
-    demo.optimize_viz_ompl_rrt_cfg(maxtime=1, type="informed_rrt_star")
-    # demo.optimize_viz()
+    # demo.optimize_rrt(webplot=True)
+    # demo.optimize_rrt_cfg()
+    # demo.optimize_ompl_rrt(maxtime=0.05, type="informed_rrt_star")
+    # demo.optimize_ompl_rrt_cfg(maxtime=1, type="informed_rrt_star")
+    # demo.optimize_bspline()
+    demo.optimize_bspline_cfg(maxiter=10)
 
     # Visualization
     demo.viz_traj()
