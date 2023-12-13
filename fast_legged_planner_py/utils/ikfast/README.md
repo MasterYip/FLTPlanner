@@ -1,6 +1,7 @@
 # IKFast warper for c++ & python
 
 1. Use [IKFast Generator](https://www.hamzamerzic.info/ikfast_generator/) to generate your IK algorithm
+  - Note: for 3DTranslation there should be an intermediate link and joint between root link BASE and the arm (unknown reason)
 2. Replace ikfast_gen.cpp with your file
 3. Rename pybind module in CMakeLists.txt
 

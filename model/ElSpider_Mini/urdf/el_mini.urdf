@@ -46,7 +46,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/BASE.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/BASE.STL" />
       </geometry>
       <material
         name="red">
@@ -60,7 +60,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/BASE.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/BASE.STL" />
       </geometry>
     </collision>
   </link>
@@ -86,7 +86,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RF_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RF_HIP.STL" />
       </geometry>
       <material
         name="grey">
@@ -100,7 +100,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RF_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RF_HIP.STL" />
       </geometry>
     </collision>
   </link>
@@ -144,7 +144,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RF_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RF_THIGH.STL" />
       </geometry>
       <material
         name="grey">
@@ -158,7 +158,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RF_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RF_THIGH.STL" />
       </geometry>
     </collision>
   </link>
@@ -202,7 +202,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RF_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RF_SHANK.STL" />
       </geometry>
       <material
         name="grey">
@@ -216,7 +216,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RF_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RF_SHANK.STL" />
       </geometry>
     </collision>
   </link>
@@ -260,7 +260,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RF_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RF_FOOT.STL" />
       </geometry>
       <material
         name="black">
@@ -274,7 +274,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RF_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RF_FOOT.STL" />
       </geometry>
     </collision>
   </link>
@@ -313,7 +313,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RM_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RM_HIP.STL" />
       </geometry>
       <material
         name="grey">
@@ -327,7 +327,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RM_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RM_HIP.STL" />
       </geometry>
     </collision>
   </link>
@@ -371,7 +371,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RM_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RM_THIGH.STL" />
       </geometry>
       <material
         name="grey">
@@ -385,7 +385,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RM_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RM_THIGH.STL" />
       </geometry>
     </collision>
   </link>
@@ -429,7 +429,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RM_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RM_SHANK.STL" />
       </geometry>
       <material
         name="grey">
@@ -443,7 +443,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RM_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RM_SHANK.STL" />
       </geometry>
     </collision>
   </link>
@@ -487,7 +487,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RM_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RM_FOOT.STL" />
       </geometry>
       <material
         name="black">
@@ -501,7 +501,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RM_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RM_FOOT.STL" />
       </geometry>
     </collision>
   </link>
@@ -540,7 +540,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RB_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RB_HIP.STL" />
       </geometry>
       <material
         name="grey">
@@ -554,7 +554,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RB_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RB_HIP.STL" />
       </geometry>
     </collision>
   </link>
@@ -598,7 +598,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RB_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RB_THIGH.STL" />
       </geometry>
       <material
         name="grey">
@@ -612,7 +612,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RB_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RB_THIGH.STL" />
       </geometry>
     </collision>
   </link>
@@ -656,7 +656,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RB_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RB_SHANK.STL" />
       </geometry>
       <material
         name="grey">
@@ -670,7 +670,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RB_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RB_SHANK.STL" />
       </geometry>
     </collision>
   </link>
@@ -714,7 +714,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RB_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RB_FOOT.STL" />
       </geometry>
       <material
         name="black">
@@ -728,7 +728,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/RB_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/RB_FOOT.STL" />
       </geometry>
     </collision>
   </link>
@@ -767,7 +767,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LF_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LF_HIP.STL" />
       </geometry>
       <material
         name="grey">
@@ -781,7 +781,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LF_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LF_HIP.STL" />
       </geometry>
     </collision>
   </link>
@@ -825,7 +825,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LF_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LF_THIGH.STL" />
       </geometry>
       <material
         name="grey">
@@ -839,7 +839,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LF_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LF_THIGH.STL" />
       </geometry>
     </collision>
   </link>
@@ -883,7 +883,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LF_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LF_SHANK.STL" />
       </geometry>
       <material
         name="grey">
@@ -897,7 +897,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LF_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LF_SHANK.STL" />
       </geometry>
     </collision>
   </link>
@@ -941,7 +941,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LF_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LF_FOOT.STL" />
       </geometry>
       <material
         name="black">
@@ -955,7 +955,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LF_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LF_FOOT.STL" />
       </geometry>
     </collision>
   </link>
@@ -994,7 +994,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LM_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LM_HIP.STL" />
       </geometry>
       <material
         name="grey">
@@ -1008,7 +1008,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LM_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LM_HIP.STL" />
       </geometry>
     </collision>
   </link>
@@ -1052,7 +1052,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LM_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LM_THIGH.STL" />
       </geometry>
       <material
         name="grey">
@@ -1066,7 +1066,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LM_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LM_THIGH.STL" />
       </geometry>
     </collision>
   </link>
@@ -1110,7 +1110,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LM_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LM_SHANK.STL" />
       </geometry>
       <material
         name="grey">
@@ -1124,7 +1124,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LM_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LM_SHANK.STL" />
       </geometry>
     </collision>
   </link>
@@ -1168,7 +1168,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LM_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LM_FOOT.STL" />
       </geometry>
       <material
         name="black">
@@ -1182,7 +1182,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LM_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LM_FOOT.STL" />
       </geometry>
     </collision>
   </link>
@@ -1221,7 +1221,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LB_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LB_HIP.STL" />
       </geometry>
       <material
         name="grey">
@@ -1235,7 +1235,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LB_HIP.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LB_HIP.STL" />
       </geometry>
     </collision>
   </link>
@@ -1279,7 +1279,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LB_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LB_THIGH.STL" />
       </geometry>
       <material
         name="grey">
@@ -1293,7 +1293,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LB_THIGH.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LB_THIGH.STL" />
       </geometry>
     </collision>
   </link>
@@ -1337,7 +1337,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LB_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LB_SHANK.STL" />
       </geometry>
       <material
         name="grey">
@@ -1351,7 +1351,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LB_SHANK.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LB_SHANK.STL" />
       </geometry>
     </collision>
   </link>
@@ -1395,7 +1395,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LB_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LB_FOOT.STL" />
       </geometry>
       <material
         name="black">
@@ -1409,7 +1409,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://el_mini/meshes/LB_FOOT.STL" />
+          filename="package://fast_legged_planner/model/ElSpider_Mini/meshes/LB_FOOT.STL" />
       </geometry>
     </collision>
   </link>

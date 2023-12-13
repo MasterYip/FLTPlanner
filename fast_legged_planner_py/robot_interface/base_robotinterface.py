@@ -8,12 +8,13 @@ Description: file content
 '''
 # -*- coding: utf-8 -*-
 import os
-from re import L
+import hashlib
 import tempfile
+import numpy as np
 import pinocchio as pin
-from abc import abstractmethod, ABCMeta
+from abc import ABCMeta
 
-Load_Meshcat = False
+Load_Meshcat = True
 MeshcatFound = False
 if Load_Meshcat:
     try:
@@ -44,7 +45,7 @@ class Base_RobotInterface(metaclass=ABCMeta):
         # Meshcat Vis
         if MeshcatFound:
             self.viz = MeshcatVisualizer(self.robot)
-            
+
     def update_kinematics(self, q):
         pin.forwardKinematics(self.robot.model, self.robot.data, q)
 
@@ -66,3 +67,14 @@ class Base_RobotInterface(metaclass=ABCMeta):
     def print_frames(self):
         for i in range(self.robot.model.nframes):
             print(i, self.robot.model.frames[i].name)
+
+    # Viz
+    def viz_add_sphere(self, pos, radius=0.1, color=colors.red, name=None):
+        if name is None:
+            name = hashlib.md5(str(np.random.rand()).encode()).hexdigest()
+        self.viz.addSphere("world/Sphere/"+name, radius, color)
+        self.viz.applyConfiguration(
+            "world/Sphere/" + name, pin.SE3(np.eye(3), np.array(pos)))
+
+    def viz_clear(self, name_space="world/Sphere"):
+        self.viz.delete(name_space)
