@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-20 16:12:38
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-05 09:13:59
+LastEditTime: 2023-12-05 13:12:39
 FilePath: //flplanner_ws//src//fast_legged_planner//scripts//traj_opt_demo.py
 Description: file content
 '''
@@ -32,7 +32,7 @@ from fast_legged_planner_py.third_party.rrt_algorithms.src.utilities.plotting im
 
 def get_1stage_traj():
     p_start = np.array([-0.5, 0, 0])
-    p_end = np.array([0.5, 0, 0])
+    p_end = np.array([0.5, 0.2, 0])
     v = np.array([0, 0, 1])
     return HermiteSpline(
         np.array([p_start, v, p_end, -v]))
