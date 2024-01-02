@@ -705,15 +705,22 @@ namespace sdlp
         }
     }
 
+    /**
+     * @brief Linear programming solver
+     * min c^Tx, s.t. Ax<=b
+     * dim(x) << dim(b)
+     * @tparam d dimension of the problem 
+     * @param[in] c coefficient vector
+     * @param[in] A 
+     * @param[in] b 
+     * @param[out] x 
+     * @return double minimum value c^Tx
+     */
     template <int d>
     inline double linprog(const Eigen::Matrix<double, d, 1> &c,
                           const Eigen::Matrix<double, -1, d> &A,
                           const Eigen::Matrix<double, -1, 1> &b,
                           Eigen::Matrix<double, d, 1> &x)
-    /*
-    **  min cTx, s.t. Ax<=b
-    **  dim(x) << dim(b)
-    */
     {
         int m = b.size() + 1;
         x.setZero();

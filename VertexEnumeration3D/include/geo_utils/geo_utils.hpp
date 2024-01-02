@@ -1,3 +1,27 @@
+/*
+    MIT License
+
+    Copyright (c) 2021 Zhepei Wang (wangzhepei@live.com)
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+*/
+
 #ifndef GEO_UTILS_HPP
 #define GEO_UTILS_HPP
 
@@ -14,8 +38,18 @@
 namespace geo_utils
 {
 
-    // Each row of hPoly is defined by h0, h1, h2, h3 as
-    // h0*x + h1*y + h2*z + h3 <= 0
+    /**
+     * @brief Find the interior point of a convex polyhedron
+     * @note
+     * - Using sdlp to find the interior point.
+     * - Each row of hPoly is defined by `h0, h1, h2, h3` as `h0*x + h1*y + h2*z + h3 <= 0`
+     * - LP problem is defined as `max w, [H0, H1, H2, 1][x,y,z,w]T <= [-H3]`, where w can be deem as the "shift" of half-space.
+     * This formulation can find the point that a hpoly finally collapse to.
+     * @param[in] hPoly 
+     * @param[out] interior 
+     * @return true 
+     * @return false 
+     */
     inline bool findInterior(const Eigen::MatrixX4d &hPoly,
                              Eigen::Vector3d &interior)
     {
@@ -25,11 +59,11 @@ namespace geo_utils
         Eigen::VectorXd b(m);
         Eigen::Vector4d c, x;
         const Eigen::ArrayXd hNorm = hPoly.leftCols<3>().rowwise().norm();
-        A.leftCols<3>() = hPoly.leftCols<3>().array().colwise() / hNorm;
-        A.rightCols<1>().setConstant(1.0);
+        A.leftCols<3>() = hPoly.leftCols<3>().array().colwise() / hNorm; //Normalize
+        A.rightCols<1>().setConstant(1.0); 
         b = -hPoly.rightCols<1>().array() / hNorm;
         c.setZero();
-        c(3) = -1.0;
+        c(3) = -1.0; // What is the purpose of this?
 
         const double minmaxsd = sdlp::linprog<4>(c, A, b, x);
         interior = x.head<3>();
@@ -37,6 +71,16 @@ namespace geo_utils
         return minmaxsd < 0.0 && !std::isinf(minmaxsd);
     }
 
+    /**
+     * @brief Check if two convex polyhedra overlap
+     * @note
+     * - Compute the intersection of two polyhedra and check if the intersection is empty.
+     * @param hPoly0 
+     * @param hPoly1 
+     * @param eps epsilon for numerical stability
+     * @return true 
+     * @return false 
+     */
     inline bool overlap(const Eigen::MatrixX4d &hPoly0,
                         const Eigen::MatrixX4d &hPoly1,
                         const double eps = 1.0e-6)
@@ -44,6 +88,7 @@ namespace geo_utils
     {
         const int m = hPoly0.rows();
         const int n = hPoly1.rows();
+        // Compute the intersection of two polyhedra
         Eigen::MatrixX4d A(m + n, 4);
         Eigen::Vector4d c, x;
         Eigen::VectorXd b(m + n);
@@ -60,6 +105,10 @@ namespace geo_utils
         return minmaxsd < -eps && !std::isinf(minmaxsd);
     }
 
+    /**
+     * @brief 
+     * 
+     */
     struct filterLess
     {
         inline bool operator()(const Eigen::Vector3d &l,
@@ -73,6 +122,13 @@ namespace geo_utils
         }
     };
 
+    /**
+     * @brief 
+     * 
+     * @param[in] rV 
+     * @param[in] epsilon 
+     * @param[out] fV 
+     */
     inline void filterVs(const Eigen::Matrix3Xd &rV,
                          const double &epsilon,
                          Eigen::Matrix3Xd &fV)
@@ -97,9 +153,15 @@ namespace geo_utils
         return;
     }
 
-    // Each row of hPoly is defined by h0, h1, h2, h3 as
-    // h0*x + h1*y + h2*z + h3 <= 0
-    // proposed epsilon is 1.0e-6
+    /**
+     * @brief Enumerate the vertices of a convex polyhedron
+     * @note TODO: Add notes & explaination
+     * Each row of hPoly is defined by `h0, h1, h2, h3` as `h0*x + h1*y + h2*z + h3 <= 0`
+     * @param[in] hPoly 
+     * @param[in] inner Interior point of hPoly
+     * @param[out] vPoly 
+     * @param[in] epsilon {1.0e-6}
+     */
     inline void enumerateVs(const Eigen::MatrixX4d &hPoly,
                             const Eigen::Vector3d &inner,
                             Eigen::Matrix3Xd &vPoly,
@@ -111,7 +173,7 @@ namespace geo_utils
 
         quickhull::QuickHull<double> qh;
         const double qhullEps = std::min(epsilon, quickhull::defaultEps<double>());
-        // CCW is false because the normal in quickhull towards interior
+        // CCW(counter clock-wise?) is false because the normal in quickhull towards interior
         const auto cvxHull = qh.getConvexHull(A.data(), A.cols(), false, true, qhullEps);
         const auto &idBuffer = cvxHull.getIndexBuffer();
         const int hNum = idBuffer.size() / 3;
@@ -126,13 +188,19 @@ namespace geo_utils
             rV.col(i) = normal / normal.dot(point);
         }
         filterVs(rV, epsilon, vPoly);
-        vPoly = (vPoly.array().colwise() + inner.array()).eval();
+        vPoly = (vPoly.array().colwise() + inner.array()).eval(); // translate back
         return;
     }
 
-    // Each row of hPoly is defined by h0, h1, h2, h3 as
-    // h0*x + h1*y + h2*z + h3 <= 0
-    // proposed epsilon is 1.0e-6
+    /**
+     * @brief enumerateVs overload
+     * 
+     * @param[in] hPoly 
+     * @param[out] vPoly 
+     * @param[in] epsilon {1.0e-6}
+     * @return true 
+     * @return false 
+     */
     inline bool enumerateVs(const Eigen::MatrixX4d &hPoly,
                             Eigen::Matrix3Xd &vPoly,
                             const double epsilon = 1.0e-6)
