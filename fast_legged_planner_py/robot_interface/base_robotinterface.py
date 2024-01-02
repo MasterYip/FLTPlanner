@@ -2,8 +2,8 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 15:47:47
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-11-26 19:54:02
-FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//robot_interface//base_robotinterface.py
+LastEditTime: 2023-12-29 19:42:17
+FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/robot_interface/base_robotinterface.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
@@ -13,12 +13,13 @@ import tempfile
 import numpy as np
 import pinocchio as pin
 from abc import ABCMeta
+from ..third_party.meshcat_viewer_wrapper.visualizer import colors
 
-Load_Meshcat = True
+Load_Meshcat = False
 MeshcatFound = False
 if Load_Meshcat:
     try:
-        from ..third_party.meshcat_viewer_wrapper.visualizer import MeshcatVisualizer, colors
+        from ..third_party.meshcat_viewer_wrapper.visualizer import MeshcatVisualizer
         MeshcatFound = True
     except ImportError:
         pass
