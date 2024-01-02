@@ -4,6 +4,7 @@
 #include "polyve/config.hpp"
 #include "geo_utils/quickhull.hpp"
 #include "geo_utils/geo_utils.hpp"
+#include "misc/visualizer.hpp"
 
 #include <iostream>
 #include <memory>
@@ -26,7 +27,7 @@ public:
 
     ros::Publisher meshPub;
     ros::Publisher edgePub;
-    ros::Publisher verticesPub;
+    ros::Publisher verticesPub; 
     ros::Publisher interiorPub;
 
     void visualizeMesh(const Eigen::Matrix3Xd &mesh);
@@ -46,7 +47,16 @@ public:
     ros::Subscriber triggerSub;
     void triggerCallBack(const std_msgs::Empty::ConstPtr &msg);
 
+    void addVpoly();
+    void addVpoly(const Eigen::Matrix3Xd &vPoly);
+    const Eigen::Matrix3Xd genVpoly();
+    const Eigen::Matrix3Xd vPolyMerge(const Eigen::Matrix3Xd &vPoly1, const Eigen::Matrix3Xd &vPoly2);
+    Visualization visualization; // VertexEnum Visualization (original)
+    Visualizer visualizer; // GCOPTER Visualization
+
     void conductVE();
-    Visualization visualization;
+    void vPolyMergeTest();
+
+    std::vector<Eigen::Matrix3Xd> vPolyBuf_;
 };
 #endif

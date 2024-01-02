@@ -16,7 +16,8 @@ int main(int argc, char **argv)
         ros::Rate lr(config.testRate);
         while (ros::ok())
         {
-            polyVe.conductVE();
+            // polyVe.conductVE();
+            polyVe.vPolyMergeTest();
             ros::spinOnce();
             lr.sleep();
         }
