@@ -56,6 +56,9 @@ public:
 
     void conductVE();
     void vPolyMergeTest();
+    void vPolyIntersectTest(void);
+    void vPoly2hPolyTest(void);
+    void inHpolyTest(void);
 
     std::vector<Eigen::Matrix3Xd> vPolyBuf_;
 };

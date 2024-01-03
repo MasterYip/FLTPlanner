@@ -25,11 +25,10 @@ void PolyVe::triggerCallBack(const std_msgs::Empty::ConstPtr &msg)
 
 const Eigen::Matrix3Xd PolyVe::genVpoly()
 {
-    // std::cout << "------------------------------------" << std::endl;
 
     // ---------------------------- Test Data Generation ----------------------------
 
-    Eigen::Matrix3Xd mesh, recoveredV;
+    Eigen::Matrix3Xd new_vert, recoveredV;
     Eigen::Matrix<double, 3, -1, Eigen::ColMajor> vertices;
     Eigen::Vector3d inner;
 
@@ -52,73 +51,18 @@ const Eigen::Matrix3Xd PolyVe::genVpoly()
     const auto cvxHull = qh.getConvexHull(vertices.data(),
                                           vertices.cols(),
                                           false, false);
-    const auto &idBuffer = cvxHull.getIndexBuffer();
     const auto &vtBuffer = cvxHull.getVertexBuffer();
-    int ids = idBuffer.size();
-    // The mesh is represented by triangles(3 vertices) in right hand rule
-    mesh.resize(3, ids);
+    int vts = vtBuffer.size();
+    new_vert.resize(3, vts);
     quickhull::Vector3<double> v;
-    for (int i = 0; i < ids; i++)
+    for (int i = 0; i < vts; i++)
     {
-        v = vtBuffer[idBuffer[i]];
-        mesh(0, i) = v.x;
-        mesh(1, i) = v.y;
-        mesh(2, i) = v.z;
+        v = vtBuffer[i];
+        new_vert(0, i) = v.x;
+        new_vert(1, i) = v.y;
+        new_vert(2, i) = v.z;
     }
-
-    // Obtain the half space intersection(H-rep) form from the mesh
-    Eigen::MatrixX4d hPoly(ids / 3, 4);
-    Eigen::Vector3d normal, point, edge0, edge1;
-    for (int i = 0; i < ids / 3; i++)
-    {
-        point = mesh.col(3 * i + 1);
-        edge0 = point - mesh.col(3 * i);
-        edge1 = mesh.col(3 * i + 2) - point;
-        normal = edge0.cross(edge1).normalized();
-        hPoly(i, 0) = normal(0);
-        hPoly(i, 1) = normal(1);
-        hPoly(i, 2) = normal(2);
-        hPoly(i, 3) = -normal.dot(point);
-    }
-
-    // Generate some redundant half spaces
-    Eigen::Array4d hParamRange;
-    hParamRange.head<3>() = hPoly.leftCols<3>().cwiseAbs().colwise().maxCoeff().transpose();
-    hParamRange(3) = hPoly.rightCols<1>().cwiseAbs().maxCoeff();
-    Eigen::Vector4d halfSpace;
-    Eigen::MatrixX4d redundantHs(config.redundantTryH, 4);
-    int validNum = 0;
-    for (int i = 0; i < config.redundantTryH; i++)
-    {
-        halfSpace(0) = dis(gen);
-        halfSpace(1) = dis(gen);
-        halfSpace(2) = dis(gen);
-        halfSpace(3) = dis(gen);
-        halfSpace.array() *= 2.0 * hParamRange;
-        if (halfSpace.head<3>().squaredNorm() > 0 &&
-            (halfSpace.head<3>().transpose() * vertices).maxCoeff() < halfSpace(3))
-        {
-            redundantHs(validNum, 0) = halfSpace(0);
-            redundantHs(validNum, 1) = halfSpace(1);
-            redundantHs(validNum, 2) = halfSpace(2);
-            redundantHs(validNum, 3) = -halfSpace(3);
-            validNum++;
-        }
-    }
-    // std::cout << "Number of Redundant Half Space: " << validNum << std::endl;
-    Eigen::MatrixX4d mergedHs(validNum + hPoly.rows(), 4);
-    mergedHs.topRows(hPoly.rows()) = hPoly;
-    mergedHs.bottomRows(validNum) = redundantHs.topRows(validNum);
-
-    // ---------------------------- Test Vertex Enumeration ----------------------------
-
-    if (!geo_utils::enumerateVs(mergedHs, recoveredV))
-    {
-        std::cout << "Vertex Enumeration Fails Once !!!" << std::endl;
-        // return;
-    }
-
-    return recoveredV;
+    return new_vert;
 }
 
 void PolyVe::addVpoly(const Eigen::Matrix3Xd &vPoly)
@@ -135,44 +79,13 @@ void PolyVe::addVpoly()
     return;
 }
 
-/**
- * @brief Merge two vPoly into one
- * @note FIXME: mesh need to be cleaned (removing duplicated vertices) before visualization
- * 
- * @param vPoly1 
- * @param vPoly2 
- * @return const Eigen::Matrix3Xd 
- */
-const Eigen::Matrix3Xd PolyVe::vPolyMerge(const Eigen::Matrix3Xd &vPoly1, const Eigen::Matrix3Xd &vPoly2)
-{
-    Eigen::Matrix3Xd mesh;
-    Eigen::Matrix3Xd vertices(3, vPoly1.cols() + vPoly2.cols());
-    vertices.leftCols(vPoly1.cols()) = vPoly1;
-    vertices.rightCols(vPoly2.cols()) = vPoly2;
-    // Get the convex hull(that includes the points) in mesh
-    quickhull::QuickHull<double> qh;
-    const auto cvxHull = qh.getConvexHull(vertices.data(),
-                                          vertices.cols(),
-                                          false, false);
-    const auto &idBuffer = cvxHull.getIndexBuffer();
-    const auto &vtBuffer = cvxHull.getVertexBuffer();
-    int ids = idBuffer.size();
-    // The mesh is represented by triangles(3 vertices) in right hand rule
-    mesh.resize(3, ids); // TODO: How to clean the mesh with duplicated vertices?
-    quickhull::Vector3<double> v;
-    for (int i = 0; i < ids; i++)
-    {
-        v = vtBuffer[idBuffer[i]];
-        mesh(0, i) = v.x;
-        mesh(1, i) = v.y;
-        mesh(2, i) = v.z;
-    }
-    return mesh;
-}
-
 ////////////////////
 // Tests
 ////////////////////
+
+/**
+ * @brief Original test function
+ */
 void PolyVe::conductVE(void)
 {
     std::cout << "------------------------------------" << std::endl;
@@ -202,10 +115,10 @@ void PolyVe::conductVE(void)
     const auto cvxHull = qh.getConvexHull(vertices.data(),
                                           vertices.cols(),
                                           false, false);
-    const auto &idBuffer = cvxHull.getIndexBuffer();
-    const auto &vtBuffer = cvxHull.getVertexBuffer(); // TODO: Is the vertices duplicated?
+    const auto &idBuffer = cvxHull.getIndexBuffer(); // A buffer storing order of indices for triangle vertices revisiting
+    const auto &vtBuffer = cvxHull.getVertexBuffer();
     int ids = idBuffer.size();
-    // The mesh is represented by triangles(3 vertices) in right hand rule
+    // The mesh is represented by triangles(3 vertices) in right hand rule USING idBuffer
     mesh.resize(3, ids);
     quickhull::Vector3<double> v;
     for (int i = 0; i < ids; i++)
@@ -278,14 +191,70 @@ void PolyVe::conductVE(void)
     return;
 }
 
+/**
+ * @brief Convex Hull Merge Test
+ */
 void PolyVe::vPolyMergeTest(void)
 {
     Eigen::Matrix3Xd vp1, vp2, mesh;
     std::vector<Eigen::Matrix3Xd> vPolyBuf;
     vPolyBuf.push_back(genVpoly());
     vPolyBuf.push_back(genVpoly());
-    vPolyBuf.push_back(vPolyMerge(vPolyBuf[0], vPolyBuf[1]));
+    vPolyBuf.push_back(geo_utils::mergeVpoly(vPolyBuf[0], vPolyBuf[1]));
     visualizer.visualizePolytope(vPolyBuf);
+}
+
+// Pass
+void PolyVe::vPoly2hPolyTest(void)
+{
+    Eigen::Matrix3Xd vPoly = genVpoly();
+    Eigen::Matrix3Xd vPoly2;
+    Eigen::MatrixX4d hPoly = geo_utils::vpoly2hpoly(vPoly);
+    std::vector<Eigen::Matrix3Xd> vPolyBuf;
+
+    vPolyBuf.push_back(vPoly);
+    visualizer.visualizePolytope(vPolyBuf);
+    geo_utils::enumerateVs(hPoly, vPoly2);
+    visualization.visualizeVertices(vPoly2);
+}
+
+// Pass
+void PolyVe::inHpolyTest(void)
+{
+    Eigen::Matrix3Xd vPoly = genVpoly();
+    Eigen::MatrixX4d hPoly = geo_utils::vpoly2hpoly(vPoly);
+    // Eigen::Vector3d inner;
+    // geo_utils::findInterior(hPoly, inner);
+    // visualization.visualizeInterior(inner);
+    for (int i = 0; i < vPoly.cols(); i++)
+    {
+        if (!geo_utils::inHpoly(hPoly, vPoly.col(i), 1e-6))
+        {
+            std::cout << "inHpolyTest Fails !!!" << std::endl;
+            return;
+        }
+    }
+    std::cout << "inHpolyTest Passes !!!" << std::endl;
+
+}
+
+// FIXME
+void PolyVe::vPolyIntersectTest(void)
+{
+    std::vector<Eigen::Matrix3Xd> vPolyBuf;
+    Eigen::Matrix3Xd vPolyIntersect, vp1, vp2;
+    bool ret = false;
+    while (!ret)
+    {
+        vp1 = genVpoly();
+        vp2 = genVpoly();
+        ret = geo_utils::intersectVpoly(vp1, vp2, vPolyIntersect);
+    }
+    vPolyBuf.push_back(vp1);
+    vPolyBuf.push_back(vp2);
+    vPolyBuf.push_back(vPolyIntersect);
+    visualizer.visualizePolytope(vPolyBuf);
+    visualization.visualizeVertices(vPolyIntersect);
 }
 
 ////////////////////

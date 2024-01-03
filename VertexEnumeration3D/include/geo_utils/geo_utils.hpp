@@ -45,10 +45,10 @@ namespace geo_utils
      * - Each row of hPoly is defined by `h0, h1, h2, h3` as `h0*x + h1*y + h2*z + h3 <= 0`
      * - LP problem is defined as `max w, [H0, H1, H2, 1][x,y,z,w]T <= [-H3]`, where w can be deem as the "shift" of half-space.
      * This formulation can find the point that a hpoly finally collapse to.
-     * @param[in] hPoly 
-     * @param[out] interior 
-     * @return true 
-     * @return false 
+     * @param[in] hPoly
+     * @param[out] interior
+     * @return true
+     * @return false
      */
     inline bool findInterior(const Eigen::MatrixX4d &hPoly,
                              Eigen::Vector3d &interior)
@@ -59,8 +59,8 @@ namespace geo_utils
         Eigen::VectorXd b(m);
         Eigen::Vector4d c, x;
         const Eigen::ArrayXd hNorm = hPoly.leftCols<3>().rowwise().norm();
-        A.leftCols<3>() = hPoly.leftCols<3>().array().colwise() / hNorm; //Normalize
-        A.rightCols<1>().setConstant(1.0); 
+        A.leftCols<3>() = hPoly.leftCols<3>().array().colwise() / hNorm; // Normalize
+        A.rightCols<1>().setConstant(1.0);
         b = -hPoly.rightCols<1>().array() / hNorm;
         c.setZero();
         c(3) = -1.0; // What is the purpose of this?
@@ -75,11 +75,11 @@ namespace geo_utils
      * @brief Check if two convex polyhedra overlap
      * @note
      * - Compute the intersection of two polyhedra and check if the intersection is empty.
-     * @param hPoly0 
-     * @param hPoly1 
+     * @param hPoly0
+     * @param hPoly1
      * @param eps epsilon for numerical stability
-     * @return true 
-     * @return false 
+     * @return true
+     * @return false
      */
     inline bool overlap(const Eigen::MatrixX4d &hPoly0,
                         const Eigen::MatrixX4d &hPoly1,
@@ -106,8 +106,101 @@ namespace geo_utils
     }
 
     /**
-     * @brief 
-     * 
+     * @brief Check if a point is inside a convex polyhedron
+     *
+     * @param hPoly
+     * @param point
+     * @param eps
+     * @return true
+     * @return false
+     */
+    inline bool inHpoly(const Eigen::MatrixX4d &hPoly,
+                        const Eigen::Vector3d &point,
+                        const double eps = 0)
+    {
+        return (hPoly.leftCols<3>() * point + hPoly.rightCols<1>()).maxCoeff() <= eps;
+    }
+
+    /**
+     * @brief Convert a vPoly to hPoly
+     * @note
+     * Each row of hPoly is defined by `h0, h1, h2, h3` as `h0*x + h1*y + h2*z + h3 <= 0`
+     * @param vPoly
+     * @return const Eigen::MatrixX4d
+     */
+    inline const Eigen::MatrixX4d vpoly2hpoly(const Eigen::Matrix3Xd &vPoly)
+    {
+        Eigen::Matrix3Xd mesh;
+        // Get the convex hull(that includes the points) in mesh
+        quickhull::QuickHull<double> qh;
+        const auto cvxHull = qh.getConvexHull(vPoly.data(),
+                                              vPoly.cols(),
+                                              false, false);
+        const auto &idBuffer = cvxHull.getIndexBuffer();
+        const auto &vtBuffer = cvxHull.getVertexBuffer();
+        int ids = idBuffer.size();
+        // The mesh is represented by triangles(3 vertices) in right hand rule USING idBuffer
+        mesh.resize(3, ids);
+        quickhull::Vector3<double> v;
+        for (int i = 0; i < ids; i++)
+        {
+            v = vtBuffer[idBuffer[i]];
+            mesh(0, i) = v.x;
+            mesh(1, i) = v.y;
+            mesh(2, i) = v.z;
+        }
+
+        // Obtain the half space intersection(H-rep) form from the mesh
+        Eigen::MatrixX4d hPoly(ids / 3, 4);
+        Eigen::Vector3d normal, point, edge0, edge1;
+        for (int i = 0; i < ids / 3; i++)
+        {
+            point = mesh.col(3 * i + 1);
+            edge0 = point - mesh.col(3 * i);
+            edge1 = mesh.col(3 * i + 2) - point;
+            normal = edge0.cross(edge1).normalized();
+            hPoly(i, 0) = normal(0);
+            hPoly(i, 1) = normal(1);
+            hPoly(i, 2) = normal(2);
+            hPoly(i, 3) = -normal.dot(point);
+        }
+        return hPoly;
+    }
+
+    /**
+     * @brief Merge two vPoly into one (combine vertices & quickhull)
+     *
+     * @param vPoly1
+     * @param vPoly2
+     * @return const Eigen::Matrix3Xd
+     */
+    inline const Eigen::Matrix3Xd mergeVpoly(const Eigen::Matrix3Xd &vPoly1, const Eigen::Matrix3Xd &vPoly2)
+    {
+        Eigen::Matrix3Xd vertices;
+        Eigen::Matrix3Xd vtcombined(3, vPoly1.cols() + vPoly2.cols());
+        vtcombined.leftCols(vPoly1.cols()) = vPoly1;
+        vtcombined.rightCols(vPoly2.cols()) = vPoly2;
+        // Get the convex hull(that includes the points) in mesh
+        quickhull::QuickHull<double> qh;
+        const auto cvxHull = qh.getConvexHull(vtcombined.data(),
+                                              vtcombined.cols(),
+                                              false, false);
+        const auto &vtBuffer = cvxHull.getVertexBuffer();
+        int vts = vtBuffer.size();
+        vertices.resize(3, vts);
+        quickhull::Vector3<double> v;
+        for (int i = 0; i < vts; i++)
+        {
+            v = vtBuffer[i];
+            vertices(0, i) = v.x;
+            vertices(1, i) = v.y;
+            vertices(2, i) = v.z;
+        }
+        return vertices;
+    }
+
+    /**
+     * @brief
      */
     struct filterLess
     {
@@ -123,11 +216,11 @@ namespace geo_utils
     };
 
     /**
-     * @brief 
-     * 
-     * @param[in] rV 
-     * @param[in] epsilon 
-     * @param[out] fV 
+     * @brief
+     *
+     * @param[in] rV
+     * @param[in] epsilon
+     * @param[out] fV
      */
     inline void filterVs(const Eigen::Matrix3Xd &rV,
                          const double &epsilon,
@@ -157,9 +250,9 @@ namespace geo_utils
      * @brief Enumerate the vertices of a convex polyhedron
      * @note TODO: Add notes & explaination
      * Each row of hPoly is defined by `h0, h1, h2, h3` as `h0*x + h1*y + h2*z + h3 <= 0`
-     * @param[in] hPoly 
+     * @param[in] hPoly
      * @param[in] inner Interior point of hPoly
-     * @param[out] vPoly 
+     * @param[out] vPoly
      * @param[in] epsilon {1.0e-6}
      */
     inline void enumerateVs(const Eigen::MatrixX4d &hPoly,
@@ -184,7 +277,7 @@ namespace geo_utils
             point = A.col(idBuffer[3 * i + 1]);
             edge0 = point - A.col(idBuffer[3 * i]);
             edge1 = A.col(idBuffer[3 * i + 2]) - point;
-            normal = edge0.cross(edge1); //cross in CW gives an outter normal
+            normal = edge0.cross(edge1); // cross in CW gives an outter normal
             rV.col(i) = normal / normal.dot(point);
         }
         filterVs(rV, epsilon, vPoly);
@@ -194,12 +287,12 @@ namespace geo_utils
 
     /**
      * @brief enumerateVs overload
-     * 
-     * @param[in] hPoly 
-     * @param[out] vPoly 
+     *
+     * @param[in] hPoly
+     * @param[out] vPoly
      * @param[in] epsilon {1.0e-6}
-     * @return true 
-     * @return false 
+     * @return true
+     * @return false
      */
     inline bool enumerateVs(const Eigen::MatrixX4d &hPoly,
                             Eigen::Matrix3Xd &vPoly,
@@ -217,6 +310,60 @@ namespace geo_utils
         }
     }
 
+    [[deprecated("Use intersectVpoly instead")]] inline bool intersectVpoly_Legacy(const Eigen::Matrix3Xd &vPoly1,
+                                                                                   const Eigen::Matrix3Xd &vPoly2,
+                                                                                   Eigen::Matrix3Xd &vPolyIntersect, double eps = 1e-6)
+    {
+        Eigen::MatrixX4d hPoly1 = vpoly2hpoly(vPoly1);
+        Eigen::MatrixX4d hPoly2 = vpoly2hpoly(vPoly2);
+        Eigen::Matrix3Xd vPolyCombined(3, vPoly1.cols() + vPoly2.cols());
+        Eigen::Matrix3Xd vPolyTmp(3, vPoly1.cols() + vPoly2.cols());
+        int cnt = 0;
+        vPolyCombined.leftCols(vPoly1.cols()) = vPoly1;
+        vPolyCombined.rightCols(vPoly2.cols()) = vPoly2;
+        for (int i = 0; i < vPolyCombined.cols(); i++)
+        {
+            if (geo_utils::inHpoly(hPoly1, vPolyCombined.col(i), eps) &&
+                geo_utils::inHpoly(hPoly2, vPolyCombined.col(i), eps))
+            {
+                vPolyTmp.col(cnt) = vPolyCombined.col(i);
+                cnt++;
+            }
+        }
+        vPolyIntersect = vPolyTmp.leftCols(cnt);
+        if (cnt < 4)
+            return false;
+        else
+            return true;
+    }
+
+    inline bool intersectHpoly(const Eigen::MatrixX4d &hPoly1,
+                               const Eigen::MatrixX4d &hPoly2,
+                               Eigen::Matrix3Xd &vPolyIntersect)
+    {
+        Eigen::MatrixX4d hPolyCombined(hPoly1.rows() + hPoly2.rows(), 4);
+        hPolyCombined.topRows(hPoly1.rows()) = hPoly1;
+        hPolyCombined.bottomRows(hPoly2.rows()) = hPoly2;
+        return enumerateVs(hPolyCombined, vPolyIntersect);
+    }
+
+    /**
+     * @brief Intersection of two vPoly
+     * @param[in] vPoly1
+     * @param[in] vPoly2
+     * @param[out] vPolyIntersect
+     * @param[in] eps
+     * @return true
+     * @return false
+     */
+    inline bool intersectVpoly(const Eigen::Matrix3Xd &vPoly1,
+                               const Eigen::Matrix3Xd &vPoly2,
+                               Eigen::Matrix3Xd &vPolyIntersect)
+    {
+        Eigen::MatrixX4d hPoly1 = vpoly2hpoly(vPoly1);
+        Eigen::MatrixX4d hPoly2 = vpoly2hpoly(vPoly2);
+        return intersectHpoly(hPoly1, hPoly2, vPolyIntersect);
+    }
 } // namespace geo_utils
 
 #endif

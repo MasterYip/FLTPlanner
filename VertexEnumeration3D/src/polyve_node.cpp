@@ -17,7 +17,8 @@ int main(int argc, char **argv)
         while (ros::ok())
         {
             // polyVe.conductVE();
-            polyVe.vPolyMergeTest();
+            // polyVe.vPolyMergeTest();
+            polyVe.vPolyIntersectTest();
             ros::spinOnce();
             lr.sleep();
         }
