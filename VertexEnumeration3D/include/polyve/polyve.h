@@ -59,6 +59,7 @@ public:
     void vPolyIntersectTest(void);
     void vPoly2hPolyTest(void);
     void inHpolyTest(void);
+    void CorridorTest(void);
 
     std::vector<Eigen::Matrix3Xd> vPolyBuf_;
 };

@@ -191,9 +191,7 @@ void PolyVe::conductVE(void)
     return;
 }
 
-/**
- * @brief Convex Hull Merge Test
- */
+// Pass
 void PolyVe::vPolyMergeTest(void)
 {
     Eigen::Matrix3Xd vp1, vp2, mesh;
@@ -235,10 +233,9 @@ void PolyVe::inHpolyTest(void)
         }
     }
     std::cout << "inHpolyTest Passes !!!" << std::endl;
-
 }
 
-// FIXME
+// Pass
 void PolyVe::vPolyIntersectTest(void)
 {
     std::vector<Eigen::Matrix3Xd> vPolyBuf;
@@ -255,6 +252,42 @@ void PolyVe::vPolyIntersectTest(void)
     vPolyBuf.push_back(vPolyIntersect);
     visualizer.visualizePolytope(vPolyBuf);
     visualization.visualizeVertices(vPolyIntersect);
+}
+
+void PolyVe::CorridorTest(void)
+{
+    Eigen::MatrixX3d FootHull(10, 3);
+    Eigen::Matrix3Xd vPoly(3, 10);
+    FootHull << 0.2412, -0.154, -0.1303,
+        -0.07939, -0.1551, -0.1464,
+        -0.0809, -0.1567, -0.3889,
+        0.2556, -0.1674, -0.3545,
+        -0.3199, -0.3958, 0.006312,
+        -0.2209, -0.2967, -0.3344,
+        0.3721, -0.2772, 0.02371,
+        0.3527, -0.2589, -0.2644,
+        0.05979, -0.4186, -0.2857,
+        0.06059, -0.472, 0.1195;
+    vPoly = FootHull.transpose() * 10;
+
+    std::vector<Eigen::Matrix3Xd> RegionBuf;
+    std::vector<Eigen::Matrix3Xd> CorridorBuf;
+
+    Eigen::MatrixX3d waypoints(3, 3);
+    waypoints << 0.0, 0.0, 0.0,
+        3.0, 0.0, 2.0,
+        6.0, 0.0, 0.0;
+    for (int i = 0; i < waypoints.rows(); i++)
+    {
+        RegionBuf.push_back((vPoly.array().colwise() + waypoints.transpose().col(i).array()).eval());
+        if (i > 0)
+        {
+            CorridorBuf.push_back(geo_utils::mergeVpoly(RegionBuf.at(i - 1), RegionBuf.at(i)));
+        }
+    }
+
+    // visualizer.visualizePolytope(RegionBuf);
+    visualizer.visualizePolytope(CorridorBuf);
 }
 
 ////////////////////

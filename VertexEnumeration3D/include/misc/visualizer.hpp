@@ -334,6 +334,20 @@ public:
         return;
     }
 
+    inline void visualizePolytope(const Eigen::MatrixX4d &hPoly)
+    {
+        std::vector<Eigen::MatrixX4d> hPolys;
+        hPolys.push_back(hPoly);
+        visualizePolytope(hPolys);
+    }
+
+    inline void visualizePolytope(const Eigen::Matrix3Xd &vPoly)
+    {
+        std::vector<Eigen::Matrix3Xd> vPolys;
+        vPolys.push_back(vPoly);
+        visualizePolytope(vPolys);
+    }
+
     // Visualize all spheres with centers sphs and the same radius
     inline void visualizeSphere(const Eigen::Vector3d &center,
                                 const double &radius)

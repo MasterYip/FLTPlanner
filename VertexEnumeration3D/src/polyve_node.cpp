@@ -18,7 +18,7 @@ int main(int argc, char **argv)
         {
             // polyVe.conductVE();
             // polyVe.vPolyMergeTest();
-            polyVe.vPolyIntersectTest();
+            polyVe.CorridorTest();
             ros::spinOnce();
             lr.sleep();
         }
