@@ -12,6 +12,10 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   visualization_msgs
+  # Grid map
+  grid_map_core
+  grid_map_ros
+  grid_map_msgs
 )
 
 include_directories(

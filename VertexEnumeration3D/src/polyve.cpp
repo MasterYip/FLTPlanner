@@ -268,15 +268,15 @@ void PolyVe::CorridorTest(void)
         0.3527, -0.2589, -0.2644,
         0.05979, -0.4186, -0.2857,
         0.06059, -0.472, 0.1195;
-    vPoly = FootHull.transpose() * 10;
+    vPoly = FootHull.transpose();
 
     std::vector<Eigen::Matrix3Xd> RegionBuf;
     std::vector<Eigen::Matrix3Xd> CorridorBuf;
 
     Eigen::MatrixX3d waypoints(3, 3);
-    waypoints << 0.0, 0.0, 0.0,
-        3.0, 0.0, 2.0,
-        6.0, 0.0, 0.0;
+    waypoints << -0.5, 0.0, 0.2,
+        0.0, 0.0, 0.5,
+        0.5, 0.0, 0.2;
     for (int i = 0; i < waypoints.rows(); i++)
     {
         RegionBuf.push_back((vPoly.array().colwise() + waypoints.transpose().col(i).array()).eval());

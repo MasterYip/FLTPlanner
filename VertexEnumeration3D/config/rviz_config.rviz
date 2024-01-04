@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /Status1
         - /vis_mesh1
       Splitter Ratio: 0.5
@@ -103,7 +104,7 @@ Visualization Manager:
   Global Options:
     Background Color: 63; 63; 63
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: odom
     Frame Rate: 60
   Name: root
   Tools:
@@ -127,7 +128,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 35.232086181640625
+      Distance: 14.398492813110352
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
