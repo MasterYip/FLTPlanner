@@ -24,12 +24,19 @@ public:
     CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_);
     ~CVX_TrajOpt();
     void map_callback(const grid_map_msgs::GridMap::ConstPtr &msg);
+    std::vector<grid_map::Index> getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
+                                                            const Eigen::Vector2d &start,
+                                                            const Eigen::Vector2d &goal,
+                                                            const std::string connectivity);
 
-    
+    // Vis
+    void drawSphereIdx(const grid_map::Index &idx, const double radius);
+    void drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
+                                     const Eigen::Vector2d &start, const Eigen::Vector2d &goal);
     // Test
     void test_map();
     void draw_vpoly_2DinHullPointset();
-    
+    void drawCorriderIntersectBorderTest();
 
 private:
     ros::NodeHandle nh_;

@@ -20,7 +20,7 @@ int main(int argc, char **argv)
         {
             // polyVe.conductVE();
             // polyVe.vPolyMergeTest();
-            trajopt.draw_vpoly_2DinHullPointset();
+            trajopt.drawCorriderIntersectBorderTest();
             ros::spinOnce();
             lr.sleep();
         }

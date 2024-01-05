@@ -9,6 +9,32 @@
 
 /* internal project header files */
 
+bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor, const Eigen::Vector3d &pos)
+{
+    for (uint i = 0; i < Corridor.size(); i++)
+    {
+        if (geo_utils::inVpoly(Corridor.at(i), pos))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor,
+                const grid_map::GridMap &map,
+                const grid_map::Index &idx,
+                const std::string maplayer = "elevation")
+{
+    Eigen::Vector3d pos;
+    Eigen::Vector2d posxy;
+    pos[2] = map.at(maplayer, idx);
+    map.getPosition(idx, posxy);
+    pos[0] = posxy.x();
+    pos[1] = posxy.y();
+    return inCorridor(Corridor, pos);
+}
+
 CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_) : nh_(nh_), visualizer_(nh_), conf_(conf)
 {
     ROS_INFO("CVX_TrajOpt::CVX_TrajOpt()");
@@ -49,9 +75,21 @@ void CVX_TrajOpt::map_callback(const grid_map_msgs::GridMap::ConstPtr &msg)
     return;
 }
 
+void CVX_TrajOpt::drawSphereIdx(const grid_map::Index &idx, const double radius = 0.01)
+{
+    Eigen::Vector3d pos;
+    Eigen::Vector2d posxy;
+    pos[2] = map_.at("elevation", idx);
+    map_.getPosition(idx, posxy);
+    pos[0] = posxy.x();
+    pos[1] = posxy.y();
+    visualizer_.visualizeSphere(pos, radius);
+    return;
+}
+
 void CVX_TrajOpt::test_map()
 {
-    for (int i = 0; i < map_.getLayers().size(); i++)
+    for (uint i = 0; i < map_.getLayers().size(); i++)
     {
         printf("%s\n", map_.getLayers()[i].c_str());
     }
@@ -86,30 +124,125 @@ void CVX_TrajOpt::draw_vpoly_2DinHullPointset()
 
     for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
     {
-
-        Eigen::Vector3d pos;
-        Eigen::Vector2d posxy;
-
-        pos[2] = map_.at("elevation", *iterator);
-        map_.getPosition(*iterator, posxy);
-
-        pos[0] = posxy.x();
-        pos[1] = posxy.y();
-        bool in_corridor = false;
-        for (uint i = 0; i < CorridorBuf.size(); i++)
+        if (inCorridor(CorridorBuf, map_, *iterator))
         {
-            if (geo_utils::inVpoly(CorridorBuf.at(i), pos))
-            {
-                in_corridor = true;
-                break;
-            }
-        }
-
-        if (in_corridor)
-        {
+            Eigen::Vector3d pos;
+            Eigen::Vector2d posxy;
+            pos[2] = map_.at("elevation", *iterator);
+            map_.getPosition(*iterator, posxy);
+            pos[0] = posxy.x();
+            pos[1] = posxy.y();
             visualizer_.visualizeSphere(pos, 0.01);
         }
     }
 
     return;
+}
+
+std::vector<grid_map::Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
+                                                                     const Eigen::Vector2d &start,
+                                                                     const Eigen::Vector2d &goal,
+                                                                     const std::string connectivity = "8")
+{
+    grid_map::Index start_idx, goal_idx, idx, start_border_idx, tmp_idx;
+    map_.getIndex(start, start_idx);
+    map_.getIndex(goal, goal_idx);
+    std::vector<grid_map::Index> path; // TODO: Use freeman chain code to represent path
+    idx = start_idx;
+    if (!inCorridor(Corridor, map_, idx))
+    {
+        ROS_ERROR("Start point not in corridor!");
+        return path;
+    }
+
+    while (inCorridor(Corridor, map_, idx))
+    {
+        idx[0]++;
+    }
+    start_border_idx = idx;
+    path.push_back(start_border_idx);
+    // Start at border
+    // int[8][2] c8_ccw = {{1, 0}, {1, 1}, {0, 1}, {-1, 1},
+    //                    {-1, 0}, {-1, -1}, {0, -1}, {1, -1}};
+    // Connectivity 8 Clockwise
+    // 6 7 8
+    // 5 * 1
+    // 4 3 2
+    // int c8_cw[9][2] = {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}};
+    std::vector<grid_map::Index> c8_cw = {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}};
+
+    do
+    {
+        bool in_corridor_flag = false;
+        for (int i = 0; i < 9; i++)
+        {
+            tmp_idx = idx + c8_cw.at(i);
+            // Make use of short-circuit evaluation
+            if (!in_corridor_flag && inCorridor(Corridor, map_, tmp_idx))
+            {
+                in_corridor_flag = true;
+            }
+            if (in_corridor_flag && !inCorridor(Corridor, map_, tmp_idx))
+            {
+                path.push_back(tmp_idx);
+                idx = tmp_idx;
+                break;
+            }
+        }
+    } while (idx[0] != start_border_idx[0] || idx[1] != start_border_idx[1]);
+    return path;
+}
+
+void CVX_TrajOpt::drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
+                                              const Eigen::Vector2d &start, const Eigen::Vector2d &goal)
+{
+    // Visualize start & goal
+    grid_map::Index start_idx, goal_idx;
+    map_.getIndex(start, start_idx);
+    drawSphereIdx(start_idx, 0.02);
+    map_.getIndex(goal, goal_idx);
+    drawSphereIdx(goal_idx, 0.02);
+
+    // Get path
+    std::vector<grid_map::Index> path = getCorriderIntersectBorder(Corridor, start, goal);
+
+    // Draw path
+    std::vector<Eigen::Vector3d> path_pos;
+    for (uint i = 0; i < path.size(); i++)
+    {
+        // drawSphereIdx(path.at(i));
+        Eigen::Vector3d pos;
+        Eigen::Vector2d posxy;
+        pos[2] = map_.at("elevation", path.at(i));
+        map_.getPosition(path.at(i), posxy);
+        pos[0] = posxy.x();
+        pos[1] = posxy.y();
+        path_pos.push_back(pos);
+    }
+    visualizer_.visualizeCurve(path_pos);
+}
+
+void CVX_TrajOpt::drawCorriderIntersectBorderTest()
+{
+    Eigen::MatrixX3d waypoints(3, 3);
+    waypoints << -0.5, 0.0, 0.2,
+        0.0, 0.0, 0.2,
+        0.5, 0.0, 0.2;
+    Eigen::Vector2d start(-0.4, -0.3), goal(0.4, -0.3);
+
+    std::vector<Eigen::Matrix3Xd> RegionBuf;
+    std::vector<Eigen::Matrix3Xd> CorridorBuf;
+
+    for (int i = 0; i < waypoints.rows(); i++)
+    {
+        RegionBuf.push_back((vPoly.array().colwise() + waypoints.transpose().col(i).array()).eval());
+        if (i > 0)
+        {
+            CorridorBuf.push_back(geo_utils::mergeVpoly(RegionBuf.at(i - 1), RegionBuf.at(i)));
+        }
+    }
+    // visualizer.visualizePolytope(RegionBuf);
+    visualizer_.visualizePolytope(CorridorBuf);
+
+    drawCorriderIntersectBorder(CorridorBuf, start, goal);
 }

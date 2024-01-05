@@ -348,6 +348,37 @@ public:
         }
         spherePub.publish(sphereMarkers);
     }
+
+    inline void visualizeCurve(const std::vector<Eigen::Vector3d> &curve)
+    {
+        visualization_msgs::Marker curveMarker;
+
+        curveMarker.id = 0;
+        curveMarker.type = visualization_msgs::Marker::LINE_STRIP;
+        curveMarker.header.stamp = ros::Time::now();
+        curveMarker.header.frame_id = FRAME_ID;
+        curveMarker.pose.orientation.w = 1.00;
+        curveMarker.action = visualization_msgs::Marker::ADD;
+        curveMarker.ns = "curve";
+        curveMarker.color.r = 0.00;
+        curveMarker.color.g = 1.00;
+        curveMarker.color.b = 0.00;
+        curveMarker.color.a = 1.00;
+        curveMarker.scale.x = 0.01;
+
+        geometry_msgs::Point point;
+
+        for (auto it : curve)
+        {
+            point.x = it(0);
+            point.y = it(1);
+            point.z = it(2);
+            curveMarker.points.push_back(point);
+        }
+
+        trajectoryPub.publish(curveMarker);
+    }
+
 };
 
 #endif
