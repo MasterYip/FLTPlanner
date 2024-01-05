@@ -106,22 +106,6 @@ namespace geo_utils
     }
 
     /**
-     * @brief Check if a point is inside a convex polyhedron
-     *
-     * @param hPoly
-     * @param point
-     * @param eps
-     * @return true
-     * @return false
-     */
-    inline bool inHpoly(const Eigen::MatrixX4d &hPoly,
-                        const Eigen::Vector3d &point,
-                        const double eps = 0)
-    {
-        return (hPoly.leftCols<3>() * point + hPoly.rightCols<1>()).maxCoeff() <= eps;
-    }
-
-    /**
      * @brief Convert a vPoly to hPoly
      * @note
      * Each row of hPoly is defined by `h0, h1, h2, h3` as `h0*x + h1*y + h2*z + h3 <= 0`
@@ -165,6 +149,30 @@ namespace geo_utils
             hPoly(i, 3) = -normal.dot(point);
         }
         return hPoly;
+    }
+
+    /**
+     * @brief Check if a point is inside a convex polyhedron
+     *
+     * @param hPoly
+     * @param point
+     * @param eps
+     * @return true
+     * @return false
+     */
+    inline bool inHpoly(const Eigen::MatrixX4d &hPoly,
+                        const Eigen::Vector3d &point,
+                        const double eps = 0)
+    {
+        return (hPoly.leftCols<3>() * point + hPoly.rightCols<1>()).maxCoeff() <= eps;
+    }
+
+    inline bool inVpoly(const Eigen::Matrix3Xd &vPoly,
+                        const Eigen::Vector3d &point,
+                        const double eps = 0)
+    {
+        Eigen::MatrixX4d hPoly = vpoly2hpoly(vPoly);
+        return inHpoly(hPoly, point, eps);
     }
 
     /**

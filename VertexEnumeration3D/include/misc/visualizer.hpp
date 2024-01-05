@@ -35,6 +35,7 @@ private:
     ros::Publisher meshPub;
     ros::Publisher edgePub;
     ros::Publisher spherePub;
+    visualization_msgs::Marker sphereMarkers;
 
 public:
     ros::Publisher speedPub;
@@ -249,7 +250,7 @@ public:
     {
         std::vector<Eigen::Matrix3Xd> vPolys;
 
-        for (int id = 0; id < hPolys.size(); id++)
+        for (uint id = 0; id < hPolys.size(); id++)
         {
             Eigen::Matrix3Xd vPoly;
             geo_utils::enumerateVs(hPolys[id], vPoly);
@@ -274,9 +275,9 @@ public:
 
     // Visualize all spheres with centers sphs and the same radius
     inline void visualizeSphere(const Eigen::Vector3d &center,
-                                const double &radius)
+                                const double &radius, bool deleteAll = false)
     {
-        visualization_msgs::Marker sphereMarkers, sphereDeleter;
+        visualization_msgs::Marker sphereDeleter;
 
         sphereMarkers.id = 0;
         sphereMarkers.type = visualization_msgs::Marker::SPHERE_LIST;
@@ -293,8 +294,12 @@ public:
         sphereMarkers.scale.y = radius * 2.0;
         sphereMarkers.scale.z = radius * 2.0;
 
-        sphereDeleter = sphereMarkers;
-        sphereDeleter.action = visualization_msgs::Marker::DELETE;
+        if (deleteAll)
+        {
+            sphereDeleter = sphereMarkers;
+            sphereDeleter.action = visualization_msgs::Marker::DELETE;
+            spherePub.publish(sphereDeleter);
+        }
 
         geometry_msgs::Point point;
         point.x = center(0);
@@ -302,7 +307,6 @@ public:
         point.z = center(2);
         sphereMarkers.points.push_back(point);
 
-        spherePub.publish(sphereDeleter);
         spherePub.publish(sphereMarkers);
     }
 

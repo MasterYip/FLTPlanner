@@ -37,3 +37,11 @@ add_executable(${PROJECT_NAME}_node
 
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES})
+
+
+add_executable(cvx_trajopt_node
+  src/cvx_trajopt_node.cpp
+  src/cvx_trajopt.cpp)
+
+target_link_libraries(cvx_trajopt_node
+  ${catkin_LIBRARIES})
