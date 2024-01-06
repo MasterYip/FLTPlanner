@@ -190,8 +190,18 @@ std::vector<grid_map::Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::
     // int c8_cw[9][2] = {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}};
     std::vector<grid_map::Index> c8_cw = {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}};
 
+    // FIXME: Sometimes it stucks (loop)
+    uint max_tries = 1000;
+    uint cnt = 0;
     do
     {
+        cnt++;
+        if (cnt > max_tries)
+        {
+            ROS_ERROR("getCorriderIntersectBorder() stucks!");
+            break;
+        }
+
         bool in_corridor_flag = false;
         for (int i = 0; i < 9; i++)
         {
@@ -209,6 +219,7 @@ std::vector<grid_map::Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::
             }
         }
     } while (idx[0] != start_border_idx[0] || idx[1] != start_border_idx[1]);
+
     return path;
 }
 
