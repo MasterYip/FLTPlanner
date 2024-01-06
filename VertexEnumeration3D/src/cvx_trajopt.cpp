@@ -39,6 +39,13 @@ CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_) : nh_(n
 {
     ROS_INFO("CVX_TrajOpt::CVX_TrajOpt()");
     map_sub_ = nh_.subscribe(conf_.mapTopic, 1, &CVX_TrajOpt::map_callback, this);
+
+    // 并将回调函数和服务端绑定
+    f = boost::bind(&CVX_TrajOpt::dyn_reconf_callback, this, _1, _2);
+    server.setCallback(f);
+
+    pos_shift = Eigen::MatrixX3d::Zero(1, 3);
+
     // Default CVX Hull
     Eigen::MatrixX3d FootHull(10, 3);
     FootHull << 0.2412, -0.154, -0.1303,
@@ -68,6 +75,18 @@ CVX_TrajOpt::~CVX_TrajOpt()
 {
 }
 
+void CVX_TrajOpt::dyn_reconf_callback(polyve::CvxTrajOptConfig &config, uint32_t level)
+{
+    // ROS_INFO("Reconfigure Request: %d %f %s %s %d",
+    //          config.int_param, config.double_param,
+    //          config.str_param.c_str(),
+    //          config.bool_param ? "True" : "False",
+    //          config.size);
+    start[0] = config.start_x;
+    start[1] = config.start_y;
+    pos_shift << config.pos_shift_x, config.pos_shift_y, config.pos_shift_z;
+}
+
 void CVX_TrajOpt::map_callback(const grid_map_msgs::GridMap::ConstPtr &msg)
 {
     grid_map::GridMapRosConverter::fromMessage(*msg, map_);
@@ -75,7 +94,7 @@ void CVX_TrajOpt::map_callback(const grid_map_msgs::GridMap::ConstPtr &msg)
     return;
 }
 
-void CVX_TrajOpt::drawSphereIdx(const grid_map::Index &idx, const double radius = 0.01)
+void CVX_TrajOpt::drawSphereIdx(const grid_map::Index &idx, const double radius = 0.01, bool del_all = false)
 {
     Eigen::Vector3d pos;
     Eigen::Vector2d posxy;
@@ -83,7 +102,7 @@ void CVX_TrajOpt::drawSphereIdx(const grid_map::Index &idx, const double radius 
     map_.getPosition(idx, posxy);
     pos[0] = posxy.x();
     pos[1] = posxy.y();
-    visualizer_.visualizeSphere(pos, radius);
+    visualizer_.visualizeSphere(pos, radius, del_all);
     return;
 }
 
@@ -199,7 +218,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd
     // Visualize start & goal
     grid_map::Index start_idx, goal_idx;
     map_.getIndex(start, start_idx);
-    drawSphereIdx(start_idx, 0.02);
+    drawSphereIdx(start_idx, 0.02, true);
     map_.getIndex(goal, goal_idx);
     drawSphereIdx(goal_idx, 0.02);
 
@@ -226,16 +245,17 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
 {
     Eigen::MatrixX3d waypoints(3, 3);
     waypoints << -0.5, 0.0, 0.2,
-        0.0, 0.0, 0.2,
+        0.0, 0.0, 0.4,
         0.5, 0.0, 0.2;
-    Eigen::Vector2d start(-0.4, -0.3), goal(0.4, -0.3);
+    // Eigen::Vector2d start(-0.4, -0.3), goal(0.4, -0.3);
+    Eigen::Vector2d goal(0.4, -0.3);
 
     std::vector<Eigen::Matrix3Xd> RegionBuf;
     std::vector<Eigen::Matrix3Xd> CorridorBuf;
 
     for (int i = 0; i < waypoints.rows(); i++)
     {
-        RegionBuf.push_back((vPoly.array().colwise() + waypoints.transpose().col(i).array()).eval());
+        RegionBuf.push_back((vPoly.array().colwise() + (waypoints.transpose().col(i).array() + pos_shift.transpose().col(0).array())).eval());
         if (i > 0)
         {
             CorridorBuf.push_back(geo_utils::mergeVpoly(RegionBuf.at(i - 1), RegionBuf.at(i)));

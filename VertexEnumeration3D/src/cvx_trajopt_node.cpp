@@ -2,6 +2,7 @@
 /* related header files */
 #include "cvx_trajopt/cvx_trajopt.h"
 
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "cvx_trajopt_node");

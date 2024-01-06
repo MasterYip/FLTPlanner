@@ -12,11 +12,15 @@
 #include <grid_map_core/grid_map_core.hpp>
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_msgs/GridMap.h>
+#include <dynamic_reconfigure/server.h>
+
 /* internal project header files */
 #include "cvx_trajopt/cvx_trajopt_config.hpp"
 #include "geo_utils/geo_utils.hpp"
 #include "geo_utils/quickhull.hpp"
 #include "misc/visualizer.hpp"
+// TODO: Change project name
+#include <polyve/CvxTrajOptConfig.h>
 
 class CVX_TrajOpt
 {
@@ -30,13 +34,15 @@ public:
                                                             const std::string connectivity);
 
     // Vis
-    void drawSphereIdx(const grid_map::Index &idx, const double radius);
+    void drawSphereIdx(const grid_map::Index &idx, const double radius, bool del_all);
     void drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                      const Eigen::Vector2d &start, const Eigen::Vector2d &goal);
     // Test
     void test_map();
     void draw_vpoly_2DinHullPointset();
     void drawCorriderIntersectBorderTest();
+
+    void dyn_reconf_callback(polyve::CvxTrajOptConfig &config, uint32_t level);
 
 private:
     ros::NodeHandle nh_;
@@ -48,4 +54,13 @@ private:
     bool map_received_ = false;
 
     Eigen::Matrix3Xd vPoly = {3, 10}; // Test Default Hull
+
+    // Dyn reconf
+    dynamic_reconfigure::Server<polyve::CvxTrajOptConfig> server;
+    dynamic_reconfigure::Server<polyve::CvxTrajOptConfig>::CallbackType f;
+
+    // drawCorriderIntersectBorderTest
+    Eigen::Vector2d start = {-0.4, -0.3};
+    Eigen::MatrixX3d pos_shift = {1, 3};
+
 };

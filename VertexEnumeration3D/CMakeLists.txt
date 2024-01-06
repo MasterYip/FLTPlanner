@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   grid_map_core
   grid_map_ros
   grid_map_msgs
+  dynamic_reconfigure
 )
 
 include_directories(
@@ -24,12 +25,28 @@ include_directories(
     include
 )
 
+
+
+# Dynamic reconfigure
+set (CVX_DYNCFG_PATH config/cvx_trajopt.cfg)
+execute_process(COMMAND chmod a+x ${CVX_DYNCFG_PATH}
+      		  	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      		  	RESULT_VARIABLE cmd_result
+      		 	OUTPUT_VARIABLE cmd_ver)
+message(STATUS "Chmod a+x the dynamic_reconfigure file")
+
+generate_dynamic_reconfigure_options(
+        ${CVX_DYNCFG_PATH}
+)
+
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES image_receiver
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
+
+# Executables
 
 add_executable(${PROJECT_NAME}_node 
   src/polyve_node.cpp
@@ -42,6 +59,8 @@ target_link_libraries(${PROJECT_NAME}_node
 add_executable(cvx_trajopt_node
   src/cvx_trajopt_node.cpp
   src/cvx_trajopt.cpp)
+
+add_dependencies(cvx_trajopt_node ${PROJECT_NAME}_gencfg)
 
 target_link_libraries(cvx_trajopt_node
   ${catkin_LIBRARIES})

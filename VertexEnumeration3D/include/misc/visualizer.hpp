@@ -293,12 +293,13 @@ public:
         sphereMarkers.scale.x = radius * 2.0;
         sphereMarkers.scale.y = radius * 2.0;
         sphereMarkers.scale.z = radius * 2.0;
-
+        
         if (deleteAll)
         {
             sphereDeleter = sphereMarkers;
             sphereDeleter.action = visualization_msgs::Marker::DELETE;
             spherePub.publish(sphereDeleter);
+            sphereMarkers.points.clear();
         }
 
         geometry_msgs::Point point;

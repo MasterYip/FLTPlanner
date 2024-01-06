@@ -67,4 +67,7 @@
         <rosparam file="$(find polyve)/config/cvx_trajopt_params.yaml" command="load" />
     </node>
 
+    <!-- RQT Reconf -->
+    <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" />
+
 </launch>
