@@ -25,11 +25,11 @@
 
 class TimerMixin
 {
-  protected:
+protected:
     timespec ts{};
     std::chrono::time_point<std::chrono::system_clock> time_point_;
 
-  public:
+public:
     TimerMixin(){};
     virtual ~TimerMixin() = default;
     void nanoSleep(uint64_t ns)
@@ -50,10 +50,10 @@ class TimerMixin
     }
 
     /**
-         * @brief Stop timer and return elapsed time in nanoseconds
-         *
-         * @return uint64_t elapsed time in nanoseconds
-         */
+     * @brief Stop timer and return elapsed time in nanoseconds
+     *
+     * @return uint64_t elapsed time in nanoseconds
+     */
     uint64_t timerStop(void)
     {
         auto time_point_now = std::chrono::system_clock::now();
@@ -74,6 +74,11 @@ public:
                                                             const Eigen::Vector2d &start,
                                                             const Eigen::Vector2d &goal,
                                                             const std::string connectivity);
+    bool findConcavePoint(const std::vector<grid_map::Index> &Border,
+                          const Eigen::Vector2d &start,
+                          const Eigen::Vector2d &goal,
+                          std::vector<grid_map::Index> ptsSideA,
+                          std::vector<grid_map::Index> ptsSideB);
 
     // Vis
     void drawSphereIdx(const grid_map::Index &idx, const double radius, bool del_all);
@@ -105,5 +110,4 @@ private:
     // drawCorriderIntersectBorderTest
     Eigen::Vector2d start = {-0.4, -0.3};
     Eigen::MatrixX3d pos_shift = {1, 3};
-
 };

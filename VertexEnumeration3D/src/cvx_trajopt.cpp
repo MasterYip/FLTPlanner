@@ -77,11 +77,6 @@ CVX_TrajOpt::~CVX_TrajOpt()
 
 void CVX_TrajOpt::dyn_reconf_callback(polyve::CvxTrajOptConfig &config, uint32_t level)
 {
-    // ROS_INFO("Reconfigure Request: %d %f %s %s %d",
-    //          config.int_param, config.double_param,
-    //          config.str_param.c_str(),
-    //          config.bool_param ? "True" : "False",
-    //          config.size);
     start[0] = config.start_x;
     start[1] = config.start_y;
     pos_shift << config.pos_shift_x, config.pos_shift_y, config.pos_shift_z;
@@ -158,6 +153,15 @@ void CVX_TrajOpt::draw_vpoly_2DinHullPointset()
     return;
 }
 
+/**
+ * @brief
+ *
+ * @param Corridor
+ * @param start
+ * @param goal
+ * @param connectivity
+ * @return std::vector<grid_map::Index> `Clockwise` sequence of border points (z axis projected)
+ */
 std::vector<grid_map::Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                                                      const Eigen::Vector2d &start,
                                                                      const Eigen::Vector2d &goal,
@@ -241,6 +245,109 @@ std::vector<grid_map::Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::
     return path;
 }
 
+uint manhattanLength(const grid_map::Index &start, const grid_map::Index &goal)
+{
+    return std::abs(start[0] - goal[0]) + std::abs(start[1] - goal[1]);
+}
+
+/**
+ * @brief
+ *
+ * @param[in] Border
+ * @param[in] start
+ * @param[in] goal
+ * @param[out] ptsSideA
+ * @param[out] ptsSideB
+ * @return true
+ * @return false
+ */
+bool CVX_TrajOpt::findConcavePoint(const std::vector<grid_map::Index> &Border,
+                                   const Eigen::Vector2d &start,
+                                   const Eigen::Vector2d &goal,
+                                   std::vector<grid_map::Index> ptsSideA,
+                                   std::vector<grid_map::Index> ptsSideB)
+{
+    grid_map::Index start_idx, goal_idx;
+    ptsSideA.clear();
+    ptsSideB.clear();
+    map_.getIndex(start, start_idx);
+    map_.getIndex(goal, goal_idx);
+    if (Border.size() < 2)
+    {
+        ROS_ERROR("Border.size() < 2");
+        return false;
+    }
+    // Step1: Find segment point
+    // FIXME: seg_point should not be concave point? Maybe not necessary
+    uint seg_point_start, seg_point_goal;
+    uint mindis_start = manhattanLength(Border.at(0), start_idx);
+    uint mindis_goal = manhattanLength(Border.at(0), goal_idx);
+    uint dis_start, dis_goal;
+    for (uint i = 1; i < Border.size(); i++)
+    {
+        dis_start = manhattanLength(Border.at(i), start_idx);
+        dis_goal = manhattanLength(Border.at(i), goal_idx);
+        if (dis_start < mindis_start)
+        {
+            mindis_start = dis_start;
+            seg_point_start = i;
+        }
+        if (dis_goal < mindis_goal)
+        {
+            mindis_goal = dis_goal;
+            seg_point_goal = i;
+        }
+    }
+    // Draw segment point
+    drawSphereIdx(Border.at(seg_point_start), 0.02);
+    drawSphereIdx(Border.at(seg_point_goal), 0.02);
+
+    // Step2: Find concave(concave towards the interior) point
+    grid_map::Index tmp_dir1, tmp_dir2;
+    // |0--(B)--S----(A)---G---(B)--| tail
+    bool in_sideA = !(seg_point_start < seg_point_goal && seg_point_start > 0);
+    int dir_cross_prod;
+    for (uint i = 0; i < Border.size(); i++) // NOTE: Border is clockwise
+    {
+        uint im1 = (i - 1 + Border.size()) % Border.size();
+        uint ip1 = (i + 1) % Border.size();
+        tmp_dir1 = Border.at(i) - Border.at(im1); // FIXME:
+        tmp_dir2 = Border.at(ip1) - Border.at(i);
+        dir_cross_prod = tmp_dir1[0] * tmp_dir2[1] - tmp_dir1[1] * tmp_dir2[0];
+        if (i == seg_point_start)
+        {
+            in_sideA = true;
+        }
+        if (i == seg_point_goal)
+        {
+            in_sideA = false;
+        }
+
+        if (dir_cross_prod > 0)
+        {
+            if (in_sideA)
+            {
+                ptsSideA.push_back(Border.at(i));
+            }
+            else
+            {
+                ptsSideB.push_back(Border.at(i));
+            }
+        }
+    }
+    //Draw concave point
+    for (uint i = 0; i < ptsSideA.size(); i++)
+    {
+        drawSphereIdx(ptsSideA.at(i));
+    }
+    for (uint i = 0; i < ptsSideB.size(); i++)
+    {
+        drawSphereIdx(ptsSideB.at(i));
+    }
+
+    return true;
+}
+
 void CVX_TrajOpt::drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                               const Eigen::Vector2d &start, const Eigen::Vector2d &goal)
 {
@@ -294,4 +401,8 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     visualizer_.visualizePolytope(CorridorBuf);
 
     drawCorriderIntersectBorder(CorridorBuf, start, goal);
+
+    std::vector<grid_map::Index> Border = getCorriderIntersectBorder(CorridorBuf, start, goal);
+    std::vector<grid_map::Index> ptsSideA, ptsSideB;
+    findConcavePoint(Border, start, goal, ptsSideA, ptsSideB);
 }
