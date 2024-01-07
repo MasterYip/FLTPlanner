@@ -6,6 +6,7 @@
 
 /* c++ standard library header files */
 #include <vector>
+#include <chrono>
 /* external project header files */
 #include <Eigen/Eigen>
 #include <ros/ros.h>
@@ -21,6 +22,47 @@
 #include "misc/visualizer.hpp"
 // TODO: Change project name
 #include <polyve/CvxTrajOptConfig.h>
+
+class TimerMixin
+{
+  protected:
+    timespec ts{};
+    std::chrono::time_point<std::chrono::system_clock> time_point_;
+
+  public:
+    TimerMixin(){};
+    virtual ~TimerMixin() = default;
+    void nanoSleep(uint64_t ns)
+    {
+        ts.tv_sec = ns / 1000000000;
+        ts.tv_nsec = ns % 1000000000;
+        nanosleep(&ts, NULL);
+    }
+    void milliSleep(uint64_t ms)
+    {
+        ts.tv_sec = ms / 1000;
+        ts.tv_nsec = (ms % 1000) * 1000000;
+        nanosleep(&ts, NULL);
+    }
+    void timerStart(void)
+    {
+        time_point_ = std::chrono::system_clock::now();
+    }
+
+    /**
+         * @brief Stop timer and return elapsed time in nanoseconds
+         *
+         * @return uint64_t elapsed time in nanoseconds
+         */
+    uint64_t timerStop(void)
+    {
+        auto time_point_now = std::chrono::system_clock::now();
+        auto duration =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(time_point_now - time_point_);
+        return duration.count();
+    }
+};
+typedef TimerMixin Timer;
 
 class CVX_TrajOpt
 {
@@ -47,6 +89,7 @@ public:
 private:
     ros::NodeHandle nh_;
     ros::Subscriber map_sub_;
+    Timer timer_;
 
     Visualizer visualizer_;
     CVX_TrajOpt_Config conf_;

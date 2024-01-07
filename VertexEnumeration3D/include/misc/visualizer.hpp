@@ -287,8 +287,8 @@ public:
         sphereMarkers.action = visualization_msgs::Marker::ADD;
         sphereMarkers.ns = "spheres";
         sphereMarkers.color.r = 0.00;
-        sphereMarkers.color.g = 0.00;
-        sphereMarkers.color.b = 1.00;
+        sphereMarkers.color.g = 1.00;
+        sphereMarkers.color.b = 0.00;
         sphereMarkers.color.a = 1.00;
         sphereMarkers.scale.x = radius * 2.0;
         sphereMarkers.scale.y = radius * 2.0;

@@ -163,7 +163,7 @@ std::vector<grid_map::Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::
                                                                      const Eigen::Vector2d &goal,
                                                                      const std::string connectivity = "8")
 {
-    grid_map::Index start_idx, goal_idx, idx, start_border_idx, tmp_idx;
+    grid_map::Index start_idx, goal_idx, idx, start_border_idx, tmp_idx, revisit_idx;
     map_.getIndex(start, start_idx);
     map_.getIndex(goal, goal_idx);
     std::vector<grid_map::Index> path; // TODO: Use freeman chain code to represent path
@@ -173,25 +173,22 @@ std::vector<grid_map::Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::
         ROS_ERROR("Start point not in corridor!");
         return path;
     }
-
+    // Find start border
     while (inCorridor(Corridor, map_, idx))
     {
         idx[0]++;
     }
+    idx[0]--; // Back to last inCorridor
     start_border_idx = idx;
     path.push_back(start_border_idx);
-    // Start at border
-    // int[8][2] c8_ccw = {{1, 0}, {1, 1}, {0, 1}, {-1, 1},
-    //                    {-1, 0}, {-1, -1}, {0, -1}, {1, -1}};
     // Connectivity 8 Clockwise
-    // 6 7 8
-    // 5 * 1
-    // 4 3 2
-    // int c8_cw[9][2] = {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}};
-    std::vector<grid_map::Index> c8_cw = {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}};
+    // 7 8 1
+    // 6 * 2
+    // 5 4 3
+    std::vector<grid_map::Index> c8_cw = {{1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
     // FIXME: Sometimes it stucks (loop)
-    uint max_tries = 1000;
+    uint max_tries = 200;
     uint cnt = 0;
     do
     {
@@ -199,25 +196,46 @@ std::vector<grid_map::Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::
         if (cnt > max_tries)
         {
             ROS_ERROR("getCorriderIntersectBorder() stucks!");
+            printf("start(%d %d), now(%d %d)\n", start_border_idx[0], start_border_idx[1], idx[0], idx[1]);
             break;
         }
 
-        bool in_corridor_flag = false;
+        bool out_corridor_flag = false;
+        bool revisit_flag = false;
         for (int i = 0; i < 9; i++)
         {
             tmp_idx = idx + c8_cw.at(i);
             // Make use of short-circuit evaluation
-            if (!in_corridor_flag && inCorridor(Corridor, map_, tmp_idx))
+            if (!out_corridor_flag && !inCorridor(Corridor, map_, tmp_idx))
             {
-                in_corridor_flag = true;
+                out_corridor_flag = true;
             }
-            if (in_corridor_flag && !inCorridor(Corridor, map_, tmp_idx))
+            if (out_corridor_flag && inCorridor(Corridor, map_, tmp_idx))
             {
-                path.push_back(tmp_idx);
-                idx = tmp_idx;
-                break;
+
+                if (path.size() > 1 && tmp_idx[0] == path.at(path.size() - 2)[0] && tmp_idx[1] == path.at(path.size() - 2)[1])
+                {
+                    revisit_flag = true;
+                    revisit_idx = tmp_idx;
+                }
+                else
+                {
+                    revisit_flag = false;
+                    path.push_back(tmp_idx);
+                    idx = tmp_idx;
+                    break;
+                }
             }
         }
+        if (revisit_flag)
+        {
+            ROS_WARN("Revisit(%d %d)", revisit_idx[0], revisit_idx[1]);
+            path.push_back(revisit_idx);
+            idx = revisit_idx;
+        }
+        // timer_.milliSleep(100);
+        // printf("now(%d %d)\n", idx[0], idx[1]);
+        // drawSphereIdx(idx, 0.01);
     } while (idx[0] != start_border_idx[0] || idx[1] != start_border_idx[1]);
 
     return path;
