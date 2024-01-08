@@ -11,7 +11,6 @@
 #include <Eigen/Eigen>
 #include <ros/ros.h>
 #include <grid_map_core/grid_map_core.hpp>
-#include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_msgs/GridMap.h>
 #include <dynamic_reconfigure/server.h>
 
@@ -23,6 +22,7 @@
 // TODO: Change project name
 #include <polyve/CvxTrajOptConfig.h>
 
+using Index = Eigen::Array2i;
 class TimerMixin
 {
 protected:
@@ -70,26 +70,34 @@ public:
     CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_);
     ~CVX_TrajOpt();
     void map_callback(const grid_map_msgs::GridMap::ConstPtr &msg);
-    std::vector<grid_map::Index> getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
-                                                            const Eigen::Vector2d &start,
-                                                            const Eigen::Vector2d &goal,
-                                                            const std::string connectivity);
-    bool findConcavePoint(const std::vector<grid_map::Index> &Border,
+    void dyn_reconf_callback(polyve::CvxTrajOptConfig &config, uint32_t level);
+
+    // Functions
+    std::vector<Index> getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
+                                                  const Eigen::Vector2d &start,
+                                                  const Eigen::Vector2d &goal,
+                                                  const std::string connectivity);
+    bool findConcavePoint(const std::vector<Index> &Border,
                           const Eigen::Vector2d &start,
                           const Eigen::Vector2d &goal,
-                          std::vector<grid_map::Index> ptsSideA,
-                          std::vector<grid_map::Index> ptsSideB);
+                          std::vector<Index> &ptsSideA,
+                          std::vector<Index> &ptsSideB);
+
+    bool minlengthPath(const std::vector<Index> &Border,
+                       const Eigen::Vector2d &start,
+                       const Eigen::Vector2d &goal,
+                       std::vector<Index> &path);
 
     // Vis
-    void drawSphereIdx(const grid_map::Index &idx, const double radius, bool del_all);
+    void drawSphereIdx(const Index &idx, const double radius, bool del_all);
     void drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                      const Eigen::Vector2d &start, const Eigen::Vector2d &goal);
     // Test
     void test_map();
     void draw_vpoly_2DinHullPointset();
     void drawCorriderIntersectBorderTest();
-
-    void dyn_reconf_callback(polyve::CvxTrajOptConfig &config, uint32_t level);
+    void testCheckPointSide(const std::vector<Index> path, const Index pt, const std::string groundTruth);
+    void testCheckPointSide();
 
 private:
     ros::NodeHandle nh_;

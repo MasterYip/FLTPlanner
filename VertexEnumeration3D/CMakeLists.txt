@@ -2,11 +2,15 @@ cmake_minimum_required(VERSION 2.8.3)
 
 project(polyve)
 
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
+# --copy-dt-needed-entries
+# set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
 
 find_package(Eigen3 REQUIRED)
+
+find_package(CGAL REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -17,14 +21,15 @@ find_package(catkin REQUIRED COMPONENTS
   grid_map_ros
   grid_map_msgs
   dynamic_reconfigure
-)
+  )
+
 
 include_directories(
     ${catkin_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
+    ${CGAL_INCLUDE_DIRS}
     include
 )
-
 
 
 # Dynamic reconfigure
@@ -63,4 +68,7 @@ add_executable(cvx_trajopt_node
 add_dependencies(cvx_trajopt_node ${PROJECT_NAME}_gencfg)
 
 target_link_libraries(cvx_trajopt_node
-  ${catkin_LIBRARIES})
+  ${catkin_LIBRARIES} gmp mpfr) 
+# FIXME: gmp and mpfr must be linked manually
+
+

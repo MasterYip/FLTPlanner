@@ -21,7 +21,7 @@ int main(int argc, char **argv)
         {
             // polyVe.conductVE();
             // polyVe.vPolyMergeTest();
-            trajopt.drawCorriderIntersectBorderTest();
+            trajopt.testCheckPointSide();
             ros::spinOnce();
             lr.sleep();
         }
