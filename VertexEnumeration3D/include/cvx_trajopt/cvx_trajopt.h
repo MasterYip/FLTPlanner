@@ -82,7 +82,7 @@ public:
                           const Eigen::Vector2d &goal,
                           std::vector<Index> &ptsSideA,
                           std::vector<Index> &ptsSideB);
-
+    bool findConcavePoint(const std::vector<Index> &Border, std::vector<Index> &concavePts);
     bool minlengthPath(const std::vector<Index> &Border,
                        const Eigen::Vector2d &start,
                        const Eigen::Vector2d &goal,
@@ -94,10 +94,9 @@ public:
                                      const Eigen::Vector2d &start, const Eigen::Vector2d &goal);
     // Test
     void test_map();
+    void segmentIntersectTest();
     void draw_vpoly_2DinHullPointset();
     void drawCorriderIntersectBorderTest();
-    void testCheckPointSide(const std::vector<Index> path, const Index pt, const std::string groundTruth);
-    void testCheckPointSide();
 
 private:
     ros::NodeHandle nh_;

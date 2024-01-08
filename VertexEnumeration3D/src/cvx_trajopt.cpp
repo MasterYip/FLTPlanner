@@ -278,36 +278,43 @@ bool CVX_TrajOpt::findConcavePoint(const std::vector<Index> &Border,
         tmp_dir2 = Border.at(ip1) - Border.at(i);
         dir_cross_prod = tmp_dir1[0] * tmp_dir2[1] - tmp_dir1[1] * tmp_dir2[0];
         if (i == seg_point_start)
-        {
             in_sideA = true;
-        }
         if (i == seg_point_goal)
-        {
             in_sideA = false;
-        }
-
         if (dir_cross_prod > 0)
         {
             if (in_sideA)
-            {
                 ptsSideA.push_back(Border.at(i));
-            }
             else
-            {
                 ptsSideB.push_back(Border.at(i));
-            }
         }
     }
-    // Draw concave point
-    for (uint i = 0; i < ptsSideA.size(); i++)
-    {
-        drawSphereIdx(ptsSideA.at(i));
-    }
-    for (uint i = 0; i < ptsSideB.size(); i++)
-    {
-        drawSphereIdx(ptsSideB.at(i));
-    }
+    return true;
+}
 
+bool CVX_TrajOpt::findConcavePoint(const std::vector<Index> &Border, std::vector<Index> &concavePts)
+{
+    concavePts.clear();
+    if (Border.size() < 2)
+    {
+        ROS_ERROR("Border.size() < 2");
+        return false;
+    }
+    // Find concave(concave towards the interior) point
+    Index tmp_dir1, tmp_dir2;
+    int dir_cross_prod;
+    for (uint i = 0; i < Border.size(); i++) // NOTE: Border is clockwise
+    {
+        uint im1 = (i - 1 + Border.size()) % Border.size();
+        uint ip1 = (i + 1) % Border.size();
+        tmp_dir1 = Border.at(i) - Border.at(im1);
+        tmp_dir2 = Border.at(ip1) - Border.at(i);
+        dir_cross_prod = tmp_dir1[0] * tmp_dir2[1] - tmp_dir1[1] * tmp_dir2[0];
+        if (dir_cross_prod > 0)
+        {
+            concavePts.push_back(Border.at(i));
+        }
+    }
     return true;
 }
 
@@ -330,18 +337,58 @@ int innerProd(const Index &a, const Index &b)
  * @param p2
  * @param q1
  * @param q2
- * @return true
- * @return false
+ * @return true intersect
+ * @return false not intersect OR overlap
  */
 bool segmentIntersect(const Index &p1, const Index &p2,
-                      const Index &q1, const Index &q2)
+                      const Index &q1, const Index &q2, const bool verbose = false)
 {
     Segment_2 s1(Point_2(p1[0], p1[1]), Point_2(p2[0], p2[1]));
     Segment_2 s2(Point_2(q1[0], q1[1]), Point_2(q2[0], q2[1]));
     const auto result = intersection(s1, s2);
+    if (result && verbose)
+    {
+        if (const Segment_2 *s = boost::get<Segment_2>(&*result))
+        {
+            std::cout << *s << std::endl;
+        }
+        else
+        {
+            const Point_2 *p = boost::get<Point_2>(&*result);
+            std::cout << *p << std::endl;
+        }
+    }
     if (result)
-        return true;
+    {
+        if (const Segment_2 *s = boost::get<Segment_2>(&*result))
+            return false; // Overlap
+        else
+            return true;
+    }
     return false;
+
+}
+
+/**
+ * @brief Path intersect detection
+ *
+ * @param path
+ * @param p1
+ * @param p2
+ * @return uint
+ * if segment path(i,i+1) intersect with segment (p1,p2), return i;
+ * else return -1
+ */
+uint pathIntersect(const std::vector<Index> &path, const Index &p1, const Index &p2)
+{
+    for (uint i = 0; i < path.size() - 1; i++)
+    {
+        if (segmentIntersect(path.at(i), path.at(i + 1), p1, p2))
+        {
+            return i;
+        }
+    }
+    return -1;
 }
 
 /**
@@ -397,7 +444,7 @@ bool segmentIntersect(const Index &p1, const Index &p2,
 
 /**
  * @brief Get the min length path using rope straining method
- *
+ * FIXME: not properly implemented
  * @param[in] Border
  * @param[in] start
  * @param[in] goal
@@ -417,10 +464,40 @@ bool CVX_TrajOpt::minlengthPath(const std::vector<Index> &Border,
     path.push_back(start_idx);
     path.push_back(goal_idx);
 
-    std::vector<Index> ptsSideA, ptsSideB;
-    findConcavePoint(Border, start, goal, ptsSideA, ptsSideB);
-    // ptsSideA should all lay on the LHS of the start-goal path
-    return false;
+    // TODO: use concave_points/Border?
+    std::vector<Index> concave_points;
+    findConcavePoint(Border, concave_points);
+    // std::vector<Index> ptsSideA, ptsSideB;
+    // findConcavePoint(Border, start, goal, ptsSideA, ptsSideB);
+    uint i = 0, ip1; // Concave point index
+    int intersect_id = -1;
+    uint last_update_cnt = 0;
+    uint max_seg = 20;
+    while (true)
+    {
+        ip1 = (i + 1) % concave_points.size();
+        intersect_id = pathIntersect(path, concave_points.at(i), concave_points.at(ip1));
+        if (intersect_id >= 0)
+        {
+            printf("i: %d, ip1: %d, intersect_id: %d\n", i, ip1, intersect_id);
+            printf("p1: (%d %d), p2: (%d %d)\n", concave_points.at(i)[0], concave_points.at(i)[1], concave_points.at(ip1)[0], concave_points.at(ip1)[1]);
+            printf("path_i: (%d %d), path_ip1: (%d %d)\n", path.at(intersect_id)[0], path.at(intersect_id)[1], path.at(intersect_id + 1)[0], path.at(intersect_id + 1)[1]);
+            last_update_cnt = 0;
+            path.insert(path.begin() + intersect_id + 1, concave_points.at(ip1));
+        }
+
+        i = ip1;
+        last_update_cnt++;
+        if (last_update_cnt > concave_points.size())
+        {
+            break;
+        }
+        if (path.size() > max_seg)
+        {
+            break;
+        }
+    }
+    return true;
 }
 
 ////////////////////
@@ -533,23 +610,43 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     drawCorriderIntersectBorder(CorridorBuf, start, goal);
 
     std::vector<Index> Border = getCorriderIntersectBorder(CorridorBuf, start, goal);
-    std::vector<Index> ptsSideA, ptsSideB;
-    findConcavePoint(Border, start, goal, ptsSideA, ptsSideB);
+    if (Border.size() < 3)
+    {
+        ROS_ERROR("Border.size() < 2");
+        return;
+    }
+    std::vector<Index> concave_pts;
+    findConcavePoint(Border, concave_pts);
+    for (uint i = 0; i < concave_pts.size(); i++)
+    {
+        drawSphereIdx(concave_pts.at(i), 0.02);
+    }
+
+    std::vector<Index> path;
+    minlengthPath(Border, start, goal, path);
+    // Draw path
+    std::vector<Eigen::Vector3d> path_pos;
+    for (uint i = 0; i < path.size(); i++)
+    {
+        // drawSphereIdx(path.at(i));
+        Eigen::Vector3d pos;
+        Eigen::Vector2d posxy;
+        pos[2] = map_.at("elevation", path.at(i));
+        map_.getPosition(path.at(i), posxy);
+        pos[0] = posxy.x();
+        pos[1] = posxy.y();
+        path_pos.push_back(pos);
+    }
+    visualizer_.visualizeCurve(path_pos);
 }
 
-void CVX_TrajOpt::testCheckPointSide(const std::vector<Index> path, const Index pt, const std::string groundTruth)
+void CVX_TrajOpt::segmentIntersectTest()
 {
-    printf("GroundTruth: %.3s | LHS: %d | RHS: %d\n", groundTruth.c_str(), checkPointSideLHS(path, pt), checkPointSideRHS(path, pt));
-}
-
-void CVX_TrajOpt::testCheckPointSide()
-{
-    std::vector<Index> path = {{0, 0}, {1, 2}, {2, 1}, {3, 4}, {5, 4}};
-    printf("Test Start\n");
-    testCheckPointSide(path, Index(0, 0), "ON");
-    testCheckPointSide(path, Index(1, 2), "ON");
-    testCheckPointSide(path, Index(1, 1), "RHS");
-    testCheckPointSide(path, Index(0, 1), "LHS");
-    testCheckPointSide(path, Index(-1, 0), "LHS");
-    testCheckPointSide(path, Index(4, 2), "RHS");
+    Index p1, p2, q1, q2;
+    p1 << 0, 0;
+    p2 << 1, 1;
+    q1 << 0, 1;
+    q2 << 1, 0;
+    segmentIntersect(p1, p2, q1, q2, true);
+    return;
 }

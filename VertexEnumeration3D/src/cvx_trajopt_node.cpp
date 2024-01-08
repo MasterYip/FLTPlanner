@@ -19,9 +19,8 @@ int main(int argc, char **argv)
         ros::Rate lr(config.testRate);
         while (ros::ok())
         {
-            // polyVe.conductVE();
-            // polyVe.vPolyMergeTest();
-            trajopt.testCheckPointSide();
+            trajopt.drawCorriderIntersectBorderTest();
+            // trajopt.segmentIntersectTest();
             ros::spinOnce();
             lr.sleep();
         }

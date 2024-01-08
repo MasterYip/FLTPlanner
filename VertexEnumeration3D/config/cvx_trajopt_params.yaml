@@ -6,4 +6,4 @@ MapTopic:                       '/grid_map'
 # RandomTries:                  23
 # RandomScale:                  10.0
 # RedundantTryH:                64
-TestRate:                       10
+TestRate:                       0.1
