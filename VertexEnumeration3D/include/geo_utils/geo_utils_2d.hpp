@@ -8,6 +8,8 @@
 #include <vector>
 /* external project header files */
 #include <Eigen/Eigen>
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/intersections.h>
 /* internal project header files */
 
 using Index = Eigen::Array2i;
@@ -15,12 +17,18 @@ using PolyLine = std::vector<Eigen::Vector2d>;
 using GridPolyLine = std::vector<Index>;
 using GridPoints = std::vector<Index>;
 
+typedef CGAL::Exact_predicates_exact_constructions_kernel K;
+typedef K::Point_2 Point_2;
+typedef K::Segment_2 Segment_2;
+typedef K::Line_2 Line_2;
+typedef K::Intersect_2 Intersect_2;
+
 namespace geo_utils_2d
 {
     // Statement (Temp)
     bool findConcavePoint(const GridPolyLine &Border,
-                          const Eigen::Vector2d &start,
-                          const Eigen::Vector2d &goal,
+                          const Index &start,
+                          const Index &goal,
                           GridPoints &ptsSideA,
                           GridPoints &ptsSideB);
     bool findConcavePoint(const GridPolyLine &Border, GridPoints &concavePts, bool isClockwise);
@@ -64,7 +72,6 @@ namespace geo_utils_2d
         }
         // Find concave(concave towards the interior) point
         Index tmp_dir1, tmp_dir2;
-        int dir_cross_prod;
         for (uint i = 0; i < Border.size(); i++)
         {
             uint im1 = (i - 1 + Border.size()) % Border.size();
@@ -89,16 +96,13 @@ namespace geo_utils_2d
      * @return false
      */
     bool findConcavePoint(const GridPolyLine &Border,
-                          const Eigen::Vector2d &start,
-                          const Eigen::Vector2d &goal,
+                          const Index &start,
+                          const Index &goal,
                           GridPoints &ptsSideA,
                           GridPoints &ptsSideB)
     {
-        Index start_idx, goal_idx;
         ptsSideA.clear();
         ptsSideB.clear();
-        map_.getIndex(start, start_idx);
-        map_.getIndex(goal, goal_idx);
         if (Border.size() < 2)
         {
             ROS_ERROR("Border.size() < 2");
@@ -107,13 +111,13 @@ namespace geo_utils_2d
         // Step1: Find segment point
         // FIXME: seg_point should not be concave point? Maybe not necessary
         uint seg_point_start = 0, seg_point_goal = 0;
-        uint mindis_start = manhattanLength(Border.at(0), start_idx);
-        uint mindis_goal = manhattanLength(Border.at(0), goal_idx);
+        uint mindis_start = manhattanLength(Border.at(0), start);
+        uint mindis_goal = manhattanLength(Border.at(0), goal);
         uint dis_start, dis_goal;
         for (uint i = 1; i < Border.size(); i++)
         {
-            dis_start = manhattanLength(Border.at(i), start_idx);
-            dis_goal = manhattanLength(Border.at(i), goal_idx);
+            dis_start = manhattanLength(Border.at(i), start);
+            dis_goal = manhattanLength(Border.at(i), goal);
             if (dis_start < mindis_start)
             {
                 mindis_start = dis_start;
@@ -126,8 +130,8 @@ namespace geo_utils_2d
             }
         }
         // Draw segment point
-        drawSphereIdx(Border.at(seg_point_start), 0.02);
-        drawSphereIdx(Border.at(seg_point_goal), 0.02);
+        // drawSphereIdx(Border.at(seg_point_start), 0.02);
+        // drawSphereIdx(Border.at(seg_point_goal), 0.02);
 
         // Step2: Find concave(concave towards the interior) point
         Index tmp_dir1, tmp_dir2;

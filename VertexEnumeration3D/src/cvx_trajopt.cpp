@@ -7,16 +7,12 @@
 
 /* external project header files */
 #include <grid_map_ros/grid_map_ros.hpp>
-#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
-#include <CGAL/intersections.h>
 /* internal project header files */
 #include "geo_utils/geo_utils_2d.hpp"
 
-typedef CGAL::Exact_predicates_exact_constructions_kernel K;
-typedef K::Point_2 Point_2;
-typedef K::Segment_2 Segment_2;
-typedef K::Line_2 Line_2;
-typedef K::Intersect_2 Intersect_2;
+
+
+using namespace geo_utils_2d;
 
 CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_) : nh_(nh_), visualizer_(nh_), conf_(conf)
 {
