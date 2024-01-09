@@ -213,6 +213,15 @@ uint manhattanLength(const Index &start, const Index &goal)
     return std::abs(start[0] - goal[0]) + std::abs(start[1] - goal[1]);
 }
 
+bool isConcavePoint(const Index &pt, const Index &pt_prev, const Index &pt_next, const bool clockwise = true)
+{
+    Index tmp_dir1, tmp_dir2;
+    tmp_dir1 = pt - pt_prev;
+    tmp_dir2 = pt_next - pt;
+    int dir_cross_prod = tmp_dir1[0] * tmp_dir2[1] - tmp_dir1[1] * tmp_dir2[0];
+    return ((dir_cross_prod > 0 && clockwise) || (dir_cross_prod < 0 && !clockwise));
+}
+
 /**
  * @brief
  *
@@ -307,10 +316,7 @@ bool CVX_TrajOpt::findConcavePoint(const std::vector<Index> &Border, std::vector
     {
         uint im1 = (i - 1 + Border.size()) % Border.size();
         uint ip1 = (i + 1) % Border.size();
-        tmp_dir1 = Border.at(i) - Border.at(im1);
-        tmp_dir2 = Border.at(ip1) - Border.at(i);
-        dir_cross_prod = tmp_dir1[0] * tmp_dir2[1] - tmp_dir1[1] * tmp_dir2[0];
-        if (dir_cross_prod > 0)
+        if (isConcavePoint(Border.at(i), Border.at(im1), Border.at(ip1)))
         {
             concavePts.push_back(Border.at(i));
         }
@@ -464,7 +470,7 @@ bool CVX_TrajOpt::minlengthPath(const std::vector<Index> &Border,
     path.push_back(start_idx);
     path.push_back(goal_idx);
 
-    // TODO: use concave_points/Border?
+    // TODO: use Border!
     std::vector<Index> concave_points;
     findConcavePoint(Border, concave_points);
     // std::vector<Index> ptsSideA, ptsSideB;
