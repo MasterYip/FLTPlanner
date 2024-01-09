@@ -77,12 +77,7 @@ public:
                                                   const Eigen::Vector2d &start,
                                                   const Eigen::Vector2d &goal,
                                                   const std::string connectivity);
-    bool findConcavePoint(const std::vector<Index> &Border,
-                          const Eigen::Vector2d &start,
-                          const Eigen::Vector2d &goal,
-                          std::vector<Index> &ptsSideA,
-                          std::vector<Index> &ptsSideB);
-    bool findConcavePoint(const std::vector<Index> &Border, std::vector<Index> &concavePts);
+
     bool minlengthPath(const std::vector<Index> &Border,
                        const Eigen::Vector2d &start,
                        const Eigen::Vector2d &goal,
