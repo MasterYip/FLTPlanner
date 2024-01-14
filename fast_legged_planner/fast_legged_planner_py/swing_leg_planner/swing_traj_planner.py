@@ -2,8 +2,8 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-16 21:49:12
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-04 15:04:54
-FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//swing_traj_planner.py
+LastEditTime: 2024-01-14 22:07:43
+FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/swing_traj_planner.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -64,7 +64,7 @@ class SwingTrajPlanner(object):
         # RRT Cfg Search (Need to enable ret)
         # spline = RRTCfg_OptProb(spline, torso_traj, leg_index, self.map_interface, self.robot_interface,
         #                         end_ignore_dia=0.07).optimize(Q=np.array([[0.05, 4]]), max_samples=1024)
-        spline = OMPL_RRTCfg_OptProb(spline, torso_traj, leg_index, self.map_interface, self.robot_interface,
-                                     end_ignore_dia=0.07).optimize(maxtime=2)
+        # spline = OMPL_RRTCfg_OptProb(spline, torso_traj, leg_index, self.map_interface, self.robot_interface,
+        #                              end_ignore_dia=0.07).optimize(maxtime=2)
 
         return spline

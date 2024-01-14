@@ -14,3 +14,9 @@ fast_legged_planner/FeetPosition feetPositionNext
 geometry_msgs/Point move_Direction
 
 std_msgs/String remarks
+
+fast_legged_planner/FeetNormalVector feetNormalVector
+
+float64[6] mu
+
+float64[6] maxNormalF

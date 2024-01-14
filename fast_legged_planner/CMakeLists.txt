@@ -75,6 +75,7 @@ catkin_python_setup()
 add_message_files(
   FILES
   # hit_spider messages
+  FeetNormalVector.msg
   FeetPosition.msg
   hexapod_Base_Pose.msg
   hexapod_RPY.msg
@@ -222,10 +223,12 @@ target_link_libraries(sdf_pub
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/hit_spider_planner.py
+  scripts/elspider_air_planner.py
+
   scripts/traj_opt_demo.py
+
   scripts/image_publisher.py
   scripts/test_elspider_air.py
-
   scripts/gridmap_sub.py
   scripts/pointcloud_parser.py
 

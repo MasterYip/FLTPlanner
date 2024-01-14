@@ -6,6 +6,10 @@ Test repo for Fast-Legged-Planner
 
 ### Robotic Course Setup
 
+- `Meshcat` is used for visualization.
+
+- `pinocchio` is used for kinematics and dynamics.
+
 Create and activate conda environment:
 
 ```bash
@@ -42,9 +46,11 @@ A complete test for swing trajectory optimization.
 ```bash
 source .setup_rc_nuc11 # setup env (WITH_PINPY = 1)
 roslaunch fast_legged_planner HIT_spider_traj_planner.launch
+# after rviz is loaded, cd MCTs project(MPI_CPP_Version, branch feature/swing_leg_planner/test)
+./bin/parallelMCTS_VirtualLoss # start MCTs planner
 ```
 
-Several settings is provided in `HIT_spider_traj_planner.launch`
+Several settings is provided in `HIT_spider_traj_planner.launch`, planner settings is in python codes(temporarily).
 
 ### Trajectory Optimization Demo
 
@@ -57,7 +63,7 @@ source .setup_rc_nuc11 # setup env (WITH_PINPY = 1)
 roslaunch fast_legged_planner traj_opt_demo.launch
 ```
 
-Several settings is provided in `traj_opt_demo.launch`
+Several settings is provided in `traj_opt_demo.launch`, planner settings is in python codes(temporarily).
 
 ### Purposed(cvxhull) Trajectory Optimization Demo
 
