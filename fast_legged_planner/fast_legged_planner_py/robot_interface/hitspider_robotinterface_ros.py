@@ -78,6 +78,7 @@ class HITSpider_RobotInterface_ROS(HITSpider_RobotInterface):
         joint_state.position = q
         self.joint_state_pub.publish(joint_state)
 
+    # IMPORTANT for position tracking controller
     def pub_joint_state_from_footendpos(self, footendpos: list):
         """Publish joint state from foot position
 

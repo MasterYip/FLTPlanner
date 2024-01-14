@@ -79,6 +79,8 @@ add_message_files(
   hexapod_Base_Pose.msg
   hexapod_RPY.msg
   hexapod_State.msg
+  # HexapodSoftware
+  FootCmd.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -222,9 +224,12 @@ catkin_install_python(PROGRAMS
   scripts/hit_spider_planner.py
   scripts/traj_opt_demo.py
   scripts/image_publisher.py
+  scripts/test_elspider_air.py
 
   scripts/gridmap_sub.py
   scripts/pointcloud_parser.py
+
+
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

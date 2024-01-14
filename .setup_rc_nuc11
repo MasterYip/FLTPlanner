@@ -1,5 +1,7 @@
 source ~/.bashrc
 
+WITH_PINPY=1
+
 export ROBOT_TYPE=a1
 source /home/yip/CodeSpace/legged_ws/devel/setup.bash
 source /home/yip/CodeSpace/hexapod_ws/devel/setup.bash
@@ -12,8 +14,7 @@ export GUROBI_HOME="/opt/gurobi1003/linux64"
 export PATH="${PATH}:${GUROBI_HOME}/bin"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${GUROBI_HOME}/lib"
 
-# Pinocchio (IMPORTANT: This may interfere with legged_ws-pinocchio)
-WITH_PINPY=1
+# Pinocchio (IMPORTANT: This may interfere with legged_ws-pinocchio, if you are using legged_ws, do not source this)
 if [ "$WITH_PINPY" -eq 1 ]; then
 export PATH=/opt/openrobots/bin:$PATH
 export PKG_CONFIG_PATH=/opt/openrobots/lib/pkgconfig:$PKG_CONFIG_PATH

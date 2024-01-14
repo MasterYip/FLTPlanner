@@ -10,8 +10,6 @@
 /* internal project header files */
 #include "geo_utils/geo_utils_2d.hpp"
 
-
-
 using namespace geo_utils_2d;
 
 CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_) : nh_(nh_), visualizer_(nh_), conf_(conf)
@@ -200,8 +198,6 @@ std::vector<Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eig
 
     return path;
 }
-
-
 
 /**
  * @brief Get the min length path using rope straining method

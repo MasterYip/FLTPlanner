@@ -8,8 +8,8 @@
 #include <vector>
 /* external project header files */
 #include <Eigen/Eigen>
-#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
-#include <CGAL/intersections.h>
+// #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+// #include <CGAL/intersections.h>
 /* internal project header files */
 
 using Index = Eigen::Array2i;
@@ -17,11 +17,11 @@ using PolyLine = std::vector<Eigen::Vector2d>;
 using GridPolyLine = std::vector<Index>;
 using GridPoints = std::vector<Index>;
 
-typedef CGAL::Exact_predicates_exact_constructions_kernel K;
-typedef K::Point_2 Point_2;
-typedef K::Segment_2 Segment_2;
-typedef K::Line_2 Line_2;
-typedef K::Intersect_2 Intersect_2;
+// typedef CGAL::Exact_predicates_exact_constructions_kernel K;
+// typedef K::Point_2 Point_2;
+// typedef K::Segment_2 Segment_2;
+// typedef K::Line_2 Line_2;
+// typedef K::Intersect_2 Intersect_2;
 
 namespace geo_utils_2d
 {
@@ -160,10 +160,25 @@ namespace geo_utils_2d
         return true;
     }
 
+    // // A* Search
+    // class PolarVisibility
+    // {
+    // private:
+    // };
+
+    // class VisibilityGraph
+    // {
+    // public:
+    //     VisibilityGraph(const GridPolyLine &Border, const GridPoints &concavePts, const Index &start, const Index &goal)
+    //         : Border(Border), concavePts(concavePts), start(start), goal(goal)
+    //     {
+    //     }
+    // };
+
     // Intersection
 
     /**
-     * @brief segment intersect detection (CGAL)
+     * @brief segment intersect detection (CGAL)[disabled to save complie time]
      *
      * @param p1
      * @param p2
@@ -175,28 +190,28 @@ namespace geo_utils_2d
     bool segmentIntersect(const Index &p1, const Index &p2,
                           const Index &q1, const Index &q2, const bool verbose = false)
     {
-        Segment_2 s1(Point_2(p1[0], p1[1]), Point_2(p2[0], p2[1]));
-        Segment_2 s2(Point_2(q1[0], q1[1]), Point_2(q2[0], q2[1]));
-        const auto result = intersection(s1, s2);
-        if (result && verbose)
-        {
-            if (const Segment_2 *s = boost::get<Segment_2>(&*result))
-            {
-                std::cout << *s << std::endl;
-            }
-            else
-            {
-                const Point_2 *p = boost::get<Point_2>(&*result);
-                std::cout << *p << std::endl;
-            }
-        }
-        if (result)
-        {
-            if (const Segment_2 *s = boost::get<Segment_2>(&*result))
-                return false; // Overlap
-            else
-                return true;
-        }
+        // Segment_2 s1(Point_2(p1[0], p1[1]), Point_2(p2[0], p2[1]));
+        // Segment_2 s2(Point_2(q1[0], q1[1]), Point_2(q2[0], q2[1]));
+        // const auto result = intersection(s1, s2);
+        // if (result && verbose)
+        // {
+        //     if (const Segment_2 *s = boost::get<Segment_2>(&*result))
+        //     {
+        //         std::cout << *s << std::endl;
+        //     }
+        //     else
+        //     {
+        //         const Point_2 *p = boost::get<Point_2>(&*result);
+        //         std::cout << *p << std::endl;
+        //     }
+        // }
+        // if (result)
+        // {
+        //     if (const Segment_2 *s = boost::get<Segment_2>(&*result))
+        //         return false; // Overlap
+        //     else
+        //         return true;
+        // }
         return false;
     }
 
