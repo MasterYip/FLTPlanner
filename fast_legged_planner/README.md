@@ -12,7 +12,7 @@ Create and activate conda environment:
 conda env create -f robotic_course_env.yml
 ```
 
-### Deps(TODO)
+### Deps
 
 - pinocchio(with python binding)
 
@@ -30,6 +30,42 @@ export CMAKE_PREFIX_PATH=/opt/openrobots:$CMAKE_PREFIX_PATH
 
 - grid_map
 - ompl(with python binding)
+
+## Examples
+
+### Elspider2 walking with MCTs planner
+
+A complete test for swing trajectory optimization.
+
+![Elspider2 walking with MCTs planner](doc/eg_hitspider_walking.png)
+
+```bash
+source .setup_rc_nuc11 # setup env (WITH_PINPY = 1)
+roslaunch fast_legged_planner HIT_spider_traj_planner.launch
+```
+
+Several settings is provided in `HIT_spider_traj_planner.launch`
+
+### Trajectory Optimization Demo
+
+A simple trajectory optimization demo for various planning algorithms(RRT, BFGS, etc.).
+
+ ![Trajectory Optimization Demo](doc/eg_traj_opt_demo.png)
+
+```bash
+source .setup_rc_nuc11 # setup env (WITH_PINPY = 1)
+roslaunch fast_legged_planner traj_opt_demo.launch
+```
+
+Several settings is provided in `traj_opt_demo.launch`
+
+### Purposed(cvxhull) Trajectory Optimization Demo
+
+A simple trajectory optimization demo for GCS-based trajectory optimization.
+
+![eg_gcs_traj_opt](doc/eg_gcs_traj_opt.png)
+
+Coming soon.
 
 ## Note
 
