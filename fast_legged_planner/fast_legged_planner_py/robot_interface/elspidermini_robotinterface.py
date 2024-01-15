@@ -2,8 +2,8 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-12-13 13:57:14
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-13 18:00:07
-FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//robot_interface//elspidermini_robotinterface.py
+LastEditTime: 2024-01-15 11:47:50
+FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/robot_interface/elspidermini_robotinterface.py
 Description: file content
 '''
 
@@ -17,15 +17,15 @@ from numpy.linalg import norm
 from .pyikfast import pyikfast_el_mini as ik
 from .pyikfast import pyikfast_el_mini_back as ik_back
 
-JOINT_STATE_NAME = ["LB_HAA", "LB_HFE", "LB_KFE",
+JOINT_STATE_NAME = ["RF_HAA", "RF_HFE", "RF_KFE",
+                    "RM_HAA", "RM_HFE", "RM_KFE",
+                    "RB_HAA", "RB_HFE", "RB_KFE",
                     "LF_HAA", "LF_HFE", "LF_KFE",
                     "LM_HAA", "LM_HFE", "LM_KFE",
-                    "RB_HAA", "RB_HFE", "RB_KFE",
-                    "RF_HAA", "RF_HFE", "RF_KFE",
-                    "RM_HAA", "RM_HFE", "RM_KFE"]
+                    "LB_HAA", "LB_HFE", "LB_KFE"]
 
-FOOT_LINK_NAME = ["LB_FOOT", "LF_FOOT", "LM_FOOT",
-                  "RB_FOOT", "RF_FOOT", "RM_FOOT"]
+FOOT_LINK_NAME = ["RF_FOOT", "RM_FOOT", "RB_FOOT",
+                  "LF_FOOT", "LM_FOOT", "LB_FOOT"]
 
 LEG_CFG_DEG_RANGE = [100, 120, 120]  # Deg
 LEG_CFG_SPACE = np.array([[np.deg2rad(-LEG_CFG_DEG_RANGE[0]),
@@ -37,23 +37,25 @@ LEG_CFG_SPACE = np.array([[np.deg2rad(-LEG_CFG_DEG_RANGE[0]),
 
 
 class ElSpiderMini_RobotInterface(Base_RobotInterface):
+    pin_leg_remap = [4, 5, 3, 1, 2, 0]
+
     def __init__(self, urdf: str, package_dirs=None) -> None:
         super().__init__(urdf, package_dirs)
         # self.collmodel = HITSpider_Collision_Model()
         # mirror-axis(x,y,z), after-mirror-translation(x,y,z)
         self.mirror_trans = [(np.array((1, 1, 1)), np.array((0, 0, 0))),
+                             (np.array((1, 1, 1)), np.array((0.3, 0.06, 0))),
+                             (np.array((1, -1, 1)), np.array((0, 0, 0))),
                              (np.array((1, -1, 1)), np.array((0, 0, 0))),
                              (np.array((1, -1, 1)), np.array((0.3, 0.06, 0))),
-                             (np.array((1, -1, 1)), np.array((0, 0, 0))),
-                             (np.array((1, 1, 1)), np.array((0, 0, 0))),
-                             (np.array((1, 1, 1)), np.array((0.3, 0.06, 0)))]
+                             (np.array((1, 1, 1)), np.array((0, 0, 0))),]
 
     def get_leg_cfg_space(self):
         return LEG_CFG_SPACE
 
     def get_full_q(self, q_leg, foot_index):
         q = np.zeros(18)
-        index = foot_index*3
+        index = self.pin_leg_remap[foot_index]*3
         q[index:index+3] = q_leg
         return q
 
@@ -81,7 +83,7 @@ class ElSpiderMini_RobotInterface(Base_RobotInterface):
         ray_approx_factor = 0.9
         max_try = 10 if ray_approx else 1
         while max_try > 0:
-            if foot_index in [0, 3]:
+            if foot_index in [2, 5]:
                 sol = ik_back.IKFast_trans3D(list(pos))
             else:
                 sol = ik.IKFast_trans3D(list(pos))
@@ -118,12 +120,13 @@ class ElSpiderMini_RobotInterface(Base_RobotInterface):
     def IKFast_foots(self, target_list, valid_check=True, fall_back=True, ray_approx=True):
         q = np.zeros(18)
         for i in range(6):
-            q[3*i:3*i+3] = self.IKFast_foot(i, target_list[i],
-                                            valid_check, fall_back, ray_approx)
+            q[3*self.pin_leg_remap[i]:3*self.pin_leg_remap[i]+3] = self.IKFast_foot(i, target_list[i],
+                                                                                    valid_check, fall_back, ray_approx)
         return q
 
     def IK_foots(self, target_list, q0=np.zeros(18)):
         q = q0
         for i in range(6):
-            q[3*i:3*i+3] = self.IK_foot(i, target_list[i])
+            q[3*self.pin_leg_remap[i]:3*self.pin_leg_remap[i] +
+                3] = self.IK_foot(i, target_list[i])
         return q

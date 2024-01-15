@@ -60,7 +60,7 @@ def point_SE3Act(bMa: pin.SE3, pt: np.ndarray):
 
 
 class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
-    footend_order = [4, 5, 0, 1, 2, 3]
+    footend_order = [0, 1, 2, 3, 4, 5]  # remapping for the msg from MCTs
 
     def __init__(self, urdf: str) -> None:
         """
@@ -116,7 +116,7 @@ class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
         joint_state.name = JOINT_STATE_NAME
         joint_state.position = q
         self.joint_state_pub.publish(joint_state)
-        
+
     # IMPORTANT for position tracking controller
     def pub_joint_state_from_footendpos(self, footendpos: list):
         """Publish joint state from foot position
