@@ -52,6 +52,10 @@ roslaunch fast_legged_planner HIT_spider_traj_planner.launch
 
 Several settings is provided in `HIT_spider_traj_planner.launch`, planner settings is in python codes(temporarily).
 
+NOTE: hexapod_State.msg has been updated (line 17 and below is newly added), but `parallelMCTS_VirtualLoss` used a old version of hexapod_State.msg, so you need to modify it manually.
+
+```cpp
+
 ### Trajectory Optimization Demo
 
 A simple trajectory optimization demo for various planning algorithms(RRT, BFGS, etc.).

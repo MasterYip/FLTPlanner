@@ -78,6 +78,7 @@ class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
         self.joint_kp = 100
         self.joint_kd = 1
 
+    # for HexapodSoftware High Level Controller
     def pub_footcmd_from_footendpos(self, footendpos: list):
         """Publish FootCmd from foot position to HexapodSoftware High Level Controller
 
@@ -116,7 +117,6 @@ class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
         joint_state.position = q
         self.joint_state_pub.publish(joint_state)
 
-    # IMPORTANT for position tracking controller
     def pub_joint_state_from_footendpos(self, footendpos: list):
         """Publish joint state from foot position
 

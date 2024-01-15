@@ -2,8 +2,8 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-13 10:01:31
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-04 14:49:57
-FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_opt//traj_opt.py
+LastEditTime: 2024-01-15 19:47:29
+FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/traj_opt/traj_opt.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -51,6 +51,8 @@ def default_2stage_hermite(start, end, v_lift=0.8, h_lift=0.3):
     v_mid = (start-end)*0.5  # Cardinal Spline
     return HermiteSpline(
         np.array([start, v, p_mid, v_mid, end, -v]))
+
+# TODO: need to add a default spline lib for different robot
 
 
 def default_bspline(start, end, res=5, k=3, v_lift=0.8, h_lift=0.3):
