@@ -38,18 +38,13 @@ class ElSpiderAirPlanner(object):
 
     def callback(self, msg):
         self.MCT_solution.append(msg)
-        print("received")
         if msg.remarks.data == "end_flag":
-            rospy.loginfo("接收到消息,质心位置为:%.4f,%.4f,%.4f", msg.base_Pose_Now.position.x,
-                          msg.base_Pose_Now.position.y, msg.base_Pose_Now.position.z)
-            rospy.loginfo("接收到消息,第一条腿的位置:%.4f,%.4f,%.4f",
-                          msg.feetPositionNow.foot[0].x, msg.feetPositionNow.foot[0].y, msg.feetPositionNow.foot[0].z)
-            rospy.loginfo("接收到消息,当前腿的支撑状态:%d,%d,%d,%d,%d,%d", msg.support_State_Now[0], msg.support_State_Now[1],
-                          msg.support_State_Now[2], msg.support_State_Now[3], msg.support_State_Now[4], msg.support_State_Now[5])
+            print("end_flag received, start planning")
             for i in range(len(self.MCT_solution)-1):
                 state_0 = self.MCT_solution[i]
                 state_1 = self.MCT_solution[i+1]
                 self.whole_body_planner.enqueue_MCTsolution(state_0, state_1)
+            self.MCT_solution = []
             self.traj_planner()
 
     def traj_planner(self):

@@ -85,7 +85,7 @@ class HITSpider_RobotInterface_ROS(HITSpider_RobotInterface):
         Args:
             footendpos (list): Under base frame
         """
-        self.pub_joint_state(self.IK_foots(
+        self.pub_joint_state(self.IKFast_foots(
             [footendpos[self.footend_order[i]] for i in range(6)]))
 
     def pub_odom(self, odom: pin.SE3()):

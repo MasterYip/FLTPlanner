@@ -49,6 +49,7 @@ class HITSpiderPlanner(object):
                 state_0 = self.MCT_solution[i]
                 state_1 = self.MCT_solution[i+1]
                 self.whole_body_planner.enqueue_MCTsolution(state_0, state_1)
+            self.MCT_solution = []
             self.traj_planner()
 
     def traj_planner(self):

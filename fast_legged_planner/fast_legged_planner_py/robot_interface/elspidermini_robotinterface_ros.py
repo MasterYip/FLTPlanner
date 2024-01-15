@@ -60,7 +60,6 @@ def point_SE3Act(bMa: pin.SE3, pt: np.ndarray):
 
 
 class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
-    footend_order = [0, 1, 2, 3, 4, 5]  # remapping for the msg from MCTs
 
     def __init__(self, urdf: str) -> None:
         """
@@ -90,9 +89,9 @@ class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
         footcmd.feedforward_type = self.feedforward_type
         for i in range(6):
             footcmd.foot_position.append(
-                Point(footendpos[self.footend_order[i]][0],
-                      footendpos[self.footend_order[i]][1],
-                      footendpos[self.footend_order[i]][2]))
+                Point(footendpos[i][0],
+                      footendpos[i][1],
+                      footendpos[i][2]))
             footcmd.foot_velocity.append(Vector3(0, 0, 0))
             footcmd.foot_effort.append(Vector3(0, 0, 0))
             footcmd.joint_kp.append(
@@ -124,5 +123,5 @@ class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
         Args:
             footendpos (list): Under base frame
         """
-        self.pub_joint_state(self.IK_foots(
-            [footendpos[self.footend_order[i]] for i in range(6)]))
+        self.pub_joint_state(self.IKFast_foots(
+            [footendpos[i] for i in range(6)]))
