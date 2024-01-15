@@ -1,2 +1,0 @@
-// config.h.in
-#define PYBIND_NAME @PYBIND_NAME@
