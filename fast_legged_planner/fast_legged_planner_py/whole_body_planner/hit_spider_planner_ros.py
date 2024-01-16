@@ -2,8 +2,8 @@
 Author: NUC12 2205929492@qq.com
 Date: 2023-11-17 11:44:52
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-02 12:46:48
-FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//whole_body_planner//hit_spider_planner_ros.py
+LastEditTime: 2024-01-16 21:21:30
+FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/whole_body_planner/hit_spider_planner_ros.py
 Description: file content
 '''
 #!/usr/bin/env python
@@ -18,7 +18,7 @@ from ..robot_interface.hitspider_robotinterface_ros import FeetPos2PosList, XYZR
 from fast_legged_planner.msg import hexapod_State
 
 
-class HITSpiderStateTraj(object):
+class MCTStateTransfer(object):
     """State transfer trajectory of HITSpider(state0 to state1)"""
 
     def __init__(self, state0: hexapod_State, state1: hexapod_State,
@@ -45,8 +45,8 @@ class HITSpiderStateTraj(object):
         self.swingtraj_isneeded = [
             self.state1.support_State_Now[i] == 0 for i in range(6)]
         # Default swing trajectory
-        v_lift = 0.8
-        h_lift = 0.3
+        v_lift = 0.1
+        h_lift = 0.06
         for i in range(6):
             if self.swingtraj_isneeded[i]:
                 self.swingtraj[i] = self.swing_traj_planner.get_default_traj(
@@ -112,7 +112,7 @@ class HITSpiderWholeBodyPlanner(WholeBodyPlanner):
             map_interface, robot_interface)
 
     def enqueue_MCTsolution(self, state0, state1):
-        return self.state_trajs.enqueue(HITSpiderStateTraj(state0, state1, self.swing_traj_planner))
+        return self.state_trajs.enqueue(MCTStateTransfer(state0, state1, self.swing_traj_planner))
 
     def dequeue_MCTsolution(self):
         return self.state_trajs.dequeue()

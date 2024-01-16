@@ -27,14 +27,10 @@ class ElSpiderAirPlanner(object):
         self.MCT_solution = []
 
         # TODO: use speed
-        self.base_speed = 0.2
-        self.rate = 15
+        self.rate = 40
         self.ros_rate = rospy.Rate(self.rate)
-        self.delta_length = self.base_speed / self.rate
-
-        # This are auto computed
-        self._interp_frame = 20
-        self._state_time = 0.5
+        # self.base_speed = 0.2
+        # self.delta_length = self.base_speed / self.rate
 
     def callback(self, msg):
         self.MCT_solution.append(msg)
@@ -48,8 +44,8 @@ class ElSpiderAirPlanner(object):
             self.traj_planner()
 
     def traj_planner(self):
-        t = 0
-        delta = 0.05
+        t = 0  # interpolation parameter
+        delta = 0.01  # interpolation step
         while (self.whole_body_planner.get_state_traj_length() > 0):
             state_traj = self.whole_body_planner.get_state_traj(0)
             # World frame
@@ -59,6 +55,7 @@ class ElSpiderAirPlanner(object):
             for k in range(6):
                 footend_interp[k] = point_SE3Act(
                     odom_interp, footend_interp[k])
+            # FIXME: This communicates with HLC, whoes frame rate should be stable, continuity be guaranteed
             self.robot_interface.pub_footcmd_from_footendpos(
                 footend_interp)
             self.robot_interface.pub_joint_state_from_footendpos(
