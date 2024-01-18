@@ -73,12 +73,12 @@ class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
         self.traj_viz = TrajViz("elspiderair_expected_traj", "odom")
         # Publisher&Params for HexapodSoftware High Level Controller
         self.foot_pos_pub = rospy.Publisher(
-            '/hexapod/hlc/foot_cmd', FootCmd, queue_size=1)
+            '/hexapod/hlc/foot_cmd_track', FootCmd, queue_size=1)
         self.feedforward_type = 0
-        # self.joint_kp = [0.075, 0.2, 0.2]
-        # self.joint_kd = [2, 2, 2]
-        self.joint_kp = [0.025, 0.05, 0.05]
-        self.joint_kd = [1, 1, 1]
+        self.joint_kp = [0.075, 0.2, 0.2]
+        self.joint_kd = [2, 2, 2]
+        # self.joint_kp = [0.025, 0.05, 0.05]
+        # self.joint_kd = [1, 1, 1]
 
     # for HexapodSoftware High Level Controller
     def pub_footcmd_from_footendpos(self, footendpos: list):

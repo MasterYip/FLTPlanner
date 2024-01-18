@@ -27,7 +27,7 @@ class ElSpiderAirPlanner(object):
         self.MCT_solution = []
 
         # TODO: use speed
-        self.rate = 40
+        self.rate = 20
         self.ros_rate = rospy.Rate(self.rate)
         # self.base_speed = 0.2
         # self.delta_length = self.base_speed / self.rate
@@ -45,7 +45,7 @@ class ElSpiderAirPlanner(object):
 
     def traj_planner(self):
         t = 0  # interpolation parameter
-        delta = 0.01  # interpolation step
+        delta = 0.05  # interpolation step
         while (self.whole_body_planner.get_state_traj_length() > 0):
             state_traj = self.whole_body_planner.get_state_traj(0)
             # World frame

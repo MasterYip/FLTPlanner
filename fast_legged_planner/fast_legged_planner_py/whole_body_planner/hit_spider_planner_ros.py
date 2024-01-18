@@ -46,7 +46,7 @@ class MCTStateTransfer(object):
             self.state1.support_State_Now[i] == 0 for i in range(6)]
         # Default swing trajectory
         v_lift = 0.1
-        h_lift = 0.06
+        h_lift = 0.1
         for i in range(6):
             if self.swingtraj_isneeded[i]:
                 self.swingtraj[i] = self.swing_traj_planner.get_default_traj(
