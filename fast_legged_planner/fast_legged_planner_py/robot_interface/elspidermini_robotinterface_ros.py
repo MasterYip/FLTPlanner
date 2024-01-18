@@ -75,8 +75,10 @@ class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
         self.foot_pos_pub = rospy.Publisher(
             '/hexapod/hlc/foot_cmd', FootCmd, queue_size=1)
         self.feedforward_type = 0
-        self.joint_kp = 100
-        self.joint_kd = 1
+        # self.joint_kp = [0.075, 0.2, 0.2]
+        # self.joint_kd = [2, 2, 2]
+        self.joint_kp = [0.025, 0.05, 0.05]
+        self.joint_kd = [1, 1, 1]
 
     # for HexapodSoftware High Level Controller
     def pub_footcmd_from_footendpos(self, footendpos: list):
@@ -96,9 +98,9 @@ class ElSpiderMini_RobotInterface_ROS(ElSpiderMini_RobotInterface):
             footcmd.foot_velocity.append(Vector3(0, 0, 0))
             footcmd.foot_effort.append(Vector3(0, 0, 0))
             footcmd.joint_kp.append(
-                Vector3(self.joint_kp, self.joint_kp, self.joint_kp))
+                Vector3(self.joint_kp[0], self.joint_kp[1], self.joint_kp[2]))
             footcmd.joint_kd.append(
-                Vector3(self.joint_kd, self.joint_kd, self.joint_kd))
+                Vector3(self.joint_kd[0], self.joint_kd[1], self.joint_kd[2]))
             footcmd.joint_torque.append(Vector3(0, 0, 0))
         self.foot_pos_pub.publish(footcmd)
 
