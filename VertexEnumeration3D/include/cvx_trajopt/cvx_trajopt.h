@@ -84,7 +84,7 @@ public:
                        std::vector<GridPt> &path);
 
     // Vis
-    void drawSphereIdx(const GridPt &idx, const double radius, bool del_all);
+    void drawSphereIdx(const GridPt &idx, const double radius);
     void drawSegmentIdx(const GridPt &idx1, const GridPt &idx2);
     void drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                      const Eigen::Vector2d &start, const Eigen::Vector2d &goal);

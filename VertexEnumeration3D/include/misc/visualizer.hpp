@@ -36,6 +36,7 @@ private:
     ros::Publisher edgePub;
     ros::Publisher spherePub;
     visualization_msgs::Marker sphereMarkers;
+    visualization_msgs::Marker curveMarker;
 
 public:
     ros::Publisher speedPub;
@@ -275,10 +276,8 @@ public:
 
     // Visualize all spheres with centers sphs and the same radius
     inline void visualizeSphere(const Eigen::Vector3d &center,
-                                const double &radius, bool deleteAll = false)
+                                const double &radius)
     {
-        visualization_msgs::Marker sphereDeleter;
-
         sphereMarkers.id = 0;
         sphereMarkers.type = visualization_msgs::Marker::SPHERE_LIST;
         sphereMarkers.header.stamp = ros::Time::now();
@@ -293,14 +292,6 @@ public:
         sphereMarkers.scale.x = radius * 2.0;
         sphereMarkers.scale.y = radius * 2.0;
         sphereMarkers.scale.z = radius * 2.0;
-        
-        if (deleteAll)
-        {
-            sphereDeleter = sphereMarkers;
-            sphereDeleter.action = visualization_msgs::Marker::DELETE;
-            spherePub.publish(sphereDeleter);
-            sphereMarkers.points.clear();
-        }
 
         geometry_msgs::Point point;
         point.x = center(0);
@@ -311,48 +302,29 @@ public:
         spherePub.publish(sphereMarkers);
     }
 
-    inline void visualizeStartGoal(const Eigen::Vector3d &center,
-                                   const double &radius,
-                                   const int sg)
+    inline void deleteSphere()
     {
-        visualization_msgs::Marker sphereMarkers, sphereDeleter;
-
-        sphereMarkers.id = sg;
+        sphereMarkers.id = 0;
         sphereMarkers.type = visualization_msgs::Marker::SPHERE_LIST;
         sphereMarkers.header.stamp = ros::Time::now();
         sphereMarkers.header.frame_id = FRAME_ID;
         sphereMarkers.pose.orientation.w = 1.00;
-        sphereMarkers.action = visualization_msgs::Marker::ADD;
-        sphereMarkers.ns = "StartGoal";
-        sphereMarkers.color.r = 1.00;
-        sphereMarkers.color.g = 0.00;
+        sphereMarkers.action = visualization_msgs::Marker::DELETE;
+        sphereMarkers.ns = "spheres";
+        sphereMarkers.color.r = 0.00;
+        sphereMarkers.color.g = 1.00;
         sphereMarkers.color.b = 0.00;
         sphereMarkers.color.a = 1.00;
-        sphereMarkers.scale.x = radius * 2.0;
-        sphereMarkers.scale.y = radius * 2.0;
-        sphereMarkers.scale.z = radius * 2.0;
+        sphereMarkers.scale.x = 0.1;
+        sphereMarkers.scale.y = 0.1;
+        sphereMarkers.scale.z = 0.1;
 
-        sphereDeleter = sphereMarkers;
-        sphereDeleter.action = visualization_msgs::Marker::DELETEALL;
-
-        geometry_msgs::Point point;
-        point.x = center(0);
-        point.y = center(1);
-        point.z = center(2);
-        sphereMarkers.points.push_back(point);
-
-        if (sg == 0)
-        {
-            spherePub.publish(sphereDeleter);
-            ros::Duration(1.0e-9).sleep();
-            sphereMarkers.header.stamp = ros::Time::now();
-        }
         spherePub.publish(sphereMarkers);
+        sphereMarkers.points.clear();
     }
 
     inline void visualizeCurve(const std::vector<Eigen::Vector3d> &curve)
     {
-        visualization_msgs::Marker curveMarker;
 
         curveMarker.id = 0;
         curveMarker.type = visualization_msgs::Marker::LINE_STRIP;
@@ -380,6 +352,24 @@ public:
         trajectoryPub.publish(curveMarker);
     }
 
+    inline void deleteCurve()
+    {
+        curveMarker.id = 0;
+        curveMarker.type = visualization_msgs::Marker::LINE_STRIP;
+        curveMarker.header.stamp = ros::Time::now();
+        curveMarker.header.frame_id = FRAME_ID;
+        curveMarker.pose.orientation.w = 1.00;
+        curveMarker.action = visualization_msgs::Marker::DELETE;
+        curveMarker.ns = "curve";
+        curveMarker.color.r = 0.00;
+        curveMarker.color.g = 1.00;
+        curveMarker.color.b = 0.00;
+        curveMarker.color.a = 1.00;
+        curveMarker.scale.x = 0.01;
+
+        trajectoryPub.publish(curveMarker);
+        curveMarker.points.clear();
+    }
 };
 
 #endif

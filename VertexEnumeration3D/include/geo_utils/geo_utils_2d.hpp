@@ -242,7 +242,6 @@ namespace geo_utils_2d
         return true;
     }
 
-
     /**
      * @brief Path intersect detection
      * BUG: bugs
@@ -272,7 +271,7 @@ namespace geo_utils_2d
         GridPoints concavePts_;
         GridPt start_;
         GridPt goal_;
-        // Order: start, concavePts, goal
+        // Order: start, goal, concavePts
         // 0: unknown, 1: visible, -1: invisible
         Eigen::MatrixXi visibilityGraph_;
         uint size_;
@@ -294,12 +293,17 @@ namespace geo_utils_2d
 
         GridPt getPt(uint i) const
         {
+            if (i >= size_)
+            {
+                printf("i out of range\n");
+                return GridPt::Zero();
+            }
             if (i == 0)
                 return start_;
-            else if (i == size_ - 1)
+            else if (i == 1)
                 return goal_;
             else
-                return concavePts_.at(i - 1);
+                return concavePts_.at(i - 2);
         }
 
         /**
@@ -310,7 +314,7 @@ namespace geo_utils_2d
         {
             for (uint i = 0; i < size_; i++)
             {
-                for (uint j = i; j < size_; j++)
+                for (uint j = i + 1; j < size_; j++)
                 {
                     isVisibile(i, j);
                 }
@@ -338,26 +342,40 @@ namespace geo_utils_2d
                 i = j;
                 j = tmp;
             }
+            if (i == j)
+            {
+                return true;
+            }
 
             if (visibilityGraph_(i, j) == 0)
             {
                 if (i == 0)
                 {
-                    if (visiblityCheck(Border_, start_, concavePts_.at(j - 1)))
-                        visibilityGraph_(i, j) = 1;
+                    if (j == 1)
+                    {
+                        if (visiblityCheck(Border_, start_, goal_))
+                            visibilityGraph_(i, j) = 1;
+                        else
+                            visibilityGraph_(i, j) = -1;
+                    }
                     else
-                        visibilityGraph_(i, j) = -1;
+                    {
+                        if (visiblityCheck(Border_, start_, concavePts_.at(j - 2)))
+                            visibilityGraph_(i, j) = 1;
+                        else
+                            visibilityGraph_(i, j) = -1;
+                    }
                 }
-                else if (j == size_ - 1)
+                else if (i == 1)
                 {
-                    if (visiblityCheck(Border_, concavePts_.at(i - 1), goal_))
+                    if (visiblityCheck(Border_, goal_, concavePts_.at(j - 2)))
                         visibilityGraph_(i, j) = 1;
                     else
                         visibilityGraph_(i, j) = -1;
                 }
                 else
                 {
-                    if (visiblityCheck(Border_, concavePts_.at(i - 1), concavePts_.at(j - 1)))
+                    if (visiblityCheck(Border_, concavePts_.at(i - 2), concavePts_.at(j - 2)))
                         visibilityGraph_(i, j) = 1;
                     else
                         visibilityGraph_(i, j) = -1;

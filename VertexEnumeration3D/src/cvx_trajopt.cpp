@@ -65,7 +65,7 @@ void CVX_TrajOpt::map_callback(const grid_map_msgs::GridMap::ConstPtr &msg)
     return;
 }
 
-void CVX_TrajOpt::drawSphereIdx(const GridPt &idx, const double radius = 0.01, bool del_all = false)
+void CVX_TrajOpt::drawSphereIdx(const GridPt &idx, const double radius = 0.01)
 {
     Eigen::Vector3d pos;
     Eigen::Vector2d posxy;
@@ -73,7 +73,7 @@ void CVX_TrajOpt::drawSphereIdx(const GridPt &idx, const double radius = 0.01, b
     map_.getPosition(idx, posxy);
     pos[0] = posxy.x();
     pos[1] = posxy.y();
-    visualizer_.visualizeSphere(pos, radius, del_all);
+    visualizer_.visualizeSphere(pos, radius);
     return;
 }
 
@@ -333,10 +333,12 @@ void CVX_TrajOpt::draw_vpoly_2DinHullPointset()
 void CVX_TrajOpt::drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                               const Eigen::Vector2d &start, const Eigen::Vector2d &goal)
 {
+    visualizer_.deleteCurve();
+    visualizer_.deleteSphere();
     // Visualize start & goal
     GridPt start_idx, goal_idx;
     map_.getIndex(start, start_idx);
-    drawSphereIdx(start_idx, 0.02, true);
+    drawSphereIdx(start_idx, 0.02);
     map_.getIndex(goal, goal_idx);
     drawSphereIdx(goal_idx, 0.02);
 
@@ -403,13 +405,14 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     map_.getIndex(goal, goal_grid);
     VisibilityGraph vis_graph(Border, concave_pts, start_grid, goal_grid);
     uint size = vis_graph.size();
+    printf("vis_graph.size(): %d\n", size);
     for (uint i = 0; i < size; i++)
     {
-        for (uint j = i; j < size; j++)
+        for (uint j = i + 1; j < size; j++)
         {
             if (vis_graph.isVisibile(i, j))
             {
-               drawSegmentIdx(vis_graph.getPt(i), vis_graph.getPt(j));
+                drawSegmentIdx(vis_graph.getPt(i), vis_graph.getPt(j));
             }
         }
     }
