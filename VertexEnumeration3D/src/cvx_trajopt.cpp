@@ -9,7 +9,85 @@
 #include <grid_map_ros/grid_map_ros.hpp>
 /* internal project header files */
 #include "geo_utils/geo_utils_2d.hpp"
+
 using namespace geo_utils_2d;
+
+class GridPtState : public AStarState<uint>
+{
+private:
+    uint pt_;
+    VisibilityGraph *vis_graph_;
+
+public:
+    GridPtState(uint pt, VisibilityGraph *vis_graph) : pt_(pt)
+    {
+        vis_graph_ = vis_graph;
+    };
+    float GoalDistanceEstimate(uint &nodeGoal) override
+    {
+        return (vis_graph_->getPt(pt_) - vis_graph_->getPt(nodeGoal)).matrix().norm();
+    }; // Heuristic function which computes the estimated cost to the goal node
+    bool IsGoal(uint &nodeGoal) override
+    {
+        return nodeGoal == 1;
+    }; // Returns true if this node is the goal node
+    bool GetSuccessors(AStarSearch<uint> *astarsearch, uint *parent_node) override
+    {
+        bool found = false;
+        for (uint i = 0; i < vis_graph_->size(); i++)
+        {
+            if (i != *parent_node && i != pt_ && vis_graph_->isVisibile(pt_, i))
+            {
+                astarsearch->AddSuccessor(i);
+                found = true;
+            }
+        }
+        return found;
+    }; // Retrieves all successors to this node and adds them via astarsearch.addSuccessor()
+    float GetCost(uint &successor) override
+    {
+        return (vis_graph_->getPt(pt_) - vis_graph_->getPt(successor)).matrix().norm();
+    }; // Computes the cost of travelling from this node to the successor node
+    bool IsSameState(uint &rhs) override
+    {
+        return rhs == pt_;
+    }; // Returns true if this node is the same as the rhs node
+    size_t Hash()
+    {
+        return pt_;
+    }; // Returns a hash for the state
+    uint getPt()
+    {
+        return pt_;
+    };
+};
+
+bool GCS_AStarSearch(VisibilityGraph &vis_graph, std::vector<GridPt> &path)
+{
+    // A* Search
+    AStarSearch<GridPtState> astarsearch;
+
+    GridPtState start_state(0u, &vis_graph);
+    GridPtState goal_state(1u, &vis_graph);
+    astarsearch.SetStartAndGoalStates(start_state, goal_state);
+    uint SearchState;
+    uint SearchSteps = 0;
+    do
+    {
+        SearchState = astarsearch.SearchStep();
+        SearchSteps++;
+    } while (SearchState == AStarSearch<GridPtState>::SEARCH_STATE_SEARCHING);
+    if (SearchState == AStarSearch<GridPtState>::SEARCH_STATE_SUCCEEDED)
+    {
+        GridPtState *node = astarsearch.GetSolutionStart();
+        path.clear();
+        path.emplace_back(vis_graph.getPt(node->getPt()));
+        return true;
+    }
+    astarsearch.FreeSolutionNodes();
+    astarsearch.EnsureMemoryFreed();
+    return false;
+}
 
 CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_) : nh_(nh_), visualizer_(nh_), conf_(conf)
 {
@@ -406,33 +484,35 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     VisibilityGraph vis_graph(Border, concave_pts, start_grid, goal_grid);
     uint size = vis_graph.size();
     printf("vis_graph.size(): %d\n", size);
-    for (uint i = 0; i < size; i++)
-    {
-        for (uint j = i + 1; j < size; j++)
-        {
-            if (vis_graph.isVisibile(i, j))
-            {
-                drawSegmentIdx(vis_graph.getPt(i), vis_graph.getPt(j));
-            }
-        }
-    }
+    // for (uint i = 0; i < size; i++)
+    // {
+    //     for (uint j = i + 1; j < size; j++)
+    //     {
+    //         if (vis_graph.isVisibile(i, j))
+    //         {
+    //             drawSegmentIdx(vis_graph.getPt(i), vis_graph.getPt(j));
+    //         }
+    //     }
+    // }
 
-    // std::vector<GridPt> path;
+    std::vector<GridPt> path;
+    GCS_AStarSearch(vis_graph, path);
     // minlengthPath(Border, start, goal, path);
     // // Draw path
-    // std::vector<Eigen::Vector3d> path_pos;
-    // for (uint i = 0; i < path.size(); i++)
-    // {
-    //     // drawSphereIdx(path.at(i));
-    //     Eigen::Vector3d pos;
-    //     Eigen::Vector2d posxy;
-    //     pos[2] = map_.at("elevation", path.at(i));
-    //     map_.getPosition(path.at(i), posxy);
-    //     pos[0] = posxy.x();
-    //     pos[1] = posxy.y();
-    //     path_pos.push_back(pos);
-    // }
-    // visualizer_.visualizeCurve(path_pos);
+
+    std::vector<Eigen::Vector3d> path_pos;
+    for (uint i = 0; i < path.size(); i++)
+    {
+        // drawSphereIdx(path.at(i));
+        Eigen::Vector3d pos;
+        Eigen::Vector2d posxy;
+        pos[2] = map_.at("elevation", path.at(i));
+        map_.getPosition(path.at(i), posxy);
+        pos[0] = posxy.x();
+        pos[1] = posxy.y();
+        path_pos.push_back(pos);
+    }
+    visualizer_.visualizeCurve(path_pos);
 }
 
 void CVX_TrajOpt::segmentIntersectTest()
