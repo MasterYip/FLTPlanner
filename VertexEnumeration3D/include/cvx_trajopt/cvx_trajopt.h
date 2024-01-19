@@ -17,12 +17,12 @@
 /* internal project header files */
 #include "cvx_trajopt/cvx_trajopt_config.hpp"
 #include "geo_utils/geo_utils.hpp"
+
 #include "geo_utils/quickhull.hpp"
 #include "misc/visualizer.hpp"
 // TODO: Change project name
 #include <polyve/CvxTrajOptConfig.h>
-
-using Index = Eigen::Array2i;
+using GridPt = Eigen::Array2i;
 class TimerMixin
 {
 protected:
@@ -73,18 +73,19 @@ public:
     void dyn_reconf_callback(polyve::CvxTrajOptConfig &config, uint32_t level);
 
     // Functions
-    std::vector<Index> getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
+    std::vector<GridPt> getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                                   const Eigen::Vector2d &start,
                                                   const Eigen::Vector2d &goal,
                                                   const std::string connectivity);
 
-    bool minlengthPath(const std::vector<Index> &Border,
+    bool minlengthPath(const std::vector<GridPt> &Border,
                        const Eigen::Vector2d &start,
                        const Eigen::Vector2d &goal,
-                       std::vector<Index> &path);
+                       std::vector<GridPt> &path);
 
     // Vis
-    void drawSphereIdx(const Index &idx, const double radius, bool del_all);
+    void drawSphereIdx(const GridPt &idx, const double radius, bool del_all);
+    void drawSegmentIdx(const GridPt &idx1, const GridPt &idx2);
     void drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                      const Eigen::Vector2d &start, const Eigen::Vector2d &goal);
     // Test

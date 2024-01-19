@@ -1,5 +1,5 @@
-#pragma once
 
+#pragma once
 /* related header files */
 
 /* c system header files */
@@ -8,44 +8,46 @@
 #include <vector>
 /* external project header files */
 #include <Eigen/Eigen>
-// #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
-// #include <CGAL/intersections.h>
+#define USE_CGAL
+#ifdef USE_CGAL
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/intersections.h>
+typedef CGAL::Exact_predicates_exact_constructions_kernel K;
+typedef K::Point_2 Point_2;
+typedef K::Segment_2 Segment_2;
+typedef K::Line_2 Line_2;
+typedef K::Intersect_2 Intersect_2;
+#endif
 /* internal project header files */
-
-using Index = Eigen::Array2i;
-using PolyLine = std::vector<Eigen::Vector2d>;
-using GridPolyLine = std::vector<Index>;
-using GridPoints = std::vector<Index>;
-
-// typedef CGAL::Exact_predicates_exact_constructions_kernel K;
-// typedef K::Point_2 Point_2;
-// typedef K::Segment_2 Segment_2;
-// typedef K::Line_2 Line_2;
-// typedef K::Intersect_2 Intersect_2;
+using Point = Eigen::Array2f;
+using GridPt = Eigen::Array2i;
+using PolyLine = std::vector<Eigen::Array2f>;
+using GridPolyLine = std::vector<GridPt>;
+using GridPoints = std::vector<GridPt>;
 
 namespace geo_utils_2d
 {
     // Statement (Temp)
     bool findConcavePoint(const GridPolyLine &Border,
-                          const Index &start,
-                          const Index &goal,
+                          const GridPt &start,
+                          const GridPt &goal,
                           GridPoints &ptsSideA,
                           GridPoints &ptsSideB);
     bool findConcavePoint(const GridPolyLine &Border, GridPoints &concavePts, bool isClockwise);
 
     // Utils
 
-    int crossProd(const Index &a, const Index &b)
+    int crossProd(const GridPt &a, const GridPt &b)
     {
         return a[0] * b[1] - a[1] * b[0];
     }
 
-    int innerProd(const Index &a, const Index &b)
+    int innerProd(const GridPt &a, const GridPt &b)
     {
         return a[0] * b[0] + a[1] * b[1];
     }
 
-    uint manhattanLength(const Index &start, const Index &goal)
+    uint manhattanLength(const GridPt &start, const GridPt &goal)
     {
         // TODO: prevent using std::abs
         return std::abs(start[0] - goal[0]) + std::abs(start[1] - goal[1]);
@@ -53,9 +55,9 @@ namespace geo_utils_2d
 
     // Concave Points
 
-    bool isConcavePoint(const Index &pt, const Index &pt_prev, const Index &pt_next, const bool clockwise = true)
+    bool isConcavePoint(const GridPt &pt, const GridPt &pt_prev, const GridPt &pt_next, const bool clockwise = true)
     {
-        Index tmp_dir1, tmp_dir2;
+        GridPt tmp_dir1, tmp_dir2;
         tmp_dir1 = pt - pt_prev;
         tmp_dir2 = pt_next - pt;
         int dir_cross_prod = tmp_dir1[0] * tmp_dir2[1] - tmp_dir1[1] * tmp_dir2[0];
@@ -71,7 +73,7 @@ namespace geo_utils_2d
             return false;
         }
         // Find concave(concave towards the interior) point
-        Index tmp_dir1, tmp_dir2;
+        GridPt tmp_dir1, tmp_dir2;
         for (uint i = 0; i < Border.size(); i++)
         {
             uint im1 = (i - 1 + Border.size()) % Border.size();
@@ -96,8 +98,8 @@ namespace geo_utils_2d
      * @return false
      */
     bool findConcavePoint(const GridPolyLine &Border,
-                          const Index &start,
-                          const Index &goal,
+                          const GridPt &start,
+                          const GridPt &goal,
                           GridPoints &ptsSideA,
                           GridPoints &ptsSideB)
     {
@@ -134,7 +136,7 @@ namespace geo_utils_2d
         // drawSphereIdx(Border.at(seg_point_goal), 0.02);
 
         // Step2: Find concave(concave towards the interior) point
-        Index tmp_dir1, tmp_dir2;
+        GridPt tmp_dir1, tmp_dir2;
         // |0--(B)--S----(A)---G---(B)--| tail
         bool in_sideA = !(seg_point_start < seg_point_goal && seg_point_start > 0);
         int dir_cross_prod;
@@ -160,72 +162,98 @@ namespace geo_utils_2d
         return true;
     }
 
-    // // A* Search
-    // class PolarVisibility
-    // {
-    // private:
-    // };
+#ifdef USE_CGAL
 
-    // class VisibilityGraph
-    // {
-    // public:
-    //     VisibilityGraph(const GridPolyLine &Border, const GridPoints &concavePts, const Index &start, const Index &goal)
-    //         : Border(Border), concavePts(concavePts), start(start), goal(goal)
-    //     {
-    //     }
-    // };
+    enum class IntersectType
+    {
+        None,
+        Middle,
+        End,
+        Overlap
+    };
 
     // Intersection
-
     /**
      * @brief segment intersect detection (CGAL)[disabled to save complie time]
-     *
+     * TODO: test needed
+     * FIXME: How to deal with Point&GridPt Mix?
      * @param p1
      * @param p2
      * @param q1
      * @param q2
-     * @return true intersect
-     * @return false not intersect OR overlap
+     * @return 0 not intersect
+     * @return 1 intersect in the middle
+     * @return 2 intersect at the end
+     * @return 3 overlap
      */
-    bool segmentIntersect(const Index &p1, const Index &p2,
-                          const Index &q1, const Index &q2, const bool verbose = false)
+    uint segmentIntersect(const Point &p1, const Point &p2,
+                          const Point &q1, const Point &q2, const bool verbose = false)
     {
-        // Segment_2 s1(Point_2(p1[0], p1[1]), Point_2(p2[0], p2[1]));
-        // Segment_2 s2(Point_2(q1[0], q1[1]), Point_2(q2[0], q2[1]));
-        // const auto result = intersection(s1, s2);
-        // if (result && verbose)
-        // {
-        //     if (const Segment_2 *s = boost::get<Segment_2>(&*result))
-        //     {
-        //         std::cout << *s << std::endl;
-        //     }
-        //     else
-        //     {
-        //         const Point_2 *p = boost::get<Point_2>(&*result);
-        //         std::cout << *p << std::endl;
-        //     }
-        // }
-        // if (result)
-        // {
-        //     if (const Segment_2 *s = boost::get<Segment_2>(&*result))
-        //         return false; // Overlap
-        //     else
-        //         return true;
-        // }
-        return false;
+        // Judge if intersect at the end or overlap
+        uint tmp = 1;
+        if (p1.isApprox(q1) || p1.isApprox(q2))
+            tmp++;
+        if (p2.isApprox(q1) || p2.isApprox(q2))
+            tmp++;
+        if (tmp > 1)
+            return tmp;
+
+        Segment_2 s1(Point_2(p1[0], p1[1]), Point_2(p2[0], p2[1]));
+        Segment_2 s2(Point_2(q1[0], q1[1]), Point_2(q2[0], q2[1]));
+        const auto result = intersection(s1, s2);
+        if (result && verbose)
+        {
+            if (const Segment_2 *s = boost::get<Segment_2>(&*result))
+            {
+                std::cout << *s << std::endl;
+            }
+            else
+            {
+                const Point_2 *p = boost::get<Point_2>(&*result);
+                std::cout << *p << std::endl;
+            }
+        }
+        if (result)
+        {
+            if (const Segment_2 *s = boost::get<Segment_2>(&*result))
+                return 3; // Overlap
+            else
+                return 1;
+        }
+        return 0;
     }
+
+    uint segmentIntersect(const GridPt &p1, const GridPt &p2,
+                          const GridPt &q1, const GridPt &q2, const bool verbose = false)
+    {
+        return segmentIntersect(Point(p1[0], p1[1]), Point(p2[0], p2[1]),
+                                Point(q1[0], q1[1]), Point(q2[0], q2[1]), verbose);
+    }
+
+    bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const GridPt &p2)
+    {
+        for (uint i = 0; i < Border.size() - 1; i++)
+        {
+            if (segmentIntersect(Border.at(i), Border.at(i + 1), p1, p2) == 1)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     /**
      * @brief Path intersect detection
-     * FIXME: bugs
+     * BUG: bugs
      * @param path
      * @param p1
      * @param p2
-     * @return uint
+     * @return int
      * if segment path(i,i+1) intersect with segment (p1,p2), return i;
      * else return -1
      */
-    uint pathIntersect(const GridPolyLine &path, const Index &p1, const Index &p2)
+    int pathIntersect(const GridPolyLine &path, const GridPt &p1, const GridPt &p2)
     {
         for (uint i = 0; i < path.size() - 1; i++)
         {
@@ -237,6 +265,110 @@ namespace geo_utils_2d
         return -1;
     }
 
+    class VisibilityGraph
+    {
+    private:
+        GridPolyLine Border_;
+        GridPoints concavePts_;
+        GridPt start_;
+        GridPt goal_;
+        // Order: start, concavePts, goal
+        // 0: unknown, 1: visible, -1: invisible
+        Eigen::MatrixXi visibilityGraph_;
+        uint size_;
+
+    public:
+        VisibilityGraph(const GridPolyLine &Border, const GridPoints &concavePts, const GridPt &start, const GridPt &goal)
+            : Border_(Border), concavePts_(concavePts), start_(start), goal_(goal)
+        {
+            visibilityGraph_.resize(concavePts_.size() + 2, concavePts_.size() + 2);
+            visibilityGraph_.setZero();
+            size_ = concavePts_.size() + 2;
+        }
+        ~VisibilityGraph() {}
+
+        uint size() const
+        {
+            return size_;
+        }
+
+        GridPt getPt(uint i) const
+        {
+            if (i == 0)
+                return start_;
+            else if (i == size_ - 1)
+                return goal_;
+            else
+                return concavePts_.at(i - 1);
+        }
+
+        /**
+         * @brief Update All visibility graph matrix
+         *
+         */
+        void updateAll()
+        {
+            for (uint i = 0; i < size_; i++)
+            {
+                for (uint j = i; j < size_; j++)
+                {
+                    isVisibile(i, j);
+                }
+            }
+        }
+
+        /**
+         * @brief Check if two points are visible
+         *
+         * @param i index of [start, concavePts, goal]
+         * @param j index of [start, concavePts, goal]
+         * @return true
+         * @return false
+         */
+        bool isVisibile(uint i, uint j)
+        {
+            if (i >= size_ || j >= size_)
+            {
+                printf("i or j out of range\n");
+                return false;
+            }
+            if (i > j) // swap
+            {
+                uint tmp = i;
+                i = j;
+                j = tmp;
+            }
+
+            if (visibilityGraph_(i, j) == 0)
+            {
+                if (i == 0)
+                {
+                    if (visiblityCheck(Border_, start_, concavePts_.at(j - 1)))
+                        visibilityGraph_(i, j) = 1;
+                    else
+                        visibilityGraph_(i, j) = -1;
+                }
+                else if (j == size_ - 1)
+                {
+                    if (visiblityCheck(Border_, concavePts_.at(i - 1), goal_))
+                        visibilityGraph_(i, j) = 1;
+                    else
+                        visibilityGraph_(i, j) = -1;
+                }
+                else
+                {
+                    if (visiblityCheck(Border_, concavePts_.at(i - 1), concavePts_.at(j - 1)))
+                        visibilityGraph_(i, j) = 1;
+                    else
+                        visibilityGraph_(i, j) = -1;
+                }
+            }
+            return visibilityGraph_(i, j) == 1;
+        }
+    };
+
+#endif // USE_CGAL
+
     /**
      * @brief [[deprecated]] Check if a point is on the left side of a path
      * @note This problem is not well defined
@@ -244,10 +376,10 @@ namespace geo_utils_2d
      * @param pt
      * @return true: LHS or on the path
      */
-    [[deprecated]] bool checkPointSideLHS(const GridPolyLine &path, const Index &pt)
+    [[deprecated]] bool checkPointSideLHS(const GridPolyLine &path, const GridPt &pt)
     {
-        Index ui, p;
-        Index tmp;
+        GridPt ui, p;
+        GridPt tmp;
         double ai;
         for (uint i = 0; i < path.size() - 1; i++)
         {
@@ -266,10 +398,10 @@ namespace geo_utils_2d
         return false;
     }
 
-    [[deprecated]] bool checkPointSideRHS(const GridPolyLine &path, const Index &pt)
+    [[deprecated]] bool checkPointSideRHS(const GridPolyLine &path, const GridPt &pt)
     {
-        Index ui, p;
-        Index tmp;
+        GridPt ui, p;
+        GridPt tmp;
         double ai;
         for (uint i = 0; i < path.size() - 1; i++)
         {

@@ -9,7 +9,6 @@
 #include <grid_map_ros/grid_map_ros.hpp>
 /* internal project header files */
 #include "geo_utils/geo_utils_2d.hpp"
-
 using namespace geo_utils_2d;
 
 CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_) : nh_(nh_), visualizer_(nh_), conf_(conf)
@@ -66,7 +65,7 @@ void CVX_TrajOpt::map_callback(const grid_map_msgs::GridMap::ConstPtr &msg)
     return;
 }
 
-void CVX_TrajOpt::drawSphereIdx(const Index &idx, const double radius = 0.01, bool del_all = false)
+void CVX_TrajOpt::drawSphereIdx(const GridPt &idx, const double radius = 0.01, bool del_all = false)
 {
     Eigen::Vector3d pos;
     Eigen::Vector2d posxy;
@@ -75,6 +74,25 @@ void CVX_TrajOpt::drawSphereIdx(const Index &idx, const double radius = 0.01, bo
     pos[0] = posxy.x();
     pos[1] = posxy.y();
     visualizer_.visualizeSphere(pos, radius, del_all);
+    return;
+}
+
+void CVX_TrajOpt::drawSegmentIdx(const GridPt &idx1, const GridPt &idx2)
+{
+    Eigen::Vector3d pos1, pos2;
+    Eigen::Vector2d posxy1, posxy2;
+    pos1[2] = map_.at("elevation", idx1);
+    map_.getPosition(idx1, posxy1);
+    pos1[0] = posxy1.x();
+    pos1[1] = posxy1.y();
+    pos2[2] = map_.at("elevation", idx2);
+    map_.getPosition(idx2, posxy2);
+    pos2[0] = posxy2.x();
+    pos2[1] = posxy2.y();
+    std::vector<Eigen::Vector3d> pts;
+    pts.push_back(pos1);
+    pts.push_back(pos2);
+    visualizer_.visualizeCurve(pts);
     return;
 }
 
@@ -95,7 +113,7 @@ bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor, const Eigen::Vect
 
 bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor,
                 const grid_map::GridMap &map,
-                const Index &idx,
+                const GridPt &idx,
                 const std::string maplayer = "elevation")
 {
     Eigen::Vector3d pos;
@@ -114,17 +132,17 @@ bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor,
  * @param start
  * @param goal
  * @param connectivity
- * @return std::vector<Index> `Clockwise` sequence of border points (z axis projected)
+ * @return std::vector<GridPt> `Clockwise` sequence of border points (z axis projected)
  */
-std::vector<Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
-                                                           const Eigen::Vector2d &start,
-                                                           const Eigen::Vector2d &goal,
-                                                           const std::string connectivity = "8")
+std::vector<GridPt> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
+                                                            const Eigen::Vector2d &start,
+                                                            const Eigen::Vector2d &goal,
+                                                            const std::string connectivity = "8")
 {
-    Index start_idx, goal_idx, idx, start_border_idx, tmp_idx, revisit_idx;
+    GridPt start_idx, goal_idx, idx, start_border_idx, tmp_idx, revisit_idx;
     map_.getIndex(start, start_idx);
     map_.getIndex(goal, goal_idx);
-    std::vector<Index> path; // TODO: Use freeman chain code to represent path
+    std::vector<GridPt> path; // TODO: Use freeman chain code to represent path
     idx = start_idx;
     if (!inCorridor(Corridor, map_, idx))
     {
@@ -143,7 +161,7 @@ std::vector<Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eig
     // 7 8 1
     // 6 * 2
     // 5 4 3
-    std::vector<Index> c8_cw = {{1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
+    std::vector<GridPt> c8_cw = {{1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
     // FIXME: Sometimes it stucks (loop)
     uint max_tries = 200;
@@ -201,7 +219,7 @@ std::vector<Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eig
 
 /**
  * @brief Get the min length path using rope straining method
- * FIXME: not properly implemented
+ * BUG: not properly implemented
  * @param[in] Border
  * @param[in] start
  * @param[in] goal
@@ -209,12 +227,12 @@ std::vector<Index> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eig
  * @return true
  * @return false
  */
-bool CVX_TrajOpt::minlengthPath(const std::vector<Index> &Border,
+bool CVX_TrajOpt::minlengthPath(const std::vector<GridPt> &Border,
                                 const Eigen::Vector2d &start,
                                 const Eigen::Vector2d &goal,
-                                std::vector<Index> &path)
+                                std::vector<GridPt> &path)
 {
-    Index start_idx, goal_idx; // FIXME: is this appropriate?
+    GridPt start_idx, goal_idx; // FIXME: is this appropriate?
     map_.getIndex(start, start_idx);
     map_.getIndex(goal, goal_idx);
     path.clear();
@@ -222,9 +240,9 @@ bool CVX_TrajOpt::minlengthPath(const std::vector<Index> &Border,
     path.push_back(goal_idx);
 
     // TODO: use Border!
-    std::vector<Index> concave_points;
+    std::vector<GridPt> concave_points;
     findConcavePoint(Border, concave_points);
-    // std::vector<Index> ptsSideA, ptsSideB;
+    // std::vector<GridPt> ptsSideA, ptsSideB;
     // findConcavePoint(Border, start, goal, ptsSideA, ptsSideB);
     uint i = 0, ip1; // Concave point index
     int intersect_id = -1;
@@ -316,14 +334,14 @@ void CVX_TrajOpt::drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd
                                               const Eigen::Vector2d &start, const Eigen::Vector2d &goal)
 {
     // Visualize start & goal
-    Index start_idx, goal_idx;
+    GridPt start_idx, goal_idx;
     map_.getIndex(start, start_idx);
     drawSphereIdx(start_idx, 0.02, true);
     map_.getIndex(goal, goal_idx);
     drawSphereIdx(goal_idx, 0.02);
 
     // Get path
-    std::vector<Index> path = getCorriderIntersectBorder(Corridor, start, goal);
+    std::vector<GridPt> path = getCorriderIntersectBorder(Corridor, start, goal);
 
     // Draw path
     std::vector<Eigen::Vector3d> path_pos;
@@ -366,40 +384,57 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
 
     drawCorriderIntersectBorder(CorridorBuf, start, goal);
 
-    std::vector<Index> Border = getCorriderIntersectBorder(CorridorBuf, start, goal);
+    GridPolyLine Border = getCorriderIntersectBorder(CorridorBuf, start, goal);
     if (Border.size() < 3)
     {
         ROS_ERROR("Border.size() < 2");
         return;
     }
-    std::vector<Index> concave_pts;
+    GridPoints concave_pts;
     findConcavePoint(Border, concave_pts);
     for (uint i = 0; i < concave_pts.size(); i++)
     {
         drawSphereIdx(concave_pts.at(i), 0.02);
     }
 
-    std::vector<Index> path;
-    minlengthPath(Border, start, goal, path);
-    // Draw path
-    std::vector<Eigen::Vector3d> path_pos;
-    for (uint i = 0; i < path.size(); i++)
+    // Visiblity Graph
+    GridPt start_grid, goal_grid; // FIXME: is this appropriate?
+    map_.getIndex(start, start_grid);
+    map_.getIndex(goal, goal_grid);
+    VisibilityGraph vis_graph(Border, concave_pts, start_grid, goal_grid);
+    uint size = vis_graph.size();
+    for (uint i = 0; i < size; i++)
     {
-        // drawSphereIdx(path.at(i));
-        Eigen::Vector3d pos;
-        Eigen::Vector2d posxy;
-        pos[2] = map_.at("elevation", path.at(i));
-        map_.getPosition(path.at(i), posxy);
-        pos[0] = posxy.x();
-        pos[1] = posxy.y();
-        path_pos.push_back(pos);
+        for (uint j = i; j < size; j++)
+        {
+            if (vis_graph.isVisibile(i, j))
+            {
+               drawSegmentIdx(vis_graph.getPt(i), vis_graph.getPt(j));
+            }
+        }
     }
-    visualizer_.visualizeCurve(path_pos);
+
+    // std::vector<GridPt> path;
+    // minlengthPath(Border, start, goal, path);
+    // // Draw path
+    // std::vector<Eigen::Vector3d> path_pos;
+    // for (uint i = 0; i < path.size(); i++)
+    // {
+    //     // drawSphereIdx(path.at(i));
+    //     Eigen::Vector3d pos;
+    //     Eigen::Vector2d posxy;
+    //     pos[2] = map_.at("elevation", path.at(i));
+    //     map_.getPosition(path.at(i), posxy);
+    //     pos[0] = posxy.x();
+    //     pos[1] = posxy.y();
+    //     path_pos.push_back(pos);
+    // }
+    // visualizer_.visualizeCurve(path_pos);
 }
 
 void CVX_TrajOpt::segmentIntersectTest()
 {
-    Index p1, p2, q1, q2;
+    GridPt p1, p2, q1, q2;
     p1 << 0, 0;
     p2 << 1, 1;
     q1 << 0, 1;
