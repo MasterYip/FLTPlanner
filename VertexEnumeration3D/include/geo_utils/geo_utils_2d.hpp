@@ -176,6 +176,7 @@ namespace geo_utils_2d
     /**
      * @brief segment intersect detection (CGAL)[disabled to save complie time]
      * TODO: test needed
+     * TODO: Optimization needed
      * FIXME: How to deal with Point&GridPt Mix?
      * @param p1
      * @param p2
