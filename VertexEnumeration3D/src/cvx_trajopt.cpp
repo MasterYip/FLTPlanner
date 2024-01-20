@@ -212,8 +212,9 @@ bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor,
 }
 
 /**
- * @brief
- *
+ * @brief Get the Border of Corrider&GridMap intersection
+ * FIXME: not stable
+ * BUG: This method is not a complusory condition for probable solution
  * @param Corridor
  * @param start
  * @param goal
