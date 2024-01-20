@@ -178,7 +178,7 @@ void CVX_TrajOpt::drawSegmentIdx(const GridPt &idx1, const GridPt &idx2)
     std::vector<Eigen::Vector3d> pts;
     pts.push_back(pos1);
     pts.push_back(pos2);
-    visualizer_.visualizeCurve(pts);
+    visualizer_.visualizeCurve(pts, MarkerStyle(1, 1, 1, 0.1, 0.005));
     return;
 }
 
@@ -419,8 +419,7 @@ void CVX_TrajOpt::draw_vpoly_2DinHullPointset()
 void CVX_TrajOpt::drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                               const Eigen::Vector2d &start, const Eigen::Vector2d &goal)
 {
-    visualizer_.deleteCurve();
-    visualizer_.deleteSphere();
+
     // Visualize start & goal
     GridPt start_idx, goal_idx;
     map_.getIndex(start, start_idx);
@@ -444,11 +443,15 @@ void CVX_TrajOpt::drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd
         pos[1] = posxy.y();
         path_pos.push_back(pos);
     }
-    visualizer_.visualizeCurve(path_pos);
+    visualizer_.visualizeCurve(path_pos, MarkerStyle(1, 0, 0, 1, 0.01));
 }
 
 void CVX_TrajOpt::drawCorriderIntersectBorderTest()
 {
+    // clean
+    visualizer_.deleteCurve();
+    visualizer_.deleteSphere();
+
     Eigen::MatrixX3d waypoints(3, 3);
     waypoints << -0.5, 0.0, 0.2,
         0.0, 0.0, 0.4,
@@ -475,7 +478,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     GridPolyLine Border = getCorriderIntersectBorder(CorridorBuf, start, goal);
     if (Border.size() < 3)
     {
-        ROS_ERROR("Border.size() < 2");
+        ROS_ERROR("Border.size() < 3");
         return;
     }
     GridPoints concave_pts;
@@ -489,32 +492,27 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     GridPt start_grid, goal_grid; // FIXME: is this appropriate?
     map_.getIndex(start, start_grid);
     map_.getIndex(goal, goal_grid);
-    printf("goal_grid: (%d %d)\n", goal_grid[0], goal_grid[1]);
     VisibilityGraph vis_graph(Border, concave_pts, start_grid, goal_grid);
     uint size = vis_graph.size();
-    // printf("vis_graph.size(): %d\n", size);
-    // for (uint i = 0; i < size; i++)
-    // {
-    //     for (uint j = i + 1; j < size; j++)
-    //     {
-    //         if (vis_graph.isVisibile(i, j))
-    //         {
-    //             drawSegmentIdx(vis_graph.getPt(i), vis_graph.getPt(j));
-    //         }
-    //     }
-    // }
+    for (uint i = 0; i < size; i++)
+    {
+        for (uint j = i + 1; j < size; j++)
+        {
+            if (vis_graph.isVisibile(i, j))
+            {
+                drawSegmentIdx(vis_graph.getPt(i), vis_graph.getPt(j));
+            }
+        }
+    }
 
     std::vector<GridPt> path;
-    printf("is visibile: %d\n", vis_graph.isVisibile(0, 1));
     bool ret = GCS_AStarSearch(vis_graph, path);
-    // printf("ret: %d\n", ret);
     // minlengthPath(Border, start, goal, path);
-    // // Draw path
+    // Draw path
     std::vector<Eigen::Vector3d> path_pos;
     for (uint i = 0; i < path.size(); i++)
     {
-        printf("path.at(%d): (%d %d)\n", i, path.at(i)[0], path.at(i)[1]);
-        // drawSphereIdx(path.at(i));
+        // printf("path.at(%d): (%d %d)\n", i, path.at(i)[0], path.at(i)[1]);
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy;
         pos[2] = map_.at("elevation", path.at(i));
@@ -523,7 +521,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         pos[1] = posxy.y();
         path_pos.push_back(pos);
     }
-    visualizer_.visualizeCurve(path_pos);
+    visualizer_.visualizeCurve(path_pos, MarkerStyle(0, 1, 0, 1, 0.01));
 }
 
 void CVX_TrajOpt::segmentIntersectTest()

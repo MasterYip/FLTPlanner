@@ -231,6 +231,7 @@ namespace geo_utils_2d
                                 Point(q1[0], q1[1]), Point(q2[0], q2[1]), verbose);
     }
 
+    // BUG: the two points that are visible to each other from outside should not be visible
     bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const GridPt &p2)
     {
         for (uint i = 0; i < Border.size() - 1; i++)

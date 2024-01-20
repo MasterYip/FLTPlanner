@@ -19,6 +19,18 @@
 
 #define FRAME_ID "odom"
 
+struct MarkerStyle
+{
+    double r, g, b, a;
+    double x, y, z;
+    MarkerStyle()
+        : r(0.0), g(0.0), b(0.0), a(1.0), x(0.01), y(0.01), z(0.01){};
+    MarkerStyle(double r_, double g_, double b_, double a_, double width_)
+        : r(r_), g(g_), b(b_), a(a_), x(width_) {};
+    MarkerStyle(double r_, double g_, double b_, double a_, double x_, double y_, double z_)
+        : r(r_), g(g_), b(b_), a(a_), x(x_), y(y_), z(z_) {};
+};
+
 // Visualizer for the planner
 class Visualizer
 {
@@ -35,8 +47,12 @@ private:
     ros::Publisher meshPub;
     ros::Publisher edgePub;
     ros::Publisher spherePub;
+    ros::Publisher markersPub;
+
     visualization_msgs::Marker sphereMarkers;
-    visualization_msgs::Marker curveMarker;
+
+    visualization_msgs::MarkerArray Markers;
+    uint marker_id = 0;
 
 public:
     ros::Publisher speedPub;
@@ -51,13 +67,18 @@ public:
         routePub = nh.advertise<visualization_msgs::Marker>("/visualizer/route", 10);
         wayPointsPub = nh.advertise<visualization_msgs::Marker>("/visualizer/waypoints", 10);
         trajectoryPub = nh.advertise<visualization_msgs::Marker>("/visualizer/trajectory", 10);
+
         meshPub = nh.advertise<visualization_msgs::Marker>("/visualizer/mesh", 1000);
         edgePub = nh.advertise<visualization_msgs::Marker>("/visualizer/edge", 1000);
+
         spherePub = nh.advertise<visualization_msgs::Marker>("/visualizer/spheres", 1000);
+
         speedPub = nh.advertise<std_msgs::Float64>("/visualizer/speed", 1000);
         thrPub = nh.advertise<std_msgs::Float64>("/visualizer/total_thrust", 1000);
         tiltPub = nh.advertise<std_msgs::Float64>("/visualizer/tilt_angle", 1000);
         bdrPub = nh.advertise<std_msgs::Float64>("/visualizer/body_rate", 1000);
+        // Add
+        markersPub = nh.advertise<visualization_msgs::MarkerArray>("/visualizer/markers", 1000);
     }
 
     // Visualize the trajectory and its front-end path
@@ -211,7 +232,7 @@ public:
         edgeMarker.color.r = 0.00;
         edgeMarker.color.g = 1.00;
         edgeMarker.color.b = 1.00;
-        edgeMarker.color.a = 1.00;
+        edgeMarker.color.a = 0.30;
         edgeMarker.scale.x = 0.004;
 
         geometry_msgs::Point point;
@@ -324,26 +345,27 @@ public:
     }
 
     // FIXME: Cant visualize multiple curves (all curves will be connected)
-    inline void visualizeCurve(const std::vector<Eigen::Vector3d> &curve)
+    inline void visualizeCurve(const std::vector<Eigen::Vector3d> &curve,const MarkerStyle style = MarkerStyle())
     {
+        visualization_msgs::Marker curveMarker;
         if (curve.size() < 2)
         {
             printf("Warning: Curve size is less than 2\n");
             return;
         }
 
-        curveMarker.id = 0;
+        curveMarker.id = marker_id;
         curveMarker.type = visualization_msgs::Marker::LINE_STRIP;
         curveMarker.header.stamp = ros::Time::now();
         curveMarker.header.frame_id = FRAME_ID;
         curveMarker.pose.orientation.w = 1.00;
         curveMarker.action = visualization_msgs::Marker::ADD;
         curveMarker.ns = "curve";
-        curveMarker.color.r = 0.00;
-        curveMarker.color.g = 1.00;
-        curveMarker.color.b = 0.00;
-        curveMarker.color.a = 1.00;
-        curveMarker.scale.x = 0.01;
+        curveMarker.color.r = style.r;
+        curveMarker.color.g = style.g;
+        curveMarker.color.b = style.b;
+        curveMarker.color.a = style.a;
+        curveMarker.scale.x = style.x;
 
         geometry_msgs::Point point;
 
@@ -355,26 +377,31 @@ public:
             curveMarker.points.push_back(point);
         }
 
-        trajectoryPub.publish(curveMarker);
+        Markers.markers.push_back(curveMarker);
+        markersPub.publish(Markers);
+        marker_id++;
     }
 
     inline void deleteCurve()
     {
-        curveMarker.id = 0;
-        curveMarker.type = visualization_msgs::Marker::LINE_STRIP;
-        curveMarker.header.stamp = ros::Time::now();
-        curveMarker.header.frame_id = FRAME_ID;
-        curveMarker.pose.orientation.w = 1.00;
-        curveMarker.action = visualization_msgs::Marker::DELETE;
-        curveMarker.ns = "curve";
-        curveMarker.color.r = 0.00;
-        curveMarker.color.g = 1.00;
-        curveMarker.color.b = 0.00;
-        curveMarker.color.a = 1.00;
-        curveMarker.scale.x = 0.01;
+        for (auto &marker : Markers.markers)
+        {
+            if (marker.ns == "curve")
+            {
+                marker.action = visualization_msgs::Marker::DELETE;
+            }
+        }
 
-        trajectoryPub.publish(curveMarker);
-        curveMarker.points.clear();
+        markersPub.publish(Markers);
+
+        for (int i = 0; i < Markers.markers.size(); i++)
+        {
+            if (Markers.markers[i].ns == "curve")
+            {
+                Markers.markers.erase(Markers.markers.begin() + i);
+                i--;
+            }
+        }
     }
 };
 
