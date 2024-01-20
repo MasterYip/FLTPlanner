@@ -231,10 +231,9 @@ namespace geo_utils_2d
                                 Point(q1[0], q1[1]), Point(q2[0], q2[1]), verbose);
     }
 
-    // TODO: Test robustness
     /**
      * @brief Check if two points are visible to each other
-     *
+     * TODO: Test robustness
      * @param Border
      * @param p1 On or Inside the Border
      * @param p2 On or Inside the Border
@@ -243,7 +242,7 @@ namespace geo_utils_2d
      */
     bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const GridPt &p2)
     {
-        int p1_idx = -1, p2_idx = -1;
+        int p1_idx = -1, p2_idx = -1; // check if p1 and p2 are border point
         for (uint i = 0; i < Border.size() - 1; i++)
         {
             if (Border.at(i).isApprox(p1))
@@ -251,27 +250,31 @@ namespace geo_utils_2d
             if (Border.at(i).isApprox(p2))
                 p2_idx = i;
             if (segmentIntersect(Border.at(i), Border.at(i + 1), p1, p2) == 1)
-            {
                 return false;
-            }
         }
-        // Judge if p1 and p2 are visible to each other from outside
+        // Judge if p1 and p2 are visible to each other from outside (should not be counted as visible)
         if (p1_idx != -1)
         {
-            int p1_idxp1 = (p1_idx + 1) % Border.size();
-            GridPt vec_border = Border.at(p1_idxp1) - Border.at(p1_idx);
+            int plus1 = (p1_idx + 1) % Border.size();
+            int minus1 = (p1_idx - 1 + Border.size()) % Border.size();
+            GridPt vec1 = Border.at(p1_idx) - Border.at(minus1);
+            GridPt vec2 = Border.at(plus1) - Border.at(p1_idx);
             GridPt vec_p1p2 = p2 - p1;
-            if (crossProd(vec_border, vec_p1p2) > 0)
+            if ((crossProd(vec1, vec2) > 0 && crossProd(vec1, vec_p1p2) > 0 && crossProd(vec2, vec_p1p2) > 0) || // Concave Point
+                (crossProd(vec1, vec2) < 0 && (crossProd(vec1, vec_p1p2) > 0 || crossProd(vec2, vec_p1p2) > 0))) // Convex Point
             {
                 return false;
             }
         }
         if (p2_idx != -1)
         {
-            int p2_idxp2 = (p2_idx + 1) % Border.size();
-            GridPt vec_border = Border.at(p2_idxp2) - Border.at(p2_idx);
+            int plus1 = (p2_idx + 1) % Border.size();
+            int minus1 = (p2_idx - 1 + Border.size()) % Border.size();
+            GridPt vec1 = Border.at(p2_idx) - Border.at(minus1);
+            GridPt vec2 = Border.at(plus1) - Border.at(p2_idx);
             GridPt vec_p2p1 = p1 - p2;
-            if (crossProd(vec_border, vec_p2p1) > 0)
+            if ((crossProd(vec1, vec2) > 0 && crossProd(vec1, vec_p2p1) > 0 && crossProd(vec2, vec_p2p1) > 0) || // Concave Point
+                (crossProd(vec1, vec2) < 0 && (crossProd(vec1, vec_p2p1) > 0 || crossProd(vec2, vec_p2p1) > 0))) // Convex Point
             {
                 return false;
             }
