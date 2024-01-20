@@ -93,7 +93,7 @@ bool GCS_AStarSearch(VisibilityGraph &vis_graph, std::vector<GridPt> &path)
         return true;
     }
     astarsearch.FreeSolutionNodes();
-    astarsearch.EnsureMemoryFreed();
+    // astarsearch.EnsureMemoryFreed();
     return false;
 }
 

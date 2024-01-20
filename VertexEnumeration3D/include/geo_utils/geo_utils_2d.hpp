@@ -231,12 +231,47 @@ namespace geo_utils_2d
                                 Point(q1[0], q1[1]), Point(q2[0], q2[1]), verbose);
     }
 
-    // BUG: the two points that are visible to each other from outside should not be visible
+    // TODO: Test robustness
+    /**
+     * @brief Check if two points are visible to each other
+     *
+     * @param Border
+     * @param p1 On or Inside the Border
+     * @param p2 On or Inside the Border
+     * @return true
+     * @return false
+     */
     bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const GridPt &p2)
     {
+        int p1_idx = -1, p2_idx = -1;
         for (uint i = 0; i < Border.size() - 1; i++)
         {
+            if (Border.at(i).isApprox(p1))
+                p1_idx = i;
+            if (Border.at(i).isApprox(p2))
+                p2_idx = i;
             if (segmentIntersect(Border.at(i), Border.at(i + 1), p1, p2) == 1)
+            {
+                return false;
+            }
+        }
+        // Judge if p1 and p2 are visible to each other from outside
+        if (p1_idx != -1)
+        {
+            int p1_idxp1 = (p1_idx + 1) % Border.size();
+            GridPt vec_border = Border.at(p1_idxp1) - Border.at(p1_idx);
+            GridPt vec_p1p2 = p2 - p1;
+            if (crossProd(vec_border, vec_p1p2) > 0)
+            {
+                return false;
+            }
+        }
+        if (p2_idx != -1)
+        {
+            int p2_idxp2 = (p2_idx + 1) % Border.size();
+            GridPt vec_border = Border.at(p2_idxp2) - Border.at(p2_idx);
+            GridPt vec_p2p1 = p1 - p2;
+            if (crossProd(vec_border, vec_p2p1) > 0)
             {
                 return false;
             }
