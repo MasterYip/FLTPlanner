@@ -323,8 +323,14 @@ public:
         sphereMarkers.points.clear();
     }
 
+    // FIXME: Cant visualize multiple curves (all curves will be connected)
     inline void visualizeCurve(const std::vector<Eigen::Vector3d> &curve)
     {
+        if (curve.size() < 2)
+        {
+            printf("Warning: Curve size is less than 2\n");
+            return;
+        }
 
         curveMarker.id = 0;
         curveMarker.type = visualization_msgs::Marker::LINE_STRIP;

@@ -12,54 +12,53 @@
 
 using namespace geo_utils_2d;
 
-class GridPtState : public AStarState<uint>
+class GridPtState : public AStarState<GridPtState>
 {
 private:
-    uint pt_;
+    uint pt_idx_;
     VisibilityGraph *vis_graph_;
 
 public:
-    GridPtState(uint pt, VisibilityGraph *vis_graph) : pt_(pt)
+    GridPtState() : pt_idx_(0), vis_graph_(nullptr){};
+    GridPtState(uint pt_idx, VisibilityGraph *vis_graph) : pt_idx_(pt_idx), vis_graph_(vis_graph){};
+    uint getPtIdx()
     {
-        vis_graph_ = vis_graph;
+        return pt_idx_;
     };
-    float GoalDistanceEstimate(uint &nodeGoal) override
+    float GoalDistanceEstimate(GridPtState &nodeGoal) override
     {
-        return (vis_graph_->getPt(pt_) - vis_graph_->getPt(nodeGoal)).matrix().norm();
+        return (vis_graph_->getPt(pt_idx_) - vis_graph_->getPt(nodeGoal.getPtIdx())).matrix().norm();
     }; // Heuristic function which computes the estimated cost to the goal node
-    bool IsGoal(uint &nodeGoal) override
+    bool IsGoal(GridPtState &nodeGoal) override
     {
-        return nodeGoal == 1;
+        return nodeGoal.getPtIdx() == pt_idx_;
     }; // Returns true if this node is the goal node
-    bool GetSuccessors(AStarSearch<uint> *astarsearch, uint *parent_node) override
+    bool GetSuccessors(AStarSearch<GridPtState> *astarsearch, GridPtState *parent_node) override
     {
-        bool found = false;
+        GridPtState newnode;
         for (uint i = 0; i < vis_graph_->size(); i++)
         {
-            if (i != *parent_node && i != pt_ && vis_graph_->isVisibile(pt_, i))
+            if ((parent_node && i != parent_node->getPtIdx() && i != pt_idx_ && vis_graph_->isVisibile(pt_idx_, i)) ||
+                (!parent_node && i != pt_idx_ && vis_graph_->isVisibile(pt_idx_, i)))
             {
-                astarsearch->AddSuccessor(i);
-                found = true;
+                newnode = GridPtState(i, vis_graph_);
+                astarsearch->AddSuccessor(newnode);
             }
         }
-        return found;
+        return true;
     }; // Retrieves all successors to this node and adds them via astarsearch.addSuccessor()
-    float GetCost(uint &successor) override
+    float GetCost(GridPtState &successor) override
     {
-        return (vis_graph_->getPt(pt_) - vis_graph_->getPt(successor)).matrix().norm();
+        return (vis_graph_->getPt(pt_idx_) - vis_graph_->getPt(successor.getPtIdx())).matrix().norm();
     }; // Computes the cost of travelling from this node to the successor node
-    bool IsSameState(uint &rhs) override
+    bool IsSameState(GridPtState &rhs) override
     {
-        return rhs == pt_;
+        return rhs.getPtIdx() == pt_idx_;
     }; // Returns true if this node is the same as the rhs node
     size_t Hash()
     {
-        return pt_;
+        return pt_idx_;
     }; // Returns a hash for the state
-    uint getPt()
-    {
-        return pt_;
-    };
 };
 
 bool GCS_AStarSearch(VisibilityGraph &vis_graph, std::vector<GridPt> &path)
@@ -67,8 +66,8 @@ bool GCS_AStarSearch(VisibilityGraph &vis_graph, std::vector<GridPt> &path)
     // A* Search
     AStarSearch<GridPtState> astarsearch;
 
-    GridPtState start_state(0u, &vis_graph);
-    GridPtState goal_state(1u, &vis_graph);
+    GridPtState start_state(0, &vis_graph);
+    GridPtState goal_state(1, &vis_graph);
     astarsearch.SetStartAndGoalStates(start_state, goal_state);
     uint SearchState;
     uint SearchSteps = 0;
@@ -81,7 +80,16 @@ bool GCS_AStarSearch(VisibilityGraph &vis_graph, std::vector<GridPt> &path)
     {
         GridPtState *node = astarsearch.GetSolutionStart();
         path.clear();
-        path.emplace_back(vis_graph.getPt(node->getPt()));
+        path.emplace_back(vis_graph.getPt(node->getPtIdx()));
+        while (true)
+        {
+            node = astarsearch.GetSolutionNext();
+            if (!node)
+                break;
+            path.emplace_back(vis_graph.getPt(node->getPtIdx()));
+        };
+        astarsearch.FreeSolutionNodes();
+        astarsearch.EnsureMemoryFreed();
         return true;
     }
     astarsearch.FreeSolutionNodes();
@@ -481,9 +489,10 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     GridPt start_grid, goal_grid; // FIXME: is this appropriate?
     map_.getIndex(start, start_grid);
     map_.getIndex(goal, goal_grid);
+    printf("goal_grid: (%d %d)\n", goal_grid[0], goal_grid[1]);
     VisibilityGraph vis_graph(Border, concave_pts, start_grid, goal_grid);
     uint size = vis_graph.size();
-    printf("vis_graph.size(): %d\n", size);
+    // printf("vis_graph.size(): %d\n", size);
     // for (uint i = 0; i < size; i++)
     // {
     //     for (uint j = i + 1; j < size; j++)
@@ -496,13 +505,15 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     // }
 
     std::vector<GridPt> path;
-    GCS_AStarSearch(vis_graph, path);
+    printf("is visibile: %d\n", vis_graph.isVisibile(0, 1));
+    bool ret = GCS_AStarSearch(vis_graph, path);
+    // printf("ret: %d\n", ret);
     // minlengthPath(Border, start, goal, path);
     // // Draw path
-
     std::vector<Eigen::Vector3d> path_pos;
     for (uint i = 0; i < path.size(); i++)
     {
+        printf("path.at(%d): (%d %d)\n", i, path.at(i)[0], path.at(i)[1]);
         // drawSphereIdx(path.at(i));
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy;
