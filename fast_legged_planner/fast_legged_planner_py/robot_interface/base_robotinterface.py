@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 15:47:47
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-29 19:42:17
+LastEditTime: 2024-01-21 17:09:10
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/robot_interface/base_robotinterface.py
 Description: file content
 '''
@@ -15,7 +15,7 @@ import pinocchio as pin
 from abc import ABCMeta
 from ..third_party.meshcat_viewer_wrapper.visualizer import colors
 
-Load_Meshcat = False
+Load_Meshcat = True
 MeshcatFound = False
 if Load_Meshcat:
     try:
@@ -48,6 +48,11 @@ class Base_RobotInterface(metaclass=ABCMeta):
             self.viz = MeshcatVisualizer(self.robot)
 
     def update_kinematics(self, q):
+        """Update all kinematics information
+
+        Args:
+            q: joint angles
+        """
         pin.forwardKinematics(self.robot.model, self.robot.data, q)
 
     def get_frameid(self, frame_name):
