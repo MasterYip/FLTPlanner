@@ -2,8 +2,8 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2023-12-04 15:19:53
-FilePath: //flplanner_ws//src//fast_legged_planner//fast_legged_planner_py//swing_leg_planner//traj_gen//traj_gen.py
+LastEditTime: 2024-01-31 20:01:19
+FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/traj_gen/traj_gen.py
 Description: file content
 '''
 # -*- coding: utf-8 -*-
@@ -114,7 +114,13 @@ class SplineBase(object):
     # Methods
     @abstractmethod
     def evaluate(self, t: float, d_order: int = 0, normalized: bool = False):
-        """Evaluate spline at parameter t"""
+        """Evaluate spline at parameter t
+
+        Args:
+            t (float): parameter t
+            d_order (int, optional): Derivative order. Defaults to 0.
+            normalized (bool, optional): Whether t is normalized. Defaults to False.
+        """
         pass
 
     @abstractmethod
