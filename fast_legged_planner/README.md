@@ -35,6 +35,12 @@ export CMAKE_PREFIX_PATH=/opt/openrobots:$CMAKE_PREFIX_PATH
 - grid_map
 - ompl(with python binding)
 
+## User Guide
+
+- [fast_legged_planner_py](./fast_legged_planner_py/README.md)
+
+---
+
 ## Examples
 
 ### Elspider2 walking with MCTs planner
@@ -54,7 +60,7 @@ Several settings is provided in `HIT_spider_traj_planner.launch`, planner settin
 
 NOTE: hexapod_State.msg has been updated (line 17 and below is newly added), but `parallelMCTS_VirtualLoss` used a old version of hexapod_State.msg, so you need to modify it manually.
 
-```cpp
+````cpp
 
 ### Trajectory Optimization Demo
 
@@ -65,7 +71,7 @@ A simple trajectory optimization demo for various planning algorithms(RRT, BFGS,
 ```bash
 source .setup_rc_nuc11 # setup env (WITH_PINPY = 1)
 roslaunch fast_legged_planner traj_opt_demo.launch
-```
+````
 
 Several settings is provided in `traj_opt_demo.launch`, planner settings is in python codes(temporarily).
 
