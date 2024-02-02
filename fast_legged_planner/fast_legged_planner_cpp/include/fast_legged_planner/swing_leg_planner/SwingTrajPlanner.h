@@ -28,5 +28,5 @@ public:
     SwingTrajPlanner();
     ~SwingTrajPlanner();
     SplineBase get_default_traj(Eigen::Vector3d &p0, Eigen::Vector3d &p1, double v_lift, double h_lift);
-    bool opt_traj();
+    bool opt_traj(SplineBase &traj, int index);
 };

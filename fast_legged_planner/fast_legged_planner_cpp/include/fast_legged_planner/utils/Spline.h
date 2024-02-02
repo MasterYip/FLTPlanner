@@ -22,15 +22,17 @@
 /* external project header files */
 #include <Eigen/Dense>
 /* internal project header files */
+#include "fast_legged_planner/utils/Trajectory.h"
 
 ////////////////////
 // Consts
 
-const Eigen::MatrixXd UNIB_COE_MAT = (Eigen::MatrixXd(4, 4) << 1, 4, 1, 0,
-                                      -3, 0, 3, 0,
-                                      3, -6, 3, 0,
-                                      -1, 3, -3, 1)
-                                         .finished();
+const Eigen::MatrixXd UNIB_COE_MAT6 = (Eigen::MatrixXd(4, 4) << 1, 4, 1, 0,
+                                       -3, 0, 3, 0,
+                                       3, -6, 3, 0,
+                                       -1, 3, -3, 1)
+                                          .finished() /
+                                      6;
 
 /**
  * @brief Evaluate cubic spline at t
@@ -41,33 +43,9 @@ const Eigen::MatrixXd UNIB_COE_MAT = (Eigen::MatrixXd(4, 4) << 1, 4, 1, 0,
  * @param d_order derivative order (0 for position, 1 for velocity, etc.)
  * @return Eigen::VectorXd evaluated value
  */
-Eigen::VectorXd cubic_evaluate(const Eigen::MatrixXd &para_mat, const Eigen::MatrixXd &knots, double t, int d_order = 0)
-{
-    Eigen::VectorXd result;
-    if (d_order > 1)
-    {
-        throw std::invalid_argument("Invalid derivative order");
-    }
-    if (t < 0 || t > 1)
-    {
-        throw std::invalid_argument("Parameter t must be in range [0, 1]");
-    }
-    if (d_order == 0)
-    {
-        Eigen::VectorXd t_vec(4);
-        t_vec << 1, t, pow(t, 2), pow(t, 3);
-        result = t_vec.transpose() * para_mat * knots;
-    }
-    else if (d_order == 1)
-    {
-        Eigen::VectorXd t_vec(4);
-        t_vec << 0, 1, 2 * t, 3 * pow(t, 2);
-        result = t_vec.transpose() * para_mat * knots;
-    }
-    return result;
-}
+Eigen::VectorXd cubic_evaluate(const Eigen::MatrixXd &para_mat, const Eigen::MatrixXd &knots, double t, int d_order = 0);
 
-class SplineBase
+class SplineBase : public TrajectoryBase
 {
 private:
     Eigen::MatrixXd params_;
@@ -86,9 +64,19 @@ public:
      * @return Eigen::VectorXd
      */
     virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false);
+    /**
+     * @brief Set decision variables of the spline
+     *
+     * @param params decision variables
+     */
     virtual void set(const Eigen::MatrixXd &params);
+    /**
+     * @brief Get decision variables of the spline
+     *
+     * @return Eigen::MatrixXd
+     */
     virtual Eigen::MatrixXd get() const;
-    virtual void insert(double t); // TODO
+    // virtual void insert(double t); // TODO
 
     // Attributes
     virtual std::pair<double, double> get_range() const;
@@ -105,12 +93,12 @@ public:
 class UniBSpline : public SplineBase
 {
 private:
-    int k_ = 3;                                // Order of the spline
-    int n;                                     // Node count
-    int dimen_;                                // Dimension of the spline
-    Eigen::MatrixXd params_;                   // Parameters of the spline(nodes in rows)
-    Eigen::MatrixXd coeff_mat_ = UNIB_COE_MAT; // Coefficient matrix for Cubic Uniform B-Spline
-    std::pair<double, double> t_range_;        // Range of parameter t
+    int k_ = 3;                                     // Order of the spline
+    int n;                                          // Node count
+    int dimen_;                                     // Dimension of the spline
+    Eigen::MatrixXd params_;                        // Parameters of the spline(nodes in rows)
+    Eigen::MatrixXd coeff_mat_ = UNIB_COE_MAT6 / 6; // Coefficient matrix for Cubic Uniform B-Spline
+    std::pair<double, double> t_range_;             // Range of parameter t
 
 public:
     UniBSpline(const Eigen::MatrixXd &params, int k = 3) : k_(k)
@@ -147,7 +135,13 @@ public:
         Eigen::MatrixXd knots = Eigen::MatrixXd::Zero(k_ + 1, dimen_);
         for (int j = 0; j < k_ + 1; j++)
         {
-            knots.row(j) = params_.row(i + j - k_ / 2);
+            int index = i + j - k_ / 2;
+            // Clamp index to [0, n-1]
+            if (index < 0)
+                index = 0;
+            if (index > n - 1)
+                index = n - 1;
+            knots.row(j) = params_.row(index);
         }
         return cubic_evaluate(coeff_mat_, knots, t - i, d_order);
     }

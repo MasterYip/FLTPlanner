@@ -35,7 +35,7 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1, S
     this->swingtraj_isneeded = std::vector<bool>(6, false);
 
     // Default swing trajectory
-    double v_lift = 0.1;
+    double v_lift = 0.1; // NOTE: not used
     double h_lift = 0.1;
     for (int i = 0; i < 6; ++i)
     {
@@ -83,13 +83,21 @@ void MCTStateTransfer::opt_swing_traj(int index)
 {
     if (!this->opt_check(index))
     {
-        this->swingtraj[index] = this->swing_traj_planner.opt_traj(
-            this->swingtraj[index], this->eval_torso_traj, index);
+        // TODO: add eval_torso_traj
+        this->swing_traj_planner.opt_traj(
+            this->swingtraj[index], index);
         this->swingtraj_isopt[index] = true;
     }
 }
 
-bool MCTStateTransfer::opt_check(int index)
+/**
+ * @brief Check if the traj does not need to be optimized
+ *
+ * @param index foot index (-1 for all)
+ * @return true: does not need to be optimized
+ * @return false: need to be optimized
+ */
+bool MCTStateTransfer::opt_check(int index = -1)
 {
     if (index != -1)
     {
