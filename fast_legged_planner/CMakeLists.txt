@@ -5,7 +5,6 @@ project(fast_legged_planner)
 add_compile_options(-std=c++11)
 
 
-
 set(MSG_DEP_SET
   std_msgs
   geometry_msgs

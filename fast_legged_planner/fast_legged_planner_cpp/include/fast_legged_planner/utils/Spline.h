@@ -23,6 +23,15 @@
 #include <Eigen/Dense>
 /* internal project header files */
 
+////////////////////
+// Consts
+
+const Eigen::MatrixXd UNIB_COE_MAT = (Eigen::MatrixXd(4, 4) << 1, 4, 1, 0,
+                                      -3, 0, 3, 0,
+                                      3, -6, 3, 0,
+                                      -1, 3, -3, 1)
+                                         .finished();
+
 /**
  * @brief Evaluate cubic spline at t
  *
@@ -76,16 +85,16 @@ public:
      * @param normalized whether to use normalized parameter t
      * @return Eigen::VectorXd
      */
-    virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) = 0;
-    virtual void set(const Eigen::MatrixXd &params) = 0;
-    virtual Eigen::MatrixXd get() const = 0;
+    virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false);
+    virtual void set(const Eigen::MatrixXd &params);
+    virtual Eigen::MatrixXd get() const;
     virtual void insert(double t); // TODO
 
     // Attributes
-    virtual std::pair<double, double> get_range() const = 0;
-    virtual int get_dimen() const = 0;
-    virtual Eigen::VectorXd get_start() const = 0;
-    virtual Eigen::VectorXd get_end() const = 0;
+    virtual std::pair<double, double> get_range() const;
+    virtual int get_dimen() const;
+    virtual Eigen::VectorXd get_start() const;
+    virtual Eigen::VectorXd get_end() const;
 };
 
 /**
@@ -96,22 +105,17 @@ public:
 class UniBSpline : public SplineBase
 {
 private:
-    int k_ = 3;                         // Order of the spline
-    int n;                              // Node count
-    int dimen_;                         // Dimension of the spline
-    Eigen::MatrixXd params_;            // Parameters of the spline(nodes in rows)
-    Eigen::MatrixXd coeff_mat_;         // Coefficient matrix for Cubic Uniform B-Spline
-    std::pair<double, double> t_range_; // Range of parameter t
+    int k_ = 3;                                // Order of the spline
+    int n;                                     // Node count
+    int dimen_;                                // Dimension of the spline
+    Eigen::MatrixXd params_;                   // Parameters of the spline(nodes in rows)
+    Eigen::MatrixXd coeff_mat_ = UNIB_COE_MAT; // Coefficient matrix for Cubic Uniform B-Spline
+    std::pair<double, double> t_range_;        // Range of parameter t
 
 public:
     UniBSpline(const Eigen::MatrixXd &params, int k = 3) : k_(k)
     {
         set(params);
-        coeff_mat_ = Eigen::MatrixXd::Zero(k_ + 1, k_ + 1);
-        coeff_mat_ << 1, 4, 1, 0,
-            -3, 0, 3, 0,
-            3, -6, 3, 0,
-            -1, 3, -3, 1;
     }
 
     void set(const Eigen::MatrixXd &params) override
