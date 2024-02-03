@@ -313,17 +313,16 @@ class HermiteSpline(SplineBase):
 
 
 class UniBSpline(SplineBase):
-    def __init__(self, params: np.ndarray, k=3, extrapolate="knot"):        
+    def __init__(self, params: np.ndarray, k=3, extrapolate="knot"):
         """Uniform B-Spline initialization
         TODO: Note: Start at p0 end at pn
         :param params: control points, literally `np.ndarray([p0, p1, p2, p3,..., pn])`
         :param k: spline order
-        :param extrapolate: "knot" uses non-uniform bspline to reach start/end point
-                            "extend" extends t_range to reach start/end point
+        :param extrapolate: "knot" uses non-uniform bspline to reach start/end point, "extend" extends t_range to reach start/end point
         """
         self._k = k
-        self.set(params)
         self.extrapolate = extrapolate
+        self.set(params)
         # self.para_mat = UNI_B_MAT
 
     @override

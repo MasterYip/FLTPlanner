@@ -152,7 +152,7 @@ public:
             t = t * (t_range_.second - t_range_.first) + t_range_.first;
         }
 
-        if ((!normalized && (t < t_range_.first || t > t_range_.second)) || (normalized && (t < 0 || t > 1))
+        if ((!normalized && (t < t_range_.first || t > t_range_.second)) || (normalized && (t < 0 || t > 1)))
         {
             throw std::invalid_argument("Parameter t out of range");
         }
