@@ -15,7 +15,7 @@ import pinocchio as pin
 from abc import ABCMeta
 from ..third_party.meshcat_viewer_wrapper.visualizer import colors
 
-Load_Meshcat = True
+Load_Meshcat = False
 MeshcatFound = False
 if Load_Meshcat:
     try:
