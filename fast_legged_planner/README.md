@@ -58,13 +58,13 @@ roslaunch fast_legged_planner HIT_spider_traj_planner.launch
 
 Several settings is provided in `HIT_spider_traj_planner.launch`, planner settings is in python codes(temporarily).
 
-NOTE: hexapod_State.msg has been updated (line 17 and below is newly added), but `parallelMCTS_VirtualLoss` used a old version of hexapod_State.msg, so you need to modify it manually.
+NOTE: <span style="color:red;">`hexapod_State.msg` has been updated (line 17 and below is newly added), but `parallelMCTS_VirtualLoss` used a old version of `hexapod_State.msg`, so you need to modify it manually.</span>
 
 ### Trajectory Optimization Demo
 
 A simple trajectory optimization demo for various planning algorithms(RRT, BFGS, etc.).
 
- ![Trajectory Optimization Demo](doc/eg_traj_opt_demo.png)
+![Trajectory Optimization Demo](doc/eg_traj_opt_demo.png)
 
 ```bash
 source .setup_rc_nuc11 # setup env (WITH_PINPY = 1)

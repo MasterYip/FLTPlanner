@@ -1,0 +1,3 @@
+[submodule "hexapod_robot_assets"]
+	path = hexapod_robot_assets
+	url = git@github.com:HITSME-HexLab/hexapod_robot_assets.git

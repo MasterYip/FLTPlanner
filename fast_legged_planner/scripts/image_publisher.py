@@ -42,7 +42,7 @@ def callback(self):
     rosimage.width = img.shape[1]
     rosimage.height = img.shape[0]
     rosimage.step = img.strides[0]
-    rosimage.data = img.tostring()
+    rosimage.data = img.tobytes()
     rosimage.header.stamp = rospy.Time.now()
     rosimage.header.frame_id = 'map'
 

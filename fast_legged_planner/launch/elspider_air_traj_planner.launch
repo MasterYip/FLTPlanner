@@ -66,7 +66,7 @@
     </node> -->
 
     <!-- Robot related -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find fast_legged_planner)/model/elspider_air/xacro/robot.xacro" />
+    <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
     <!-- Rviz -->
     <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find fast_legged_planner)/config/walking_rviz.rviz" output="screen" />

@@ -4,7 +4,7 @@ Date: 2023-11-17 11:44:52
 LastEditors: RaymonYip-NUC11
 LastEditTime: 2024-01-16 21:21:30
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/whole_body_planner/hit_spider_planner_ros.py
-Description: This whole body planner supports ElSpider2 & ElSpider Air
+Description: This whole body planner supports ElSpider2 & ElSpider_Air
 '''
 #!/usr/bin/env python
 # coding=utf-8

@@ -76,7 +76,7 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  # hit_spider messages
+  # elspider2 messages
   FeetNormalVector.msg
   FeetPosition.msg
   hexapod_Base_Pose.msg
