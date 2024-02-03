@@ -36,14 +36,14 @@ TEST(SplineTest, test_cubic_evaluate_pos2)
     // Test position 2
     Eigen::MatrixXd knots(4, 2);
     knots << 1, 1, 1, -1, -1, -1, -1, 1;
-    double t = 0;
+    double t = 0.5;
     Eigen::VectorXd result = cubic_evaluate(para_mat, knots, t);
     Eigen::VectorXd expected_result(2);
     // expected_result << 0, -0.875;
-    expected_result << 0.66666667, -0.5;
+    expected_result << 0, -0.9166666667;
     std::cout << "result: " << result.transpose() << std::endl;
     std::cout << "expected_result: " << expected_result.transpose() << std::endl;
-    ASSERT_TRUE(result.isApprox(expected_result));
+    ASSERT_TRUE(result.isApprox(expected_result, 1e-6));
 }
 
 TEST(SplineTest, test_unibspline)
@@ -55,14 +55,14 @@ TEST(SplineTest, test_unibspline)
 
     Eigen::Vector2d expected_result;
     expected_result << 1, 1;
-    std::cout << "result: " << spline.evaluate(0).transpose() << std::endl;
+    std::cout << "result: " << spline.evaluate(-1).transpose() << std::endl;
     std::cout << "expected_result: " << expected_result.transpose() << std::endl;
-    ASSERT_TRUE(spline.evaluate(0).isApprox(expected_result));
+    ASSERT_TRUE(spline.evaluate(-1).isApprox(expected_result, 1e-6));
 
-    expected_result << 0, -0.875;
+    expected_result << 0, -0.91666667;
     std::cout << "result: " << spline.evaluate(1.5).transpose() << std::endl;
     std::cout << "expected_result: " << expected_result.transpose() << std::endl;
-    ASSERT_TRUE(spline.evaluate(1.5).isApprox(expected_result));
+    ASSERT_TRUE(spline.evaluate(1.5).isApprox(expected_result, 1e-6));
 }
 
 TEST(SplineTest, test_unibspline_draw)

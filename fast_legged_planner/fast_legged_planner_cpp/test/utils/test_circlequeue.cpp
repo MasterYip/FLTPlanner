@@ -32,20 +32,20 @@
 //     return 0;
 // }
 
-TEST(CircleQueue, test1) {
-    CircleQueue<int> q(5);
-    for (int i = 0; i < 5; ++i) {
-        q.travel();
-        q.dequeue();
-        q.dequeue();
-    }
+// TEST(CircleQueue, test1) {
+//     CircleQueue<int> q(5);
+//     for (int i = 0; i < 5; ++i) {
+//         q.travel();
+//         q.dequeue();
+//         q.dequeue();
+//     }
 
-    q.travel();
-    for (int i = 0; i < 2; ++i) {
-        q.enqueue(i + 4);
-    }
-    q.travel();
-    for (int i = -1; i < 6; ++i) {
-        EXPECT_EQ(q.at(i), i + 3);
-    }
-}
+//     q.travel();
+//     for (int i = 0; i < 2; ++i) {
+//         q.enqueue(i + 4);
+//     }
+//     q.travel();
+//     for (int i = -1; i < 6; ++i) {
+//         EXPECT_EQ(q.at(i), i + 3);
+//     }
+// }

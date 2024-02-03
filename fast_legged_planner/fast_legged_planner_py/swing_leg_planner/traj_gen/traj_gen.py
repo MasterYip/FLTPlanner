@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2024-02-03 15:40:15
+LastEditTime: 2024-02-03 19:28:29
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/traj_gen/traj_gen.py
 Description: file content
 '''
@@ -113,11 +113,11 @@ class SplineBase(object):
 
     # Methods
     @abstractmethod
-    def evaluate(self, t: float, d_order: int = 0, normalized: bool = False):
+    def evaluate(self, t, d_order: int = 0, normalized: bool = False):
         """Evaluate spline at parameter t
 
         Args:
-            t (float): parameter t
+            t: parameter t (float or np.ndarray)
             d_order (int, optional): Derivative order. Defaults to 0.
             normalized (bool, optional): Whether t is normalized. Defaults to False.
         """
@@ -335,12 +335,22 @@ class UniBSpline(SplineBase):
             self.t_range = [0, self.n-1]
             self._t = np.concatenate((np.zeros(self._k), np.arange(
                 self.n), np.ones(self._k)*self.t_range[1]))
+            self.bspline = interpolate.BSpline(self._t, np.concatenate(
+                (self.params[0].reshape(1, self.dimen),
+                 self.params,
+                 self.params[-1].reshape(1, self.dimen))),
+                self._k, extrapolate=False)
         elif self.extrapolate == "extend":
             self.t_range = [2-self._k, self.n+self._k-3]
-            self._t = np.arange(-self._k, self.n+self._k)
-        self.bspline = interpolate.BSpline(self._t, np.concatenate(
-            (self.params[0].reshape(1, self.dimen), self.params, self.params[-1].reshape(1, self.dimen))),
-            self._k, extrapolate=False)
+            self._t = np.arange(-self._k-1, self.n+self._k+1)
+            # FIXME: when extrapolate="extend", and k>3, evaluate may return nan
+            self.bspline = interpolate.BSpline(self._t, np.concatenate(
+                (self.params[0].reshape(1, self.dimen),
+                 self.params[0].reshape(1, self.dimen),
+                 self.params,
+                 self.params[-1].reshape(1, self.dimen),
+                 self.params[-1].reshape(1, self.dimen))),
+                self._k, extrapolate=False)
 
     @override
     def get(self):
