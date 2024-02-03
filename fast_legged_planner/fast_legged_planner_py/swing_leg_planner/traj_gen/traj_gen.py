@@ -2,7 +2,7 @@
 Author: RaymonYip-NUC11 2205929492@qq.com
 Date: 2023-11-02 17:56:55
 LastEditors: RaymonYip-NUC11
-LastEditTime: 2024-01-31 20:01:19
+LastEditTime: 2024-02-03 15:40:15
 FilePath: /flplanner_ws/src/fast_legged_planner/fast_legged_planner_py/swing_leg_planner/traj_gen/traj_gen.py
 Description: file content
 '''
@@ -313,13 +313,17 @@ class HermiteSpline(SplineBase):
 
 
 class UniBSpline(SplineBase):
-    def __init__(self, params: np.ndarray, k=3):
+    def __init__(self, params: np.ndarray, k=3, extrapolate="knot"):        
         """Uniform B-Spline initialization
         TODO: Note: Start at p0 end at pn
         :param params: control points, literally `np.ndarray([p0, p1, p2, p3,..., pn])`
+        :param k: spline order
+        :param extrapolate: "knot" uses non-uniform bspline to reach start/end point
+                            "extend" extends t_range to reach start/end point
         """
         self._k = k
         self.set(params)
+        self.extrapolate = extrapolate
         # self.para_mat = UNI_B_MAT
 
     @override
@@ -327,12 +331,17 @@ class UniBSpline(SplineBase):
         self.params = np.array(params, dtype=np.float64)
         self.n = params.shape[0]
         self.dimen = params.shape[1]
-        self.t_range = [0, self.n-1]
-
-        self._t = np.concatenate((np.zeros(self._k), np.arange(
-            self.n), np.ones(self._k)*self.t_range[1]))
+        if self.extrapolate == "knot":
+            # NOTE: this extrapolate method is different from cpp version
+            self.t_range = [0, self.n-1]
+            self._t = np.concatenate((np.zeros(self._k), np.arange(
+                self.n), np.ones(self._k)*self.t_range[1]))
+        elif self.extrapolate == "extend":
+            self.t_range = [2-self._k, self.n+self._k-3]
+            self._t = np.arange(-self._k, self.n+self._k)
         self.bspline = interpolate.BSpline(self._t, np.concatenate(
-            (self.params[0].reshape(1, self.dimen), self.params, self.params[-1].reshape(1, self.dimen))), self._k)
+            (self.params[0].reshape(1, self.dimen), self.params, self.params[-1].reshape(1, self.dimen))),
+            self._k, extrapolate=False)
 
     @override
     def get(self):

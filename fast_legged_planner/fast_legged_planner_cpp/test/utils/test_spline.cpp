@@ -55,21 +55,21 @@ TEST(SplineTest, test_unibspline)
 
     Eigen::Vector2d expected_result;
     expected_result << 1, 1;
-    std::cout<< "result: " << spline.evaluate(0).transpose() << std::endl;
-    std::cout<< "expected_result: " << expected_result.transpose() << std::endl;
+    std::cout << "result: " << spline.evaluate(0).transpose() << std::endl;
+    std::cout << "expected_result: " << expected_result.transpose() << std::endl;
     ASSERT_TRUE(spline.evaluate(0).isApprox(expected_result));
-    
-    expected_result << 0, -0.875;
-    std::cout<< "result: " << spline.evaluate(1.5).transpose() << std::endl;
-    std::cout<< "expected_result: " << expected_result.transpose() << std::endl;
-    ASSERT_TRUE(spline.evaluate(1.5).isApprox(expected_result));
 
+    expected_result << 0, -0.875;
+    std::cout << "result: " << spline.evaluate(1.5).transpose() << std::endl;
+    std::cout << "expected_result: " << expected_result.transpose() << std::endl;
+    ASSERT_TRUE(spline.evaluate(1.5).isApprox(expected_result));
 }
 
 TEST(SplineTest, test_unibspline_draw)
 {
-    Eigen::MatrixXd params(4, 2);
-    params << 1, 1, 1, -1, -1, -1, -1, 1;
+    Eigen::MatrixXd params(7, 2);
+    // params << 1, 1, 1, -1, -1, -1, -1, 1;
+    params << 2, 1, 1, -1, 0.5, 0, 0, 0, -0.5, 0, -1, -1, -2, 1;
     UniBSpline spline(params);
 
     int sample_num = 101;
@@ -77,17 +77,17 @@ TEST(SplineTest, test_unibspline_draw)
     mglData x(sample_num), y(sample_num);
     for (int i = 0; i < sample_num; i++)
     {
-        double t = i * (spline.get_range().second - spline.get_range().first) / (sample_num - 1);
+        double t = i * (spline.get_range().second - spline.get_range().first) / (sample_num - 1) + spline.get_range().first;
         Eigen::VectorXd result = spline.evaluate(t);
         x.a[i] = result(0);
         y.a[i] = result(1);
     }
-    
+    std::cout << "t=1.5: " << spline.evaluate(1.5).transpose() << std::endl;
     // Plot
     mglQT gr;
     gr.Title("bspline");
     gr.SetOrigin(0, 0);
-    gr.SetRanges(-1.2, 1.2, -1.2, 1.2);
+    gr.SetRanges(-2.2, 2.2, -1.2, 1.2);
     gr.Plot(x, y, "b-2");
     gr.Axis();
     gr.Grid();

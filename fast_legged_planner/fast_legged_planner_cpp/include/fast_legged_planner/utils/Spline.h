@@ -135,7 +135,9 @@ public:
         this->params_ = params;
         n = params.rows();
         dimen_ = params.cols();
-        t_range_ = std::make_pair(0, n - 1);
+        // t_range_ = std::make_pair(0, n - 1);
+        // NOTE: in order to reach the start/end of the spline, we need to extend the t_range
+        t_range_ = std::make_pair(2 - k_, n + k_ - 3);
     }
 
     Eigen::MatrixXd get() const override
@@ -145,18 +147,19 @@ public:
     // TODO: test it
     Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
     {
-        if (normalized)
+        if (normalized && t>=0 && t<=1)
         {
             t = t * (t_range_.second - t_range_.first) + t_range_.first;
         }
 
-        if (t < t_range_.first || t > t_range_.second)
+        if ((!normalized && (t < t_range_.first || t > t_range_.second)) || (normalized && (t < 0 || t > 1))
         {
-            throw std::invalid_argument("Parameter t must be in t_range_");
+            throw std::invalid_argument("Parameter t out of range");
         }
 
         int i = floor(t);
         Eigen::MatrixXd knots = Eigen::MatrixXd::Zero(k_ + 1, dimen_);
+        // FIXME: this evaluate method can't reach the start/end of the spline
         for (int j = 0; j < k_ + 1; j++)
         {
             int index = i + j - k_ / 2;
