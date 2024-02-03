@@ -2,7 +2,7 @@
     <!-- HIT Spider MCTs + foot trajectory optimization -->
 
     <!-- Settings -->
-    <!-- value: image/txt --> <!-- txt Deprecated -->
+    <!-- value: image/txt -->    <!-- txt Deprecated -->
     <arg name="grid_map_fmt" value="image" />
     <arg name="with_ceiling" value="true" />
     <arg name="max_height" value="1.0" />
@@ -58,7 +58,7 @@
     <group if="$(eval grid_map_fmt=='txt')">
         <node pkg="fast_legged_planner" type="grid_map_pub" name="grid_map_pub" output="screen"/>
     </group>
-    
+
     <!-- sdf_pub for SDF visualization (pointcloud) -->
     <!-- <node pkg="fast_legged_planner" type="sdf_pub" name="sdf_pub" output="screen"/>
     <node pkg="grid_map_visualization" type="grid_map_visualization" name="grid_map_visualization" output="screen">
@@ -66,7 +66,7 @@
     </node> -->
 
     <!-- Robot related -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find fast_legged_planner)/model/ElSpider_Mini/xacro/robot.xacro" />
+    <param name="robot_description" command="$(find xacro)/xacro $(find fast_legged_planner)/model/elspider_air/xacro/robot.xacro" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
     <!-- Rviz -->
     <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find fast_legged_planner)/config/walking_rviz.rviz" output="screen" />
