@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(fast_legged_planner_cpp)
 
-add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 # Settings
 set(USE_GTEST "ON")
