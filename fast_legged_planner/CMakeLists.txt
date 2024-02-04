@@ -14,13 +14,14 @@ set(MSG_DEP_SET
 set(GRID_MAP_SET
   grid_map_core
   grid_map_ros
-  grid_map_cv
+  # grid_map_cv
   grid_map_filters
   grid_map_loader
   grid_map_msgs
-  grid_map_octomap
+  # grid_map_octomap
   grid_map_rviz_plugin
   grid_map_visualization
+  grid_map_sdf
   pcl_ros
   pcl_conversions
 )
