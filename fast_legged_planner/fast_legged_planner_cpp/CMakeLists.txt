@@ -6,8 +6,9 @@ add_compile_options(-std=c++11)
 # Settings
 set(GTEST "ON")
 
-
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+# Dependancy
 find_package(Eigen3 REQUIRED)
 find_package(pinocchio REQUIRED)
 # FIXME: you should split the project down to smaller packages (for decoupling)
@@ -15,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   grid_map_core)
+
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE TESTS "test/*.cpp")
