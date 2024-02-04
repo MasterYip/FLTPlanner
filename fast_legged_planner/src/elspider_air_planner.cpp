@@ -22,6 +22,7 @@ class ElSpiderAirPlanner
 {
 private:
     ros::NodeHandle nh_;
+    ros::Subscriber sub_;
     ElSpiderAirInterfaceROS robot_interface_;
     GridMapInterface gridmap_interface_;
     HITSpiderWholeBodyPlanner whole_body_planner_;
@@ -33,12 +34,13 @@ public:
                            gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
                            rate_(20)
     {
-        ros::Subscriber sub = nh_.subscribe("supportStateTopic", 1, &ElSpiderAirPlanner::callback, this);
+        sub_ = nh_.subscribe("/supportStateTopic", 100, &ElSpiderAirPlanner::callback, this);
     }
 
     void callback(const fast_legged_planner::hexapod_State &msg)
     {
         MCT_solution_.push_back(msg);
+        printf("MCT_solution_ size: %d\n", MCT_solution_.size());
         if (msg.remarks.data == "end_flag")
         {
             ROS_INFO("end_flag received, start planning");

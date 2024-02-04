@@ -2,7 +2,9 @@
     <!-- HIT Spider MCTs + foot trajectory optimization -->
 
     <!-- Settings -->
-    <!-- value: image/txt -->    <!-- txt Deprecated -->
+    <!-- value: python / cpp -->
+    <arg name="language" value="cpp"/>
+    <!-- value: image / txt(deprecated) -->
     <arg name="grid_map_fmt" value="image" />
     <arg name="with_ceiling" value="true" />
     <arg name="max_height" value="1.0" />
@@ -29,7 +31,8 @@
 
     <!-- Launch -->
     <!-- Foot traj Planner -->
-    <node pkg="fast_legged_planner" type="elspider_air_planner.py" name="footend_planner" output="screen" />
+    <node pkg="fast_legged_planner" type="elspider_air_planner.py" name="elspider_air_planner_py" output="screen" if="$(eval language=='python')"/>
+    <node pkg="fast_legged_planner" type="elspider_air_planner" name="elspider_air_planner_cpp" output="screen" if="$(eval language=='cpp')"/>
 
     <!-- GridMap -->
     <group if="$(eval grid_map_fmt=='image')">
