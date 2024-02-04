@@ -20,7 +20,7 @@
 /* external project header files */
 #include "fast_legged_planner/robot_interface/ElSpiderAirInterface.h"
 #include <ros/ros.h>
-#include <tf/transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Vector3.h>
 #include <sensor_msgs/JointState.h>
@@ -33,7 +33,7 @@ class ElSpiderAirInterfaceROS : public ElSpiderAirInterface
 private:
     ros::NodeHandle nh;
     ros::Publisher joint_state_pub;
-    tf::TransformBroadcaster odom_pub;
+    tf2_ros::TransformBroadcaster odom_pub;
     ros::Publisher foot_pos_pub;
     int feedforward_type;
     std::vector<double> joint_kp;

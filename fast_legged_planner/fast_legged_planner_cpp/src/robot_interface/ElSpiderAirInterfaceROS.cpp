@@ -1,4 +1,15 @@
+/**
+ * @file ElSpiderAirInterfaceROS.cpp
+ * @author Master Yip (2205929492@qq.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-02-04
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "fast_legged_planner/robot_interface/ElSpiderAirInterfaceROS.h"
+#include <geometry_msgs/TransformStamped.h>
 
 ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf)
     : ElSpiderAirInterface(urdf)
@@ -39,12 +50,22 @@ void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<std:
 }
 
 void ElSpiderAirInterfaceROS::pub_odom(const pinocchio::SE3 &odom,
-                                            const std::string &child_frame,
-                                            const std::string &parent_frame)
+                                       const std::string &child_frame,
+                                       const std::string &parent_frame)
 {
-    tf::Vector3 xyz(odom.translation().x(), odom.translation().y(), odom.translation().z());
-    tf::Quaternion quat(odom.rotation().x(), odom.rotation().y(), odom.rotation().z(), odom.rotation().w());
-    odom_pub.sendTransform(tf::StampedTransform(tf::Transform(quat, xyz), ros::Time::now(), child_frame, parent_frame));
+    geometry_msgs::TransformStamped odom_tf;
+    odom_tf.header.stamp = ros::Time::now();
+    odom_tf.header.frame_id = parent_frame;
+    odom_tf.child_frame_id = child_frame;
+    odom_tf.transform.translation.x = odom.translation()[0];
+    odom_tf.transform.translation.y = odom.translation()[1];
+    odom_tf.transform.translation.z = odom.translation()[2];
+    Eigen::Quaterniond quat(odom.rotation());
+    odom_tf.transform.rotation.x = quat.x();
+    odom_tf.transform.rotation.y = quat.y();
+    odom_tf.transform.rotation.z = quat.z();
+    odom_tf.transform.rotation.w = quat.w();
+    odom_pub.sendTransform(odom_tf);
 }
 
 void ElSpiderAirInterfaceROS::pub_joint_state(const std::vector<double> &q)
