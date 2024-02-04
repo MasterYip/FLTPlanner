@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  *
  */
-#include "fast_legged_planner/perception_interface/GridmapInterface.h"
+#include "fast_legged_planner/perception_interface/GridMapInterface.h"
 
 int main(int argc, char **argv)
 {
