@@ -18,9 +18,13 @@ int main(int argc, char **argv)
     GridMapInterface interface("/grid_map");
     grid_map::Length range = interface.getRange();
     std::cout << "Range: " << range[0] << " " << range[1] << std::endl;
+    std::pair<Eigen::Vector3d, Eigen::Vector3d> sdf_range = interface.getSdfRange();
+    std::cout << "SDF Range: " << std::endl << std::setprecision(4)
+              << sdf_range.first.transpose() << std::endl
+              << sdf_range.second.transpose() << std::endl;
     while (ros::ok())
     {
-        grid_map::Position pos(range[0]/2, range[1]/2);
+        grid_map::Position pos(range[0] / 2, range[1] / 2);
         double height = interface.value(pos);
         std::cout << "Height at center: " << height << std::endl;
         grid_map::Position3 pos3(pos.x(), pos.y(), height);

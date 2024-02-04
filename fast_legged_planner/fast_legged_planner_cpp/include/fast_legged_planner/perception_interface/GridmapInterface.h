@@ -62,7 +62,7 @@ public:
         {
             ROS_WARN("GridMap_Interface - Waiting for GridMap message...");
             ros::spinOnce();
-            ros::Duration(2).sleep();
+            ros::Duration(0.5).sleep();
         }
         updateSDF(ground_layer, 0, sdf_margin);
         if (map_.exists(ceiling_layer))
@@ -144,5 +144,10 @@ public:
     grid_map::Length getRange() const
     {
         return map_.getLength();
+    }
+
+    std::pair<Eigen::Vector3d, Eigen::Vector3d> getSdfRange(size_t index = 0) const
+    {
+        return sdf_range[index];
     }
 };
