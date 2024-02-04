@@ -23,3 +23,5 @@
 #include "fast_legged_planner/hexapod_Base_Pose.h"
 
 pinocchio::SE3 XYZRPY2SE3(fast_legged_planner::hexapod_Base_Pose pose);
+
+Eigen::Vector3d point_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Vector3d &pt);

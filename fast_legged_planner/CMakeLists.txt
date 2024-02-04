@@ -231,6 +231,16 @@ target_link_libraries(sdf_pub
   ${PROJECT_NAME}
 )
 
+add_executable(elspider_air_planner src/elspider_air_planner.cpp)
+target_include_directories(elspider_air_planner PRIVATE
+  fast_legged_planner_cpp/include
+)
+target_link_libraries(elspider_air_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+  fast_legged_planner_cpp
+)
+
 #############
 ## Install ##
 #############

@@ -23,15 +23,21 @@
 #include "fast_legged_planner/utils/CircleQueue.h"
 #include "fast_legged_planner/swing_leg_planner/SwingTrajPlanner.h"
 #include "fast_legged_planner/whole_body_planner/MCTStateTransfer.h"
-
+#include "fast_legged_planner/robot_interface/BaseRobotInterface.h"
+#include "fast_legged_planner/perception_interface/GridMapInterface.h"
 class HITSpiderWholeBodyPlanner
 {
 private:
     std::vector<MCTStateTransfer> state_trajs;
     SwingTrajPlanner swing_traj_planner;
+    // FIXME
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
 
 public:
     HITSpiderWholeBodyPlanner();
+
+    HITSpiderWholeBodyPlanner(GridMapInterface &gridmap_interface, BaseRobotInterface &robot_interface);
 
     bool enqueue_MCTsolution(hexapod_State state0, hexapod_State state1);
 

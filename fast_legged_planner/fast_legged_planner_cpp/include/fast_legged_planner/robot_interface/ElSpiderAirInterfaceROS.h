@@ -1,0 +1,55 @@
+/**
+ * @file ElSpiderAirInterfaceROS.h
+ * @author Master Yip (2205929492@qq.com)
+ * @brief
+ * @version 0.1
+ * @date 2024-02-04
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
+#pragma once
+
+/* related header files */
+
+/* c system header files */
+
+/* c++ standard library header files */
+
+/* external project header files */
+#include <ros/ros.h>
+#include <tf/transform_broadcaster.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/Vector3.h>
+#include <sensor_msgs/JointState.h>
+#include "fast_legged_planner/FootCmd.h"
+#include "fast_legged_planner/robot_interface/ElSpiderAirInterface.h"
+
+/* internal project header files */
+
+class ElSpiderAirInterfaceROS : public ElSpiderAirInterface
+{
+private:
+    ros::Publisher joint_state_pub;
+    tf::TransformBroadcaster odom_pub;
+    ros::Publisher foot_pos_pub;
+    int feedforward_type;
+    std::vector<double> joint_kp;
+    std::vector<double> joint_kd;
+
+public:
+    ElSpiderAirInterfaceROS(const std::string &urdf);
+
+    /**
+     * @brief Publish foot command from foot end position
+     * @note Interface with HexapodSoftware
+     * @param footendpos
+     */
+    void pub_footcmd_from_footendpos(const std::vector<std::vector<double>> &footendpos);
+    void pub_odom(const pinocchio::SE3 &odom,
+                  const std::string &child_frame = "base",
+                  const std::string &parent_frame = "odom");
+    void pub_joint_state(const std::vector<double> &q);
+    void pub_joint_state_from_footendpos(const std::vector<std::vector<double>> &footendpos);
+};

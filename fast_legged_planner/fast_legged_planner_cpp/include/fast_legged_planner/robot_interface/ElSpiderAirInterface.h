@@ -28,5 +28,4 @@ public:
     ElSpiderAirInterface(const std::string &urdf, const std::vector<std::string> &package_dirs = {}) : BaseRobotInterface(urdf, package_dirs)
     {
     }
-    
 };
