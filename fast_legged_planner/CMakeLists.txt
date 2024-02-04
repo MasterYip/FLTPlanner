@@ -147,7 +147,7 @@ catkin_package(
 # because -DEIGEN_DENSEBASE_PLUGIN may disturb compilation
 
 # MCTS planner
-# add_subdirectory(mcts_planner)
+add_subdirectory(mcts_planner)
 # fast_legged_planner
 add_subdirectory(fast_legged_planner_cpp)
 
@@ -239,6 +239,7 @@ target_link_libraries(elspider_air_planner
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
   fast_legged_planner_cpp
+  mcts_planner
 )
 
 #############

@@ -36,6 +36,7 @@ endif()
 # Find the grid_map package
 find_package(grid_map_core REQUIRED)
 find_package(grid_map_msgs REQUIRED)
+find_package(grid_map_sdf REQUIRED)
 
 # 包含 MyLibrary 的头文件路径
 include_directories(${grid_map_msgs_INCLUDE_DIRS})
@@ -67,8 +68,8 @@ find_package(pinocchio REQUIRED)
 # IK_FAST 
 # 添加自定义头文件
 include_directories(${PROJECT_SOURCE_DIR}/IKfast/IK_Fast_forHexMini)
-# # 添加库文件
-# add_subdirectory (${PROJECT_SOURCE_DIR}/IKfast/IK_Fast_forHexMini) # IK_FAST库
+# 添加库文件
+add_subdirectory (${PROJECT_SOURCE_DIR}/IKfast/IK_Fast_forHexMini) # IK_FAST库
 
 
 ###########
@@ -143,9 +144,9 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${grid_map_core_LIBRARIES}
+  ${grid_map_sdf_LIBRARIES}
   ${CDD_LIBRARY_DIR}
   ${lib_RST}
-  grid_map_sdf
 )
 
 # Export headers for this library to other libraries
@@ -158,9 +159,6 @@ target_include_directories(${PROJECT_NAME} INTERFACE
   # ${EIGEN3_INCLUDE_DIR}
   # ${PROJECT_SOURCE_DIR}/IKfast/IK_Fast_forHexMini
 )
-
-
-
 
 # 设置库文件的输出路径
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
