@@ -9,10 +9,14 @@
  * 
  */
 
-#include "fast_legged_planner/robot_interface/Base_RobotInterface.h"
+#include "fast_legged_planner/robot_interface/BaseRobotInterface.h"
+#include "urdf_path.h"
 #include <gtest/gtest.h>
 
 TEST(InterfaceTest, test_base_robot_interface)
 {
-    BaseRobotInterface robot()
+    BaseRobotInterface robot_interface(URDF_PATH, PKG_DIRS);
+    // Eigen::VectorXd q = Eigen::VectorXd::Zero(robot_interface.model_.nq);
+    robot_interface.print_joints();
+    robot_interface.print_frames();
 }

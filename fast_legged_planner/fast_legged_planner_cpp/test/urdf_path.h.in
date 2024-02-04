@@ -1,1 +1,2 @@
-#define URDF_PATH @URDF_PATH@
+#define URDF_PATH "@URDF_PATH@"
+#define PKG_DIRS std::vector<std::string>{"@PKG_DIRS@"}

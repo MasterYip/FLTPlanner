@@ -1,12 +1,12 @@
 /**
  * @file BaseRobotInterface.h
  * @author Master Yip (2205929492@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-02-03
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 #pragma once
 
@@ -16,19 +16,21 @@
 
 /* c++ standard library header files */
 #include <iostream>
-
+#include <filesystem>
 /* external project header files */
 #include <pinocchio/parsers/urdf.hpp>
 #include <pinocchio/algorithm/frames.hpp>
 #include <pinocchio/algorithm/kinematics.hpp>
-#include <pinocchio/multibody/Model.hpp>
+#include <pinocchio/multibody/model.hpp>
+#include <pinocchio/multibody/data.hpp>
 
 /* internal project header files */
 
 class BaseRobotInterface
 {
 private:
-    pinocchio::Model robot;
+    pinocchio::Model model_;
+    pinocchio::Data data_;
 
 public:
     BaseRobotInterface(const std::string &urdf, const std::vector<std::string> &package_dirs = {})
@@ -40,11 +42,12 @@ public:
             std::ofstream temp_urdf_file(tmp_urdf);
             temp_urdf_file << urdf;
             temp_urdf_file.close();
-            pinocchio::urdf::buildModel(tmp_urdf, pinocchio::JointModelFreeFlyer(), robot, true, package_dirs);
+            pinocchio::urdf::buildModel(tmp_urdf, model_, true);
         }
-        else if (urdf.substr(urdf.length() - 5) == ".urdf" && std::filesystem::exists(urdf))
+        // else if (urdf.substr(urdf.length() - 5) == ".urdf" && std::filesystem::exists(urdf)) // FIXME: c++17
+        else if (urdf.substr(urdf.length() - 5) == ".urdf")
         {
-            pinocchio::urdf::buildModel(urdf, pinocchio::JointModelFreeFlyer(), robot, true, package_dirs);
+            pinocchio::urdf::buildModel(urdf, model_, true);
         }
         else
         {
@@ -54,33 +57,35 @@ public:
 
     void update_kinematics(const Eigen::VectorXd &q)
     {
-        pinocchio::forwardKinematics(robot, pinocchio::computeJointJacobians, q);
+        pinocchio::forwardKinematics(model_, data_, q);
     }
 
     pinocchio::FrameIndex get_frameid(const std::string &frame_name)
     {
-        return robot.getFrameId(frame_name);
+        return model_.getFrameId(frame_name);
     }
 
     pinocchio::SE3 get_frame_placement(const Eigen::VectorXd &q, const std::string &frame_name, bool update_kinematics = true)
     {
-        return robot.framePlacement(q, get_frameid(frame_name), update_kinematics);
+        // pinocchio::forwardKinematics(model_, data_, joint_dir_mat_ * q);
+        pinocchio::forwardKinematics(model_, data_, q);
+        return pinocchio::updateFramePlacement(model_, data_, model_.getFrameId(frame_name));
     }
 
     // Debug
     void print_joints()
     {
-        for (size_t i = 0; i < robot.njoints; ++i)
+        for (size_t i = 0; i < model_.njoints; ++i)
         {
-            std::cout << i << " " << robot.names[i] << std::endl;
+            std::cout << i << " " << model_.names[i] << std::endl;
         }
     }
 
     void print_frames()
     {
-        for (size_t i = 0; i < robot.nframes; ++i)
+        for (size_t i = 0; i < model_.nframes; ++i)
         {
-            std::cout << i << " " << robot.frames[i].name << std::endl;
+            std::cout << i << " " << model_.frames[i].name << std::endl;
         }
     }
 };

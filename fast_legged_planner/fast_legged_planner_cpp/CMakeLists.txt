@@ -9,13 +9,14 @@ set(GTEST "ON")
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # Dependancy
+add_subdirectory(third_party/LeggedKinModule)
 find_package(Eigen3 REQUIRED)
 find_package(pinocchio REQUIRED)
 # FIXME: you should split the project down to smaller packages (for decoupling)
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  std_msgs
-  grid_map_core)
+# find_package(catkin REQUIRED COMPONENTS
+#   roscpp
+#   std_msgs
+#   grid_map_core)
 
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -28,8 +29,12 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
+# target_include_directories(${PROJECT_NAME} PUBLIC include)
+# target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES})
 target_include_directories(${PROJECT_NAME} PUBLIC include ${catkin_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${catkin_LIBRARIES})
+# target_include_directories(${PROJECT_NAME} PUBLIC include ${catkin_INCLUDE_DIRS})
+# target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${catkin_LIBRARIES} LeggedKinModule)
 
 # Tests
 # foreach(test ${TESTS})
@@ -42,8 +47,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${catkin_LIB
 if(GTEST)
   find_package(MathGL REQUIRED)
   find_package(GTest REQUIRED)  
+  # Configure file
+  set(URDF_PATH ${PROJECT_SOURCE_DIR}/../../hexapod_robot_assets/model/elspider_air/urdf/el_mini.urdf)
+  set(PKG_DIRS ${PROJECT_SOURCE_DIR}/../../hexapod_robot_assets/model/elspider_air)
+  configure_file(${PROJECT_SOURCE_DIR}/test/urdf_path.h.in ${PROJECT_SOURCE_DIR}/test/urdf_path.h @ONLY)
+  # Build
   add_executable(flplanner_tests ${TESTS})
-  # set(URDF_PATH ${PROJECT_SOURCE_DIR}/../)
   target_include_directories(flplanner_tests
     PRIVATE
     ${GTEST_INCLUDE_DIRS}
