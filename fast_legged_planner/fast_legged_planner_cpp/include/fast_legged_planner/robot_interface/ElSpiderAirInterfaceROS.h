@@ -18,19 +18,20 @@
 /* c++ standard library header files */
 
 /* external project header files */
+#include "fast_legged_planner/robot_interface/ElSpiderAirInterface.h"
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Vector3.h>
 #include <sensor_msgs/JointState.h>
 #include "fast_legged_planner/FootCmd.h"
-#include "fast_legged_planner/robot_interface/ElSpiderAirInterface.h"
 
 /* internal project header files */
 
 class ElSpiderAirInterfaceROS : public ElSpiderAirInterface
 {
 private:
+    ros::NodeHandle nh;
     ros::Publisher joint_state_pub;
     tf::TransformBroadcaster odom_pub;
     ros::Publisher foot_pos_pub;
@@ -51,5 +52,5 @@ public:
                   const std::string &child_frame = "base",
                   const std::string &parent_frame = "odom");
     void pub_joint_state(const std::vector<double> &q);
-    void pub_joint_state_from_footendpos(const std::vector<std::vector<double>> &footendpos);
+    void pub_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
 };

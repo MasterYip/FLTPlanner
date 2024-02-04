@@ -9,12 +9,12 @@
  *
  */
 
-#include <ros/ros.h>
+#include "fast_legged_planner/robot_interface/ElSpiderAirInterface.h"
 #include "fast_legged_planner/swing_leg_planner/SwingTrajPlanner.h"
 #include "fast_legged_planner/perception_interface/GridMapInterface.h"
-#include "fast_legged_planner/robot_interface/ElSpiderAirInterface.h"
 #include "fast_legged_planner/whole_body_planner/WholeBodyPlanner.h"
 #include "fast_legged_planner/hexapod_State.h"
+#include <ros/ros.h>
 // #include "swing_leg_planner/cost/cost.hpp"
 // #include "swing_leg_planner/traj_opt/traj_opt.hpp"
 

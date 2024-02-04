@@ -9,9 +9,8 @@
  *
  */
 
-#include <gtest/gtest.h>
-#include "fast_legged_planner/robot_interface/BaseRobotInterface.h"
 #include "fast_legged_planner/robot_interface/ElSpiderAirInterface.h"
+#include <gtest/gtest.h>
 #include "urdf_path.h"
 
 using namespace std;

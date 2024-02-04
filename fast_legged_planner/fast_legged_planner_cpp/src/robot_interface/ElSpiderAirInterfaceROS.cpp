@@ -56,8 +56,7 @@ void ElSpiderAirInterfaceROS::pub_joint_state(const std::vector<double> &q)
     joint_state_pub.publish(joint_state);
 }
 
-void ElSpiderAirInterfaceROS::pub_joint_state_from_footendpos(const std::vector<std::vector<double>> &footendpos)
+void ElSpiderAirInterfaceROS::pub_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)
 {
-    std::vector<double> q = IKFast_foots(footendpos);
-    pub_joint_state(q);
+    pub_joint_state(IKFast_foots(footendpos));
 }
