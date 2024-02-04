@@ -125,6 +125,9 @@ private:
     std::pair<double, double> t_range_;        // Range of parameter t
 
 public:
+    // FIXME: add default constructor
+    UniBSpline(){};
+
     UniBSpline(const Eigen::MatrixXd &params, int k = 3) : k_(k)
     {
         set(params);
@@ -147,12 +150,13 @@ public:
     // TODO: test it
     Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
     {
-        if (normalized && t>=0 && t<=1)
+        // convert normalized t to real t
+        if (normalized && t >= 0.0 && t <= 1.0)
         {
             t = t * (t_range_.second - t_range_.first) + t_range_.first;
         }
 
-        if ((!normalized && (t < t_range_.first || t > t_range_.second)) || (normalized && (t < 0 || t > 1)))
+        if (t < t_range_.first || t > t_range_.second)
         {
             throw std::invalid_argument("Parameter t out of range");
         }

@@ -27,12 +27,15 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1, S
     this->state0 = state0;
     this->state1 = state1;
     this->swing_traj_planner = swing_traj_planner;
-    this->torso_traj = nullptr;
     this->footpos_list0 = FeetPos2PosList(state0.feetPositionNow);
     this->footpos_list1 = FeetPos2PosList(state1.feetPositionNow);
-    this->swingtraj = std::vector<SplineBase>(6, SplineBase());
+    this->swingtraj = std::vector<UniBSpline>(6, UniBSpline());
     this->swingtraj_isopt = std::vector<bool>(6, false);
     this->swingtraj_isneeded = std::vector<bool>(6, false);
+    for (int i = 0; i < 6; ++i)
+    {
+        this->swingtraj_isneeded[i] = (state1.support_State_Now[i] == 0);
+    }
 
     // Default swing trajectory
     double v_lift = 0.1; // NOTE: not used
@@ -69,7 +72,7 @@ PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
             {
                 this->opt_swing_traj(i);
             }
-            footend_interp.push_back(this->swingtraj[i].evaluate(t, true));
+            footend_interp.push_back(this->swingtraj[i].evaluate(t, 0, true));
         }
         else
         {

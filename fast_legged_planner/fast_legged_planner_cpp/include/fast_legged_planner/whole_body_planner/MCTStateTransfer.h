@@ -35,10 +35,9 @@ private:
     hexapod_State state0;
     hexapod_State state1;
     SwingTrajPlanner swing_traj_planner;
-    pinocchio::SE3 *torso_traj;
     PosList footpos_list0;
     PosList footpos_list1;
-    std::vector<SplineBase> swingtraj;
+    std::vector<UniBSpline> swingtraj;
     std::vector<bool> swingtraj_isopt;
     std::vector<bool> swingtraj_isneeded;
 

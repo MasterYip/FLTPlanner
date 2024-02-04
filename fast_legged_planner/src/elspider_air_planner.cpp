@@ -40,7 +40,6 @@ public:
     void callback(const fast_legged_planner::hexapod_State &msg)
     {
         MCT_solution_.push_back(msg);
-        printf("MCT_solution_ size: %d\n", MCT_solution_.size());
         if (msg.remarks.data == "end_flag")
         {
             ROS_INFO("end_flag received, start planning");
