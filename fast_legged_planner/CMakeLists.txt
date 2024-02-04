@@ -4,7 +4,6 @@ project(fast_legged_planner)
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
-
 set(MSG_DEP_SET
   std_msgs
   geometry_msgs
@@ -34,9 +33,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   message_generation
   ${MSG_DEP_SET}
-  ${GRID_MAP_SET}
 )
-
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -145,11 +142,21 @@ catkin_package(
 ############
 ## Subdir ##
 ############
+# IMPORTANT: subdirectories should be added before grid_map_core
+# because -DEIGEN_DENSEBASE_PLUGIN may disturb compilation
 
 # MCTS planner
 # add_subdirectory(mcts_planner)
 # fast_legged_planner
 add_subdirectory(fast_legged_planner_cpp)
+
+###########################
+# Grid Map
+find_package(catkin REQUIRED COMPONENTS
+  ${GRID_MAP_SET}
+)
+###########################
+
 
 ###########
 ## Build ##

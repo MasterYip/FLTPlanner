@@ -12,11 +12,6 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 add_subdirectory(third_party/LeggedKinModule)
 find_package(Eigen3 REQUIRED)
 find_package(pinocchio REQUIRED)
-# FIXME: you should split the project down to smaller packages (for decoupling)
-# find_package(catkin REQUIRED COMPONENTS
-#   roscpp
-#   std_msgs
-#   grid_map_core)
 
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -28,20 +23,9 @@ include_directories(
   ${PINOCCHIO_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
-# target_include_directories(${PROJECT_NAME} PUBLIC include)
-# target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES})
+add_library(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC include ${catkin_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${catkin_LIBRARIES})
-# target_include_directories(${PROJECT_NAME} PUBLIC include ${catkin_INCLUDE_DIRS})
-# target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${catkin_LIBRARIES} LeggedKinModule)
-
-# Tests
-# foreach(test ${TESTS})
-#   get_filename_component(test_name ${test} NAME_WE)
-#   add_executable(${test_name} ${test})
-#   target_link_libraries(${test_name} ${PROJECT_NAME})
-# endforeach()
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${catkin_LIBRARIES} LeggedKinModule)
 
 # GTest
 if(GTEST)
@@ -60,3 +44,10 @@ if(GTEST)
     test)
   target_link_libraries(flplanner_tests ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread ${MathGL_LIBRARIES})
 endif()
+
+# Tests
+# foreach(test ${TESTS})
+#   get_filename_component(test_name ${test} NAME_WE)
+#   add_executable(${test_name} ${test})
+#   target_link_libraries(${test_name} ${PROJECT_NAME})
+# endforeach()
