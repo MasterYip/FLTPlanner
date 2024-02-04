@@ -42,12 +42,12 @@ public:
             std::ofstream temp_urdf_file(tmp_urdf);
             temp_urdf_file << urdf;
             temp_urdf_file.close();
-            pinocchio::urdf::buildModel(tmp_urdf, model_, true);
+            pinocchio::urdf::buildModel(tmp_urdf, model_);
         }
         // else if (urdf.substr(urdf.length() - 5) == ".urdf" && std::filesystem::exists(urdf)) // FIXME: c++17
         else if (urdf.substr(urdf.length() - 5) == ".urdf")
         {
-            pinocchio::urdf::buildModel(urdf, model_, true);
+            pinocchio::urdf::buildModel(urdf, model_);
         }
         else
         {
