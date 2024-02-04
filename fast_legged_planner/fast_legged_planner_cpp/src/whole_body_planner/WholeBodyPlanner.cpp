@@ -1,13 +1,12 @@
 #include "fast_legged_planner/whole_body_planner/WholeBodyPlanner.h"
 
-HITSpiderWholeBodyPlanner::HITSpiderWholeBodyPlanner()
-{
-    swing_traj_planner = SwingTrajPlanner();
-}
+// HITSpiderWholeBodyPlanner::HITSpiderWholeBodyPlanner()
+// {
+//     swing_traj_planner = SwingTrajPlanner();
+// }
 
 HITSpiderWholeBodyPlanner::HITSpiderWholeBodyPlanner(GridMapInterface &gridmap_interface, BaseRobotInterface &robot_interface)
-    : gridmap_interface_(std::make_shared<GridMapInterface>(gridmap_interface)),
-      robot_interface_(std::make_shared<BaseRobotInterface>(robot_interface))
+    : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface)
 {
     swing_traj_planner = SwingTrajPlanner();
 }

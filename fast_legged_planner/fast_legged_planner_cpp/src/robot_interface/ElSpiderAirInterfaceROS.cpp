@@ -21,7 +21,7 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf)
     joint_kd = {2, 2, 2};
 }
 
-void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<std::vector<double>> &footendpos)
+void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)
 {
     fast_legged_planner::FootCmd footcmd;
     footcmd.header.stamp = ros::Time::now();

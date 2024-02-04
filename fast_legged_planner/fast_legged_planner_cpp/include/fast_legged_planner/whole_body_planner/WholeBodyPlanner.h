@@ -30,12 +30,12 @@ class HITSpiderWholeBodyPlanner
 private:
     std::vector<MCTStateTransfer> state_trajs;
     SwingTrajPlanner swing_traj_planner;
-    // FIXME
-    std::shared_ptr<BaseRobotInterface> robot_interface_;
-    std::shared_ptr<GridMapInterface> gridmap_interface_;
+    // TODO: use shared_ptr
+    BaseRobotInterface &robot_interface_;
+    GridMapInterface &gridmap_interface_;
 
 public:
-    HITSpiderWholeBodyPlanner();
+    // HITSpiderWholeBodyPlanner();
 
     HITSpiderWholeBodyPlanner(GridMapInterface &gridmap_interface, BaseRobotInterface &robot_interface);
 

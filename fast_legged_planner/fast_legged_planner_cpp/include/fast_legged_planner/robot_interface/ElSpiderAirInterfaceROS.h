@@ -47,7 +47,7 @@ public:
      * @note Interface with HexapodSoftware
      * @param footendpos
      */
-    void pub_footcmd_from_footendpos(const std::vector<std::vector<double>> &footendpos);
+    void pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
     void pub_odom(const pinocchio::SE3 &odom,
                   const std::string &child_frame = "base",
                   const std::string &parent_frame = "odom");

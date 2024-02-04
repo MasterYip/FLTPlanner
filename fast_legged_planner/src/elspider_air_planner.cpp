@@ -9,7 +9,7 @@
  *
  */
 
-#include "fast_legged_planner/robot_interface/ElSpiderAirInterface.h"
+#include "fast_legged_planner/robot_interface/ElSpiderAirInterfaceROS.h"
 #include "fast_legged_planner/swing_leg_planner/SwingTrajPlanner.h"
 #include "fast_legged_planner/perception_interface/GridMapInterface.h"
 #include "fast_legged_planner/whole_body_planner/WholeBodyPlanner.h"
@@ -22,14 +22,14 @@ class ElSpiderAirPlanner
 {
 private:
     ros::NodeHandle nh_;
-    ElSpiderAirInterface robot_interface_;
+    ElSpiderAirInterfaceROS robot_interface_;
     GridMapInterface gridmap_interface_;
     HITSpiderWholeBodyPlanner whole_body_planner_;
     std::vector<hexapod_State> MCT_solution_;
     ros::Rate rate_;
 
 public:
-    ElSpiderAirPlanner() : nh_(""), robot_interface_(nh_.param("robot_description")),
+    ElSpiderAirPlanner() : robot_interface_(nh_.param("robot_description", std::string(""))), 
                            gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
                            rate_(20)
     {
@@ -39,7 +39,7 @@ public:
     void callback(const fast_legged_planner::hexapod_State &msg)
     {
         MCT_solution_.push_back(msg);
-        if (msg->remarks.data == "end_flag")
+        if (msg.remarks.data == "end_flag")
         {
             ROS_INFO("end_flag received, start planning");
             for (size_t i = 0; i < MCT_solution_.size() - 1; ++i)
@@ -59,8 +59,8 @@ public:
         double delta = 0.05;
         while (whole_body_planner_.get_state_traj_length() > 0)
         {
-            StateTraj state_traj = whole_body_planner_.get_state_traj(0);
-            Eigen::Vector3d odom_interp = state_traj.eval_torso_traj(t);
+            MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
+            pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(t);
             std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(t);
             for (size_t k = 0; k < 6; ++k)
             {
