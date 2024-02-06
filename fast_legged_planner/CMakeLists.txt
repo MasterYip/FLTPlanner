@@ -74,7 +74,7 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  # elspider2 messages
+  # MCTS
   FeetNormalVector.msg
   FeetPosition.msg
   hexapod_Base_Pose.msg
@@ -82,6 +82,9 @@ add_message_files(
   hexapod_State.msg
   # HexapodSoftware
   FootCmd.msg
+  FootState.msg
+  Euler.msg
+  BodyState.msg
 )
 
 ## Generate services in the 'srv' folder

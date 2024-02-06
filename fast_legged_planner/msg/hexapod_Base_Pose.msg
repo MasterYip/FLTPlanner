@@ -1,2 +1,2 @@
 geometry_msgs/Point position
-fast_legged_planner/hexapod_RPY orientation
+hexapod_RPY orientation

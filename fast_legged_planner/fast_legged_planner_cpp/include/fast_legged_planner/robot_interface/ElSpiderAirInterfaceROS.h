@@ -42,15 +42,18 @@ private:
 public:
     ElSpiderAirInterfaceROS(const std::string &urdf);
 
-    /**
-     * @brief Publish foot command from foot end position
-     * @note Interface with HexapodSoftware
-     * @param footendpos
-     */
-    void pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
+    // Rviz
     void pub_odom(const pinocchio::SE3 &odom,
                   const std::string &child_frame = "base",
                   const std::string &parent_frame = "odom");
     void pub_joint_state(const std::vector<double> &q);
     void pub_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
+
+    // HexapodSoftware
+    /**
+     * @brief Publish foot command from foot end position
+     * @note Interface with HexapodSoftware HLC
+     * @param footendpos
+     */
+    void pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
 };

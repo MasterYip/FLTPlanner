@@ -143,3 +143,6 @@ HLC (High Level Controller)
 Msg difinition:
 
 - [FootCmd.msg](./msg/FootCmd.msg)
+- [FootState.msg](./msg/FootState.msg)
+- [Euler.msg](./msg/Euler.msg)
+- [BodyState.msg](./msg/BodyState.msg)
