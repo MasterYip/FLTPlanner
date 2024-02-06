@@ -15,7 +15,10 @@
 #include "fast_legged_planner/whole_body_planner/WholeBodyPlanner.h"
 #include "fast_legged_planner/hexapod_State.h"
 #include <ros/ros.h>
+
 #include "contactPlannerInterface.h"
+#include "myDataType.h"
+
 #include <geometry_msgs/Twist.h>
 // #include "swing_leg_planner/cost/cost.hpp"
 // #include "swing_leg_planner/traj_opt/traj_opt.hpp"
