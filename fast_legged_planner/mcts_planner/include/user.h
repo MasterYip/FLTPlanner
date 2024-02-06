@@ -18,16 +18,13 @@
 #include <pinocchio/algorithm/jacobian.hpp>
 #include <pinocchio/algorithm/frames.hpp>
 
+#include "config.h"
 
 #define MAX_DEPTH 50
 namespace USER
 {
     void initRobotPinocchoModel(void);
     grid_map::GridMap init_grid_map(std::map<std::string, std::string> configMap);
-
-    // #define terrain_file_name "/home/xp/aConstrainedContactPlan/MPI_ROS_Workspace/src/hit_spider/config/terrain/中间空.txt"
-
-    #define configFilePath "/home/oem/aConstrainPlan/MPI_ROS_Workspace/config.txt"
     
     extern std::map<std::string, std::string> configMap;
     extern const std::string key_element; // HashKey 子元素

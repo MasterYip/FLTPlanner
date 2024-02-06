@@ -50,4 +50,5 @@ public:
     Derivative3 sdfDerivative(const grid_map::Position3 &position, size_t index = 0);
     grid_map::Length getRange() const;
     std::pair<Eigen::Vector3d, Eigen::Vector3d> getSdfRange(size_t index = 0) const;
+    grid_map::GridMap& getMap(){return map_;};
 };

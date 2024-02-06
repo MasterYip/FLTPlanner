@@ -1,0 +1,2 @@
+
+#define configFilePath "@MCTS_CFG_FILE@"

@@ -3,6 +3,10 @@ project(mcts_planner)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -fPIC")
 
+# MCTS Config File
+set(MCTS_CFG_FILE ${PROJECT_SOURCE_DIR}/config.txt)
+configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${PROJECT_SOURCE_DIR}/include/config.h)
+
 # add_compile_options(-Wall -Wextra -Wpedantic) 是 CMake 的一个命令，用于向编译器添加编译选项。这个命令会将 -Wall、-Wextra 和 -Wpedantic 三个编译选项添加到编译器的命令行参数中。
 # 这三个编译选项都是用于启用编译器的警告功能，具体含义如下：
 # -Wall：启用所有常见的警告选项，包括一些常见的编程错误。
@@ -16,15 +20,6 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 # 生成的数据库可以用于各种代码编辑器和工具，如 Vim、Emacs、VSCode、clangd 等，用于代码导航、代码补全、语法检查、重构等操作。
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-## Find catkin macros and libraries
-# find_package(catkin REQUIRED)
-
-## Define Eigen addons. 
-# include(cmake/${PROJECT_NAME}-extras.cmake)
-
-## System dependencies are found with CMake's conventions
-#find_package(Eigen3 REQUIRED)
-# Solution to find Eigen3 with Saucy.
 find_package(Eigen3 QUIET)
 if(NOT EIGEN3_FOUND)
   find_package(PkgConfig REQUIRED)
@@ -44,23 +39,18 @@ include_directories(${grid_map_core_INCLUDE_DIRS})
 
 
 
-#GLPK路径
+# GLPK路径
 set(GLPK_INCLUDE_DIR "/usr/local/include")
 set(GLPK_LIBRARY_DIR "/usr/local/lib")
 include_directories("${GLPK_INCLUDE_DIR}")	#包含GLPK头文件
 link_directories("${GLPK_LIBRARY_DIR}")			#GLPK的链接库
 
-#gurobi的头文件路径
-# set(GUROBI_INCLUDE_DIR "/opt/gurobi1000/linux64/include")
-# set(GUROBI_LIBRARY_DIR "/opt/gurobi1000/linux64/lib")
-# include_directories("${GUROBI_INCLUDE_DIR}")	#包含GUROBI头文件
-# link_directories("${GUROBI_LIBRARY_DIR}")		#Gurobi的链接库
 
-#cdd库
+# cdd库
 set(CDD_INCLUDE_DIR "/usr/local/include/cddlib")
 set(CDD_LIBRARY_DIR "/usr/local/lib/libcdd.so")
-include_directories("${CDD_INCLUDE_DIR}")	  #包含cdd的头文件
-link_directories("${CDD_LIBRARY_DIR}")			#cdd库的链接库
+include_directories("${CDD_INCLUDE_DIR}")	  # 包含cdd的头文件
+link_directories("${CDD_LIBRARY_DIR}")			# cdd库的链接库
 
 find_package(pinocchio REQUIRED)
 
@@ -76,7 +66,6 @@ add_subdirectory (${PROJECT_SOURCE_DIR}/IKfast/IK_Fast_forHexMini) # IK_FAST库
 ## Build ##
 ###########
 
-## Specify additional locations of header files
 include_directories(
   include
   SYSTEM
@@ -106,25 +95,7 @@ set(lib_RST_sources
 )
 set(lib_RST ConstrainsLib)
 add_library(${lib_RST} SHARED ${lib_RST_sources})		#构建  机器人状态转移  动态链接库
-# add_dependencies(${lib_RST} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${lib_RST} ${lib_Bisic} libglpk.so  ${CDD_LIBRARY_DIR} ${catkin_LIBRARIES} pinocchio::pinocchio IK_FAST)  #链接外部库
-
-# ## Declare a cpp library
-# add_library(ConstrainsLib SHARED
-#   constrains/Bretl.cpp
-#   constrains/solve_LP_GLPK.cpp
-#   # constrains/solver_Gurobi.cpp
-#   constrains/my_cdd.cpp
-#   constrains/dynamic_constrain.cpp
-# )
-
-# target_link_libraries(ConstrainsLib
-#   ${catkin_LIBRARIES}
-#   ${CDD_LIBRARY_DIR}
-#   libglpk.so 
-#   # libgurobi_c++.a libgurobi100.so
-# )
-
 
 add_library(${PROJECT_NAME}
     planning/geometry.cpp
@@ -152,12 +123,6 @@ target_link_libraries(${PROJECT_NAME}
 # Export headers for this library to other libraries
 target_include_directories(${PROJECT_NAME} INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  # $<INSTALL_INTERFACE:include>
-  # ${catkin_INCLUDE_DIRS}
-  # ${grid_map_core_INCLUDE_DIRS}
-  # ${CDD_INCLUDE_DIR}
-  # ${EIGEN3_INCLUDE_DIR}
-  # ${PROJECT_SOURCE_DIR}/IKfast/IK_Fast_forHexMini
 )
 
 # 设置库文件的输出路径

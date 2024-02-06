@@ -1,12 +1,12 @@
 /**
  * @file ElSpiderAirInterfaceROS.cpp
  * @author Master Yip (2205929492@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-02-04
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 #include "fast_legged_planner/robot_interface/ElSpiderAirInterfaceROS.h"
 #include <geometry_msgs/TransformStamped.h>

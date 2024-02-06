@@ -214,31 +214,44 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
 
+# TXT Grid Map Publisher
 add_executable(grid_map_pub src/grid_map_pub.cpp)
 # add_dependencies(grid_map_pub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(grid_map_pub
   ${catkin_LIBRARIES}
 )
 
+# Image to Grid Map
 add_executable(image_to_gridmap src/image_to_gridmap_node.cpp)
-# add_dependencies(grid_map_pub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(image_to_gridmap
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
 )
 
+# SDF Publisher (RViz)
 add_executable(sdf_pub src/sdf_pub_node.cpp)
-# add_dependencies(sdf_pub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sdf_pub
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
 )
 
+# ElSpiderAirSwingtrajPlanner
 add_executable(elspider_air_swingtraj_planner src/elspider_air_swingtraj_planner.cpp)
 target_include_directories(elspider_air_swingtraj_planner PRIVATE
   fast_legged_planner_cpp/include
 )
 target_link_libraries(elspider_air_swingtraj_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+  fast_legged_planner_cpp
+)
+
+# ElSpiderAirSimplePlanner
+add_executable(elspider_air_simple_planner src/elspider_air_simple_planner.cpp)
+target_include_directories(elspider_air_simple_planner PRIVATE
+  fast_legged_planner_cpp/include
+)
+target_link_libraries(elspider_air_simple_planner
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
   fast_legged_planner_cpp
