@@ -107,7 +107,8 @@ private:
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
     std::vector<Eigen::Vector3f> exp_path_;
-    float multiply_factor_ = 0.2;
+    float multiply_factor_ = 0.05;
+    int point_num_ = 6;
 
     // Interface
     ElSpiderAirInterfaceROS robot_interface_;
@@ -119,7 +120,7 @@ private:
     bool fake_estimation_;
 
 public:
-    ElSpiderAirSimplePlanner(bool fake_estimation = false) : nh_(),robot_interface_(nh_.param("robot_description", std::string(""))),
+    ElSpiderAirSimplePlanner(bool fake_estimation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string(""))),
                                                              gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
                                                              rate_(20), fake_estimation_(fake_estimation)
     {
@@ -142,6 +143,7 @@ public:
 
     void cmd_callback(const geometry_msgs::Twist &msg)
     {
+        ROS_INFO("cmd_vel received");
         cmd_ = msg;
         // Start planning
         if ((recv_foot_state_ && recv_body_state_) || fake_estimation_)
@@ -203,9 +205,12 @@ public:
         exp_path_.clear();
         // FIXME: pose.z is const?
         exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
-        exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + cmd_.linear.x * multiply_factor_,
-                                            robot_state_.pose.y + cmd_.linear.y * multiply_factor_,
-                                            robot_state_.pose.z + cmd_.linear.z));
+        for (int i = 0; i < point_num_; ++i)
+        {
+            exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + cmd_.linear.x * multiply_factor_ * i,
+                                                robot_state_.pose.y + cmd_.linear.y * multiply_factor_ * i,
+                                                robot_state_.pose.z));
+        }
     }
 
     void traj_planner()

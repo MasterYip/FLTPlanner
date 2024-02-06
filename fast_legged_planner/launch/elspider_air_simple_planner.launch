@@ -71,4 +71,9 @@ fig
     <!-- Rviz -->
     <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find fast_legged_planner)/config/walking_rviz.rviz" output="screen" />
 
+    <!-- Teleop -->
+    <include file="$(find fast_legged_planner)/launch/key_teleop.launch">
+        <arg name="topic_name" value="/cmd_vel" />
+    </include>
+
 </launch>
