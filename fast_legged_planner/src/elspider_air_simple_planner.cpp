@@ -14,7 +14,8 @@
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "elspider_air_swingtraj_planner");
-    ElSpiderAirSimplePlanner planner;
+    ros::Time::init(); // FIXME: some where call ros::Time::now() before nh_ initialized
+    ElSpiderAirSimplePlanner planner(true);
     planner.run();
     return 0;
 }
