@@ -138,6 +138,7 @@ public:
             gaitToNow << MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG;
             float moveDir = 0 * _PI_ / 2;
             robot_state_ = initRobotState(robotPoseW, gaitToNow, moveDir);
+            next_planned_state_ = robot_state_;
         }
     }
 
@@ -148,8 +149,9 @@ public:
         // Start planning
         if ((recv_foot_state_ && recv_body_state_) || fake_estimation_)
         {
+            // update_exp_path();
+            update_exp_path_test();
             update_robot_state();
-            update_exp_path();
             next_planned_state_ = CONTACT_PLANNER::pathTrackPlanner(robot_state_, exp_path_, gridmap_interface_.getMap(), true);
             whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_), transRobotState(next_planned_state_));
             traj_planner();
@@ -210,6 +212,15 @@ public:
             exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + cmd_.linear.x * multiply_factor_ * i,
                                                 robot_state_.pose.y + cmd_.linear.y * multiply_factor_ * i,
                                                 robot_state_.pose.z));
+        }
+    }
+
+    void update_exp_path_test(void)
+    {
+        exp_path_.clear();
+        for (int i = 0; i < 10; ++i)
+        {
+            exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + 0.05 * i, 0.0f, 0.2f));
         }
     }
 
