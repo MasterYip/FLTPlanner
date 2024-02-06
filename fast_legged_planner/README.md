@@ -18,10 +18,10 @@ conda env create -f robotic_course_env.yml
 
 ### Deps
 
-- pinocchio(with python binding)
+##### pinocchio(better with python binding)
 
-  IMPORTANT: This is conflict with legged_control
-  In ~/.bashrc:
+IMPORTANT: This is conflict with legged_control
+In ~/.bashrc:
 
 ```bash
 # Pinocchio (IMPORTANT: This may interfere with legged_ws-pinocchio)
@@ -32,8 +32,41 @@ export PYTHONPATH=/opt/openrobots/lib/python3.8/site-packages:$PYTHONPATH # Adap
 export CMAKE_PREFIX_PATH=/opt/openrobots:$CMAKE_PREFIX_PATH
 ```
 
-- grid_map
-- ompl(with python binding)
+##### grid_map
+
+##### ompl(with python binding)
+
+##### mathgl
+
+`sudo apt install libmgl-dev`
+
+#### MCTS planner
+
+##### glpk
+
+`sudo apt install libglpk-dev`
+
+##### cddlib:
+
+~~`sudo apt install libcdd-dev`~~
+
+[cddlib Homepage](https://people.inf.ethz.ch/fukudak/cdd_home/),
+[Github](https://github.com/cddlib/cddlib)
+
+FIXME:
+
+- Cmake warning: link library libcdd.so in /usr/lib/x86_64-linux-gnu may be hidden by files in: /usr/local/lib
+- Seems soft link should be established in /usr/lib/x86_64-linux-gnu
+
+Download the most recent tarball from our Releases page and build cddlib with
+
+```bash
+tar zxf cddlib-*.tar.gz
+cd cddlib-*
+./configure
+make
+sudo make install
+```
 
 ## User Guide
 
