@@ -31,8 +31,8 @@
 
     <!-- Launch -->
     <!-- Foot traj Planner -->
-    <node pkg="fast_legged_planner" type="elspider_air_planner.py" name="elspider_air_planner_py" output="screen" if="$(eval language=='python')"/>
-    <node pkg="fast_legged_planner" type="elspider_air_planner" name="elspider_air_planner_cpp" output="screen" if="$(eval language=='cpp')"/>
+    <node pkg="fast_legged_planner" type="elspider_air_swingtraj_planner.py" name="elspider_air_swingtraj_planner_py" output="screen" if="$(eval language=='python')"/>
+    <node pkg="fast_legged_planner" type="elspider_air_swingtraj_planner" name="elspider_air_swingtraj_planner_cpp" output="screen" if="$(eval language=='cpp')"/>
 
     <!-- GridMap -->
     <group if="$(eval grid_map_fmt=='image')">

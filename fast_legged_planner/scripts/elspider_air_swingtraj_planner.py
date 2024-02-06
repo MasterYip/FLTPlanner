@@ -14,9 +14,9 @@ from fast_legged_planner_py.whole_body_planner.hit_spider_planner_ros import HIT
 from fast_legged_planner.msg import hexapod_State
 
 
-class ElSpiderAirPlanner(object):
+class ElSpiderAirStateFollower(object):
     def __init__(self) -> None:
-        rospy.init_node('elspider_air_planner', anonymous=False)
+        rospy.init_node('elspider_air_swingtraj_planner', anonymous=False)
         self.robot_interface = ElSpiderMini_RobotInterface_ROS(
             rospy.get_param("robot_description"))
         rospy.Subscriber('supportStateTopic', hexapod_State, self.callback)
@@ -76,5 +76,5 @@ class ElSpiderAirPlanner(object):
 
 
 if __name__ == '__main__':
-    planner = ElSpiderAirPlanner()
+    planner = ElSpiderAirStateFollower()
     planner.run()

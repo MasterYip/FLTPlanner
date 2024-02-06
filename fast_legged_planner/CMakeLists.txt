@@ -231,11 +231,11 @@ target_link_libraries(sdf_pub
   ${PROJECT_NAME}
 )
 
-add_executable(elspider_air_planner src/elspider_air_planner.cpp)
-target_include_directories(elspider_air_planner PRIVATE
+add_executable(elspider_air_swingtraj_planner src/elspider_air_swingtraj_planner.cpp)
+target_include_directories(elspider_air_swingtraj_planner PRIVATE
   fast_legged_planner_cpp/include
 )
-target_link_libraries(elspider_air_planner
+target_link_libraries(elspider_air_swingtraj_planner
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
   fast_legged_planner_cpp
@@ -253,7 +253,7 @@ target_link_libraries(elspider_air_planner
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/hit_spider_planner.py
-  scripts/elspider_air_planner.py
+  scripts/elspider_air_swingtraj_planner.py
 
   scripts/traj_opt_demo.py
 

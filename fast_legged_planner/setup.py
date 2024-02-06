@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     version='0.0.0',
     scripts=['scripts/hit_spider_planner.py',
-             'scripts/elspider_air_planner.py',
+             'scripts/elspider_air_swingtraj_planner.py',
              'scripts/traj_opt_demo.py',
              'scripts/gridmap_sub.py',
              'scripts/image_publisher.py',
