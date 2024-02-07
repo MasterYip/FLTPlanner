@@ -149,8 +149,8 @@ public:
         // Start planning
         if ((recv_foot_state_ && recv_body_state_) || fake_estimation_)
         {
-            // update_exp_path();
-            update_exp_path_test();
+            update_exp_path();
+            // update_exp_path_test();
             update_robot_state();
             next_planned_state_ = CONTACT_PLANNER::pathTrackPlanner(robot_state_, exp_path_, gridmap_interface_.getMap(), true);
             whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_), transRobotState(next_planned_state_));
@@ -196,8 +196,9 @@ public:
                 robot_state_.feetNormalVector[i] << 0, 0, 1; // TODO: use gridmap normal
             }
             // FIXME: cmd_ should be under robot frame
-            if (cmd_.linear.x != 0)
-                robot_state_.moveDirection = atan2(cmd_.linear.y, cmd_.linear.x);
+            // if (cmd_.linear.x != 0)
+            //     robot_state_.moveDirection = atan2(cmd_.linear.y, cmd_.linear.x);
+            robot_state_.moveDirection = body_state_.eular.yaw;
             // TODO: maxNormalForce, frictionMu
         }
     }
@@ -209,8 +210,8 @@ public:
         exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
         for (int i = 0; i < point_num_; ++i)
         {
-            exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + cmd_.linear.x * multiply_factor_ * i,
-                                                robot_state_.pose.y + cmd_.linear.y * multiply_factor_ * i,
+            exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + (cmd_.linear.x * cos(robot_state_.pose.yaw) - cmd_.linear.y * sin(robot_state_.pose.yaw)) * multiply_factor_ * i,
+                                                robot_state_.pose.y + (cmd_.linear.x * sin(robot_state_.pose.yaw) + cmd_.linear.y * cos(robot_state_.pose.yaw)) * multiply_factor_ * i,
                                                 robot_state_.pose.z));
         }
     }
