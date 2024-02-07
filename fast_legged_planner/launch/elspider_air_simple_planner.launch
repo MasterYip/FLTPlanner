@@ -2,14 +2,14 @@
     <!-- HIT Spider MCTs + foot trajectory optimization -->
 
     <!-- Settings -->
+    <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
+    <arg name="fake_feedback" value="false" />
     <!-- value: image / txt(deprecated) -->
     <arg name="grid_map_fmt" value="image" />
     <arg name="with_ceiling" value="true" />
     <arg name="max_height" value="1.0" />
-    <arg name="elevation_layer" value="elevation" />
+    <arg name="elevation_layer" value="elevation_inpainted" />
     <arg name="ceiling_layer" value="ceiling" />
-    <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
-    <arg name="fake_feedback" value="false" />
     <!-- These two is not used temporarily -->
     <param name="grid_map_topic" value="grid_map" />
     <param name="point_cloud_topic" value="point_cloud" />

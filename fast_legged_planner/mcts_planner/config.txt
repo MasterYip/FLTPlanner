@@ -15,7 +15,7 @@ MapFilePath = /home/user/HexLabCodeSpace/MPI_ROS_Workspace/terrainFile/plane.txt
 
 ################地图部分-规划采用的layer层名称###################################################
 # 注意不需要打引号，读取时是按照string读取
-ElevationLayerName = elevation
+ElevationLayerName = elevation_inpainted
 NormalVector_x_Name = normal_x
 NormalVector_y_Name = normal_y
 NormalVector_z_Name = normal_z
