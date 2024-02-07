@@ -744,13 +744,13 @@ namespace PLANNING
 
         for (grid_map::CircleIterator it(mapData, center, radius); !it.isPastEnd(); ++it)
         {
-            if(mapData.isValid(*it,"elevation"))
+            if(mapData.isValid(*it,USER::elevationLayerName))
             {
                 ++num;
             }
 
             // mapData.getPosition(*it, position);
-            // if (mapData.at("elevation", *it) == 0)
+            // if (mapData.at(USER::elevationLayerName, *it) == 0)
             // {
             //     ++num;
             // }
@@ -850,27 +850,27 @@ namespace PLANNING
                 tmpP_ << default_p0.x(), default_p0.y();
                 grid_map::Index it11;
                 mapData.getIndex(tmpP_,it11);
-                if(mapData.isValid(it11,"elevation"))
+                if(mapData.isValid(it11,USER::elevationLayerName))
                 {
-                    default_p0.z() = mapData.at("elevation",it11);
+                    default_p0.z() = mapData.at(USER::elevationLayerName,it11);
                     feasible_positions.push_back(default_p0);
                 }
 
                 tmpP_ << default_p1.x(), default_p1.y();
                 grid_map::Index it12;
                 mapData.getIndex(tmpP_,it12);
-                if(mapData.isValid(it12,"elevation"))
+                if(mapData.isValid(it12,USER::elevationLayerName))
                 {
-                    default_p1.z() = mapData.at("elevation",it12);
+                    default_p1.z() = mapData.at(USER::elevationLayerName,it12);
                     feasible_positions.push_back(default_p1);
                 }
 
                 tmpP_ << default_p2.x(), default_p2.y();
                 grid_map::Index it13;
                 mapData.getIndex(tmpP_,it13);
-                if(mapData.isValid(it13,"elevation"))
+                if(mapData.isValid(it13,USER::elevationLayerName))
                 {
-                    default_p2.z() = mapData.at("elevation",it13);
+                    default_p2.z() = mapData.at(USER::elevationLayerName,it13);
                     feasible_positions.push_back(default_p2);
                 }
 
@@ -1643,7 +1643,7 @@ namespace PLANNING
         // {
         //     return hexapodState;
         // }
-        // grid_map::SignedDistanceField sdf(mapData, "elevation", -1, 3);
+        // grid_map::SignedDistanceField sdf(mapData, USER::elevationLayerName, -1, 3);
 
         Vector3 bodyPositionBegin;
         bodyPositionBegin << rState.pose.x, rState.pose.y, rState.pose.z;
