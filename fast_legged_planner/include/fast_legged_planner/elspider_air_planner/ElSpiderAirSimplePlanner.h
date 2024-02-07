@@ -107,8 +107,8 @@ private:
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
     std::vector<Eigen::Vector3f> exp_path_;
-    float multiply_factor_ = 0.05;
-    int point_num_ = 6;
+    float multiply_factor_ = 0.03;
+    int point_num_ = 3;
 
     // Interface
     ElSpiderAirInterfaceROS robot_interface_;
@@ -218,9 +218,50 @@ public:
     void update_exp_path_test(void)
     {
         exp_path_.clear();
-        for (int i = 0; i < 10; ++i)
+        // for (int i = 0; i < 10; ++i)
+        // {
+        //     exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + 0.02 * i, robot_state_.pose.y + 0.02 * i, robot_state_.pose.z));
+        // }
+        // 初始化路径点
+        std::vector<Eigen::Vector3f> pathPnts;
+        // 添加点到 pathPnts
+        pathPnts.emplace_back(0, 0, 0.2f); // 使用emplace_back而非push_back可以减少额外的拷贝构造开销
+        // pathPnts.emplace_back(1, 0, 0.2f);
+        // pathPnts.emplace_back(2, 0, 0.2f);
+        // pathPnts.emplace_back(3, 0, 0.2f);
+        // pathPnts.emplace_back(4, 0, 0.2f);
+        // pathPnts.emplace_back(5, 0, 0.2f);
+        // pathPnts.emplace_back(6, 0, 0.2f);
+
+        pathPnts.emplace_back(-7.496126595059493525e-02, -1.409341165933408746e-02, 0.2f); // 使用emplace_back而非push_back可以减少额外的拷贝构造开销
+        pathPnts.emplace_back(7.773619065856580690e-01, 8.947340691762608600e-01, 0.2f);
+        pathPnts.emplace_back(1.579548421913896661e+00, 1.671847422354522550e+00, 0.2f);
+        pathPnts.emplace_back(2.114339432132722685e+00, 1.645504596823055721e+00, 0.2f);
+        pathPnts.emplace_back(2.440227703984819030e+00, 1.105476673427992829e+00, 0.2f);
+        pathPnts.emplace_back(2.883101509322283817e+00, 7.761913542846619052e-01, 0.2f);
+        pathPnts.emplace_back(3.367755862333094541e+00, 3.547061457811970797e-01, 0.2f);
+        pathPnts.emplace_back(4.044600734641296214e+00, -1.409341165933408746e-02, 0.2f);
+        pathPnts.emplace_back(4.788294483226851028e+00, 1.176207159979991701e-01, 0.2f);
+        pathPnts.emplace_back(5.298017164841668958e+00, 3.151919074839977242e-01, 0.2f);
+        pathPnts.emplace_back(5.582124889020420255e+00, 3.942203840783973234e-01, 0.2f);
+        pathPnts.emplace_back(5.999930365753877837e+00, 7.103342904559957205e-01, 0.2f);
+        pathPnts.emplace_back(6.451160280626011101e+00, 8.157055925818612607e-01, 0.2f);
+        pathPnts.emplace_back(6.894034085963475889e+00, 1.408419167039857811e+00, 0.2f);
+        pathPnts.emplace_back(7.244990686419580328e+00, 2.185532520218119501e+00, 0.2f);
+        pathPnts.emplace_back(7.963616106401127936e+00, 3.265588367008247062e+00, 0.2f);
+
+        // 线性插值，每两个点之间插值10个点
+        for (size_t i = 0; i < pathPnts.size() - 1; ++i)
         {
-            exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + 0.05 * i, 0.0f, 0.2f));
+            Eigen::Vector3f start = pathPnts[i];
+            Eigen::Vector3f end = pathPnts[i + 1];
+
+            for (int j = 0; j <= 20; ++j)
+            {
+                float t = static_cast<float>(j) / 20.0;
+                Eigen::Vector3f interpolatedPoint = start + t * (end - start);
+                exp_path_.push_back(interpolatedPoint);
+            }
         }
     }
 
