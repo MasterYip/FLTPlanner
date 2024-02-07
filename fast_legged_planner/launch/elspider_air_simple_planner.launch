@@ -72,15 +72,18 @@
     </group>
     <group if="$(eval fake_feedback == 0)">
         <!-- HexapodSoftware -->
-        <include file="$(find user)/launch/main.launch">
+        <!-- <include file="$(find user)/launch/main.launch">
             <arg name="robot_name" value="elspider_air" />
             <arg name="controller_type" value="hlc" />
-        </include>
+        </include> -->
         <!-- HexapodElevationMapping -->
         <include file="$(find hexapod_elevation_mapping)/launch/elspider_air_mapping.launch">
             <arg name="module_name" value="HexPercept3" />
             <arg name="elevation_map_raw_topic_name" value="grid_map" />
             <arg name="rviz_gui" value="false" />
+            <!-- FIXME: base name conflict with HexapodSoftware -->
+            <arg name="world_frame_name" value="odom"/>
+            <arg name="base_frame_name" value="base"/>
         </include>
     </group>
 
@@ -91,10 +94,10 @@
     </node>
 
     <!-- Robot related -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" />
+    <!-- <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" /> -->
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
     <!-- Rviz -->
-    <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find fast_legged_planner)/config/walking_rviz.rviz" output="screen" />
+    <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find fast_legged_planner)/config/elspider_air_simple_planner.rviz" output="screen" />
 
     <!-- Teleop -->
     <include file="$(find fast_legged_planner)/launch/key_teleop.launch">
