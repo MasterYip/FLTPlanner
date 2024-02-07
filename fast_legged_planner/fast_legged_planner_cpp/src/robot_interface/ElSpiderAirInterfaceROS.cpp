@@ -17,8 +17,16 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf)
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     foot_pos_pub = nh.advertise<fast_legged_planner::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
     feedforward_type = 0;
-    joint_kp = {0.075, 0.2, 0.2};
-    joint_kd = {2, 2, 2};
+    // FIXME: use parameter server
+    // Hardware
+    // joint_kp = {0.075, 0.2, 0.2};
+    // joint_kd = {2, 2, 2};
+        //     # Gazebo
+        // # self.joint_kp = [500, 500, 500]
+        // # self.joint_kd = [3, 7.5, 7.5]
+    // Gazebo
+    joint_kp = {500, 500, 500};
+    joint_kd = {3, 7.5, 7.5};
 }
 
 void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)

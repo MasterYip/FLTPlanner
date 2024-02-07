@@ -192,8 +192,8 @@ public:
                 robot_state_.faultStateToNow[i] = MDT::NORMAL_LEG_FLAG;
                 robot_state_.feetPosition[i].x() = foot_state_.position[i].x;
                 robot_state_.feetPosition[i].y() = foot_state_.position[i].y;
-                robot_state_.feetPosition[i].z() = foot_state_.position[i].z;
-                robot_state_.feetNormalVector[i] << 0, 0, 1; // TODO: use gridmap normal
+                robot_state_.feetPosition[i].z() = foot_state_.position[i].z + 0.05; // FIXME: temporary margin
+                robot_state_.feetNormalVector[i] << 0, 0, 1;                         // TODO: use gridmap normal
             }
             // FIXME: cmd_ should be under robot frame
             // if (cmd_.linear.x != 0)
@@ -280,8 +280,20 @@ public:
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
             }
             robot_interface_.pub_footcmd_from_footendpos(footend_interp);
-            robot_interface_.pub_joint_state_from_footendpos(footend_interp);
-            robot_interface_.pub_odom(odom_interp);
+            if (fake_estimation_)
+            {
+                robot_interface_.pub_joint_state_from_footendpos(footend_interp);
+                robot_interface_.pub_odom(odom_interp);
+            }
+            else
+            {
+                std::vector<Eigen::Vector3d> footend_now;
+                for (size_t k = 0; k < 6; ++k)
+                {
+                    footend_now.emplace_back(robot_state_.feetPosition[k]);
+                }
+                robot_interface_.pub_joint_state_from_footendpos(footend_now);
+            }
             t += delta;
             if (t > 1.0)
             {
