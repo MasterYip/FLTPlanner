@@ -15,7 +15,8 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "elspider_air_swingtraj_planner");
     ros::Time::init(); // FIXME: some where call ros::Time::now() before nh_ initialized
-    ElSpiderAirSimplePlanner planner(true);
+    bool fake_feedback = ros::param::param<bool>("~fake_feedback", false);
+    ElSpiderAirSimplePlanner planner(fake_feedback);
     planner.run();
     return 0;
 }
