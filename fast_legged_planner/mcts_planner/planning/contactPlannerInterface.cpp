@@ -4,14 +4,14 @@
 #include <search_tree.h>
 #include <saveHashTable.h>
 
-#define N_Sliding 500  // 每次搜索的节点数
+// #define N_Sliding 500  // 每次搜索的节点数
 #define USE_MCTS_PLANNER  // 使用MCTS规划器；注释掉则使用专家规划器
 
 namespace CONTACT_PLANNER{
 
-    MDT::RobotState singleMCTS_planner(const MDT::RobotState &state_, const grid_map::GridMap &mapData, const std::vector<Eigen::Vector3f>& pathPnts)
+    MDT::RobotState singleMCTS_planner(const MDT::RobotState &state_, const grid_map::GridMap &mapData, const std::vector<Eigen::Vector3f>& pathPnts, int search_nodes=100)
     {
-        int oneStepSearchNodeNum = N_Sliding; // 搜索一步使用搜索节点个数
+        int oneStepSearchNodeNum = search_nodes; // 搜索一步使用搜索节点个数
 
         std::shared_ptr<TreeNode> startNode = std::make_shared<TreeNode>(state_, "&");
 
@@ -189,13 +189,14 @@ namespace CONTACT_PLANNER{
 
 
 
-    MDT::RobotState pathTrackPlanner(const MDT::RobotState &currentState, const std::vector<Eigen::Vector3f>& pathPnts, const grid_map::GridMap& mapData_, const bool isMCTS)
+    MDT::RobotState pathTrackPlanner(const MDT::RobotState &currentState, const std::vector<Eigen::Vector3f>& pathPnts, const grid_map::GridMap& mapData_, const bool isMCTS, int search_nodes)
     {
 
 
         if(isMCTS)
         {
-            MDT::RobotState stateNext = singleMCTS_planner(currentState, mapData_,  pathPnts);
+            // MDT::RobotState stateNext = singleMCTS_planner(currentState, mapData_,  pathPnts);
+            MDT::RobotState stateNext = singleMCTS_planner(currentState, mapData_,  pathPnts, search_nodes);
             return stateNext;
         }
         else

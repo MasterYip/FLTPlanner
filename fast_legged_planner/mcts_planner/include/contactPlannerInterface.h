@@ -30,7 +30,7 @@ namespace CONTACT_PLANNER{
      * @return MDT::RobotState 规划后的机器人状态
      * 
      */
-    MDT::RobotState pathTrackPlanner(const MDT::RobotState &currentState, const std::vector<Eigen::Vector3f>& pathPnts, const grid_map::GridMap& mapData_, const bool isMCTS);
+    MDT::RobotState pathTrackPlanner(const MDT::RobotState &currentState, const std::vector<Eigen::Vector3f> &pathPnts, const grid_map::GridMap &mapData_, const bool isMCTS, int search_nodes = 100);
 
 }
 

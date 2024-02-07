@@ -152,7 +152,7 @@ public:
             update_exp_path();
             // update_exp_path_test();
             update_robot_state();
-            next_planned_state_ = CONTACT_PLANNER::pathTrackPlanner(robot_state_, exp_path_, gridmap_interface_.getMap(), true);
+            next_planned_state_ = CONTACT_PLANNER::pathTrackPlanner(robot_state_, exp_path_, gridmap_interface_.getMap(), true, 100);
             whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_), transRobotState(next_planned_state_));
             traj_planner();
         }
