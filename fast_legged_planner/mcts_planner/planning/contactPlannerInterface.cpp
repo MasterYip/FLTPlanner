@@ -16,6 +16,10 @@ namespace CONTACT_PLANNER{
         std::shared_ptr<TreeNode> startNode = std::make_shared<TreeNode>(state_, "&");
 
         startNode->expansion(mapData, pathPnts);
+        if (startNode->candidateNodes.empty()) {
+            std::cout << "Warning: startNode->candidateNodes.empty()" << std::endl;
+            return state_;
+        }
         /*
         Initialize HashTable
         */

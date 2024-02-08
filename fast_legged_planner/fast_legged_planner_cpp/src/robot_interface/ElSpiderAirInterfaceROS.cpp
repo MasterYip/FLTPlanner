@@ -25,8 +25,8 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf)
         // # self.joint_kp = [500, 500, 500]
         // # self.joint_kd = [3, 7.5, 7.5]
     // Gazebo
-    joint_kp = {500, 500, 500};
-    joint_kd = {3, 7.5, 7.5};
+    joint_kp = {1000, 1500, 1500};
+    joint_kd = {5, 7.5, 7.5};
 }
 
 void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)
