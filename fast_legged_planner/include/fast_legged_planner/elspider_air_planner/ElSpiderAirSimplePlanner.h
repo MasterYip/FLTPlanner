@@ -112,6 +112,7 @@ private:
 
     // Interface
     ElSpiderAirInterfaceROS robot_interface_;
+    // BUG: pass static map to MCTS other than dynamic one (this may result in program crash)
     GridMapInterface gridmap_interface_;
     HITSpiderWholeBodyPlanner whole_body_planner_;
     // std::vector<hexapod_State> MCT_solution_;
@@ -152,7 +153,9 @@ public:
             update_exp_path();
             // update_exp_path_test();
             update_robot_state();
+            gridmap_interface_.lockMapUpdate();
             next_planned_state_ = CONTACT_PLANNER::pathTrackPlanner(robot_state_, exp_path_, gridmap_interface_.getMap(), true, 100);
+            gridmap_interface_.unlockMapUpdate();
             whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_), transRobotState(next_planned_state_));
             traj_planner();
         }

@@ -17,6 +17,7 @@
 /* c++ standard library header files */
 #include <iostream>
 #include <memory>
+#include <atomic>
 /* external project header files */
 #include <ros/ros.h>
 #include <grid_map_msgs/GridMap.h>
@@ -38,6 +39,7 @@ private:
     std::pair<Eigen::Vector3d, Eigen::Vector3d> sdf_range[2];
     std::string ground_layer = "elevation";
     std::string ceiling_layer = "ceiling";
+    std::atomic<bool> map_update_lock_{false};
 
 public:
     GridMapInterface(const std::string &topic_name = "grid_map");
@@ -51,4 +53,8 @@ public:
     grid_map::Length getRange() const;
     std::pair<Eigen::Vector3d, Eigen::Vector3d> getSdfRange(size_t index = 0) const;
     grid_map::GridMap& getMap(){return map_;};
+    // Map Lock
+    void lockMapUpdate(){map_update_lock_ = true;}
+    void unlockMapUpdate(){map_update_lock_ = false;}
+    bool isMapUpdateLocked(){return map_update_lock_;};
 };

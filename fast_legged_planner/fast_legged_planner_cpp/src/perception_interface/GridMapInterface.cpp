@@ -22,11 +22,15 @@ GridMapInterface::GridMapInterface(const std::string &topic_name) : nh("~")
 
 void GridMapInterface::callback(const grid_map_msgs::GridMap &msg)
 {
-    grid_map::GridMapRosConverter::fromMessage(msg, map_);
-    if (!sdf[0])
-        update();
+    if (!map_update_lock_)
+    {
+        grid_map::GridMapRosConverter::fromMessage(msg, map_);
+        if (!sdf[0])
+            update();
+    }
 }
 
+// FIXME: update might be called only once (SDF will not be updated all the time)
 void GridMapInterface::update(bool block, double sdf_margin)
 {
     while (map_.getLayers().empty() && block && ros::ok())
