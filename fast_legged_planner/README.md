@@ -122,7 +122,7 @@ A simple co-simulation for ElSpider Air.
 ![Co-simulation Framework](doc/elspider_air_cosim_sch.png)
 ![Cosimulation example](doc/eg_elspider_air_cosimulation.png)
 
-#### Dependant Repos
+#### Dependent Repos
 
 - [Qrpucp/HexapodSoftware](https://github.com/Qrpucp/HexapodSoftware): check out branch `feature/co-simulation`
 
