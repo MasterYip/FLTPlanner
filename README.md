@@ -78,21 +78,42 @@ A simple co-simulation for ElSpider Air.
 
 #### Get Started
 
+##### Launch procedure
+
 ```bash
 # Make sure depend repos are properly installed & sourced
 catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
-# Start HexapodSoftware Gazebo simulation
+# Terminal1: start HexapodSoftware Gazebo simulation
 roslaunch user main.launch \
 controller_type:=hlc \
 robot_name:=elspider_air \
 joystick_type:=keyboard_sim \
 gazebo_hang_up:=on_ground \
 interface_type:=gazebo
-# New terminal, start Planner & elevation mapping
+# Terminal2: start Planner & elevation mapping
 roslaunch fast_legged_planner elspider_air_simple_planner.launch
 ```
 
 Settings are listed in `elspider_air_simple_planner.launch`.
+
+##### Usage
+
+Robot initialization(Terminal1):
+
+- `o`: Motor initialization
+- `u`: Press once to enter `sitdown mode`, press again to enter `standup mode`
+- `v`: Enter `HLC mode` (communicate with planner bypassing topic `hexapod/foot_cmd_track`)
+
+> For more details, please refer to HexapodSoftware `keyboard_sim` node.
+
+CmdVel control(Terminal2):
+
+- `arrow up`: Move forward
+- `arrow down`: Move backward(not recommended)
+- `arrow left`: Turn left(not recommended)
+- `arrow right`: Turn right(not recommended)
+
+> You can publish `geometry_msgs/Twist` to `/cmd_vel` to control the robot too.
 
 ## Documentations (A bit messy, temporarily not for new-comers)
 
