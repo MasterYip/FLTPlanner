@@ -18,25 +18,35 @@ A simple co-simulation for ElSpider Air.
 ![Co-simulation Framework](fast_legged_planner/doc/elspider_air_cosim_sch.png)
 ![Cosimulation example](fast_legged_planner/doc/eg_elspider_air_cosimulation.png)
 
-Depend Repos:
+#### Dependant Repos
 
 - [Qrpucp/HexapodSoftware](https://github.com/Qrpucp/HexapodSoftware): check out branch `feature/co-simulation`
 
-```bash
-git clone --recursive git@github.com:Qrpucp/HexapodSoftware.git
-git checkout feature/co-simulation
-catkin_make
-```
+  ```bash
+  git clone --recursive git@github.com:Qrpucp/HexapodSoftware.git
+  git checkout feature/co-simulation
+  catkin_make -DCMAKE_BUILD_TYPE=Release
+  ```
+
+  It needs pinocchio and hpp-fcl, you can install them by:
+
+  ```bash
+  # Clone pinocchio
+  git clone --recurse-submodules https://github.com/leggedrobotics/pinocchio.git
+  # Clone hpp-fcl
+  git clone --recurse-submodules https://github.com/leggedrobotics/hpp-fcl.git
+  catkin build pinocchio -DCMAKE_BUILD_TYPE=Release
+  ```
 
 - [HITSME-HexLab/HexapodElevationMapping](https://github.com/HITSME-HexLab/HexapodElevationMapping): check out branch `feature/co-simulation` or `master`
 
-```bash
-git clone --recursive git@github.com:HITSME-HexLab/HexapodElevationMapping.git
-git checkout feature/co-simulation
-catkin build hexapod_elevation_mapping -DCMAKE_BUILD_TYPE=Release
-```
+  ```bash
+  git clone --recursive git@github.com:HITSME-HexLab/HexapodElevationMapping.git
+  git checkout feature/co-simulation
+  catkin build hexapod_elevation_mapping -DCMAKE_BUILD_TYPE=Release
+  ```
 
-Recommand workspace structure:
+#### Recommand workspace structure
 
 ```txt
 ├── hexapod_ws
@@ -64,7 +74,9 @@ Recommand workspace structure:
     └── src
         ├── fast_legged_planner
         ├── hexapod_robot_assets
-````
+```
+
+#### Get Started
 
 ```bash
 # Make sure depend repos are properly installed & sourced
