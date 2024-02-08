@@ -16,11 +16,12 @@ Create and activate conda environment:
 conda env create -f robotic_course_env.yml
 ```
 
-### Deps
+### Dependancy
 
-##### pinocchio(better with python binding)
+##### pinocchio(fast_legged_planner_py needs python binding, optional)
 
-IMPORTANT: This is conflict with legged_control
+IMPORTANT: Install from source to build pybinding may conflict with legged_control([leggedroobotics/pinocchio](https://github.com/leggedrobotics/pinocchio)) if you have installed it.
+
 In ~/.bashrc:
 
 ```bash
@@ -32,13 +33,13 @@ export PYTHONPATH=/opt/openrobots/lib/python3.8/site-packages:$PYTHONPATH # Adap
 export CMAKE_PREFIX_PATH=/opt/openrobots:$CMAKE_PREFIX_PATH
 ```
 
-##### grid_map
+##### ompl(fast_legged_planner_py needs python binding, optional)
 
-##### ompl(with python binding)
-
-##### mathgl
+##### mathgl(for tests, optional)
 
 `sudo apt install libmgl-dev`
+
+##### grid_map
 
 #### MCTS planner
 
@@ -113,6 +114,77 @@ A simple trajectory optimization demo for GCS-based trajectory optimization.
 ![eg_gcs_traj_opt](doc/eg_gcs_traj_opt.png)
 
 Coming soon.
+
+### ElSpider Air Co-simulation
+
+A simple co-simulation for ElSpider Air.
+
+![Co-simulation Framework](doc/elspider_air_cosim_sch.png)
+![Cosimulation example](doc/eg_elspider_air_cosimulation.png)
+
+Depend Repos:
+
+- [Qrpucp/HexapodSoftware](https://github.com/Qrpucp/HexapodSoftware): check out branch `feature/co-simulation`
+
+```bash
+git clone --recursive git@github.com:Qrpucp/HexapodSoftware.git
+git checkout feature/co-simulation
+catkin_make
+```
+
+- [HITSME-HexLab/HexapodElevationMapping](https://github.com/HITSME-HexLab/HexapodElevationMapping): check out branch `feature/co-simulation` or `master`
+
+```bash
+git clone --recursive git@github.com:HITSME-HexLab/HexapodElevationMapping.git
+git checkout feature/co-simulation
+catkin build hexapod_elevation_mapping -DCMAKE_BUILD_TYPE=Release
+```
+
+Recommand workspace structure:
+
+```txt
+├── hexapod_ws
+│   ├── build
+│   ├── devel
+│   └── src
+│       └── HexapodSoftware
+├── legged_ws
+│   ├── build
+│   ├── devel
+│   ├── logs
+│   └── src
+│       ├── hpp-fcl
+│       └── pinocchio
+├── perception_ws
+│   ├── build
+│   ├── devel
+│   ├── logs
+│   └── src
+│       └── HexapodElevationMapping
+└── planner_ws
+    ├── build
+    ├── devel
+    ├── logs
+    └── src
+        ├── fast_legged_planner
+        ├── hexapod_robot_assets
+```
+
+```bash
+# Make sure depend repos are properly installed & sourced
+catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
+# Start HexapodSoftware Gazebo simulation
+roslaunch user main.launch \
+controller_type:=hlc \
+robot_name:=elspider_air \
+joystick_type:=keyboard_sim \
+gazebo_hang_up:=on_ground \
+interface_type:=gazebo
+# New terminal, start Planner & elevation mapping
+roslaunch fast_legged_planner elspider_air_simple_planner.launch
+```
+
+Settings are listed in `elspider_air_simple_planner.launch`.
 
 ## Note
 
