@@ -137,7 +137,7 @@ CVX_TrajOpt::~CVX_TrajOpt()
 {
 }
 
-void CVX_TrajOpt::dyn_reconf_callback(polyve::CvxTrajOptConfig &config, uint32_t level)
+void CVX_TrajOpt::dyn_reconf_callback(gcs_path_search::CvxTrajOptConfig &config, uint32_t level)
 {
     start[0] = config.start_x;
     start[1] = config.start_y;

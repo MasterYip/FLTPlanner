@@ -27,7 +27,7 @@ public:
 
     ros::Publisher meshPub;
     ros::Publisher edgePub;
-    ros::Publisher verticesPub; 
+    ros::Publisher verticesPub;
     ros::Publisher interiorPub;
 
     void visualizeMesh(const Eigen::Matrix3Xd &mesh);
@@ -52,7 +52,7 @@ public:
     const Eigen::Matrix3Xd genVpoly();
     const Eigen::Matrix3Xd vPolyMerge(const Eigen::Matrix3Xd &vPoly1, const Eigen::Matrix3Xd &vPoly2);
     Visualization visualization; // VertexEnum Visualization (original)
-    Visualizer visualizer; // GCOPTER Visualization
+    Visualizer visualizer;       // GCOPTER Visualization
 
     void conductVE();
     void vPolyMergeTest();

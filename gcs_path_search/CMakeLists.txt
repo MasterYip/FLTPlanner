@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-project(polyve)
+project(gcs_path_search)
 
 set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_BUILD_TYPE "Release")
@@ -53,11 +53,11 @@ catkin_package(
 
 # Executables
 
-add_executable(${PROJECT_NAME}_node 
+add_executable(polyve_node 
   src/polyve_node.cpp
   src/polyve.cpp)
 
-target_link_libraries(${PROJECT_NAME}_node
+target_link_libraries(polyve_node
   ${catkin_LIBRARIES})
 
 

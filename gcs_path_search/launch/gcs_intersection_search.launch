@@ -62,9 +62,9 @@
         <node pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_legged_planner)/config/cvxhull_traj_opt_demo.rviz" output="screen" />
     </group>
 
-    <node pkg="polyve" type="cvx_trajopt_node" name="cvx_trajopt" output="screen">
+    <node pkg="gcs_path_search" type="cvx_trajopt_node" name="cvx_trajopt" output="screen">
         <!-- node parameters -->
-        <rosparam file="$(find polyve)/config/cvx_trajopt_params.yaml" command="load" />
+        <rosparam file="$(find gcs_path_search)/config/cvx_trajopt_params.yaml" command="load" />
     </node>
 
     <!-- RQT Reconf -->

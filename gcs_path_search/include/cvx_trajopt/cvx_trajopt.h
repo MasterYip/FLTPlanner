@@ -22,7 +22,7 @@
 #include "geo_utils/quickhull.hpp"
 #include "misc/visualizer.hpp"
 // TODO: Change project name
-#include <polyve/CvxTrajOptConfig.h>
+#include <gcs_path_search/CvxTrajOptConfig.h>
 using GridPt = Eigen::Array2i;
 class TimerMixin
 {
@@ -65,20 +65,19 @@ public:
 };
 typedef TimerMixin Timer;
 
-
 class CVX_TrajOpt
 {
 public:
     CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_);
     ~CVX_TrajOpt();
     void map_callback(const grid_map_msgs::GridMap::ConstPtr &msg);
-    void dyn_reconf_callback(polyve::CvxTrajOptConfig &config, uint32_t level);
+    void dyn_reconf_callback(gcs_path_search::CvxTrajOptConfig &config, uint32_t level);
 
     // Functions
     std::vector<GridPt> getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
-                                                  const Eigen::Vector2d &start,
-                                                  const Eigen::Vector2d &goal,
-                                                  const std::string connectivity);
+                                                   const Eigen::Vector2d &start,
+                                                   const Eigen::Vector2d &goal,
+                                                   const std::string connectivity);
 
     bool minlengthPath(const std::vector<GridPt> &Border,
                        const Eigen::Vector2d &start,
@@ -109,8 +108,8 @@ private:
     Eigen::Matrix3Xd vPoly = {3, 10}; // Test Default Hull
 
     // Dyn reconf
-    dynamic_reconfigure::Server<polyve::CvxTrajOptConfig> server;
-    dynamic_reconfigure::Server<polyve::CvxTrajOptConfig>::CallbackType f;
+    dynamic_reconfigure::Server<gcs_path_search::CvxTrajOptConfig> server;
+    dynamic_reconfigure::Server<gcs_path_search::CvxTrajOptConfig>::CallbackType f;
 
     // drawCorriderIntersectBorderTest
     Eigen::Vector2d start = {-0.4, -0.3};

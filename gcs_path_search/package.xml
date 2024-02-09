@@ -1,10 +1,10 @@
 <package>
-  <name>polyve</name>
+  <name>gcs_path_search</name>
   <author email="wangzhepei@live.com">zhepeiwang</author>
   <maintainer email="wangzhepei@live.com">zhepeiwang</maintainer>
   <version>0.1.0</version>
   <description>
-      the polyve package
+      the gcs_path_search package
   </description>
   <license>BSD</license>
 
@@ -16,5 +16,5 @@
   <run_depend>roscpp</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
-  
+
 </package>

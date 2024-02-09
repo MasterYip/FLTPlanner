@@ -13,8 +13,8 @@
 ![eg_intersect_path.png](doc/eg_intersect_path.png)
 
 ```bash
-catkin build polyve -DCMAKE_BUILD_TYPE=Release
-roslaunch polyve gcs_intersection_search.launch
+catkin build gcs_path_search -DCMAKE_BUILD_TYPE=Release
+roslaunch gcs_path_search gcs_intersection_search.launch
 ```
 
 ### VisibilityGraph Path Search
