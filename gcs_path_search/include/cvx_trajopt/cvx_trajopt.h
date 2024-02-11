@@ -16,7 +16,7 @@
 
 /* internal project header files */
 #include "cvx_trajopt/cvx_trajopt_config.hpp"
-#include "cvx_trajopt/stlastar.h"
+#include "astar/stlastar.h"
 #include "geo_utils/geo_utils.hpp"
 
 #include "geo_utils/quickhull.hpp"

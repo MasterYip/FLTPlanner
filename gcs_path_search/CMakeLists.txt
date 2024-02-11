@@ -8,9 +8,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
 # --copy-dt-needed-entries
 # set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
 
-find_package(Eigen3 REQUIRED)
+add_subdirectory(gcs_traj_opt)
 
-find_package(CGAL REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -56,9 +56,9 @@ catkin_package(
 add_executable(polyve_node 
   src/polyve_node.cpp
   src/polyve.cpp)
-
 target_link_libraries(polyve_node
-  ${catkin_LIBRARIES})
+  ${catkin_LIBRARIES}
+  gcs_traj_opt)
 
 
 add_executable(cvx_trajopt_node
@@ -66,9 +66,9 @@ add_executable(cvx_trajopt_node
   src/cvx_trajopt.cpp)
 
 add_dependencies(cvx_trajopt_node ${PROJECT_NAME}_gencfg)
-
 target_link_libraries(cvx_trajopt_node
-  ${catkin_LIBRARIES} gmp mpfr) 
+  ${catkin_LIBRARIES} 
+  gcs_traj_opt) 
 # FIXME: gmp and mpfr must be linked manually
 
 

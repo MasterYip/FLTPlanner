@@ -26,19 +26,12 @@
 class PolyCorridor
 {
 private:
-    uint size = 0;
+    uint poly_size = 0;
     std::vector<Polyhedra> polys_;             // discret feasible polyhedra trajectory
     std::vector<Polyhedra> corridor_;          // feasible corridor obtained by `convex hull merging`
     std::vector<Eigen::Vector4d> guide_plane_; // guide plane for each corridor segment
 public:
-    PolyCorridor(const std::vector<Polyhedra> &polys) : polys_(polys)
-    {
-        size = polys.size();
-    }
+    PolyCorridor(const std::vector<Polyhedra> &polys);
 
-    void appendPoly(const Polyhedra &poly)
-    {
-        polys_.emplace_back(poly);
-        size++;
-    }
+    void appendPoly(const Polyhedra &poly);
 };
