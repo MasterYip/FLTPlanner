@@ -20,7 +20,7 @@
 /* external project header files */
 #include <Eigen/Core>
 /* internal project header files */
-#include "geo_utils/geo_utils.hpp"
+#include "geo_utils.hpp"
 
 class Polyhedra
 {

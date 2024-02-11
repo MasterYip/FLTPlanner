@@ -1,9 +1,9 @@
 #ifndef VISUALIZER_HPP
 #define VISUALIZER_HPP
 
-#include "geo_utils/trajectory.hpp"
-#include "geo_utils/quickhull.hpp"
-#include "geo_utils/geo_utils.hpp"
+#include "gcs_traj_opt/geo_utils/trajectory.hpp"
+#include "gcs_traj_opt/geo_utils/quickhull.hpp"
+#include "gcs_traj_opt/geo_utils/geo_utils.hpp"
 
 #include <iostream>
 #include <memory>

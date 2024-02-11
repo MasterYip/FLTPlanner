@@ -20,8 +20,8 @@
 /* external project header files */
 
 /* internal project header files */
-#include "geo_utils/geo_utils.hpp"
-#include "geo_utils/polyhedra.hpp"
+#include "geo_utils.hpp"
+#include "polyhedra.hpp"
 
 class PolyCorridor
 {

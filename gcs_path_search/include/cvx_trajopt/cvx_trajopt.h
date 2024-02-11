@@ -16,10 +16,10 @@
 
 /* internal project header files */
 #include "cvx_trajopt/cvx_trajopt_config.hpp"
-#include "astar/stlastar.h"
-#include "geo_utils/geo_utils.hpp"
+#include "gcs_traj_opt/astar/stlastar.h"
+#include "gcs_traj_opt/geo_utils/geo_utils.hpp"
 
-#include "geo_utils/quickhull.hpp"
+#include "gcs_traj_opt/geo_utils/quickhull.hpp"
 #include "misc/visualizer.hpp"
 // TODO: Change project name
 #include <gcs_path_search/CvxTrajOptConfig.h>

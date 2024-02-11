@@ -8,7 +8,7 @@
 /* external project header files */
 #include <grid_map_ros/grid_map_ros.hpp>
 /* internal project header files */
-#include "geo_utils/geo_utils_2d.hpp"
+#include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
 
 using namespace geo_utils_2d;
 

@@ -38,7 +38,7 @@ given where due.
 #include <cfloat>
 
 // fast fixed size memory allocator, used for fast node memory management
-#include "astar/fsa.h"
+#include "gcs_traj_opt/astar/fsa.h"
 using namespace std;
 // Fixed size memory allocator can be disabled to compare performance
 // Uses std new and delete instead if you turn it off

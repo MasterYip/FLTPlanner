@@ -9,7 +9,7 @@
  * 
  */
 
-#include "geo_utils/polyhedra.hpp"
+#include "gcs_traj_opt/geo_utils/polyhedra.hpp"
 
 Polyhedra::Polyhedra(const Eigen::Matrix3Xd vpoly)
 {

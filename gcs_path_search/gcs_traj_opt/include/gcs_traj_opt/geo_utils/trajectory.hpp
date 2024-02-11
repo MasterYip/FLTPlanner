@@ -25,7 +25,7 @@
 #ifndef TRAJECTORY_HPP
 #define TRAJECTORY_HPP
 
-#include "geo_utils/root_finder.hpp"
+#include "root_finder.hpp"
 
 #include <Eigen/Eigen>
 

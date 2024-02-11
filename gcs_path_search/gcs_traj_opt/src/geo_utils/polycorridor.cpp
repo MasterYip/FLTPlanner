@@ -9,7 +9,7 @@
  * 
  */
 
-#include "geo_utils/polycorridor.hpp"
+#include "gcs_traj_opt/geo_utils/polycorridor.hpp"
 
 PolyCorridor::PolyCorridor(const std::vector<Polyhedra> &polys) : polys_(polys)
 {
