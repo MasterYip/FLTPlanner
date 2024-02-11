@@ -37,6 +37,8 @@
 
 namespace geo_utils
 {
+    ////////////////////
+    // Polyhedron
 
     /**
      * @brief Find the interior point of a convex polyhedron
@@ -372,6 +374,39 @@ namespace geo_utils
         Eigen::MatrixX4d hPoly2 = vpoly2hpoly(vPoly2);
         return intersectHpoly(hPoly1, hPoly2, vPolyIntersect);
     }
+
+    ////////////////////
+    // Guidance Plane
+
+    /**
+     * @brief Get the Plane object
+     *
+     * @param normal Normal of the plane
+     * @param point A point on the plane
+     * @return Eigen::Vector4d Plane in the form of `ax + by + cz + d = 0`
+     */
+    inline Eigen::Vector4d getPlane(const Eigen::Vector3d &normal, const Eigen::Vector3d &point)
+    {
+        Eigen::Vector4d plane;
+        plane.head<3>() = normal;
+        plane(3) = -normal.dot(point);
+        return plane;
+    }
+
+    /**
+     * @brief Get the Guidance Plane object
+     * 
+     * @param point1 
+     * @param point2 
+     * @param guideAxis Default z-axis
+     * @return Eigen::Vector4d Guidance Plane in the form of `ax + by + cz + d = 0`
+     */
+    inline Eigen::Vector4d getGuidancePlane(const Eigen::Vector3d &point1, const Eigen::Vector3d &point2, const Eigen::Vector3d guideAxis = Eigen::Vector3d::UnitZ())
+    {
+        Eigen::Vector3d normal = (point2 - point1).cross(guideAxis).cross(point2 - point1).normalized();
+        return getPlane(normal, point1);
+    }
+
 } // namespace geo_utils
 
 #endif

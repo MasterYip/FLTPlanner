@@ -284,7 +284,7 @@ namespace geo_utils_2d
 
     /**
      * @brief Path intersect detection
-     * BUG: bugs
+     * BUG: bugs exist, not used
      * @param path
      * @param p1
      * @param p2

@@ -185,6 +185,15 @@ void CVX_TrajOpt::drawSegmentIdx(const GridPt &idx1, const GridPt &idx2)
 ////////////////////
 // Corridor Intersect Border
 
+/**
+ * @brief Judge if a point is in a convex corridor
+ * @note
+ * TODO: Optimize this function
+ * @param Corridor 
+ * @param pos 
+ * @return true 
+ * @return false 
+ */
 bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor, const Eigen::Vector3d &pos)
 {
     for (uint i = 0; i < Corridor.size(); i++)
@@ -197,7 +206,17 @@ bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor, const Eigen::Vect
     return false;
 }
 
-bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor,
+/**
+ * @brief Judge if a point is in the intersection border of a convex corridor and a grid map
+ * 
+ * @param Corridor 
+ * @param map 
+ * @param idx 
+ * @param maplayer 
+ * @return true 
+ * @return false 
+ */
+bool inBorderJudge(const std::vector<Eigen::Matrix3Xd> &Corridor,
                 const grid_map::GridMap &map,
                 const GridPt &idx,
                 const std::string maplayer = "elevation")
@@ -231,20 +250,20 @@ std::vector<GridPt> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Ei
     map_.getIndex(goal, goal_idx);
     std::vector<GridPt> path; // TODO: Use freeman chain code to represent path
     idx = start_idx;
-    if (!inCorridor(Corridor, map_, idx))
+    if (!inBorderJudge(Corridor, map_, idx))
     {
         ROS_ERROR("Start point not in corridor!");
         return path;
     }
-    // Find start border
-    while (inCorridor(Corridor, map_, idx))
+    // Find start border (x direction)
+    while (inBorderJudge(Corridor, map_, idx))
     {
         idx[0]++;
     }
-    idx[0]--; // Back to last inCorridor
+    idx[0]--; // Back to last inBorder
     start_border_idx = idx;
     path.push_back(start_border_idx);
-    // Connectivity 8 Clockwise
+    // Connectivity 8 Clockwise Search
     // 7 8 1
     // 6 * 2
     // 5 4 3
@@ -268,12 +287,13 @@ std::vector<GridPt> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Ei
         for (int i = 0; i < 9; i++)
         {
             tmp_idx = idx + c8_cw.at(i);
-            // Make use of short-circuit evaluation
-            if (!out_corridor_flag && !inCorridor(Corridor, map_, tmp_idx))
+            // flag: pointer out of border
+            if (!out_corridor_flag && !inBorderJudge(Corridor, map_, tmp_idx))
             {
                 out_corridor_flag = true;
             }
-            if (out_corridor_flag && inCorridor(Corridor, map_, tmp_idx))
+            // flag: pointer back from border
+            if (out_corridor_flag && inBorderJudge(Corridor, map_, tmp_idx))
             {
 
                 if (path.size() > 1 && tmp_idx[0] == path.at(path.size() - 2)[0] && tmp_idx[1] == path.at(path.size() - 2)[1])
@@ -402,7 +422,7 @@ void CVX_TrajOpt::draw_vpoly_2DinHullPointset()
 
     for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
     {
-        if (inCorridor(CorridorBuf, map_, *iterator))
+        if (inBorderJudge(CorridorBuf, map_, *iterator))
         {
             Eigen::Vector3d pos;
             Eigen::Vector2d posxy;
