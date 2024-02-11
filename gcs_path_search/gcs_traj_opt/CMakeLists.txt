@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
 
 find_package(Eigen3 REQUIRED)
 find_package(CGAL REQUIRED)
+find_package(grid_map_core REQUIRED)
 
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 

@@ -27,11 +27,19 @@ class PolyCorridor
 {
 private:
     uint poly_size = 0;
-    std::vector<Polyhedra> polys_;             // discret feasible polyhedra trajectory
-    std::vector<Polyhedra> corridor_;          // feasible corridor obtained by `convex hull merging`
-    std::vector<Eigen::Vector4d> guide_plane_; // guide plane for each corridor segment
+    std::vector<Polyhedra> polys_;             // discret feasible polyhedra trajectory (size n)
+    std::vector<Polyhedra> corridor_;          // feasible corridor obtained by `poly merging` (size n-1)
+    std::vector<Eigen::Vector4d> guide_plane_; // guide plane for each corridor segment (size n-1)
 public:
     PolyCorridor(const std::vector<Polyhedra> &polys);
 
     void appendPoly(const Polyhedra &poly);
+
+    /**
+     * @brief Check if the given position is in the corridor
+     *
+     * @param pos
+     * @return int The index of the corridor segment that the position is in, -1 if not in any segment
+     */
+    int isInCorridor(const Eigen::Vector3d &pos);
 };

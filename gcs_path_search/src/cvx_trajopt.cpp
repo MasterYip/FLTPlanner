@@ -189,12 +189,12 @@ void CVX_TrajOpt::drawSegmentIdx(const GridPt &idx1, const GridPt &idx2)
  * @brief Judge if a point is in a convex corridor
  * @note
  * TODO: Optimize this function
- * @param Corridor 
- * @param pos 
- * @return true 
- * @return false 
+ * @param Corridor
+ * @param pos
+ * @return true
+ * @return false
  */
-bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor, const Eigen::Vector3d &pos)
+[[deprecated("use class PolyCorridor instead")]] bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor, const Eigen::Vector3d &pos)
 {
     for (uint i = 0; i < Corridor.size(); i++)
     {
@@ -208,18 +208,18 @@ bool inCorridor(const std::vector<Eigen::Matrix3Xd> &Corridor, const Eigen::Vect
 
 /**
  * @brief Judge if a point is in the intersection border of a convex corridor and a grid map
- * 
- * @param Corridor 
- * @param map 
- * @param idx 
- * @param maplayer 
- * @return true 
- * @return false 
+ *
+ * @param Corridor
+ * @param map
+ * @param idx
+ * @param maplayer
+ * @return true
+ * @return false
  */
 bool inBorderJudge(const std::vector<Eigen::Matrix3Xd> &Corridor,
-                const grid_map::GridMap &map,
-                const GridPt &idx,
-                const std::string maplayer = "elevation")
+                   const grid_map::GridMap &map,
+                   const GridPt &idx,
+                   const std::string maplayer = "elevation")
 {
     Eigen::Vector3d pos;
     Eigen::Vector2d posxy;
@@ -316,16 +316,17 @@ std::vector<GridPt> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Ei
             path.push_back(revisit_idx);
             idx = revisit_idx;
         }
-        // timer_.milliSleep(100);
-        // printf("now(%d %d)\n", idx[0], idx[1]);
-        // drawSphereIdx(idx, 0.01);
+
     } while (idx[0] != start_border_idx[0] || idx[1] != start_border_idx[1]);
 
     return path;
 }
 
+////////////////////
+// rope straining method
+
 /**
- * @brief Get the min length path using rope straining method
+ * @brief Get the min length path using `rope straining method`
  * BUG: not properly implemented
  * @param[in] Border
  * @param[in] start
@@ -383,7 +384,7 @@ bool CVX_TrajOpt::minlengthPath(const std::vector<GridPt> &Border,
 }
 
 ////////////////////
-// Test
+// Tests
 
 void CVX_TrajOpt::test_map()
 {
