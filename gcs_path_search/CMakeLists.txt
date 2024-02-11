@@ -8,8 +8,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
 # --copy-dt-needed-entries
 # set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
 
-add_subdirectory(gcs_traj_opt)
-
 find_package(Eigen3 REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -31,6 +29,7 @@ include_directories(
     include
 )
 
+add_subdirectory(gcs_traj_opt)
 
 # Dynamic reconfigure
 set (CVX_DYNCFG_PATH config/cvx_trajopt.cfg)

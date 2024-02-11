@@ -17,7 +17,7 @@ PolyCorridor::PolyCorridor(const std::vector<Polyhedra> &polys) : polys_(polys)
     // poly corridor
     for (uint i = 0; i < poly_size - 1; i++)
     {
-        corridor_.emplace_back(geo_utils::mergeVpoly(polys_.at(i), polys_.at(i + 1)));
+        corridor_.emplace_back(geo_utils::mergeVpoly(polys_.at(i).getVRep(), polys_.at(i + 1).getVRep()));
     }
     // guide plane
     for (uint i = 0; i < poly_size - 1; i++)
@@ -39,7 +39,7 @@ int PolyCorridor::isInCorridor(const Eigen::Vector3d &pos)
 {
     for (uint i = 0; i < corridor_.size(); i++)
     {
-        if (geo_utils::inVpoly(corridor_.at(i), pos))
+        if (geo_utils::inVpoly(corridor_.at(i).getVRep(), pos))
         {
             return i;
         }
