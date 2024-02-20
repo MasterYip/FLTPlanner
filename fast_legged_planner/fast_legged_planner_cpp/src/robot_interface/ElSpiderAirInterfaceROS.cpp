@@ -19,14 +19,11 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf)
     feedforward_type = 0;
     // FIXME: use parameter server
     // Hardware
-    // joint_kp = {0.075, 0.2, 0.2};
-    // joint_kd = {2, 2, 2};
-        //     # Gazebo
-        // # self.joint_kp = [500, 500, 500]
-        // # self.joint_kd = [3, 7.5, 7.5]
+    joint_kp = {0.075, 0.2, 0.2};
+    joint_kd = {2, 2, 2};
     // Gazebo
-    joint_kp = {1000, 1500, 1500};
-    joint_kd = {5, 7.5, 7.5};
+    // joint_kp = {1000, 1500, 1500};
+    // joint_kd = {5, 7.5, 7.5};
 }
 
 void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)

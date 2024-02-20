@@ -80,6 +80,8 @@ A simple co-simulation for ElSpider Air.
 
 ##### Launch procedure
 
+Simulation:
+
 ```bash
 # Make sure depend repos are properly installed & sourced
 catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
@@ -90,6 +92,25 @@ robot_name:=elspider_air \
 joystick_type:=keyboard_sim \
 gazebo_hang_up:=on_ground \
 interface_type:=gazebo
+# Terminal2: start Planner & elevation mapping
+roslaunch fast_legged_planner elspider_air_simple_planner.launch
+```
+
+Hardware(**IMPORTANT: Remember to modify kp/kd in robot_interface**):
+
+```bash
+# Make sure depend repos are properly installed & sourced
+catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
+# Terminal1: start HexapodSoftware Gazebo simulation
+# Get in to sudo mode
+sudo su
+# Start HexapodSoftware
+roslaunch user main.launch \
+controller_type:=hlc \
+robot_name:=elspider_air \
+joystick_type:=PS5 \
+gazebo_hang_up:=on_ground \
+interface_type:=hardware
 # Terminal2: start Planner & elevation mapping
 roslaunch fast_legged_planner elspider_air_simple_planner.launch
 ```
