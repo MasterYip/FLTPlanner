@@ -109,6 +109,8 @@ private:
     std::vector<Eigen::Vector3f> exp_path_;
     float multiply_factor_ = 0.03;
     int point_num_ = 3;
+    // ROS Timer event
+    ros::Timer timer_;
 
     // Interface
     ElSpiderAirInterfaceROS robot_interface_;
@@ -141,6 +143,20 @@ public:
             robot_state_ = initRobotState(robotPoseW, gaitToNow, moveDir);
             next_planned_state_ = robot_state_;
         }
+        else
+        {
+            timer_ = nh_.createTimer(ros::Duration(0.05), &ElSpiderAirSimplePlanner::timer_callback, this);
+        }
+    }
+
+    void timer_callback(const ros::TimerEvent &event)
+    {
+        std::vector<Eigen::Vector3d> footend_now;
+        for (size_t k = 0; k < 6; ++k)
+        {
+            footend_now.emplace_back(robot_state_.feetPosition[k]);
+        }
+        robot_interface_.pub_joint_state_from_footendpos(footend_now);
     }
 
     void cmd_callback(const geometry_msgs::Twist &msg)
@@ -288,15 +304,16 @@ public:
                 robot_interface_.pub_joint_state_from_footendpos(footend_interp);
                 robot_interface_.pub_odom(odom_interp);
             }
-            else
-            {
-                std::vector<Eigen::Vector3d> footend_now;
-                for (size_t k = 0; k < 6; ++k)
-                {
-                    footend_now.emplace_back(robot_state_.feetPosition[k]);
-                }
-                robot_interface_.pub_joint_state_from_footendpos(footend_now);
-            }
+            // else
+            // {
+            //     // FIXME: should pub continuously (base may always moving)
+            //     std::vector<Eigen::Vector3d> footend_now;
+            //     for (size_t k = 0; k < 6; ++k)
+            //     {
+            //         footend_now.emplace_back(robot_state_.feetPosition[k]);
+            //     }
+            //     robot_interface_.pub_joint_state_from_footendpos(footend_now);
+            // }
             t += delta;
             if (t > 1.0)
             {

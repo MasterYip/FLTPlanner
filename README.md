@@ -80,6 +80,8 @@ A simple co-simulation for ElSpider Air.
 
 ##### Launch procedure
 
+FIXME: handle simulation & hardware separately
+
 Simulation:
 
 ```bash

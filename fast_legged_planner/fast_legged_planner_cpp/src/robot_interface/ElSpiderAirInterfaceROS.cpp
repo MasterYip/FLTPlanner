@@ -19,7 +19,7 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf)
     feedforward_type = 0;
     // FIXME: use parameter server
     // Hardware
-    joint_kp = {0.075, 0.2, 0.2};
+    joint_kp = {0.1, 0.3, 0.3};
     joint_kd = {2, 2, 2};
     // Gazebo
     // joint_kp = {1000, 1500, 1500};
