@@ -107,8 +107,8 @@ private:
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
     std::vector<Eigen::Vector3f> exp_path_;
-    float multiply_factor_ = 0.03;
-    int point_num_ = 3;
+    float multiply_factor_ = 0.05;
+    int point_num_ = 5;
     // ROS Timer event
     ros::Timer timer_;
 
@@ -232,7 +232,7 @@ public:
     {
         exp_path_.clear();
         // FIXME: pose.z should be on torso height map!!!
-        double height = 0.27;
+        double height = 0.33;
         exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, height));
         for (int i = 0; i < point_num_; ++i)
         {
@@ -297,6 +297,7 @@ public:
         double t = 0.0;
         double delta = 0.05;
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
+        // BUG: odom_interp does not align with reality & point cloud
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
         do
