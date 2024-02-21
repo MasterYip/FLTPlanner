@@ -95,7 +95,7 @@ joystick_type:=keyboard_sim \
 gazebo_hang_up:=on_ground \
 interface_type:=gazebo
 # Terminal2: start Planner & elevation mapping
-roslaunch fast_legged_planner elspider_air_simple_planner.launch
+roslaunch fast_legged_planner elspider_air_simple_planner.launch sim:=true
 ```
 
 Hardware(**IMPORTANT: Remember to modify kp/kd in robot_interface**):
@@ -114,7 +114,7 @@ joystick_type:=PS5 \
 gazebo_hang_up:=on_ground \
 interface_type:=hardware
 # Terminal2: start Planner & elevation mapping
-roslaunch fast_legged_planner elspider_air_simple_planner.launch
+roslaunch fast_legged_planner elspider_air_simple_planner.launch sim:=false
 ```
 
 Settings are listed in `elspider_air_simple_planner.launch`.

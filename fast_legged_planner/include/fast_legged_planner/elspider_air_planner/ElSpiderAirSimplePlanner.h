@@ -121,11 +121,12 @@ private:
 
     // Settings
     bool fake_estimation_;
+    bool simulation_;
 
 public:
-    ElSpiderAirSimplePlanner(bool fake_estimation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string(""))),
-                                                             gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
-                                                             rate_(20), fake_estimation_(fake_estimation)
+    ElSpiderAirSimplePlanner(bool fake_estimation = false, bool simulation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
+                                                                                      gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
+                                                                                      rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 100, &ElSpiderAirSimplePlanner::cmd_callback, this);
         foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 100, &ElSpiderAirSimplePlanner::foot_state_callback, this);

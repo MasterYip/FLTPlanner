@@ -38,9 +38,10 @@ private:
     int feedforward_type;
     std::vector<double> joint_kp;
     std::vector<double> joint_kd;
+    bool sim_;
 
 public:
-    ElSpiderAirInterfaceROS(const std::string &urdf);
+    ElSpiderAirInterfaceROS(const std::string &urdf, bool sim = false);
 
     // Rviz
     void pub_odom(const pinocchio::SE3 &odom,

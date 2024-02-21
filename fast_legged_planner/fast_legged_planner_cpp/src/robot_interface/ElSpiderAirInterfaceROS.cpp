@@ -11,21 +11,25 @@
 #include "fast_legged_planner/robot_interface/ElSpiderAirInterfaceROS.h"
 #include <geometry_msgs/TransformStamped.h>
 
-ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf)
-    : ElSpiderAirInterface(urdf)
+ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool sim)
+    : ElSpiderAirInterface(urdf), sim_(sim)
 {
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     foot_pos_pub = nh.advertise<fast_legged_planner::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
     feedforward_type = 0;
-    // FIXME: use parameter server
-    // Hardware
-    joint_kp = {0.1, 0.3, 0.3};
-    joint_kd = {2, 2, 2};
-    // Gazebo
-    // joint_kp = {1000, 1500, 1500};
-    // joint_kd = {5, 7.5, 7.5};
+    if (!sim_) // Hardware
+    {
+        joint_kp = {0.1, 0.3, 0.3};
+        joint_kd = {2, 2, 2};
+    }
+    else // Gazebo
+    {
+        joint_kp = {1000, 1500, 1500};
+        joint_kd = {5, 7.5, 7.5};
+    }
 }
 
+// BUG: the support leg directly get into damp mode
 void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)
 {
     fast_legged_planner::FootCmd footcmd;
@@ -41,6 +45,7 @@ void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eige
         geometry_msgs::Vector3 vec3;
         footcmd.foot_velocity.push_back(vec3);
         footcmd.foot_effort.push_back(vec3);
+        footcmd.joint_torque.push_back(vec3);
         vec3.x = joint_kp[0];
         vec3.y = joint_kp[1];
         vec3.z = joint_kp[2];
@@ -49,7 +54,6 @@ void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eige
         vec3.y = joint_kd[1];
         vec3.z = joint_kd[2];
         footcmd.joint_kd.push_back(vec3);
-        footcmd.joint_torque.push_back(vec3);
     }
     foot_pos_pub.publish(footcmd);
 }
