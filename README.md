@@ -106,7 +106,7 @@ catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
 # Terminal1: start HexapodSoftware Gazebo simulation
 # Get in to sudo mode
 sudo su
-# Start HexapodSoftware
+# Start HexapodSoftware (after source the workspace)
 roslaunch user main.launch \
 controller_type:=hlc \
 robot_name:=elspider_air \

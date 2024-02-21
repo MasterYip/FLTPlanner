@@ -35,6 +35,11 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TransformStamped.h>
+
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_listener.h>
 
 fast_legged_planner::hexapod_State transRobotState(const MDT::RobotState &state_)
 {
@@ -100,8 +105,12 @@ private:
     ros::Subscriber foot_state_sub_;
     fast_legged_planner::FootState foot_state_;
     bool recv_foot_state_ = false;
-    ros::Subscriber body_state_sub_;
-    fast_legged_planner::BodyState body_state_;
+    // IMU
+    // ros::Subscriber body_state_sub_; // not used
+    // fast_legged_planner::BodyState body_state_; // not used
+    tf2_ros::Buffer tfBuffer_;
+    tf2_ros::TransformListener tfListener_;
+    geometry_msgs::TransformStamped body_state_tf_;
     bool recv_body_state_ = false;
     // MCTS planner Interface
     MDT::RobotState robot_state_;
@@ -126,11 +135,12 @@ private:
 public:
     ElSpiderAirSimplePlanner(bool fake_estimation = false, bool simulation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
                                                                                       gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
+                                                                                      tfListener_(tfBuffer_),
                                                                                       rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
         foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirSimplePlanner::foot_state_callback, this);
-        body_state_sub_ = nh_.subscribe("/hexapod/body_state_fdb", 1, &ElSpiderAirSimplePlanner::body_state_callback, this);
+        // body_state_sub_ = nh_.subscribe("/hexapod/body_state_fdb", 1, &ElSpiderAirSimplePlanner::body_state_callback, this);
 
         robot_state_.initialize();
         next_planned_state_.initialize();
@@ -153,7 +163,7 @@ public:
     void timer_callback(const ros::TimerEvent &event)
     {
         std::vector<Eigen::Vector3d> footend_now;
-        // Pub fdb
+        // Pub foot fdb
         if (recv_foot_state_ && recv_body_state_)
         {
             update_robot_state();
@@ -163,6 +173,19 @@ public:
             footend_now.emplace_back(robot_state_.feetPosition[k]);
         }
         // robot_interface_.pub_joint_state_from_footendpos(footend_now);
+
+        // Update body state
+        try
+        {
+            // FIXME:
+            // body_state_tf_ = tfBuffer_.lookupTransform("base", "odom", ros::Time::now());
+            body_state_tf_ = tfBuffer_.lookupTransform("odom", "base", ros::Time(0));
+            recv_body_state_ = true;
+        }
+        catch (tf2::TransformException &ex)
+        {
+            ROS_WARN("%s", ex.what());
+        }
     }
 
     void cmd_callback(const geometry_msgs::Twist &msg)
@@ -173,7 +196,6 @@ public:
         if ((recv_foot_state_ && recv_body_state_) || fake_estimation_)
         {
             update_exp_path();
-            // update_exp_path_test();
             update_robot_state();
             gridmap_interface_.lockMapUpdate();
             next_planned_state_ = CONTACT_PLANNER::pathTrackPlanner(robot_state_, exp_path_, gridmap_interface_.getMap(), true, 100);
@@ -189,10 +211,11 @@ public:
         foot_state_ = msg;
     }
 
-    void body_state_callback(const fast_legged_planner::BodyState &msg)
+    // FIXME: is this correct?
+    [[deprecated]] void body_state_callback(const fast_legged_planner::BodyState &msg)
     {
         recv_body_state_ = true;
-        body_state_ = msg;
+        // body_state_ = msg;
     }
 
     void update_robot_state(void)
@@ -204,26 +227,34 @@ public:
         else
         {
             // TODO: time stamp?
-            robot_state_.pose.x = body_state_.pose.position.x;
-            robot_state_.pose.y = body_state_.pose.position.y;
-            robot_state_.pose.z = body_state_.pose.position.z;
-            robot_state_.pose.roll = body_state_.eular.roll;
-            robot_state_.pose.pitch = body_state_.eular.pitch;
-            robot_state_.pose.yaw = body_state_.eular.yaw;
+            // robot_state_.pose.x = body_state_.pose.position.x;
+            // robot_state_.pose.y = body_state_.pose.position.y;
+            // robot_state_.pose.z = body_state_.pose.position.z;
+            // robot_state_.pose.roll = body_state_.eular.roll;
+            // robot_state_.pose.pitch = body_state_.eular.pitch;
+            // robot_state_.pose.yaw = body_state_.eular.yaw;
+            robot_state_.pose.x = body_state_tf_.transform.translation.x;
+            robot_state_.pose.y = body_state_tf_.transform.translation.y;
+            robot_state_.pose.z = body_state_tf_.transform.translation.z;
+            // RPY
+            tf2::Quaternion q;
+            tf2::fromMsg(body_state_tf_.transform.rotation, q);
+            tf2::Matrix3x3(q).getRPY(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw);
+
             // FIXME: gaitToNow? default 0
             for (int i = 0; i < 6; ++i)
             {
                 robot_state_.gaitToNow[i] = MDT::SUPPORT_FLAG; // use FootState.contact?
                 robot_state_.faultStateToNow[i] = MDT::NORMAL_LEG_FLAG;
-                robot_state_.feetPosition[i].x() = foot_state_.position[i].x;
-                robot_state_.feetPosition[i].y() = foot_state_.position[i].y;
-                robot_state_.feetPosition[i].z() = foot_state_.position[i].z;
+                robot_state_.feetPosition[i].x() = foot_state_.position[i].x + body_state_tf_.transform.translation.x;
+                robot_state_.feetPosition[i].y() = foot_state_.position[i].y + body_state_tf_.transform.translation.y;
+                robot_state_.feetPosition[i].z() = foot_state_.position[i].z + body_state_tf_.transform.translation.z;
                 robot_state_.feetNormalVector[i] << 0, 0, 1; // TODO: use gridmap normal
             }
             // FIXME: cmd_ should be under robot frame
             // if (cmd_.linear.x != 0)
             //     robot_state_.moveDirection = atan2(cmd_.linear.y, cmd_.linear.x);
-            robot_state_.moveDirection = body_state_.eular.yaw;
+            robot_state_.moveDirection = robot_state_.pose.yaw;
             // TODO: maxNormalForce, frictionMu
         }
     }
