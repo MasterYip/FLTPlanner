@@ -3,9 +3,9 @@
 
     <!-- Settings -->
     <!-- Gazebo/Hardware -->
-    <arg name="sim" value="true" />
+    <arg name="sim" default="true" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
-    <arg name="fake_feedback" value="false" />
+    <arg name="fake_feedback" default="false" />
     <!-- value: image / txt(deprecated) -->
     <arg name="grid_map_fmt" value="image" />
     <arg name="with_ceiling" value="false" />
@@ -101,7 +101,7 @@
     <!-- Robot related -->
     <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval fake_feedback == 1)"/>
     <!-- FIXME: Robot model loaded from HexapodSoftware is wrong about lidar in hardware, this is wrong in gazebo-->
-    <!-- <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval fake_feedback == 0)"/> -->
+    <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval sim == 0)"/>
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
     <!-- Rviz -->
     <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find fast_legged_planner)/config/elspider_air_simple_planner.rviz" output="screen" if="$(eval fake_feedback == 0)"/>

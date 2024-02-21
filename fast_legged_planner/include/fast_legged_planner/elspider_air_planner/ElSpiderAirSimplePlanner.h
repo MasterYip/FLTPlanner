@@ -128,9 +128,9 @@ public:
                                                                                       gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
                                                                                       rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
     {
-        cmd_sub_ = nh_.subscribe("/cmd_vel", 100, &ElSpiderAirSimplePlanner::cmd_callback, this);
-        foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 100, &ElSpiderAirSimplePlanner::foot_state_callback, this);
-        body_state_sub_ = nh_.subscribe("/hexapod/body_state_fdb", 100, &ElSpiderAirSimplePlanner::body_state_callback, this);
+        cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
+        foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirSimplePlanner::foot_state_callback, this);
+        body_state_sub_ = nh_.subscribe("/hexapod/body_state_fdb", 1, &ElSpiderAirSimplePlanner::body_state_callback, this);
 
         robot_state_.initialize();
         next_planned_state_.initialize();
@@ -153,11 +153,16 @@ public:
     void timer_callback(const ros::TimerEvent &event)
     {
         std::vector<Eigen::Vector3d> footend_now;
+        // Pub fdb
+        if (recv_foot_state_ && recv_body_state_)
+        {
+            update_robot_state();
+        }
         for (size_t k = 0; k < 6; ++k)
         {
             footend_now.emplace_back(robot_state_.feetPosition[k]);
         }
-        robot_interface_.pub_joint_state_from_footendpos(footend_now);
+        // robot_interface_.pub_joint_state_from_footendpos(footend_now);
     }
 
     void cmd_callback(const geometry_msgs::Twist &msg)
@@ -212,7 +217,7 @@ public:
                 robot_state_.faultStateToNow[i] = MDT::NORMAL_LEG_FLAG;
                 robot_state_.feetPosition[i].x() = foot_state_.position[i].x;
                 robot_state_.feetPosition[i].y() = foot_state_.position[i].y;
-                robot_state_.feetPosition[i].z() = foot_state_.position[i].z + 0.05; // FIXME: temporary margin
+                robot_state_.feetPosition[i].z() = foot_state_.position[i].z;
                 robot_state_.feetNormalVector[i] << 0, 0, 1;                         // TODO: use gridmap normal
             }
             // FIXME: cmd_ should be under robot frame
@@ -226,7 +231,7 @@ public:
     void update_exp_path(void)
     {
         exp_path_.clear();
-        // FIXME: pose.z is const?
+        // FIXME: pose.z should be on torso height map!!!
         exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
         for (int i = 0; i < point_num_; ++i)
         {
@@ -300,23 +305,13 @@ public:
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
             }
             robot_interface_.pub_footcmd_from_footendpos(footend_interp);
-            if (fake_estimation_)
+            if (1 || fake_estimation_)
             {
                 robot_interface_.pub_joint_state_from_footendpos(footend_interp);
                 robot_interface_.pub_odom(odom_interp);
             }
-            // else
-            // {
-            //     // FIXME: should pub continuously (base may always moving)
-            //     std::vector<Eigen::Vector3d> footend_now;
-            //     for (size_t k = 0; k < 6; ++k)
-            //     {
-            //         footend_now.emplace_back(robot_state_.feetPosition[k]);
-            //     }
-            //     robot_interface_.pub_joint_state_from_footendpos(footend_now);
-            // }
             t += delta;
-            if (t > 1.0)
+            if (t > 1.01)
             {
                 t = 0.0;
                 whole_body_planner_.dequeue_MCTsolution();

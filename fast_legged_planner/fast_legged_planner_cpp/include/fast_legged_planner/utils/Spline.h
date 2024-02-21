@@ -158,7 +158,12 @@ public:
 
         if (t < t_range_.first || t > t_range_.second)
         {
-            throw std::invalid_argument("Parameter t out of range");
+            std::cerr << "Parameter t out of range" << std::endl;
+            // Saturation
+            if (t < t_range_.first)
+                t = t_range_.first;
+            if (t > t_range_.second)
+                t = t_range_.second;
         }
 
         int i = floor(t);
