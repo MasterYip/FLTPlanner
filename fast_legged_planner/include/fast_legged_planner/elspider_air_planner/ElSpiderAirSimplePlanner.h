@@ -237,6 +237,7 @@ public:
             robot_state_.pose.y = body_state_tf_.transform.translation.y;
             robot_state_.pose.z = body_state_tf_.transform.translation.z;
             // RPY
+            // BUG: It seems not correct
             tf2::Quaternion q;
             tf2::fromMsg(body_state_tf_.transform.rotation, q);
             tf2::Matrix3x3(q).getRPY(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw);
@@ -263,7 +264,7 @@ public:
     {
         exp_path_.clear();
         // FIXME: pose.z should be on torso height map!!!
-        double height = 0.33;
+        double height = 0.28;
         exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, height));
         for (int i = 0; i < point_num_; ++i)
         {
@@ -331,6 +332,8 @@ public:
         // BUG: odom_interp does not align with reality & point cloud
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
+        // print rpy
+        std::cout<< "rpy: " << robot_state_.pose.roll << " " << robot_state_.pose.pitch << " " << robot_state_.pose.yaw << std::endl;
         do
         {
             state_traj = whole_body_planner_.get_state_traj(0);
