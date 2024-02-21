@@ -218,7 +218,7 @@ public:
                 robot_state_.feetPosition[i].x() = foot_state_.position[i].x;
                 robot_state_.feetPosition[i].y() = foot_state_.position[i].y;
                 robot_state_.feetPosition[i].z() = foot_state_.position[i].z;
-                robot_state_.feetNormalVector[i] << 0, 0, 1;                         // TODO: use gridmap normal
+                robot_state_.feetNormalVector[i] << 0, 0, 1; // TODO: use gridmap normal
             }
             // FIXME: cmd_ should be under robot frame
             // if (cmd_.linear.x != 0)
@@ -232,12 +232,13 @@ public:
     {
         exp_path_.clear();
         // FIXME: pose.z should be on torso height map!!!
-        exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
+        double height = 0.27;
+        exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, height));
         for (int i = 0; i < point_num_; ++i)
         {
             exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + (cmd_.linear.x * cos(robot_state_.pose.yaw) - cmd_.linear.y * sin(robot_state_.pose.yaw)) * multiply_factor_ * i,
                                                 robot_state_.pose.y + (cmd_.linear.x * sin(robot_state_.pose.yaw) + cmd_.linear.y * cos(robot_state_.pose.yaw)) * multiply_factor_ * i,
-                                                robot_state_.pose.z));
+                                                height));
         }
     }
 
@@ -295,11 +296,14 @@ public:
     {
         double t = 0.0;
         double delta = 0.05;
-        while (whole_body_planner_.get_state_traj_length() > 0)
+        MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
+        pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
+        std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
+        do
         {
-            MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
-            pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(t);
-            std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(t);
+            state_traj = whole_body_planner_.get_state_traj(0);
+            odom_interp = state_traj.eval_torso_traj(t);
+            footend_interp = state_traj.eval_foot_traj(t);
             for (size_t k = 0; k < 6; ++k)
             {
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
@@ -311,13 +315,13 @@ public:
                 robot_interface_.pub_odom(odom_interp);
             }
             t += delta;
-            if (t > 1.01)
+            if (t > 1.0)
             {
                 t = 0.0;
                 whole_body_planner_.dequeue_MCTsolution();
             }
             rate_.sleep();
-        }
+        } while (whole_body_planner_.get_state_traj_length() > 0);
     }
 
     void run()

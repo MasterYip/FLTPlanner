@@ -151,7 +151,7 @@ public:
     Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
     {
         // convert normalized t to real t
-        if (normalized && t >= 0.0 && t <= 1.0)
+        if (normalized)
         {
             t = t * (t_range_.second - t_range_.first) + t_range_.first;
         }

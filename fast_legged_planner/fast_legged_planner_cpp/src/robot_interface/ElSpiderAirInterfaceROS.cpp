@@ -29,7 +29,6 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     }
 }
 
-// BUG: the support leg directly get into damp mode
 void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)
 {
     fast_legged_planner::FootCmd footcmd;
