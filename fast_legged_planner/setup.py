@@ -8,7 +8,8 @@ setup(
              'scripts/gridmap_sub.py',
              'scripts/image_publisher.py',
              'scripts/pointcloud_parser.py',
-             'scripts/test_elspider_air.py'],
+             'scripts/test_elspider_air.py',
+             'scripts/utils/joy_teleop.py'],
     packages=['fast_legged_planner_py'],
     package_dir={'': './'}
 )

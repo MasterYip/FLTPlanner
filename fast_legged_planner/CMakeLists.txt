@@ -278,6 +278,8 @@ catkin_install_python(PROGRAMS
   scripts/gridmap_sub.py
   scripts/pointcloud_parser.py
 
+  scripts/utils/joy_teleop.py
+
 
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

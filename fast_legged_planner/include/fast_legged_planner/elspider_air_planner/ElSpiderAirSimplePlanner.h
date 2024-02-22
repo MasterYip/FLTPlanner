@@ -123,7 +123,6 @@ private:
 
     // Interface
     ElSpiderAirInterfaceROS robot_interface_;
-    // BUG: pass static map to MCTS other than dynamic one (this may result in program crash)
     GridMapInterface gridmap_interface_;
     HITSpiderWholeBodyPlanner whole_body_planner_;
     // std::vector<hexapod_State> MCT_solution_;
@@ -178,7 +177,7 @@ public:
         // Update body state
         try
         {
-            // FIXME:
+            // FIXME: extrapolate to future problem
             // body_state_tf_ = tfBuffer_.lookupTransform("base", "odom", ros::Time::now());
             body_state_tf_ = tfBuffer_.lookupTransform("odom", "base", ros::Time(0));
             recv_body_state_ = true;
@@ -212,7 +211,7 @@ public:
         foot_state_ = msg;
     }
 
-    // FIXME: is this correct?
+    // Deprecated
     [[deprecated]] void body_state_callback(const fast_legged_planner::BodyState &msg)
     {
         recv_body_state_ = true;
@@ -238,7 +237,7 @@ public:
             robot_state_.pose.y = body_state_tf_.transform.translation.y;
             robot_state_.pose.z = body_state_tf_.transform.translation.z;
             // RPY
-            // BUG: It seems not correct
+            // FIXME: It seems not correct
             tf2::Quaternion q;
             tf2::fromMsg(body_state_tf_.transform.rotation, q);
             tf2::Matrix3x3(q).getRPY(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw);
@@ -264,8 +263,8 @@ public:
     void update_exp_path(void)
     {
         exp_path_.clear();
-        // FIXME: pose.z should be on torso height map!!!
-        double height = 0.28;
+        // FIXME: pose.z should be on torso height map!!! (Not used temporarily in MCTS)
+        double height = 0.25;
         exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, height));
         for (int i = 0; i < point_num_; ++i)
         {
@@ -330,7 +329,6 @@ public:
         double t = 0.0;
         double delta = 0.05;
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
-        // BUG: odom_interp does not align with reality & point cloud
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
         // print rpy

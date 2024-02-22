@@ -4,6 +4,8 @@
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
     <arg name="sim" default="true" />
+    <!-- keyboard / PS5 -->
+    <arg name="teleop_type" default="PS5" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="false" />
     <arg name="with_ceiling" value="false" />
@@ -84,8 +86,24 @@
     <node pkg="rviz" type="rviz" name="rviz_elspider_air_fake" args="-d $(find fast_legged_planner)/config/walking_rviz.rviz" output="screen" if="$(eval fake_feedback == 1)"/>
 
     <!-- Teleop -->
-    <include file="$(find fast_legged_planner)/launch/key_teleop.launch">
-        <arg name="topic_name" value="/cmd_vel" />
-    </include>
-
+    <group if="$(eval teleop_type == 'keyboard')">
+        <include file="$(find fast_legged_planner)/launch/key_teleop.launch">
+            <arg name="topic_name" value="/cmd_vel" />
+        </include>
+    </group>
+    <group if="$(eval teleop_type == 'PS5')">
+        <node pkg="joy" type="joy_node" name="joy_node" output="screen" clear_params="true" required="true">
+            <param name="dev" value="/dev/input/js0"/>
+            <!-- udevadm monitor -->
+            <param name="dev_ff" value="/dev/input/event20"/>
+            <!-- maintain a fixed send&receive frequency helps force feedback control (100Hz) -->
+            <param name="coalesce_interval" value="0.01"/>
+            <param name="autorepeat_rate" value="100"/>
+            <param name="default_trig_val" value="true"/>
+        </node>
+        <node pkg="fast_legged_planner" type="joy_teleop.py" name="joy_teleop" output="screen">
+            <param name="cmd_topic" value="/cmd_vel" />
+            <param name="joy_topic" value="/joy" />
+        </node>
+    </group>
 </launch>
