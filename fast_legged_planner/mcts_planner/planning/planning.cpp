@@ -213,7 +213,7 @@ namespace PLANNING
             bool isInPolygon =  PLANNING::getStabilityMargin(MDT::POINT(hexapodState.pose.x, hexapodState.pose.y, hexapodState.pose.z), 
                 Pnts_, Pnts_.size(), &stabilityMargin_);
 
-            if(isInPolygon == true && stabilityMargin_ > 0.1f)
+            if(isInPolygon == true ) // && stabilityMargin_ > 0.1f
             {
                 // cout << stabilityMargin_ << endl;
                 availableSupportList.push_back(tmpSupportList2[i]);
@@ -672,6 +672,7 @@ namespace PLANNING
 
 
             if(length_ < 0.01) continue;
+            else length_ -= 0.01; 
             
             MDT::POINT maxMovingPoint = {length_, pitch, maxDeltaZ};
             maxMoving.push_back(maxMovingPoint);
@@ -1584,6 +1585,15 @@ namespace PLANNING
 
         auto result = PLANNING::getSupportListAndStepL_underConstrains(rState, mapData);
         std::vector<MDT::Vector6b> availableSupportState_ = result.first;
+        std::cout << "************ availableSupportState_.size : " << availableSupportState_.size() << std::endl;
+        std::cout << "SUPPORT:" << MDT::SUPPORT_FLAG << std::endl;
+        for(int i = 0; i < availableSupportState_.size(); ++i)
+        {
+            std::cout << availableSupportState_[i].transpose();
+            std::cout << " " << result.second[i].transpose()
+             << std::endl;
+        }
+
 
         if(availableSupportState_.size() == 0)
         {
@@ -1609,15 +1619,15 @@ namespace PLANNING
 
         std::cout << "************ index : " << maxIndex << std::endl;
 
-        if(stepLength_ > 0.05f)
-        {
-            // 防止落在支撑多边形边上
-            stepLength_ -= 0.05f;
-        }
-        else if(stepLength_ < 0.01) //防止在仿真过程中机器人不断挪动，由于数值问题移动出扇形工作空间
-        {
-            stepLength_ = 0;
-        }
+        // if(stepLength_ > 0.05f)
+        // {
+        //     // 防止落在支撑多边形边上
+        //     stepLength_ -= 0.05f;
+        // }
+        // else if(stepLength_ < 0.01) //防止在仿真过程中机器人不断挪动，由于数值问题移动出扇形工作空间
+        // {
+        //     stepLength_ = 0;
+        // }
         
 
         hexapodState.pose.x += stepLength_ * cos(hexapodState.moveDirection);

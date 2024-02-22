@@ -33,6 +33,7 @@ class TreeNode  : public std::enable_shared_from_this<TreeNode> {
         int num_thread_visited;
         bool check_candidateNodes;
         float simDis;
+        float disToParents;
 
 
         TreeNode(const MDT::RobotState& rState_, const std::string& hashKey_)

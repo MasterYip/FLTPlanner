@@ -56,7 +56,10 @@ namespace CONTACT_PLANNER{
 
                     // 深度拷贝newChild
                     TreeNode_ptr newChild = std::make_shared<TreeNode>(*newNode);
-
+                    float deltaX_ = node->rState.pose.x - newChild->rState.pose.x;
+                    float deltaY_ = node->rState.pose.y - newChild->rState.pose.y;
+                    float disToPar = sqrt(deltaX_*deltaX_ + deltaY_*deltaY_);
+                    newChild->disToParents = disToPar;
                     // 扩展新的子节点
                     // 这里需要根据路径进行expansion！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！１
                     newChild->expansion(mapData, pathPnts);

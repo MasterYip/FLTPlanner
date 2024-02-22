@@ -82,8 +82,8 @@ TreeNode_ptr TreeNode::selection_singleThread()
     for (int i = 0; i < this->childNodes.size(); ++i)
     {
         ucb[i] = this->childNodes[i]->score +
-                 0.1 * std::sqrt(2.0 * std::log(this->visits) /
-                                 (this->childNodes[i]->visits));
+                 1 * std::sqrt(2.0 * std::log(this->visits) /
+                               (this->childNodes[i]->visits));
     }
 
     double maxUCB = ucb[0];
@@ -258,9 +258,11 @@ double sigmoid(double x)
 double TreeNode::calculateLocalScore(double simDis)
 {
     int nodeDepth = hashKey.size(); /////////// 有问题
-    double score_ = 0.0 * this->rState.pose.x + 0.5 * pow(simDis / float(USER::simStepNum), 1.0 / 3.0) + 0.5 * pow(rState.pose.x / float(nodeDepth), 1.0 / 3.0);
+    double score_ = 0.6 * pow(simDis / float(USER::simStepNum), 1.0 / 3.0) + 0.3 * pow(rState.pose.x / float(nodeDepth), 1.0 / 3.0) + 0.1 * pow(this->disToParents, 1.0 / 3.0);
     // std :: cout << "simSL:" << simDis / USER::simStepNum ;
-    // std :: cout << ", expandSL:" << rState.pose.x / float(nodeDepth) <<  std::endl;
+    // std :: cout << ", expandSL:" << rState.pose.x / float(nodeDepth);
+    // std :: cout << ", disToParents:" << this->disToParents <<  std::endl;
+
     // double score_ = 0.0 * this->rState.pose.x + 3 * simDis / float(USER::simStepNum) + 2* rState.pose.x / float(nodeDepth);//pow(, 3.0 / 3.0) ;
     // double score_ = sigmoid(simDis) + rState.pose.x / float(nodeDepth);//pow(, 3.0 / 3.0) ;
     // std :: cout << "sigmoid(simDis):" << sigmoid(simDis) ;

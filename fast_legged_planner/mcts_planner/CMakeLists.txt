@@ -58,7 +58,7 @@ find_package(pinocchio REQUIRED)
 # IK_FAST 
 # 添加自定义头文件
 include_directories(${PROJECT_SOURCE_DIR}/IKfast/IK_Fast_forHexMini)
-# 添加库文件
+# # 添加库文件
 add_subdirectory (${PROJECT_SOURCE_DIR}/IKfast/IK_Fast_forHexMini) # IK_FAST库
 
 

@@ -177,7 +177,13 @@ namespace Robot_State_Transition
                     A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
                     b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
                     A_foot_Ji.row(A_foot_Ji.rows() - 1) << 1, 0, 0;
-                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.25;;
+                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.15;
+
+                    A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
+                    b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
+                    A_foot_Ji.row(A_foot_Ji.rows() - 1) << -1, 0, 0;
+                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.1;
+
                 break;
 
                 case 3:
@@ -212,7 +218,12 @@ namespace Robot_State_Transition
                     A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
                     b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
                     A_foot_Ji.row(A_foot_Ji.rows() - 1) << 1, 0, 0;
-                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.25;;
+                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.15;
+
+                    A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
+                    b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
+                    A_foot_Ji.row(A_foot_Ji.rows() - 1) << -1, 0, 0;
+                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.1;                 
                 break;
 
                 default:
@@ -288,7 +299,13 @@ std::pair<MatrixXX, VectorX> get_oneLegKinematics_con_cog_foot(const MDT::Pose &
                 A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
                 b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
                 A_foot_Ji.row(A_foot_Ji.rows() - 1) << 1, 0, 0;
-                b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.25;;
+                b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.15;
+
+                A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
+                b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
+                A_foot_Ji.row(A_foot_Ji.rows() - 1) << -1, 0, 0;
+                b_foot_Ji(b_foot_Ji.rows() - 1) = 0.1;
+
             break;
 
             case 3:
@@ -323,7 +340,13 @@ std::pair<MatrixXX, VectorX> get_oneLegKinematics_con_cog_foot(const MDT::Pose &
                 A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
                 b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
                 A_foot_Ji.row(A_foot_Ji.rows() - 1) << 1, 0, 0;
-                b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.25;;
+                b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.15;
+
+                
+                A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
+                b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
+                A_foot_Ji.row(A_foot_Ji.rows() - 1) << -1, 0, 0;
+                b_foot_Ji(b_foot_Ji.rows() - 1) = 0.1;
             break;
 
             default:
@@ -394,8 +417,17 @@ std::pair<MatrixXX, VectorX> get_oneLegKinematics_con_cog_foot(const MDT::Pose &
                     A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
                     b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
                     A_foot_Ji.row(A_foot_Ji.rows() - 1) << 1, 0, 0;
-                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.25;;
+                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.15;
+
+                    A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
+                    b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
+                    A_foot_Ji.row(A_foot_Ji.rows() - 1) << -1, 0, 0;
+                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.1;
+
                     A_foot_Ji = -A_foot_Ji; // 设置与Ab_Ji_foot对称
+
+                
+
                 break;
 
                 case 3:
@@ -432,8 +464,17 @@ std::pair<MatrixXX, VectorX> get_oneLegKinematics_con_cog_foot(const MDT::Pose &
                     A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
                     b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
                     A_foot_Ji.row(A_foot_Ji.rows() - 1) << 1, 0, 0;
-                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.25;;
+                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.3-  0.15;
+
+                    A_foot_Ji.conservativeResize(A_foot_Ji.rows() + 1, A_foot_Ji.cols());
+                    b_foot_Ji.conservativeResize(b_foot_Ji.rows() + 1);
+                    A_foot_Ji.row(A_foot_Ji.rows() - 1) << -1, 0, 0;
+                    b_foot_Ji(b_foot_Ji.rows() - 1) = 0.1;
+
                     A_foot_Ji = -A_foot_Ji;  // 设置与Ab_Ji_foot对称
+
+                
+
                 break;
 
                 default:

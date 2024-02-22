@@ -1,9 +1,9 @@
 /*
  * @Author: ptw 1515901920@qq.com
  * @Date: 2023-03-31 20:53:25
- * @LastEditors: ptw 1515901920@qq.com
- * @LastEditTime: 2023-04-13 14:11:45
- * @FilePath: /w3_Bretl/src/hit_spider/src/robot_state_transition/dynamic_constrain.cpp
+ * @LastEditors: HexLab-NUC12-MasterYip
+ * @LastEditTime: 2024-02-22 17:53:58
+ * @FilePath: /planner_ws/src/fast_legged_planner/mcts_planner/constrains/dynamic_constrain.cpp
  * @Description: Hexapod离散动力学约束源文件
  */
 #include "constrains/dynamic_constrain.hh"
@@ -239,7 +239,7 @@ namespace Robot_State_Transition
         // 计算重力compensate
         Eigen::VectorXd g_grav = pinocchio::rnea(model, data, q, v, a);
 
-        for(int i =0; i< supportLegNumList.size(); i++)
+        for(uint i =0; i< supportLegNumList.size(); i++)
         {
             int legNum = supportLegNumList[i]-1;
             int footOrder = getLegOrderFromLegNum(legNum);  // this is the start position for Jacobian Matrix or g_grav term, which is decided by the urdf file.
