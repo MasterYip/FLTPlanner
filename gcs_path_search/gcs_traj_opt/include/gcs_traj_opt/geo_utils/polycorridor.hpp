@@ -23,6 +23,12 @@
 #include "geo_utils.hpp"
 #include "polyhedra.hpp"
 
+// struct PointLocation
+// {
+//     int poly_idx;
+//     int corridor_idx;
+// }
+
 class PolyCorridor
 {
 private:
@@ -39,7 +45,9 @@ public:
      * @brief Check if the given position is in the corridor
      *
      * @param pos
-     * @return int The index of the corridor segment that the position is in, -1 if not in any segment
+     * @return int The FIRST index of the corridor segment that the position is in, -1 if not in any segment
      */
     int isInCorridor(const Eigen::Vector3d &pos);
+
+    geo_utils::Plain getGuidePlain(uint corridor_idx) const;
 };

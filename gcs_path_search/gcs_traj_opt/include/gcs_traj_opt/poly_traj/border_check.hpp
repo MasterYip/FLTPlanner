@@ -21,17 +21,33 @@
 #include <grid_map_core/grid_map_core.hpp>
 /* internal project header files */
 #include "gcs_traj_opt/geo_utils/polycorridor.hpp"
+#include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
+
+using namespace geo_utils_2d;
 
 class BorderCheck
 {
 private:
     /* data */
+    std::string map_layer_;
     // PROBLEM: How to share the map_ground_ and map_ceiling_ with the other class?
     const grid_map::GridMap &map_ground_;
     const grid_map::GridMap &map_ceiling_;
-    const PolyCorridor poly_corridor_;
+    PolyCorridor poly_corridor_;
 
 public:
-    BorderCheck(const grid_map::GridMap &map_ground, const grid_map::GridMap &map_ceiling, const PolyCorridor &poly_corridor);
-    inBorder(const Eigen::Vector3d &pos);
-}
+    BorderCheck(const PolyCorridor &poly_corridor,
+                const grid_map::GridMap &map_ground,
+                const grid_map::GridMap &map_ceiling,
+                const std::string map_layer = "elevation");
+
+    /**
+     * @brief Check if the given position is in the corridor intersection border
+     *
+     * @param pos2d Position in 2D
+     * @param corridor_idx The index of the corridor segment
+     * @return int The FIRST index of the corridor segment that the position is in, -1 if not in any segment
+     */
+    int inBorder(const Eigen::Vector2d &pos2d, uint corridor_idx);
+    int inBorder(const GridPt &grid2d, uint corridor_idx);
+};

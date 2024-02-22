@@ -19,14 +19,14 @@ typedef K::Line_2 Line_2;
 typedef K::Intersect_2 Intersect_2;
 #endif
 /* internal project header files */
-using Point = Eigen::Array2f;
-using GridPt = Eigen::Array2i;
-using PolyLine = std::vector<Eigen::Array2f>;
-using GridPolyLine = std::vector<GridPt>;
-using GridPoints = std::vector<GridPt>;
 
 namespace geo_utils_2d
 {
+    using Point = Eigen::Array2f;
+    using GridPt = Eigen::Array2i;
+    using PolyLine = std::vector<Eigen::Array2f>;
+    using GridPolyLine = std::vector<GridPt>;
+    using GridPoints = std::vector<GridPt>;
     // Statement (Temp)
     bool findConcavePoint(const GridPolyLine &Border,
                           const GridPt &start,
@@ -69,7 +69,7 @@ namespace geo_utils_2d
         concavePts.clear();
         if (Border.size() < 2)
         {
-            ROS_ERROR("Border.size() < 2");
+            std::cerr << "Border.size() < 2" << std::endl;
             return false;
         }
         // Find concave(concave towards the interior) point
@@ -107,7 +107,7 @@ namespace geo_utils_2d
         ptsSideB.clear();
         if (Border.size() < 2)
         {
-            ROS_ERROR("Border.size() < 2");
+            std::cerr << "Border.size() < 2" << std::endl;
             return false;
         }
         // Step1: Find segment point

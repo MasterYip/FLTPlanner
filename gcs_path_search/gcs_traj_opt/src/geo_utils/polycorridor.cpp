@@ -35,6 +35,7 @@ void PolyCorridor::appendPoly(const Polyhedra &poly)
     poly_size++;
 }
 
+// TODO: faster search algorithm?
 int PolyCorridor::isInCorridor(const Eigen::Vector3d &pos)
 {
     for (uint i = 0; i < corridor_.size(); i++)
@@ -45,4 +46,9 @@ int PolyCorridor::isInCorridor(const Eigen::Vector3d &pos)
         }
     }
     return -1;
+}
+
+geo_utils::Plain PolyCorridor::getGuidePlain(uint corridor_idx) const
+{
+    return guide_plane_.at(corridor_idx);
 }

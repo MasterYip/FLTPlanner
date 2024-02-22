@@ -37,6 +37,8 @@
 
 namespace geo_utils
 {
+    using Plain = Eigen::Vector4d; // Plane in the form of `ax + by + cz + d = 0`
+
     ////////////////////
     // Polyhedron
 
