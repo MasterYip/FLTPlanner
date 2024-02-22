@@ -11,16 +11,21 @@
 namespace grid_map_demos
 {
 
-  ImageToGridmapDemo::ImageToGridmapDemo(ros::NodeHandle &nodeHandle)
+  ImageToGridmapDemo::ImageToGridmapDemo(ros::NodeHandle &nodeHandle,
+                                         std::string elevation_layer = "elevation",
+                                         std::string ceiling_layer = "ceiling",
+                                         std::string grid_map_topic = "/grid_map")
       : nodeHandle_(nodeHandle),
-        map_(grid_map::GridMap({"elevation"})),
+        elevation_layer_name_(elevation_layer),
+        ceiling_layer_name_(ceiling_layer),
+        map_(grid_map::GridMap({elevation_layer})),
         mapInitialized_(false)
   {
     readParameters();
-    map_.setBasicLayers({"elevation"});
+    map_.setBasicLayers({elevation_layer});
     imageSubscriber_ = nodeHandle_.subscribe(imageTopic_, 1, &ImageToGridmapDemo::imageCallback, this);
     imageCeilingSubscriber_ = nodeHandle_.subscribe(imageCeilingTopic_, 1, &ImageToGridmapDemo::imageCeilingCallback, this);
-    gridMapPublisher_ = nodeHandle_.advertise<grid_map_msgs::GridMap>("/grid_map", 1, true); // "/grid_map" is under root, "grid_map" is under node name
+    gridMapPublisher_ = nodeHandle_.advertise<grid_map_msgs::GridMap>(grid_map_topic, 1, true); // "/grid_map" is under root, "grid_map" is under node name
   }
 
   ImageToGridmapDemo::~ImageToGridmapDemo()
@@ -50,8 +55,8 @@ namespace grid_map_demos
     }
     if (!ceilingImgBuffer_.data.empty() && withCeiling_)
     {
-      grid_map::GridMapRosConverter::addLayerFromImage(ceilingImgBuffer_, "ceiling", map_, minHeight_, maxHeight_);
-      grid_map::GridMapRosConverter::addLayerFromImage(msg, "elevation", map_, minHeight_, maxHeight_);
+      grid_map::GridMapRosConverter::addLayerFromImage(ceilingImgBuffer_, ceiling_layer_name_, map_, minHeight_, maxHeight_);
+      grid_map::GridMapRosConverter::addLayerFromImage(msg, elevation_layer_name_, map_, minHeight_, maxHeight_);
       grid_map::GridMapRosConverter::addColorLayerFromImage(msg, "color", map_);
       map_.setFrameId(mapFrameId_);
       map_.add("normal_x");
@@ -65,7 +70,7 @@ namespace grid_map_demos
     }
     else if (!withCeiling_)
     {
-      grid_map::GridMapRosConverter::addLayerFromImage(msg, "elevation", map_, minHeight_, maxHeight_);
+      grid_map::GridMapRosConverter::addLayerFromImage(msg, elevation_layer_name_, map_, minHeight_, maxHeight_);
       grid_map::GridMapRosConverter::addColorLayerFromImage(msg, "color", map_);
       map_.setFrameId(mapFrameId_);
       map_.add("normal_x");

@@ -82,7 +82,15 @@ A simple co-simulation for ElSpider Air.
 
 FIXME: handle simulation & hardware separately
 
-Simulation:
+
+FakeFeedback | Planning:
+
+```bash
+roslaunch fast_legged_planner elspider_air_simple_planner.launch fake_feedback:=true
+```
+
+
+Simulation | Perception & Planning & Control:
 
 ```bash
 # Make sure depend repos are properly installed & sourced
@@ -98,7 +106,7 @@ interface_type:=gazebo
 roslaunch fast_legged_planner elspider_air_simple_planner.launch sim:=true
 ```
 
-Hardware(**IMPORTANT: Remember to modify kp/kd in robot_interface**):
+Hardware | Perception & Planning & Control:
 
 ```bash
 # Make sure depend repos are properly installed & sourced
@@ -121,13 +129,14 @@ Settings are listed in `elspider_air_simple_planner.launch`.
 
 ##### Usage
 
-Robot initialization(Terminal1):
+Robot initialization using keyboard (Terminal1):
 
 - `o`: Motor initialization
 - `u`: Press once to enter `sitdown mode`, press again to enter `standup mode`
 - `v`: Enter `HLC mode` (communicate with planner bypassing topic `hexapod/foot_cmd_track`)
 
 > For more details, please refer to HexapodSoftware `keyboard_sim` node.
+> You can also use PS5 (sequence is R2, R1, A)
 
 CmdVel control(Terminal2):
 
