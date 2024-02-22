@@ -116,8 +116,8 @@ private:
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
     std::vector<Eigen::Vector3f> exp_path_;
-    float multiply_factor_ = 0.05;
-    int point_num_ = 5;
+    float multiply_factor_ = 0.03;
+    int point_num_ = 3;
     // ROS Timer event
     ros::Timer timer_;
 
@@ -133,6 +133,7 @@ private:
     bool simulation_;
 
 public:
+    // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirSimplePlanner(bool fake_estimation = false, bool simulation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
                                                                                       gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
                                                                                       tfListener_(tfBuffer_),

@@ -11,12 +11,14 @@
 
 #include "fast_legged_planner/perception_interface/GridMapInterface.h"
 
-GridMapInterface::GridMapInterface(const std::string &topic_name) : nh("~")
+GridMapInterface::GridMapInterface(const std::string &topic_name,
+                                   std::string ground_layer_name,
+                                   std::string ceiling_layer_name) : nh("~"),
+                                                                     ground_layer(ground_layer_name),
+                                                                     ceiling_layer(ceiling_layer_name)
 {
     sub = nh.subscribe(topic_name, 1, &GridMapInterface::callback, this);
     map_.setFrameId("map");
-    nh.param("elevation_layer", ground_layer, ground_layer);
-    nh.param("ceiling_layer", ceiling_layer, ceiling_layer);
     update();
 }
 
