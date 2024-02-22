@@ -26,9 +26,12 @@ class BorderCheck
 {
 private:
     /* data */
-    grid_map::GridMap map_ground_;
-    grid_map::GridMap map_ceiling_;
-    PolyCorridor poly_corridor_;
+    // PROBLEM: How to share the map_ground_ and map_ceiling_ with the other class?
+    const grid_map::GridMap &map_ground_;
+    const grid_map::GridMap &map_ceiling_;
+    const PolyCorridor poly_corridor_;
+
 public:
     BorderCheck(const grid_map::GridMap &map_ground, const grid_map::GridMap &map_ceiling, const PolyCorridor &poly_corridor);
+    inBorder(const Eigen::Vector3d &pos);
 }
