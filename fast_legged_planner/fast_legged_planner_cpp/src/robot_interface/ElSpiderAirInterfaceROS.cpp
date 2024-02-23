@@ -19,7 +19,7 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     feedforward_type = 0;
     if (!sim_) // Hardware
     {
-        joint_kp = {0.1, 0.3, 0.3};
+        joint_kp = {0.1, 0.15, 0.15};
         joint_kd = {2, 2, 2};
     }
     else // Gazebo
