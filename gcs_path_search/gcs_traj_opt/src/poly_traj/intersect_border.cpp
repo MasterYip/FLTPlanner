@@ -45,10 +45,11 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
     // TODO: put idx in the class
     idx = start_idx;
 
+    // BUG: this is not a good way to check if the start point is in the polyhedra
     resetPtr();
-    if (border_check_.inPoly(idx, corridor_ptr_) == -1)
+    if (border_check_.inPoly(idx, corridor_ptr_) != 0)
     {
-        std::cerr << "Start point not in poly0!" << std::endl;
+        std::cerr << "Start point not in poly 0! find in poly " << border_check_.inPoly(idx, corridor_ptr_) << std::endl;
         return path;
     }
 
