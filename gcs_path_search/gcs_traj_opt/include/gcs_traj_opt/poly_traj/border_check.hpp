@@ -29,18 +29,20 @@ class BorderCheck
 {
 private:
     /* data */
-    std::string map_layer_;
+    std::string ground_layer_;
+    std::string ceiling_layer_;
+    bool enable_ceiling_;
     // PROBLEM: Is this safe to use reference here?
     PolyCorridor &poly_corridor_;
     // PROBLEM: How to share the map_ground_ and map_ceiling_ with the other class?
-    const grid_map::GridMap &map_ground_;
-    const grid_map::GridMap &map_ceiling_;
+    const grid_map::GridMap &map_;
 
 public:
     BorderCheck(PolyCorridor &poly_corridor,
-                const grid_map::GridMap &map_ground,
-                const grid_map::GridMap &map_ceiling,
-                const std::string map_layer = "elevation");
+                const grid_map::GridMap &map,
+                const std::string ground_layer = "elevation",
+                const bool enable_ceiling = false,
+                const std::string ceiling_layer = "ceiling");
 
     /**
      * @brief Check if the given position is in the corridor intersection border

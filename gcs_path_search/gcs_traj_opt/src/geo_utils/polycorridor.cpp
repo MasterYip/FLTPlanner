@@ -28,11 +28,14 @@ PolyCorridor::PolyCorridor(const std::vector<Polyhedra> &polys) : polys_(polys)
     }
 }
 
-// FIXME: not needed
 void PolyCorridor::appendPoly(const Polyhedra &poly)
 {
     polys_.emplace_back(poly);
     poly_size++;
+    corridor_.emplace_back(geo_utils::mergeVpoly(polys_.at(poly_size - 2).getVRep(), polys_.at(poly_size - 1).getVRep()));
+    Eigen::Vector3d p1 = polys_.at(poly_size - 2).getInterior();
+    Eigen::Vector3d p2 = polys_.at(poly_size - 1).getInterior();
+    guide_plane_.emplace_back(geo_utils::getGuidancePlane(p1, p2));
 }
 
 // TODO: faster search algorithm?

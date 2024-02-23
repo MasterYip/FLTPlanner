@@ -9,6 +9,7 @@
 #include <grid_map_ros/grid_map_ros.hpp>
 /* internal project header files */
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
+#include "gcs_traj_opt/poly_traj/intersect_border.hpp"
 
 using namespace geo_utils_2d;
 
@@ -216,10 +217,10 @@ void CVX_TrajOpt::drawSegmentIdx(const GridPt &idx1, const GridPt &idx2)
  * @return true
  * @return false
  */
-bool inBorderJudge(const std::vector<Eigen::Matrix3Xd> &Corridor,
-                   const grid_map::GridMap &map,
-                   const GridPt &idx,
-                   const std::string maplayer = "elevation")
+[[deprecated]] bool inBorderJudge(const std::vector<Eigen::Matrix3Xd> &Corridor,
+                                  const grid_map::GridMap &map,
+                                  const GridPt &idx,
+                                  const std::string maplayer = "elevation")
 {
     Eigen::Vector3d pos;
     Eigen::Vector2d posxy;
@@ -240,10 +241,10 @@ bool inBorderJudge(const std::vector<Eigen::Matrix3Xd> &Corridor,
  * @param connectivity
  * @return std::vector<GridPt> `Clockwise` sequence of border points (z axis projected)
  */
-std::vector<GridPt> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
-                                                            const Eigen::Vector2d &start,
-                                                            const Eigen::Vector2d &goal,
-                                                            const std::string connectivity = "8")
+[[deprecated]] std::vector<GridPt> CVX_TrajOpt::getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
+                                                                           const Eigen::Vector2d &start,
+                                                                           const Eigen::Vector2d &goal,
+                                                                           const std::string connectivity = "8")
 {
     GridPt start_idx, goal_idx, idx, start_border_idx, tmp_idx, revisit_idx;
     map_.getIndex(start, start_idx);
@@ -498,6 +499,82 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     drawCorriderIntersectBorder(CorridorBuf, start, goal);
 
     GridPolyLine Border = getCorriderIntersectBorder(CorridorBuf, start, goal);
+    if (Border.size() < 3)
+    {
+        ROS_ERROR("Border.size() < 3");
+        return;
+    }
+    GridPoints concave_pts;
+    findConcavePoint(Border, concave_pts);
+    for (uint i = 0; i < concave_pts.size(); i++)
+    {
+        drawSphereIdx(concave_pts.at(i), 0.02);
+    }
+
+    // Visiblity Graph
+    GridPt start_grid, goal_grid; // FIXME: is this appropriate?
+    map_.getIndex(start, start_grid);
+    map_.getIndex(goal, goal_grid);
+    VisibilityGraph vis_graph(Border, concave_pts, start_grid, goal_grid);
+    uint size = vis_graph.size();
+    for (uint i = 0; i < size; i++)
+    {
+        for (uint j = i + 1; j < size; j++)
+        {
+            if (vis_graph.isVisibile(i, j))
+            {
+                drawSegmentIdx(vis_graph.getPt(i), vis_graph.getPt(j));
+            }
+        }
+    }
+
+    std::vector<GridPt> path;
+    bool ret = GCS_AStarSearch(vis_graph, path);
+    // minlengthPath(Border, start, goal, path);
+    // Draw path
+    std::vector<Eigen::Vector3d> path_pos;
+    for (uint i = 0; i < path.size(); i++)
+    {
+        // printf("path.at(%d): (%d %d)\n", i, path.at(i)[0], path.at(i)[1]);
+        Eigen::Vector3d pos;
+        Eigen::Vector2d posxy;
+        pos[2] = map_.at("elevation", path.at(i));
+        map_.getPosition(path.at(i), posxy);
+        pos[0] = posxy.x();
+        pos[1] = posxy.y();
+        path_pos.push_back(pos);
+    }
+    visualizer_.visualizeCurve(path_pos, MarkerStyle(0, 1, 0, 1, 0.01));
+}
+
+void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
+{
+    // clean
+    visualizer_.deleteCurve();
+    visualizer_.deleteSphere();
+
+    Eigen::MatrixX3d waypoints(3, 3);
+    waypoints << -0.5, 0.0, 0.2,
+        0.0, 0.0, 0.4,
+        0.5, 0.0, 0.2;
+    // Eigen::Vector2d start(-0.4, -0.3), goal(0.4, -0.3);
+    Eigen::Vector2d goal(0.4, -0.3);
+
+    GridPt start_idx, goal_idx;
+    map_.getIndex(start, start_idx);
+    map_.getIndex(goal, goal_idx);
+
+    std::vector<Polyhedra> polys;
+    for (int i = 0; i < waypoints.rows(); i++)
+    {
+        Eigen::Matrix3Xd tmpvPoly = (waypoints.transpose().col(i).array() + pos_shift.transpose().col(0).array()).eval();
+        polys.emplace_back(Polyhedra(tmpvPoly));
+    }
+    PolyCorridor poly_corridor(polys);
+    BorderCheck border_check(poly_corridor, map_, "elevation");
+    IntersectBorder intersect_border(poly_corridor, border_check);
+    GridPolyLine Border = intersect_border.getIntersectBorder(start_idx, goal_idx);
+
     if (Border.size() < 3)
     {
         ROS_ERROR("Border.size() < 3");

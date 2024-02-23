@@ -94,6 +94,7 @@ public:
     void segmentIntersectTest();
     void draw_vpoly_2DinHullPointset();
     void drawCorriderIntersectBorderTest();
+    void drawCorriderIntersectBorderTest2();
 
 private:
     ros::NodeHandle nh_;
