@@ -21,7 +21,7 @@
 
 /* internal project header files */
 #include "gcs_traj_opt/geo_utils/polycorridor.hpp"
-#include "gcs_traj_opt/geo_utils/border_check.hpp"
+#include "gcs_traj_opt/poly_traj/border_check.hpp"
 
 using namespace geo_utils_2d;
 
@@ -31,6 +31,11 @@ private:
     PolyCorridor &poly_corridor_;
     BorderCheck &border_check_;
 
+    // poly pointer: n for inside the n-th polygon LAST time
+    int poly_ptr_ = 0;
+    // corridor pointer: n for inside the n-th corridor
+    int corridor_ptr_ = 0;
+
     // Connectivity 8 Clockwise Search
     // 7 8 1
     // 6 * 2
@@ -38,9 +43,26 @@ private:
     std::vector<GridPt> c8_cw = {{1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
 public:
-    IntersectBorder(PolyCorridor &poly_corridor,
-                    BorderCheck &border_check) : poly_corridor_(poly_corridor),
-                                                 border_check_(border_check){};
-    // GridPolyLine getIntersectBorder(const Point &start, const Point &end);
-    GridPolyLine getIntersectBorder(const GridPt &start, const GridPt &end);
-}
+    IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &border_check);
+
+    /**
+     * @brief Reset the state pointer to poly0 and corridor0
+     *
+     */
+    void resetPtr(void)
+    {
+        poly_ptr_ = 0;
+        corridor_ptr_ = 0;
+    };
+
+    /**
+     * @brief Update the state pointer according to the given GridPoint
+     *
+     * @param grid2d
+     */
+    void updatePtr(const GridPt &grid2d);
+
+    // GridPolyLine getIntersectBorder(const Point &start, const Point &goal);
+
+    GridPolyLine getIntersectBorder(const GridPt &start, const GridPt &goal);
+};

@@ -38,7 +38,7 @@ void PolyCorridor::appendPoly(const Polyhedra &poly)
 // TODO: faster search algorithm?
 int PolyCorridor::isInCorridor(const Eigen::Vector3d &pos)
 {
-    for (uint i = 0; i < corridor_.size(); i++)
+    for (uint i = 0; i < poly_size-1; i++)
     {
         if (geo_utils::inVpoly(corridor_.at(i).getVRep(), pos))
         {

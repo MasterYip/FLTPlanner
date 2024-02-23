@@ -37,7 +37,7 @@ private:
     const grid_map::GridMap &map_ceiling_;
 
 public:
-    BorderCheck(const PolyCorridor &poly_corridor,
+    BorderCheck(PolyCorridor &poly_corridor,
                 const grid_map::GridMap &map_ground,
                 const grid_map::GridMap &map_ceiling,
                 const std::string map_layer = "elevation");
@@ -67,5 +67,5 @@ public:
      * @param corridor_idx The index of the corridor segment
      * @return int The FIRST index of the polyhedra that the position is in, -1 if not in any segment
      */
-    int inPoly(const GridPt &grid2d, uint corridor_idx)
+    int inPoly(const GridPt &grid2d, uint corridor_idx);
 };

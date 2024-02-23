@@ -11,19 +11,42 @@
 
 #include "gcs_traj_opt/poly_traj/intersect_border.hpp"
 
-GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &end)
+IntersectBorder::IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &border_check)
+    : poly_corridor_(poly_corridor), border_check_(border_check)
+{
+}
+
+void IntersectBorder::updatePtr(const GridPt &grid2d)
+{
+    int tmp = border_check_.inPoly(grid2d, corridor_ptr_);
+    if (tmp != -1 && tmp != poly_ptr_)
+    {
+        if (tmp - poly_ptr_ == 1)
+        {
+            corridor_ptr_ = tmp;
+            if (corridor_ptr_ > (int)poly_corridor_.getCorridorSize() - 1)
+                corridor_ptr_ = poly_corridor_.getCorridorSize() - 1;
+        }
+        else if (tmp - poly_ptr_ == -1)
+        {
+            corridor_ptr_ = tmp - 1;
+            if (corridor_ptr_ < 0)
+                corridor_ptr_ = 0;
+        }
+        poly_ptr_ = tmp;
+    }
+}
+
+GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal)
 {
     GridPolyLine path;
     GridPt start_idx = start, goal_idx = goal;
     GridPt idx, start_border_idx, tmp_idx, revisit_idx;
+    // TODO: put idx in the class
     idx = start_idx;
 
-    // state pointer: -1 for outside, n for inside the n-th polygon
-    int in_poly_ptr_ = 0;
-    // state pointer: -1 for outside, n for inside the n-th corridor
-    int in_corridor_ptr_ = 0;
-
-    if (border_check_.inPoly(idx, in_corridor_ptr_) == -1)
+    resetPtr();
+    if (border_check_.inPoly(idx, corridor_ptr_) == -1)
     {
         std::cerr << "Start point not in poly0!" << std::endl;
         return path;
@@ -31,14 +54,15 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
 
     // Find start border (x direction)
     // FIXME: This may find a start point in the middle of the corridor
-    while (border_check_.inBorder(idx, in_corridor_ptr_) != -1)
+    while (border_check_.inBorder(idx, corridor_ptr_) != -1)
     {
         idx[0]++;
+        updatePtr(idx);
     }
     idx[0]--; // Back to last inBorder
     start_border_idx = idx;
     path.push_back(start_border_idx);
-
+    updatePtr(idx);
 
     // Find the intersect border
     // FIXME: Sometimes it stucks (loop)
@@ -58,14 +82,15 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
         bool revisit_flag = false;
         for (int i = 0; i < 9; i++)
         {
+            // PROBLEM: What will happen if we do not update for tmp_idx?
             tmp_idx = idx + c8_cw.at(i);
             // flag: pointer out of border
-            if (!out_corridor_flag && !inBorderJudge(Corridor, map_, tmp_idx))
+            if (!out_corridor_flag && border_check_.inBorder(tmp_idx, corridor_ptr_) == -1)
             {
                 out_corridor_flag = true;
             }
             // flag: pointer back from border
-            if (out_corridor_flag && inBorderJudge(Corridor, map_, tmp_idx))
+            if (out_corridor_flag && border_check_.inBorder(tmp_idx, corridor_ptr_) != -1)
             {
 
                 if (path.size() > 1 && tmp_idx[0] == path.at(path.size() - 2)[0] && tmp_idx[1] == path.at(path.size() - 2)[1])
@@ -78,6 +103,7 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
                     revisit_flag = false;
                     path.push_back(tmp_idx);
                     idx = tmp_idx;
+                    updatePtr(idx);
                     break;
                 }
             }
@@ -87,6 +113,7 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
             printf("Warning: Revisit(%d %d)", revisit_idx[0], revisit_idx[1]);
             path.push_back(revisit_idx);
             idx = revisit_idx;
+            updatePtr(idx);
         }
 
     } while (idx[0] != start_border_idx[0] || idx[1] != start_border_idx[1]);

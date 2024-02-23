@@ -52,4 +52,12 @@ public:
     int isInPoly(const Eigen::Vector3d &pos);
 
     geo_utils::Plain getGuidePlain(uint corridor_idx) const;
+
+    uint getPolySize() const{
+        return poly_size;
+    };
+
+    uint getCorridorSize() const{
+        return poly_size - 1;
+    };
 };
