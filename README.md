@@ -78,10 +78,14 @@ A simple co-simulation for ElSpider Air.
 
 #### Get Started
 
+##### Compile
+
+```bash
+# Make sure depend repos are properly installed & sourced
+catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
+```
+
 ##### Launch procedure
-
-FIXME: handle simulation & hardware separately
-
 
 FakeFeedback | Planning:
 
@@ -93,8 +97,6 @@ roslaunch fast_legged_planner elspider_air_simple_planner.launch fake_feedback:=
 Simulation | Perception & Planning & Control:
 
 ```bash
-# Make sure depend repos are properly installed & sourced
-catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
 # Terminal1: start HexapodSoftware Gazebo simulation
 roslaunch user main.launch \
 controller_type:=hlc \
@@ -109,8 +111,6 @@ roslaunch fast_legged_planner elspider_air_simple_planner.launch sim:=true
 Hardware | Perception & Planning & Control:
 
 ```bash
-# Make sure depend repos are properly installed & sourced
-catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
 # Terminal1: start HexapodSoftware Gazebo simulation
 # Get in to sudo mode
 sudo su

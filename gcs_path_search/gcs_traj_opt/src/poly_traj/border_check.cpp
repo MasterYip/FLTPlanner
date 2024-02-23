@@ -11,7 +11,7 @@
 
 #include "gcs_traj_opt/poly_traj/border_check.hpp"
 
-BorderCheck::BorderCheck(const PolyCorridor &poly_corridor,
+BorderCheck::BorderCheck(PolyCorridor &poly_corridor,
                          const grid_map::GridMap &map_ground,
                          const grid_map::GridMap &map_ceiling,
                          const std::string map_layer)
@@ -51,4 +51,21 @@ int BorderCheck::inBorder(const GridPt &grid2d, uint corridor_idx)
         query_height = map_ceiling_.at(map_layer_, grid2d);
     }
     return poly_corridor_.isInCorridor(Eigen::Vector3d(pos2d(0), pos2d(1), query_height));
+}
+
+int BorderCheck::inPoly(const GridPt &grid2d, uint corridor_idx)
+{
+    geo_utils::Plain guide_plain = poly_corridor_.getGuidePlain(corridor_idx);
+    Eigen::Vector2d pos2d;
+    map_ground_.getPosition(grid2d, pos2d);
+    double query_height = (-guide_plain(3) - guide_plain(0) * pos2d(0) - guide_plain(1) * pos2d(1)) / guide_plain(2);
+    if (query_height < map_ground_.at(map_layer_, grid2d))
+    {
+        query_height = map_ground_.at(map_layer_, grid2d);
+    }
+    if (query_height > map_ceiling_.at(map_layer_, grid2d))
+    {
+        query_height = map_ceiling_.at(map_layer_, grid2d);
+    }
+    return poly_corridor_.isInPoly(Eigen::Vector3d(pos2d(0), pos2d(1), query_height));
 }

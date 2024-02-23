@@ -30,10 +30,11 @@ class BorderCheck
 private:
     /* data */
     std::string map_layer_;
+    // PROBLEM: Is this safe to use reference here?
+    PolyCorridor &poly_corridor_;
     // PROBLEM: How to share the map_ground_ and map_ceiling_ with the other class?
     const grid_map::GridMap &map_ground_;
     const grid_map::GridMap &map_ceiling_;
-    PolyCorridor poly_corridor_;
 
 public:
     BorderCheck(const PolyCorridor &poly_corridor,
@@ -49,5 +50,22 @@ public:
      * @return int The FIRST index of the corridor segment that the position is in, -1 if not in any segment
      */
     int inBorder(const Eigen::Vector2d &pos2d, uint corridor_idx);
+
+    /**
+     * @brief Check if the given position is in the corridor intersection border
+     *
+     * @param grid2d GridPoint in 2D
+     * @param corridor_idx The index of the corridor segment
+     * @return int The FIRST index of the corridor segment that the position is in, -1 if not in any segment
+     */
     int inBorder(const GridPt &grid2d, uint corridor_idx);
+
+    /**
+     * @brief Check if the given position is in the polyhedra
+     *
+     * @param grid2d GridPoint in 2D
+     * @param corridor_idx The index of the corridor segment
+     * @return int The FIRST index of the polyhedra that the position is in, -1 if not in any segment
+     */
+    int inPoly(const GridPt &grid2d, uint corridor_idx)
 };

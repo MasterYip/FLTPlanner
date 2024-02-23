@@ -48,6 +48,18 @@ int PolyCorridor::isInCorridor(const Eigen::Vector3d &pos)
     return -1;
 }
 
+int PolyCorridor::isInPoly(const Eigen::Vector3d &pos)
+{
+    for (uint i = 0; i < poly_size; i++)
+    {
+        if (geo_utils::inVpoly(polys_.at(i).getVRep(), pos))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 geo_utils::Plain PolyCorridor::getGuidePlain(uint corridor_idx) const
 {
     return guide_plane_.at(corridor_idx);

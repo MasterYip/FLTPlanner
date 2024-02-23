@@ -49,5 +49,7 @@ public:
      */
     int isInCorridor(const Eigen::Vector3d &pos);
 
+    int isInPoly(const Eigen::Vector3d &pos);
+
     geo_utils::Plain getGuidePlain(uint corridor_idx) const;
 };
