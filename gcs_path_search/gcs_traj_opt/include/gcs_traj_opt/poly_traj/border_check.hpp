@@ -44,6 +44,10 @@ public:
                 const bool enable_ceiling = false,
                 const std::string ceiling_layer = "ceiling");
 
+    double queryHeight(const Eigen::Vector2d &pos2d, uint corridor_idx);
+
+    double queryHeight(const GridPt &grid2d, uint corridor_idx);
+
     /**
      * @brief Check if the given position is in the corridor intersection border
      *

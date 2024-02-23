@@ -567,6 +567,9 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
     map_.getIndex(goal, goal_idx);
     drawSphereIdx(start_idx, 0.02);
     drawSphereIdx(goal_idx, 0.02);
+    Eigen::Vector3d start3d, goal3d;
+    start3d << start[0], start[1], map_.at("elevation", start_idx);
+    goal3d << goal[0], goal[1], map_.at("elevation", goal_idx);
 
     std::vector<Polyhedra> polys;
     for (int i = 0; i < waypoints.rows(); i++)
@@ -575,7 +578,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
         polys.emplace_back(Polyhedra(tmpvPoly));
     }
 
-    PolyCorridor poly_corridor(polys);
+    PolyCorridor poly_corridor(polys, start3d, goal3d);
     std::vector<Polyhedra> tmp_corridor = poly_corridor.getCorridor();
     visualizer_.visualizePolytope(tmp_corridor);
     BorderCheck border_check(poly_corridor, map_, "elevation");

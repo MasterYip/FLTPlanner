@@ -36,8 +36,22 @@ private:
     std::vector<Polyhedra> polys_;             // discret feasible polyhedra trajectory (size n)
     std::vector<Polyhedra> corridor_;          // feasible corridor obtained by `poly merging` (size n-1)
     std::vector<Eigen::Vector4d> guide_plane_; // guide plane for each corridor segment (size n-1)
+
 public:
+    /**
+     * @brief Construct a new Poly Corridor and generate guide_plane using INTERIOR POINTs of the polyhedra
+     *
+     * @param polys
+     */
     PolyCorridor(const std::vector<Polyhedra> &polys);
+    /**
+     * @brief Construct a new Poly Corridor and generate guide_plane using the START and GOAL(for the first & last guide plain) and INTERIOR POINTs
+     *
+     * @param polys
+     * @param start
+     * @param goal
+     */
+    PolyCorridor(const std::vector<Polyhedra> &polys, const Eigen::Vector3d &start, const Eigen::Vector3d &goal);
 
     void appendPoly(const Polyhedra &poly);
 
