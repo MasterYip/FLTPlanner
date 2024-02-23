@@ -53,11 +53,23 @@ public:
 
     geo_utils::Plain getGuidePlain(uint corridor_idx) const;
 
-    uint getPolySize() const{
+    uint getPolySize() const
+    {
         return poly_size;
     };
 
-    uint getCorridorSize() const{
+    uint getCorridorSize() const
+    {
         return poly_size - 1;
+    };
+
+    std::vector<Polyhedra> getPolys() const
+    {
+        return polys_;
+    };
+
+    std::vector<Polyhedra> getCorridor() const
+    {
+        return corridor_;
     };
 };

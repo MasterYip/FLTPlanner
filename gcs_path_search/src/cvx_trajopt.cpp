@@ -504,6 +504,8 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         ROS_ERROR("Border.size() < 3");
         return;
     }
+
+    // Concave Points
     GridPoints concave_pts;
     findConcavePoint(Border, concave_pts);
     for (uint i = 0; i < concave_pts.size(); i++)
@@ -563,14 +565,19 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
     GridPt start_idx, goal_idx;
     map_.getIndex(start, start_idx);
     map_.getIndex(goal, goal_idx);
+    drawSphereIdx(start_idx, 0.02);
+    drawSphereIdx(goal_idx, 0.02);
 
     std::vector<Polyhedra> polys;
     for (int i = 0; i < waypoints.rows(); i++)
     {
-        Eigen::Matrix3Xd tmpvPoly = (waypoints.transpose().col(i).array() + pos_shift.transpose().col(0).array()).eval();
+        Eigen::Matrix3Xd tmpvPoly = (vPoly.array().colwise() + (waypoints.transpose().col(i).array() + pos_shift.transpose().col(0).array())).eval();
         polys.emplace_back(Polyhedra(tmpvPoly));
     }
+
     PolyCorridor poly_corridor(polys);
+    std::vector<Polyhedra> tmp_corridor = poly_corridor.getCorridor();
+    visualizer_.visualizePolytope(tmp_corridor);
     BorderCheck border_check(poly_corridor, map_, "elevation");
     IntersectBorder intersect_border(poly_corridor, border_check);
     GridPolyLine Border = intersect_border.getIntersectBorder(start_idx, goal_idx);
@@ -580,6 +587,23 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
         ROS_ERROR("Border.size() < 3");
         return;
     }
+
+    // Draw path
+    std::vector<Eigen::Vector3d> border_pos;
+    for (uint i = 0; i < Border.size(); i++)
+    {
+        // drawSphereIdx(path.at(i));
+        Eigen::Vector3d pos;
+        Eigen::Vector2d posxy;
+        pos[2] = map_.at("elevation", Border.at(i));
+        map_.getPosition(Border.at(i), posxy);
+        pos[0] = posxy.x();
+        pos[1] = posxy.y();
+        border_pos.push_back(pos);
+    }
+    visualizer_.visualizeCurve(border_pos, MarkerStyle(1, 0, 0, 1, 0.01));
+
+    // Concave Points
     GridPoints concave_pts;
     findConcavePoint(Border, concave_pts);
     for (uint i = 0; i < concave_pts.size(); i++)

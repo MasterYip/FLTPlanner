@@ -4,6 +4,7 @@
 #include "gcs_traj_opt/geo_utils/trajectory.hpp"
 #include "gcs_traj_opt/geo_utils/quickhull.hpp"
 #include "gcs_traj_opt/geo_utils/geo_utils.hpp"
+#include "gcs_traj_opt/geo_utils/polyhedra.hpp"
 
 #include <iostream>
 #include <memory>
@@ -277,6 +278,16 @@ public:
             Eigen::Matrix3Xd vPoly;
             geo_utils::enumerateVs(hPolys[id], vPoly);
             vPolys.push_back(vPoly);
+        }
+        visualizePolytope(vPolys);
+    }
+
+    inline void visualizePolytope(std::vector<Polyhedra> &polys)
+    {
+        std::vector<Eigen::Matrix3Xd> vPolys;
+        for (auto &poly : polys)
+        {
+            vPolys.push_back(poly.getVRep());
         }
         visualizePolytope(vPolys);
     }
