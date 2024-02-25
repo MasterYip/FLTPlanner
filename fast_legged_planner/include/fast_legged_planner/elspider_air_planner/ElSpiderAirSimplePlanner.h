@@ -170,7 +170,8 @@ public:
         }
         for (size_t k = 0; k < 6; ++k)
         {
-            footend_now.emplace_back(robot_state_.feetPosition[k]);
+            footend_now.emplace_back(robot_state_.feetPosition[k] -
+                                     Eigen::Vector3d(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
         }
         robot_interface_.pub_joint_state_from_footendpos(footend_now);
 
@@ -248,6 +249,7 @@ public:
             {
                 robot_state_.gaitToNow[i] = MDT::SUPPORT_FLAG; // use FootState.contact?
                 robot_state_.faultStateToNow[i] = MDT::NORMAL_LEG_FLAG;
+                // Absolute foot position
                 robot_state_.feetPosition[i].x() = foot_state_.position[i].x + body_state_tf_.transform.translation.x;
                 robot_state_.feetPosition[i].y() = foot_state_.position[i].y + body_state_tf_.transform.translation.y;
                 robot_state_.feetPosition[i].z() = foot_state_.position[i].z + body_state_tf_.transform.translation.z;
@@ -351,6 +353,7 @@ public:
             }
             else
             {
+                // robot_interface_.pub_odom(odom_interp);
                 robot_interface_.pub_shadow_joint_state_from_footendpos(footend_interp);
             }
             t += delta;
