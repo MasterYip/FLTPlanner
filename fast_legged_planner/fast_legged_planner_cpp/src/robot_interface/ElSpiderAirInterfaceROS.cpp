@@ -15,6 +15,7 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     : ElSpiderAirInterface(urdf), sim_(sim)
 {
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
+    shadow_joint_state_pub = nh.advertise<sensor_msgs::JointState>("shadow/joint_states", 10);
     foot_pos_pub = nh.advertise<fast_legged_planner::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
     feedforward_type = 0;
     if (!sim_) // Hardware
@@ -24,7 +25,7 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     }
     else // Gazebo
     {
-        joint_kp = {1000, 1500, 1500};
+        joint_kp = {1500, 3000, 3000};
         joint_kd = {5, 7.5, 7.5};
     }
 }
@@ -85,7 +86,21 @@ void ElSpiderAirInterfaceROS::pub_joint_state(const std::vector<double> &q)
     joint_state_pub.publish(joint_state);
 }
 
+void ElSpiderAirInterfaceROS::pub_shadow_joint_state(const std::vector<double> &q)
+{
+    sensor_msgs::JointState joint_state;
+    joint_state.header.stamp = ros::Time::now();
+    joint_state.name = JOINT_STATE_NAME;
+    joint_state.position = q;
+    shadow_joint_state_pub.publish(joint_state);
+}
+
 void ElSpiderAirInterfaceROS::pub_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)
 {
     pub_joint_state(IKFast_foots(footendpos));
+}
+
+void ElSpiderAirInterfaceROS::pub_shadow_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)
+{
+    pub_shadow_joint_state(IKFast_foots(footendpos));
 }

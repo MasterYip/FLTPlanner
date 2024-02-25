@@ -172,7 +172,7 @@ public:
         {
             footend_now.emplace_back(robot_state_.feetPosition[k]);
         }
-        // robot_interface_.pub_joint_state_from_footendpos(footend_now);
+        robot_interface_.pub_joint_state_from_footendpos(footend_now);
 
         // Update body state
         try
@@ -333,7 +333,7 @@ public:
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
         // print rpy
-        std::cout<< "rpy: " << robot_state_.pose.roll << " " << robot_state_.pose.pitch << " " << robot_state_.pose.yaw << std::endl;
+        std::cout << "rpy: " << robot_state_.pose.roll << " " << robot_state_.pose.pitch << " " << robot_state_.pose.yaw << std::endl;
         do
         {
             state_traj = whole_body_planner_.get_state_traj(0);
@@ -344,10 +344,14 @@ public:
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
             }
             robot_interface_.pub_footcmd_from_footendpos(footend_interp);
-            if (1 || fake_estimation_)
+            if (fake_estimation_)
             {
                 robot_interface_.pub_joint_state_from_footendpos(footend_interp);
                 robot_interface_.pub_odom(odom_interp);
+            }
+            else
+            {
+                robot_interface_.pub_shadow_joint_state_from_footendpos(footend_interp);
             }
             t += delta;
             if (t > 1.0)

@@ -33,6 +33,7 @@ class ElSpiderAirInterfaceROS : public ElSpiderAirInterface
 private:
     ros::NodeHandle nh;
     ros::Publisher joint_state_pub;
+    ros::Publisher shadow_joint_state_pub;
     tf2_ros::TransformBroadcaster odom_pub;
     ros::Publisher foot_pos_pub;
     int feedforward_type;
@@ -49,6 +50,9 @@ public:
                   const std::string &parent_frame = "odom");
     void pub_joint_state(const std::vector<double> &q);
     void pub_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
+    void pub_shadow_joint_state(const std::vector<double> &q);
+    void pub_shadow_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
+
 
     // HexapodSoftware
     /**
