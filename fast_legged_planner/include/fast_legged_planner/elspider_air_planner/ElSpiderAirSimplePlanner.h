@@ -162,18 +162,8 @@ public:
 
     void timer_callback(const ros::TimerEvent &event)
     {
-        std::vector<Eigen::Vector3d> footend_now;
         // Pub foot fdb
-        if (recv_foot_state_ && recv_body_state_)
-        {
-            update_robot_state();
-        }
-        for (size_t k = 0; k < 6; ++k)
-        {
-            footend_now.emplace_back(robot_state_.feetPosition[k] -
-                                     Eigen::Vector3d(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
-        }
-        robot_interface_.pub_joint_state_from_footendpos(footend_now);
+        pub_footpos_now();
 
         // Update body state
         try
@@ -213,6 +203,20 @@ public:
         foot_state_ = msg;
     }
 
+    void pub_footpos_now(void)
+    {
+        std::vector<Eigen::Vector3d> footend_now;
+        if (recv_foot_state_ && recv_body_state_)
+        {
+            update_robot_state();
+        }
+        for (size_t k = 0; k < 6; ++k)
+        {
+            footend_now.emplace_back(robot_state_.feetPosition[k] -
+                                     Eigen::Vector3d(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
+        }
+        robot_interface_.pub_joint_state_from_footendpos(footend_now);
+    }
     // Deprecated
     [[deprecated]] void body_state_callback(const fast_legged_planner::BodyState &msg)
     {
@@ -355,6 +359,7 @@ public:
             {
                 robot_interface_.pub_odom(odom_interp, "shadowbase", "odom");
                 robot_interface_.pub_shadow_joint_state_from_footendpos(footend_interp);
+                pub_footpos_now();
             }
             t += delta;
             if (t > 1.0)
