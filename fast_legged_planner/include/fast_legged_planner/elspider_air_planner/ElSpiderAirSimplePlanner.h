@@ -198,6 +198,7 @@ public:
             update_exp_path();
             update_robot_state();
             gridmap_interface_.lockMapUpdate();
+            // BUG: if robot_state_ feedback is not in a good state, the planner will make it worse.
             next_planned_state_ = CONTACT_PLANNER::pathTrackPlanner(robot_state_, exp_path_, gridmap_interface_.getMap(), true, 100);
             gridmap_interface_.unlockMapUpdate();
             whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_), transRobotState(next_planned_state_));
