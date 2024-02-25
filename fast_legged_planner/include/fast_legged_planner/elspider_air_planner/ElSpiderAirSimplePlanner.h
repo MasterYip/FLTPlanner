@@ -353,7 +353,7 @@ public:
             }
             else
             {
-                // robot_interface_.pub_odom(odom_interp);
+                robot_interface_.pub_odom(odom_interp, "shadowbase", "odom");
                 robot_interface_.pub_shadow_joint_state_from_footendpos(footend_interp);
             }
             t += delta;

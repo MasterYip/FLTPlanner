@@ -25,12 +25,6 @@
 #include "fast_legged_planner/robot_interface/BaseRobotInterface.h"
 
 // Define JOINT_STATE_NAME and FOOT_LINK_NAME constants
-// const std::vector<std::string> JOINT_STATE_NAME = {"LB_HAA", "LB_HFE", "LB_KFE",
-//                                                    "LF_HAA", "LF_HFE", "LF_KFE",
-//                                                    "LM_HAA", "LM_HFE", "LM_KFE",
-//                                                    "RB_HAA", "RB_HFE", "RB_KFE",
-//                                                    "RF_HAA", "RF_HFE", "RF_KFE",
-//                                                    "RM_HAA", "RM_HFE", "RM_KFE"};
 const std::vector<std::string> JOINT_STATE_NAME = {"RF_HAA", "RF_HFE", "RF_KFE",
                                                    "RM_HAA", "RM_HFE", "RM_KFE",
                                                    "RB_HAA", "RB_HFE", "RB_KFE",
@@ -40,6 +34,16 @@ const std::vector<std::string> JOINT_STATE_NAME = {"RF_HAA", "RF_HFE", "RF_KFE",
 
 const std::vector<std::string> FOOT_LINK_NAME = {"RF_FOOT", "RM_FOOT", "RB_FOOT",
                                                  "LF_FOOT", "LM_FOOT", "LB_FOOT"};
+
+const std::vector<std::string> SHADOW_JOINT_STATE_NAME = {"shadowRF_HAA", "shadowRF_HFE", "shadowRF_KFE",
+                                                          "shadowRM_HAA", "shadowRM_HFE", "shadowRM_KFE",
+                                                          "shadowRB_HAA", "shadowRB_HFE", "shadowRB_KFE",
+                                                          "shadowLF_HAA", "shadowLF_HFE", "shadowLF_KFE",
+                                                          "shadowLM_HAA", "shadowLM_HFE", "shadowLM_KFE",
+                                                          "shadowLB_HAA", "shadowLB_HFE", "shadowLB_KFE"};
+
+const std::vector<std::string> SHADOW_FOOT_LINK_NAME = {"shadowRF_FOOT", "shadowRM_FOOT", "shadowRB_FOOT",
+                                                        "shadowLF_FOOT", "shadowLM_FOOT", "shadowLB_FOOT"};
 
 class ElSpiderAirInterface : public BaseRobotInterface
 {

@@ -90,7 +90,7 @@ void ElSpiderAirInterfaceROS::pub_shadow_joint_state(const std::vector<double> &
 {
     sensor_msgs::JointState joint_state;
     joint_state.header.stamp = ros::Time::now();
-    joint_state.name = JOINT_STATE_NAME;
+    joint_state.name = SHADOW_JOINT_STATE_NAME;
     joint_state.position = q;
     shadow_joint_state_pub.publish(joint_state);
 }
