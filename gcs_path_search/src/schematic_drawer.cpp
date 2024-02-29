@@ -20,7 +20,7 @@ int main(int argc, char **argv)
         while (ros::ok())
         {
             // trajopt.drawCorriderIntersectBorderTest();
-            trajopt.draw_vpoly_2DinHullPointset();
+            trajopt.schematic_drawer();
             // trajopt.segmentIntersectTest();
             ros::spinOnce();
             lr.sleep();

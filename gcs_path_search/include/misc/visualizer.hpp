@@ -27,9 +27,9 @@ struct MarkerStyle
     MarkerStyle()
         : r(0.0), g(0.0), b(0.0), a(1.0), x(0.01), y(0.01), z(0.01){};
     MarkerStyle(double r_, double g_, double b_, double a_, double width_)
-        : r(r_), g(g_), b(b_), a(a_), x(width_) {};
+        : r(r_), g(g_), b(b_), a(a_), x(width_){};
     MarkerStyle(double r_, double g_, double b_, double a_, double x_, double y_, double z_)
-        : r(r_), g(g_), b(b_), a(a_), x(x_), y(y_), z(z_) {};
+        : r(r_), g(g_), b(b_), a(a_), x(x_), y(y_), z(z_){};
 };
 
 // Visualizer for the planner
@@ -46,7 +46,9 @@ private:
     ros::Publisher wayPointsPub;
     ros::Publisher trajectoryPub;
     ros::Publisher meshPub;
+    MarkerStyle meshStyle{0.0, 0.0, 1.0, 0.1, 1.0, 1.0, 1.0};
     ros::Publisher edgePub;
+    MarkerStyle edgeStyle{0.247, 0.318, 0.710, 1, 0.005};
     ros::Publisher spherePub;
     ros::Publisher markersPub;
 
@@ -219,22 +221,22 @@ public:
         meshMarker.action = visualization_msgs::Marker::ADD;
         meshMarker.type = visualization_msgs::Marker::TRIANGLE_LIST;
         meshMarker.ns = "mesh";
-        meshMarker.color.r = 0.00;
-        meshMarker.color.g = 0.00;
-        meshMarker.color.b = 1.00;
-        meshMarker.color.a = 0.15;
-        meshMarker.scale.x = 1.0;
-        meshMarker.scale.y = 1.0;
-        meshMarker.scale.z = 1.0;
+        meshMarker.color.r = meshStyle.r;
+        meshMarker.color.g = meshStyle.g;
+        meshMarker.color.b = meshStyle.b;
+        meshMarker.color.a = meshStyle.a;
+        meshMarker.scale.x = meshStyle.x;
+        meshMarker.scale.y = meshStyle.y;
+        meshMarker.scale.z = meshStyle.z;
 
         edgeMarker = meshMarker;
         edgeMarker.type = visualization_msgs::Marker::LINE_LIST;
         edgeMarker.ns = "edge";
-        edgeMarker.color.r = 0.00;
-        edgeMarker.color.g = 1.00;
-        edgeMarker.color.b = 1.00;
-        edgeMarker.color.a = 0.30;
-        edgeMarker.scale.x = 0.004;
+        edgeMarker.color.r = edgeStyle.r;
+        edgeMarker.color.g = edgeStyle.g;
+        edgeMarker.color.b = edgeStyle.b;
+        edgeMarker.color.a = edgeStyle.a;
+        edgeMarker.scale.x = edgeStyle.x;
 
         geometry_msgs::Point point;
 
@@ -356,7 +358,7 @@ public:
     }
 
     // FIXME: Cant visualize multiple curves (all curves will be connected)
-    inline void visualizeCurve(const std::vector<Eigen::Vector3d> &curve,const MarkerStyle style = MarkerStyle())
+    inline void visualizeCurve(const std::vector<Eigen::Vector3d> &curve, const MarkerStyle style = MarkerStyle())
     {
         visualization_msgs::Marker curveMarker;
         if (curve.size() < 2)

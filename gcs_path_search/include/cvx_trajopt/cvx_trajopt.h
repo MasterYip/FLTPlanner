@@ -91,6 +91,7 @@ public:
                                      const Eigen::Vector2d &start, const Eigen::Vector2d &goal);
     // Test
     void test_map();
+    void schematic_drawer();
     void segmentIntersectTest();
     void draw_vpoly_2DinHullPointset();
     void drawCorriderIntersectBorderTest();
@@ -106,7 +107,8 @@ private:
     grid_map::GridMap map_;
     bool map_received_ = false;
 
-    Eigen::Matrix3Xd vPoly = {3, 10}; // Test Default Hull
+    Eigen::Matrix3Xd vPoly = {3, 10}; // Test Default Hull for ElSpider 2
+    Eigen::Matrix3Xd vPoly_air = {3, 10}; // Test Default Hull for ElSpider Air
 
     // Dyn reconf
     dynamic_reconfigure::Server<gcs_path_search::CvxTrajOptConfig> server;
