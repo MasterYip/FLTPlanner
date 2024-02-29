@@ -265,11 +265,11 @@ Visualization Manager:
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
       Color Layer: elevation
-      Color Transformer: IntensityLayer
-      ColorMap: anybotics
-      Enabled: false
-      Grid Cell Decimation: 1
-      Grid Line Thickness: 0.10000000149011612
+      Color Transformer: None
+      ColorMap: twilight
+      Enabled: true
+      Grid Cell Decimation: 4
+      Grid Line Thickness: 0.03999999910593033
       Height Layer: elevation
       Height Transformer: Layer
       History Length: 1
@@ -283,7 +283,7 @@ Visualization Manager:
       Topic: /grid_map
       Unreliable: false
       Use ColorMap: true
-      Value: false
+      Value: true
     - Alpha: 0.5
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
@@ -412,7 +412,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.5657596588134766
+      Distance: 1.4174338579177856
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -420,17 +420,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.026363052427768707
-        Y: -0.22891810536384583
-        Z: 0.018137319013476372
+        X: -0.1488146334886551
+        Y: -0.08970790356397629
+        Z: 0.1357918083667755
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.36479729413986206
+      Pitch: 0.3309943377971649
       Target Frame: <Fixed Frame>
-      Yaw: 0.4414233863353729
+      Yaw: 0.889257550239563
     Saved: ~
 Window Geometry:
   Displays:

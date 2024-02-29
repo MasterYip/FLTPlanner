@@ -18,12 +18,16 @@
 #include "cvx_trajopt/cvx_trajopt_config.hpp"
 #include "gcs_traj_opt/astar/stlastar.h"
 #include "gcs_traj_opt/geo_utils/geo_utils.hpp"
+#include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
+
 
 #include "gcs_traj_opt/geo_utils/quickhull.hpp"
 #include "misc/visualizer.hpp"
 // TODO: Change project name
 #include <gcs_path_search/CvxTrajOptConfig.h>
-using GridPt = Eigen::Array2i;
+
+using namespace geo_utils_2d;
+
 class TimerMixin
 {
 protected:

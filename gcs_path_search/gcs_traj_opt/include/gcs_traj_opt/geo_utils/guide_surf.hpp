@@ -29,9 +29,11 @@ using namespace geo_utils_2d;
 class HarmonicGuideSurf
 {
 private:
-    std::vector<Point3D> key_points;
-    int weight_order;
-    // std::vect
+    int key_points_num_;
+    std::vector<Point3D> key_points_;
+    Eigen::MatrixX3d key_points_mat_;
+    int weight_order_;
+    Eigen::VectorXd weights_;
 
 public:
     HarmonicGuideSurf(const std::vector<Point3D> &key_points, int weight_order = 1);
