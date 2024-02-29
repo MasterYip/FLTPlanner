@@ -68,6 +68,15 @@ add_dependencies(cvx_trajopt_node ${PROJECT_NAME}_gencfg)
 target_link_libraries(cvx_trajopt_node
   ${catkin_LIBRARIES} 
   gcs_traj_opt) 
-# FIXME: gmp and mpfr must be linked manually
+
+
+add_executable(schematic_drawer
+src/schematic_drawer.cpp
+src/cvx_trajopt.cpp)
+
+add_dependencies(schematic_drawer ${PROJECT_NAME}_gencfg)
+target_link_libraries(schematic_drawer
+  ${catkin_LIBRARIES} 
+  gcs_traj_opt) 
 
 
