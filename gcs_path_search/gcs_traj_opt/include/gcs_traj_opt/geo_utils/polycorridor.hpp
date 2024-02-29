@@ -29,13 +29,15 @@
 //     int corridor_idx;
 // }
 
+using namespace geo_utils;
+
 class PolyCorridor
 {
 private:
     uint poly_size = 0;
-    std::vector<Polyhedra> polys_;             // discret feasible polyhedra trajectory (size n)
-    std::vector<Polyhedra> corridor_;          // feasible corridor obtained by `poly merging` (size n-1)
-    std::vector<Eigen::Vector4d> guide_plane_; // guide plane for each corridor segment (size n-1)
+    std::vector<Polyhedra> polys_;                            // discret feasible polyhedra trajectory (size n)
+    std::vector<Polyhedra> corridor_;                         // feasible corridor obtained by `poly merging` (size n-1)
+    [[deprecated]] std::vector<Plain> guide_plane_; // guide plane for each corridor segment (size n-1)
 
 public:
     /**
