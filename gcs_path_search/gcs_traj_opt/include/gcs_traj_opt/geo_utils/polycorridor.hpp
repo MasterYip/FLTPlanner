@@ -22,6 +22,7 @@
 /* internal project header files */
 #include "geo_utils.hpp"
 #include "polyhedra.hpp"
+#include "guide_surf.hpp"
 
 // struct PointLocation
 // {
@@ -34,10 +35,11 @@ using namespace geo_utils;
 class PolyCorridor
 {
 private:
-    uint poly_size = 0;
-    std::vector<Polyhedra> polys_;                            // discret feasible polyhedra trajectory (size n)
-    std::vector<Polyhedra> corridor_;                         // feasible corridor obtained by `poly merging` (size n-1)
+    uint poly_size_ = 0;
+    std::vector<Polyhedra> polys_;                  // discret feasible polyhedra trajectory (size n)
+    std::vector<Polyhedra> corridor_;               // feasible corridor obtained by `poly merging` (size n-1)
     [[deprecated]] std::vector<Plain> guide_plane_; // guide plane for each corridor segment (size n-1)
+    HarmonicGuideSurf guide_surf_;
 
 public:
     /**
@@ -71,21 +73,26 @@ public:
 
     uint getPolySize() const
     {
-        return poly_size;
+        return poly_size_;
     };
 
     uint getCorridorSize() const
     {
-        return poly_size - 1;
+        return poly_size_ - 1;
     };
 
-    std::vector<Polyhedra> getPolys() const
+    std::vector<Polyhedra> &getPolys() 
     {
         return polys_;
     };
 
-    std::vector<Polyhedra> getCorridor() const
+    std::vector<Polyhedra> &getCorridor() 
     {
         return corridor_;
+    };
+
+    HarmonicGuideSurf &getGuideSurf()
+    {
+        return guide_surf_;
     };
 };

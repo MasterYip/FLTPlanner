@@ -16,9 +16,11 @@ IntersectBorder::IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &borde
 {
 }
 
-void IntersectBorder::updatePtr(const GridPt &grid2d)
+[[deprecated]] void IntersectBorder::updatePtr(const GridPt &grid2d)
 {
-    int tmp = border_check_.inPoly(grid2d, corridor_ptr_);
+    // int tmp = border_check_.inPoly(grid2d, corridor_ptr_);
+    int tmp = border_check_.inPoly(grid2d);
+
     if (tmp != -1 && tmp != poly_ptr_)
     {
         if (tmp - poly_ptr_ == 1)
@@ -47,23 +49,23 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
 
     // BUG: this is not a good way to check if the start point is in the polyhedra
     resetPtr();
-    if (border_check_.inPoly(idx, corridor_ptr_) != 0)
+    if (border_check_.inPoly(idx) != 0)
     {
-        std::cerr << "Start point not in poly 0! find in poly " << border_check_.inPoly(idx, corridor_ptr_) << std::endl;
+        std::cerr << "Start point not in poly 0! find in poly " << border_check_.inPoly(idx) << std::endl;
         return path;
     }
 
     // Find start border (x direction)
     // FIXME: This may find a start point in the middle of the corridor
-    while (border_check_.inBorder(idx, corridor_ptr_) != -1)
+    while (border_check_.inBorder(idx) != -1)
     {
         idx[0]++;
-        updatePtr(idx);
+        // updatePtr(idx);
     }
     idx[0]--; // Back to last inBorder
     start_border_idx = idx;
     path.push_back(start_border_idx);
-    updatePtr(idx);
+    // updatePtr(idx);
 
     // Find the intersect border
     // FIXME: Sometimes it stucks (loop)
@@ -86,12 +88,12 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
             // PROBLEM: What will happen if we do not update for tmp_idx?
             tmp_idx = idx + c8_cw.at(i);
             // flag: pointer out of border
-            if (!out_corridor_flag && border_check_.inBorder(tmp_idx, corridor_ptr_) == -1)
+            if (!out_corridor_flag && border_check_.inBorder(tmp_idx) == -1)
             {
                 out_corridor_flag = true;
             }
             // flag: pointer back from border
-            if (out_corridor_flag && border_check_.inBorder(tmp_idx, corridor_ptr_) != -1)
+            if (out_corridor_flag && border_check_.inBorder(tmp_idx) != -1)
             {
 
                 if (path.size() > 1 && tmp_idx[0] == path.at(path.size() - 2)[0] && tmp_idx[1] == path.at(path.size() - 2)[1])
@@ -104,7 +106,7 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
                     revisit_flag = false;
                     path.push_back(tmp_idx);
                     idx = tmp_idx;
-                    updatePtr(idx);
+                    // updatePtr(idx);
                     break;
                 }
             }
@@ -114,7 +116,7 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
             printf("Warning: Revisit(%d %d)", revisit_idx[0], revisit_idx[1]);
             path.push_back(revisit_idx);
             idx = revisit_idx;
-            updatePtr(idx);
+            // updatePtr(idx);
         }
 
     } while (idx[0] != start_border_idx[0] || idx[1] != start_border_idx[1]);

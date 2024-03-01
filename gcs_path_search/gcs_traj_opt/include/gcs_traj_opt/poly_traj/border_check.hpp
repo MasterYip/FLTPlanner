@@ -22,7 +22,7 @@
 /* internal project header files */
 #include "gcs_traj_opt/geo_utils/polycorridor.hpp"
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
-
+#include "gcs_traj_opt/geo_utils/guide_surf.hpp"
 using namespace geo_utils_2d;
 
 class BorderCheck
@@ -37,6 +37,8 @@ private:
     // PROBLEM: How to share the map_ground_ and map_ceiling_ with the other class?
     const grid_map::GridMap &map_;
 
+
+
 public:
     BorderCheck(PolyCorridor &poly_corridor,
                 const grid_map::GridMap &map,
@@ -44,9 +46,13 @@ public:
                 const bool enable_ceiling = false,
                 const std::string ceiling_layer = "ceiling");
 
-    double queryHeight(const Eigen::Vector2d &pos2d, uint corridor_idx);
+    [[deprecated]] double queryHeight(const Eigen::Vector2d &pos2d, uint corridor_idx);
 
-    double queryHeight(const GridPt &grid2d, uint corridor_idx);
+    [[deprecated]] double queryHeight(const GridPt &grid2d, uint corridor_idx);
+
+    double queryHeight(const Eigen::Vector2d &pos2d);
+
+    double queryHeight(const GridPt &grid2d);
 
     /**
      * @brief Check if the given position is in the corridor intersection border
@@ -55,7 +61,7 @@ public:
      * @param corridor_idx The index of the corridor segment
      * @return int The FIRST index of the corridor segment that the position is in, -1 if not in any segment
      */
-    int inBorder(const Eigen::Vector2d &pos2d, uint corridor_idx);
+    int inBorder(const Eigen::Vector2d &pos2d);
 
     /**
      * @brief Check if the given position is in the corridor intersection border
@@ -64,7 +70,7 @@ public:
      * @param corridor_idx The index of the corridor segment
      * @return int The FIRST index of the corridor segment that the position is in, -1 if not in any segment
      */
-    int inBorder(const GridPt &grid2d, uint corridor_idx);
+    int inBorder(const GridPt &grid2d);
 
     /**
      * @brief Check if the given position is in the polyhedra
@@ -73,5 +79,5 @@ public:
      * @param corridor_idx The index of the corridor segment
      * @return int The FIRST index of the polyhedra that the position is in, -1 if not in any segment
      */
-    int inPoly(const GridPt &grid2d, uint corridor_idx);
+    int inPoly(const GridPt &grid2d);
 };

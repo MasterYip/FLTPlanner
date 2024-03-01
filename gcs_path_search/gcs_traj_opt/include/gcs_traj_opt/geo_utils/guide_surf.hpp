@@ -36,6 +36,7 @@ private:
     Eigen::VectorXd weights_;
 
 public:
+    HarmonicGuideSurf() = default;
     /**
      * @brief Construct a new Harmonic Guide Surf object
      *
