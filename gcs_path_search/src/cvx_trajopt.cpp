@@ -7,9 +7,11 @@
 
 /* external project header files */
 #include <grid_map_ros/grid_map_ros.hpp>
+#include <grid_map_ros/GridMapRosConverter.hpp>
 /* internal project header files */
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
 #include "gcs_traj_opt/poly_traj/intersect_border.hpp"
+#include "gcs_traj_opt/geo_utils/guide_surf.hpp"
 
 using namespace geo_utils_2d;
 
@@ -102,7 +104,7 @@ CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_) : nh_(n
 {
     ROS_INFO("CVX_TrajOpt::CVX_TrajOpt()");
     map_sub_ = nh_.subscribe(conf_.mapTopic, 1, &CVX_TrajOpt::map_callback, this);
-
+    map_pub_ = nh_.advertise<grid_map_msgs::GridMap>("cvx_trajopt_mappub", 1, true);
     // 并将回调函数和服务端绑定
     f = boost::bind(&CVX_TrajOpt::dyn_reconf_callback, this, _1, _2);
     server.setCallback(f);
@@ -413,19 +415,29 @@ void CVX_TrajOpt::test_map()
     return;
 }
 
+/**
+ * @brief Temporarily is used to draw the feasible connected domain & robot
+ *
+ */
 void CVX_TrajOpt::schematic_drawer()
 {
     std::vector<Eigen::Matrix3Xd> RegionBuf;
     std::vector<Eigen::Matrix3Xd> CorridorBuf;
 
     Eigen::MatrixX3d waypoints(3, 3);
-    double zoom = 1;
+    // For normal ElSpider Air
     waypoints << -0.2, -0.08, 0.16,
         0.0, -0.08, 0.3,
         0.2, -0.08, 0.16;
+
+    // For Guide Surf Demo
+    waypoints << -1.0, -0.5, 0,
+        0.0, 0.5, 1.6,
+        0.5, -0.5, 0.0;
+
     for (int i = 0; i < waypoints.rows(); i++)
     {
-        RegionBuf.push_back((vPoly_air.array().colwise() + waypoints.transpose().col(i).array()).eval() * zoom);
+        RegionBuf.push_back((vPoly_air.array().colwise() + waypoints.transpose().col(i).array()).eval());
         if (i > 0)
         {
             CorridorBuf.push_back(geo_utils::mergeVpoly(RegionBuf.at(i - 1), RegionBuf.at(i)));
@@ -433,22 +445,25 @@ void CVX_TrajOpt::schematic_drawer()
     }
 
     // visualizer.visualizePolytope(RegionBuf);
+    std::vector<Point3D> key_points;
+    for (auto region : RegionBuf)
+    {
+        Polyhedra poly(region);
+        key_points.push_back(poly.getInterior());
+    }
+    
     visualizer_.visualizePolytope(CorridorBuf);
-
+    HarmonicGuideSurf guide_surf(key_points, 1);
+    map_.add("guide_surf");
     for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
     {
-        if (inBorderJudge(CorridorBuf, map_, *iterator))
-        {
-            Eigen::Vector3d pos;
-            Eigen::Vector2d posxy;
-            pos[2] = map_.at("elevation", *iterator);
-            map_.getPosition(*iterator, posxy);
-            pos[0] = posxy.x();
-            pos[1] = posxy.y();
-            visualizer_.visualizeSphere(pos, 0.01);
-        }
+        grid_map::Position pos;
+        map_.getPosition(*iterator, pos);
+        map_.at("guide_surf", *iterator) = guide_surf.getHeight(pos);
     }
-
+    grid_map_msgs::GridMap gm_message;
+    grid_map::GridMapRosConverter::toMessage(map_, gm_message);
+    map_pub_.publish(gm_message);
     return;
 }
 
@@ -490,6 +505,7 @@ void CVX_TrajOpt::draw_vpoly_2DinHullPointset()
     return;
 }
 
+// Intersect Border
 void CVX_TrajOpt::drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
                                               const Eigen::Vector2d &start, const Eigen::Vector2d &goal)
 {

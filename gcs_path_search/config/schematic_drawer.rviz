@@ -4,9 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
-        - /MarkerArray1
+        - /guide_surf1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -26,7 +24,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: SDF
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -55,153 +53,18 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
-        LB_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LB_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LB_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LB_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LF_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LF_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LF_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LF_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LM_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LM_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LM_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        LM_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         Link Tree Style: Links in Alphabetic Order
-        RB_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RB_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RB_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RB_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RF_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RF_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RF_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RF_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RM_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RM_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RM_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        RM_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        trunk:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: false
@@ -220,46 +83,6 @@ Visualization Manager:
         {}
       Update Interval: 0
       Value: false
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: visualization_marker
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /footTrajectory
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Alpha: 0.30000001192092896
-      Autocompute Intensity Bounds: true
-      Class: grid_map_rviz_plugin/GridMap
-      Color: 200; 200; 200
-      Color Layer: 3D_feeling
-      Color Transformer: ""
-      ColorMap: default
-      Enabled: false
-      Grid Cell Decimation: 1
-      Grid Line Thickness: 0.10000000149011612
-      Height Layer: 3D_feeling
-      Height Transformer: Layer
-      History Length: 1
-      Invert ColorMap: false
-      Max Color: 255; 255; 255
-      Max Intensity: 10
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: TerrainFile Gridmap
-      Show Grid Lines: false
-      Topic: /grid_map
-      Unreliable: false
-      Use ColorMap: true
-      Value: false
     - Alpha: 0.5
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
@@ -267,7 +90,7 @@ Visualization Manager:
       Color Layer: elevation
       Color Transformer: None
       ColorMap: twilight
-      Enabled: true
+      Enabled: false
       Grid Cell Decimation: 4
       Grid Line Thickness: 0.03999999910593033
       Height Layer: elevation
@@ -283,18 +106,18 @@ Visualization Manager:
       Topic: /grid_map
       Unreliable: false
       Use ColorMap: true
-      Value: true
-    - Alpha: 0.5
+      Value: false
+    - Alpha: 0.800000011920929
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
-      Color Layer: elevation
+      Color Layer: guide_surf
       Color Transformer: IntensityLayer
-      ColorMap: anybotics
-      Enabled: false
+      ColorMap: turbo
+      Enabled: true
       Grid Cell Decimation: 1
-      Grid Line Thickness: 0.10000000149011612
-      Height Layer: ceiling
+      Grid Line Thickness: 0.05000000074505806
+      Height Layer: guide_surf
       Height Transformer: Layer
       History Length: 1
       Invert ColorMap: false
@@ -302,12 +125,12 @@ Visualization Manager:
       Max Intensity: 10
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: Image2Gridmap_ceiling
+      Name: guide_surf
       Show Grid Lines: true
-      Topic: /grid_map
+      Topic: /cvx_trajopt_mappub
       Unreliable: false
       Use ColorMap: true
-      Value: false
+      Value: true
     - Alpha: 0.4000000059604645
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -412,7 +235,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.4174338579177856
+      Distance: 1.6732665300369263
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -420,17 +243,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.1488146334886551
-        Y: -0.08970790356397629
-        Z: 0.1357918083667755
+        X: -0.037207990884780884
+        Y: -0.12981869280338287
+        Z: 0.24946503341197968
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3309943377971649
+      Pitch: 0.28099343180656433
       Target Frame: <Fixed Frame>
-      Yaw: 0.889257550239563
+      Yaw: 0.5442555546760559
     Saved: ~
 Window Geometry:
   Displays:

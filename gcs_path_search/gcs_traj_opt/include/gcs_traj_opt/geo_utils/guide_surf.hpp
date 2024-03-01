@@ -30,13 +30,20 @@ class HarmonicGuideSurf
 {
 private:
     int key_points_num_;
-    std::vector<Point3D> key_points_;
-    Eigen::MatrixX3d key_points_mat_;
+    // std::vector<Point3D> key_points_;
+    Eigen::MatrixX3d key_points_mat_; // (n points, 3)
     int weight_order_;
     Eigen::VectorXd weights_;
 
 public:
+    /**
+     * @brief Construct a new Harmonic Guide Surf object
+     *
+     * @param key_points 3D points
+     * @param weight_order default 1
+     */
     HarmonicGuideSurf(const std::vector<Point3D> &key_points, int weight_order = 1);
+    HarmonicGuideSurf(const Eigen::MatrixX3d &key_points_mat, int weight_order = 1);
     ~HarmonicGuideSurf();
 
     double getHeight(const Point &p) const;

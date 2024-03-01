@@ -110,6 +110,8 @@ private:
     CVX_TrajOpt_Config conf_;
     grid_map::GridMap map_;
     bool map_received_ = false;
+    // GridMap pub
+    ros::Publisher map_pub_;
 
     Eigen::Matrix3Xd vPoly = {3, 10}; // Test Default Hull for ElSpider 2
     Eigen::Matrix3Xd vPoly_air = {3, 10}; // Test Default Hull for ElSpider Air

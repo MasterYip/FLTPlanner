@@ -12,14 +12,20 @@
 #include "gcs_traj_opt/geo_utils/guide_surf.hpp"
 
 HarmonicGuideSurf::HarmonicGuideSurf(const std::vector<Point3D> &key_points, int weight_order)
-    : key_points_(key_points), weight_order_(weight_order),
-      weights_(Eigen::VectorXd::Ones(key_points.size())), key_points_num_(key_points.size())
+    : weight_order_(weight_order), weights_(Eigen::VectorXd::Ones(key_points.size())),
+      key_points_num_(key_points.size())
 {
     key_points_mat_.resize(key_points.size(), 3);
     for (uint i = 0; i < key_points.size(); i++)
     {
         key_points_mat_.row(i) = key_points[i];
     }
+}
+
+HarmonicGuideSurf::HarmonicGuideSurf(const Eigen::MatrixX3d &key_points_mat, int weight_order)
+    : weight_order_(weight_order), weights_(Eigen::VectorXd::Ones(key_points_mat.rows())),
+      key_points_num_(key_points_mat.rows()), key_points_mat_(key_points_mat)
+{
 }
 
 HarmonicGuideSurf::~HarmonicGuideSurf()
@@ -30,19 +36,20 @@ double HarmonicGuideSurf::getHeight(const Point &p) const
 {
     double num = 0;
     double den = 0;
-    Eigen::VectorXd dists = (key_points_mat_.leftCols(2).rowwise() - p.transpose()).rowwise().norm();
+    Eigen::Vector2d p_vec = p.head(2);
+    Eigen::VectorXd dists = (key_points_mat_.leftCols(2).rowwise() - p_vec.transpose()).rowwise().norm();
     for (int i = 0; i < key_points_num_; i++)
     {
-        if(dists(i) < 1e-6)
-            return key_points_[i](2);
+        if (dists(i) < 1e-6)
+            return key_points_mat_(i, 2);
         if (weight_order_ == 1)
         {
-            num += weights_(i) / dists(i) * key_points_[i](2);
+            num += weights_(i) / dists(i) * key_points_mat_(i, 2);
             den += weights_(i) / dists(i);
         }
         else
         {
-            num += weights_(i) / std::pow(dists(i), weight_order_) * key_points_[i](2);
+            num += weights_(i) / std::pow(dists(i), weight_order_) * key_points_mat_(i, 2);
             den += weights_(i) / std::pow(dists(i), weight_order_);
         }
     }

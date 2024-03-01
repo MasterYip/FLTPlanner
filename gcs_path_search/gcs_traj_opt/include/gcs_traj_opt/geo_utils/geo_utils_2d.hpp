@@ -32,9 +32,9 @@ typedef K::Intersect_2 Intersect_2;
 
 namespace geo_utils_2d
 {
-    using Point = Eigen::Vector2d;
+    using Point = Eigen::Array2d;
     using GridPt = Eigen::Array2i;
-    using PolyLine = std::vector<Eigen::Vector2d>;
+    using PolyLine = std::vector<Point>;
     using GridPolyLine = std::vector<GridPt>;
     using GridPoints = std::vector<GridPt>;
 
