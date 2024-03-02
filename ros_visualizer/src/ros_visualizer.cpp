@@ -102,6 +102,11 @@ namespace ros_visualizer
 
     void ROSVisualizer::visSphere(const std::vector<Eigen::Vector3d> &spheres, const VisStyle &style)
     {
+        visSphere(spheres, style.x, style);
+    }
+
+    void ROSVisualizer::visSphere(const std::vector<Eigen::Vector3d> &spheres, double radius, const VisStyle &style)
+    {
         visualization_msgs::Marker marker;
         // Populate marker fields
         marker.header.frame_id = frame_id_;
@@ -111,9 +116,9 @@ namespace ros_visualizer
         marker.type = TYPE_SPHERE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
-        marker.scale.x = style.x;
-        marker.scale.y = style.y;
-        marker.scale.z = style.z;
+        marker.scale.x = radius;
+        marker.scale.y = radius;
+        marker.scale.z = radius;
         marker.color.r = style.r;
         marker.color.g = style.g;
         marker.color.b = style.b;

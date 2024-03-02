@@ -177,7 +177,8 @@ void CVX_TrajOpt::drawSphereIdx(const GridPt &idx, const double radius = 0.01)
     map_.getPosition(idx, posxy);
     pos[0] = posxy.x();
     pos[1] = posxy.y();
-    visualizer_.visualizeSphere(pos, radius);
+    // visualizer_.visualizeSphere(pos, radius);
+    gcs_visualizer_.visSphere({pos}, radius);
     return;
 }
 
@@ -196,7 +197,7 @@ void CVX_TrajOpt::drawSegmentIdx(const GridPt &idx1, const GridPt &idx2)
     std::vector<Eigen::Vector3d> pts;
     pts.push_back(pos1);
     pts.push_back(pos2);
-    visualizer_.visualizeCurve(pts, MarkerStyle(1, 1, 1, 0.1, 0.005));
+    gcs_visualizer_.visCurve(pts, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
     return;
 }
 
