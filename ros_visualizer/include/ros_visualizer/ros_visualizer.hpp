@@ -53,7 +53,7 @@ namespace ros_visualizer
     // const VisStyle STYLE_ARROW = VisStyle(0.0, 1.0, 0.0, 1.0, 0.01);
 
     const VisStyle STYLE_CURVE = VisStyle(1.0, 0.6, 0.002, 1.0, 0.01);
-    const VisStyle STYLE_MESH = VisStyle(0.247, 0.318, 0.710, 1, 0.005);
+    const VisStyle STYLE_MESH = VisStyle(0.357, 0.458, 0.710, 0.6, 0.005);
     const VisStyle STYLE_FACET = VisStyle(0.15, 0.6, 0.8, 0.1, 1.0);
     const VisStyle STYLE_SCATTER = VisStyle(1.0, 0.45, 0.0, 1.0, 0.02);
     const VisStyle STYLE_SPHERE = VisStyle(1.0, 0.45, 0.0, 1.0, 0.02);

@@ -78,12 +78,6 @@ public:
     void map_callback(const grid_map_msgs::GridMap::ConstPtr &msg);
     void dyn_reconf_callback(gcs_path_search::CvxTrajOptConfig &config, uint32_t level);
 
-    // Functions
-    std::vector<GridPt> getCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
-                                                   const Eigen::Vector2d &start,
-                                                   const Eigen::Vector2d &goal,
-                                                   const std::string connectivity);
-
     bool minlengthPath(const std::vector<GridPt> &Border,
                        const Eigen::Vector2d &start,
                        const Eigen::Vector2d &goal,
@@ -92,15 +86,12 @@ public:
     // Vis
     void drawSphereIdx(const GridPt &idx, const double radius);
     void drawSegmentIdx(const GridPt &idx1, const GridPt &idx2);
-    void drawCorriderIntersectBorder(const std::vector<Eigen::Matrix3Xd> &Corridor,
-                                     const Eigen::Vector2d &start, const Eigen::Vector2d &goal);
+
     // Test
     void test_map();
     void schematic_drawer();
     void segmentIntersectTest();
-    void draw_vpoly_2DinHullPointset();
     void drawCorriderIntersectBorderTest();
-    void drawCorriderIntersectBorderTest2();
 
 private:
     ros::NodeHandle nh_;
@@ -115,8 +106,7 @@ private:
     // GridMap pub
     ros::Publisher map_pub_;
 
-    Eigen::Matrix3Xd vPoly = {3, 10}; // Test Default Hull for ElSpider 2
-    Eigen::Matrix3Xd vPoly_air = {3, 10}; // Test Default Hull for ElSpider Air
+    Eigen::Matrix3Xd vPoly = {3, 10}; // Test Default Hull for ElSpider Air
 
     // Dyn reconf
     dynamic_reconfigure::Server<gcs_path_search::CvxTrajOptConfig> server;
