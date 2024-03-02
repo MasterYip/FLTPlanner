@@ -64,7 +64,7 @@ struct VisStyle
     VisStyle()
         : r(0.0), g(0.0), b(0.0), a(1.0), x(0.01), y(0.01), z(0.01){};
     VisStyle(double r_, double g_, double b_, double a_, double width_)
-        : r(r_), g(g_), b(b_), a(a_), x(width_){};
+        : r(r_), g(g_), b(b_), a(a_), x(width_), y(width_), z(width_){};
     VisStyle(double r_, double g_, double b_, double a_, double x_, double y_, double z_)
         : r(r_), g(g_), b(b_), a(a_), x(x_), y(y_), z(z_){};
 };

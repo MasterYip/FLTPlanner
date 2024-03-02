@@ -57,7 +57,7 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-
+        // FIXME: marker_id_ptr_ should be managed by the class
         marker_id_ptr_++;
     }
 
