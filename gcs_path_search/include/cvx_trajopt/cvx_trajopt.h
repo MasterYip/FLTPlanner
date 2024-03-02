@@ -16,7 +16,7 @@
 
 /* internal project header files */
 #include "cvx_trajopt/cvx_trajopt_config.hpp"
-#include "gcs_traj_opt/astar/stlastar.h"
+
 #include "gcs_traj_opt/geo_utils/geo_utils.hpp"
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
 
@@ -98,12 +98,10 @@ private:
     ros::Subscriber map_sub_;
     Timer timer_;
 
-    Visualizer visualizer_;
     GCSVisualizer gcs_visualizer_;
     CVX_TrajOpt_Config conf_;
     grid_map::GridMap map_;
     bool map_received_ = false;
-    // GridMap pub
     ros::Publisher map_pub_;
 
     Eigen::Matrix3Xd vPoly = {3, 10}; // Test Default Hull for ElSpider Air
@@ -112,7 +110,6 @@ private:
     dynamic_reconfigure::Server<gcs_path_search::CvxTrajOptConfig> server;
     dynamic_reconfigure::Server<gcs_path_search::CvxTrajOptConfig>::CallbackType f;
 
-    // drawCorriderIntersectBorderTest
     Eigen::Vector2d start = {-0.4, -0.3};
     Eigen::MatrixX3d pos_shift = {1, 3};
 };

@@ -10,97 +10,14 @@
 #include <grid_map_ros/GridMapRosConverter.hpp>
 
 /* internal project header files */
-
+#include "gcs_traj_opt/poly_traj/gcs_astar_search.hpp"
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
 #include "gcs_traj_opt/poly_traj/intersect_border.hpp"
 #include "gcs_traj_opt/geo_utils/guide_surf.hpp"
 
 using namespace geo_utils_2d;
 
-class GridPtState : public AStarState<GridPtState>
-{
-private:
-    uint pt_idx_;
-    VisibilityGraph *vis_graph_;
 
-public:
-    GridPtState() : pt_idx_(0), vis_graph_(nullptr){};
-    GridPtState(uint pt_idx, VisibilityGraph *vis_graph) : pt_idx_(pt_idx), vis_graph_(vis_graph){};
-    uint getPtIdx()
-    {
-        return pt_idx_;
-    };
-    float GoalDistanceEstimate(GridPtState &nodeGoal) override
-    {
-        return (vis_graph_->getPt(pt_idx_) - vis_graph_->getPt(nodeGoal.getPtIdx())).matrix().norm();
-    }; // Heuristic function which computes the estimated cost to the goal node
-    bool IsGoal(GridPtState &nodeGoal) override
-    {
-        return nodeGoal.getPtIdx() == pt_idx_;
-    }; // Returns true if this node is the goal node
-    bool GetSuccessors(AStarSearch<GridPtState> *astarsearch, GridPtState *parent_node) override
-    {
-        GridPtState newnode;
-        for (uint i = 0; i < vis_graph_->size(); i++)
-        {
-            if ((parent_node && i != parent_node->getPtIdx() && i != pt_idx_ && vis_graph_->isVisibile(pt_idx_, i)) ||
-                (!parent_node && i != pt_idx_ && vis_graph_->isVisibile(pt_idx_, i)))
-            {
-                newnode = GridPtState(i, vis_graph_);
-                astarsearch->AddSuccessor(newnode);
-            }
-        }
-        return true;
-    }; // Retrieves all successors to this node and adds them via astarsearch.addSuccessor()
-    float GetCost(GridPtState &successor) override
-    {
-        return (vis_graph_->getPt(pt_idx_) - vis_graph_->getPt(successor.getPtIdx())).matrix().norm();
-    }; // Computes the cost of travelling from this node to the successor node
-    bool IsSameState(GridPtState &rhs) override
-    {
-        return rhs.getPtIdx() == pt_idx_;
-    }; // Returns true if this node is the same as the rhs node
-    size_t Hash()
-    {
-        return pt_idx_;
-    }; // Returns a hash for the state
-};
-
-bool GCS_AStarSearch(VisibilityGraph &vis_graph, std::vector<GridPt> &path)
-{
-    // A* Search
-    AStarSearch<GridPtState> astarsearch;
-
-    GridPtState start_state(0, &vis_graph);
-    GridPtState goal_state(1, &vis_graph);
-    astarsearch.SetStartAndGoalStates(start_state, goal_state);
-    uint SearchState;
-    uint SearchSteps = 0;
-    do
-    {
-        SearchState = astarsearch.SearchStep();
-        SearchSteps++;
-    } while (SearchState == AStarSearch<GridPtState>::SEARCH_STATE_SEARCHING);
-    if (SearchState == AStarSearch<GridPtState>::SEARCH_STATE_SUCCEEDED)
-    {
-        GridPtState *node = astarsearch.GetSolutionStart();
-        path.clear();
-        path.emplace_back(vis_graph.getPt(node->getPtIdx()));
-        while (true)
-        {
-            node = astarsearch.GetSolutionNext();
-            if (!node)
-                break;
-            path.emplace_back(vis_graph.getPt(node->getPtIdx()));
-        };
-        astarsearch.FreeSolutionNodes();
-        astarsearch.EnsureMemoryFreed();
-        return true;
-    }
-    astarsearch.FreeSolutionNodes();
-    // astarsearch.EnsureMemoryFreed();
-    return false;
-}
 
 CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf,
                          ros::NodeHandle &nh_) : nh_(nh_), visualizer_(nh_), gcs_visualizer_(nh_), conf_(conf)
@@ -166,7 +83,6 @@ void CVX_TrajOpt::drawSphereIdx(const GridPt &idx, const double radius = 0.01)
     map_.getPosition(idx, posxy);
     pos[0] = posxy.x();
     pos[1] = posxy.y();
-    // visualizer_.visualizeSphere(pos, radius);
     gcs_visualizer_.visSphere({pos}, radius);
     return;
 }
@@ -320,7 +236,7 @@ void CVX_TrajOpt::schematic_drawer()
         key_points.push_back(poly.getInterior());
     }
 
-    visualizer_.visualizePolytope(CorridorBuf);
+    gcs_visualizer_.visPolytope(CorridorBuf);
     HarmonicGuideSurf guide_surf(key_points, 1);
     map_.add("guide_surf");
     for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
@@ -338,8 +254,6 @@ void CVX_TrajOpt::schematic_drawer()
 void CVX_TrajOpt::drawCorriderIntersectBorderTest()
 {
     // clean
-    visualizer_.deleteCurve();
-    visualizer_.deleteSphere();
     gcs_visualizer_.delAll();
 
     Eigen::MatrixX3d waypoints(3, 3);
