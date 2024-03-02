@@ -28,15 +28,49 @@ namespace ros_visualizer
     {
     }
 
+    void ROSVisualizer::delType(const VisType &type)
+    {
+        for (auto &marker : marker_array_.markers)
+        {
+            if (marker.ns == type.name_space)
+            {
+                marker.action = visualization_msgs::Marker::DELETE;
+            }
+        }
+
+        marker_pub_.publish(marker_array_);
+
+        for (int i = 0; i < marker_array_.markers.size(); i++)
+        {
+            if (marker_array_.markers[i].ns == type.name_space)
+            {
+                marker_array_.markers.erase(marker_array_.markers.begin() + i);
+                i--;
+            }
+        }
+    }
+
+    void ROSVisualizer::delAll(void)
+    {
+        for (auto &marker : marker_array_.markers)
+        {
+            marker.action = visualization_msgs::Marker::DELETE;
+        }
+
+        marker_pub_.publish(marker_array_);
+
+        marker_array_.markers.clear();
+    }
+
     void ROSVisualizer::visCurve(const std::vector<Eigen::Vector3d> &curve, const VisStyle &style)
     {
         visualization_msgs::Marker marker;
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = CURVE.name_space;
+        marker.ns = TYPE_CURVE.name_space;
         marker.id = marker_id_ptr_;
-        marker.type = CURVE.marker_type;
+        marker.type = TYPE_CURVE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
         marker.scale.x = style.x;
@@ -61,31 +95,9 @@ namespace ros_visualizer
         marker_id_ptr_++;
     }
 
-    void ROSVisualizer::delType(const VisType &type)
-    {
-        for (auto &marker : marker_array_.markers)
-        {
-            if (marker.ns == type.name_space)
-            {
-                marker.action = visualization_msgs::Marker::DELETE;
-            }
-        }
-
-        marker_pub_.publish(marker_array_);
-
-        for (int i = 0; i < marker_array_.markers.size(); i++)
-        {
-            if (marker_array_.markers[i].ns == type.name_space)
-            {
-                marker_array_.markers.erase(marker_array_.markers.begin() + i);
-                i--;
-            }
-        }
-    }
-
     void ROSVisualizer::delCurve()
     {
-        delType(CURVE);
+        delType(TYPE_CURVE);
     }
 
     void ROSVisualizer::visSphere(const std::vector<Eigen::Vector3d> &spheres, const VisStyle &style)
@@ -94,9 +106,9 @@ namespace ros_visualizer
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = SPHERE.name_space;
+        marker.ns = TYPE_SPHERE.name_space;
         marker.id = marker_id_ptr_;
-        marker.type = SPHERE.marker_type;
+        marker.type = TYPE_SPHERE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
         marker.scale.x = style.x;
@@ -125,7 +137,153 @@ namespace ros_visualizer
 
     void ROSVisualizer::delSphere()
     {
-        delType(SPHERE);
+        delType(TYPE_SPHERE);
+    }
+
+    void ROSVisualizer::visFacet(const std::vector<Eigen::Vector3d> &facet, const VisStyle &style)
+    {
+        visualization_msgs::Marker marker;
+        // Populate marker fields
+        marker.header.frame_id = frame_id_;
+        marker.header.stamp = ros::Time::now();
+        marker.ns = TYPE_FACET.name_space;
+        marker.id = marker_id_ptr_;
+        marker.type = TYPE_FACET.marker_type;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = style.x;
+        marker.scale.y = style.y;
+        marker.scale.z = style.z;
+        marker.color.r = style.r;
+        marker.color.g = style.g;
+        marker.color.b = style.b;
+        marker.color.a = style.a;
+
+        // Populate marker points
+        for (const auto &point : facet)
+        {
+            geometry_msgs::Point p;
+            p.x = point.x();
+            p.y = point.y();
+            p.z = point.z();
+            marker.points.push_back(p);
+        }
+
+        marker_array_.markers.push_back(marker);
+        marker_pub_.publish(marker_array_);
+
+        marker_id_ptr_++;
+    }
+
+    void ROSVisualizer::visFacet(const Eigen::MatrixX3d &facet, const VisStyle &style)
+    {
+        visualization_msgs::Marker marker;
+        // Populate marker fields
+        marker.header.frame_id = frame_id_;
+        marker.header.stamp = ros::Time::now();
+        marker.ns = TYPE_FACET.name_space;
+        marker.id = marker_id_ptr_;
+        marker.type = TYPE_FACET.marker_type;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = style.x;
+        marker.scale.y = style.y;
+        marker.scale.z = style.z;
+        marker.color.r = style.r;
+        marker.color.g = style.g;
+        marker.color.b = style.b;
+        marker.color.a = style.a;
+
+        // Populate marker points
+        for (int i = 0; i < facet.rows(); i++)
+        {
+            geometry_msgs::Point p;
+            p.x = facet(i, 0);
+            p.y = facet(i, 1);
+            p.z = facet(i, 2);
+            marker.points.push_back(p);
+        }
+
+        marker_array_.markers.push_back(marker);
+        marker_pub_.publish(marker_array_);
+
+        marker_id_ptr_++;
+    }
+
+    void ROSVisualizer::delFacet()
+    {
+        delType(TYPE_FACET);
+    }
+
+    void ROSVisualizer::visMesh(const std::vector<Eigen::Vector3d> &mesh, const VisStyle &style)
+    {
+        visualization_msgs::Marker marker;
+        // Populate marker fields
+        marker.header.frame_id = frame_id_;
+        marker.header.stamp = ros::Time::now();
+        marker.ns = TYPE_MESH.name_space;
+        marker.id = marker_id_ptr_;
+        marker.type = TYPE_MESH.marker_type;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = style.x;
+        marker.color.r = style.r;
+        marker.color.g = style.g;
+        marker.color.b = style.b;
+        marker.color.a = style.a;
+
+        // Populate marker points
+        for (const auto &point : mesh)
+        {
+            geometry_msgs::Point p;
+            p.x = point.x();
+            p.y = point.y();
+            p.z = point.z();
+            marker.points.push_back(p);
+        }
+
+        marker_array_.markers.push_back(marker);
+        marker_pub_.publish(marker_array_);
+
+        marker_id_ptr_++;
+    }
+
+    void ROSVisualizer::visMesh(const Eigen::MatrixX3d &mesh, const VisStyle &style)
+    {
+        visualization_msgs::Marker marker;
+        // Populate marker fields
+        marker.header.frame_id = frame_id_;
+        marker.header.stamp = ros::Time::now();
+        marker.ns = TYPE_MESH.name_space;
+        marker.id = marker_id_ptr_;
+        marker.type = TYPE_MESH.marker_type;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = style.x;
+        marker.color.r = style.r;
+        marker.color.g = style.g;
+        marker.color.b = style.b;
+        marker.color.a = style.a;
+
+        // Populate marker points
+        for (int i = 0; i < mesh.rows(); i++)
+        {
+            geometry_msgs::Point p;
+            p.x = mesh(i, 0);
+            p.y = mesh(i, 1);
+            p.z = mesh(i, 2);
+            marker.points.push_back(p);
+        }
+
+        marker_array_.markers.push_back(marker);
+        marker_pub_.publish(marker_array_);
+
+        marker_id_ptr_++;
+    }
+
+    void ROSVisualizer::delMesh()
+    {
+        delType(TYPE_MESH);
     }
 
 } // namespace ros_visualizer

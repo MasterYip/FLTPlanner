@@ -25,12 +25,35 @@ int main(int argc, char **argv)
     sphere.emplace_back(Eigen::Vector3d(0.0, 0.0, 0.0));
     sphere.emplace_back(Eigen::Vector3d(1.0, 1.0, 1.0));
     sphere.emplace_back(Eigen::Vector3d(2.0, 2.0, 2.0));
+    Eigen::MatrixX3d facet;
+    facet.resize(6, 3);
+    facet << 1.0, 0.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 1.0,
+        5.0, 0.0, 0.0,
+        0.0, 5.0, 0.0,
+        0.0, 0.0, 5.0;
+    Eigen::MatrixX3d mesh;
+    mesh.resize(6, 3);
+    mesh << 1.0, 0.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 1.0, 0.0,
+        0.0, 0.0, 1.0,
+        0.0, 0.0, 1.0,
+        1.0, 0.0, 0.0;
     while (ros::ok())
     {
-        rv.visCurve(curve, ros_visualizer::VisStyle(1.0, 0.0, 0.0, 1.0, 0.05));
-        rv.visSphere(sphere, ros_visualizer::VisStyle(0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0));
-        ros::spinOnce();
+        // rv.visCurve(curve, ros_visualizer::VisStyle(1.0, 0.0, 0.0, 1.0, 0.05));
+        // rv.visSphere(sphere, ros_visualizer::VisStyle(0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0));
+        rv.visCurve(curve);
+        rv.visSphere(sphere);
+        rv.visFacet(facet);
+        rv.visMesh(mesh);
         rate.sleep();
+        // rv.delCurve();
+        // rate.sleep();
+        rv.delAll();
+        ros::spinOnce();
     }
     return 0;
 }
