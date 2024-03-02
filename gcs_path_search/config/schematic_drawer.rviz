@@ -24,7 +24,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: SDF
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -172,7 +172,7 @@ Visualization Manager:
       Marker Topic: /visualizer/mesh
       Name: HullMesh
       Namespaces:
-        mesh: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -180,7 +180,7 @@ Visualization Manager:
       Marker Topic: /visualizer/edge
       Name: HullEdge
       Namespaces:
-        edge: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -201,10 +201,11 @@ Visualization Manager:
       Value: false
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /visualizer/markers
+      Marker Topic: /visualizer_markers
       Name: MarkerArray
       Namespaces:
-        {}
+        facet: true
+        mesh: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -235,7 +236,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.6732665300369263
+      Distance: 3.30273175239563
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -243,17 +244,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.037207990884780884
-        Y: -0.12981869280338287
-        Z: 0.24946503341197968
+        X: 0.19305749237537384
+        Y: -0.5200207233428955
+        Z: 0.3409647047519684
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.28099343180656433
+      Pitch: 0.1659933179616928
       Target Frame: <Fixed Frame>
-      Yaw: 0.5442555546760559
+      Yaw: 4.127441883087158
     Saved: ~
 Window Geometry:
   Displays:

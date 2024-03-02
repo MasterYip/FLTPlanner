@@ -102,9 +102,12 @@ namespace ros_visualizer
 
         void visCurve(const std::vector<Eigen::Vector3d> &curve, const VisStyle &style = TYPE_CURVE.style);
         void delCurve(void);
+        void visSphere(const Eigen::Vector3d &sphere, double radius=TYPE_SPHERE.style.x, const VisStyle &style = TYPE_SPHERE.style);
         void visSphere(const std::vector<Eigen::Vector3d> &shperes, const VisStyle &style = TYPE_SPHERE.style);
         void visSphere(const std::vector<Eigen::Vector3d> &shperes, double radius, const VisStyle &style = TYPE_SPHERE.style);
         void delSphere(void);
+        void visCube(const std::vector<Eigen::Vector3d> &cubes, const VisStyle &style = TYPE_CUBE.style);
+        void delCube(void);
         /**
          * @brief Visualize facets
          *

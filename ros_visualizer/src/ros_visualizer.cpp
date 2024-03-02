@@ -100,6 +100,13 @@ namespace ros_visualizer
         delType(TYPE_CURVE);
     }
 
+    void ROSVisualizer::visSphere(const Eigen::Vector3d &sphere, double radius, const VisStyle &style)
+    {
+        std::vector<Eigen::Vector3d> spheres;
+        spheres.push_back(sphere);
+        visSphere(spheres, radius, style);
+    }
+
     void ROSVisualizer::visSphere(const std::vector<Eigen::Vector3d> &spheres, const VisStyle &style)
     {
         visSphere(spheres, style.x, style);
@@ -143,6 +150,46 @@ namespace ros_visualizer
     void ROSVisualizer::delSphere()
     {
         delType(TYPE_SPHERE);
+    }
+
+    void ROSVisualizer::visCube(const std::vector<Eigen::Vector3d> &cubes, const VisStyle &style)
+    {
+        visualization_msgs::Marker marker;
+        // Populate marker fields
+        marker.header.frame_id = frame_id_;
+        marker.header.stamp = ros::Time::now();
+        marker.ns = TYPE_CUBE.name_space;
+        marker.id = marker_id_ptr_;
+        marker.type = TYPE_CUBE.marker_type;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = style.x;
+        marker.scale.y = style.y;
+        marker.scale.z = style.z;
+        marker.color.r = style.r;
+        marker.color.g = style.g;
+        marker.color.b = style.b;
+        marker.color.a = style.a;
+
+        // Populate marker points
+        for (const auto &cube : cubes)
+        {
+            geometry_msgs::Point p;
+            p.x = cube.x();
+            p.y = cube.y();
+            p.z = cube.z();
+            marker.points.push_back(p);
+        }
+
+        marker_array_.markers.push_back(marker);
+        marker_pub_.publish(marker_array_);
+
+        marker_id_ptr_++;
+    }
+
+    void ROSVisualizer::delCube()
+    {
+        delType(TYPE_CUBE);
     }
 
     void ROSVisualizer::visFacet(const std::vector<Eigen::Vector3d> &facet, const VisStyle &style)

@@ -20,7 +20,7 @@ using namespace geo_utils_2d;
 
 
 CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf,
-                         ros::NodeHandle &nh_) : nh_(nh_), visualizer_(nh_), gcs_visualizer_(nh_), conf_(conf)
+                         ros::NodeHandle &nh_) : nh_(nh_), gcs_visualizer_(nh_), conf_(conf)
 {
     ROS_INFO("CVX_TrajOpt::CVX_TrajOpt()");
     map_sub_ = nh_.subscribe(conf_.mapTopic, 1, &CVX_TrajOpt::map_callback, this);
@@ -75,39 +75,12 @@ void CVX_TrajOpt::map_callback(const grid_map_msgs::GridMap::ConstPtr &msg)
     return;
 }
 
-void CVX_TrajOpt::drawSphereIdx(const GridPt &idx, const double radius = 0.01)
+Eigen::Vector2d CVX_TrajOpt::getPos(const GridPt &idx)
 {
-    Eigen::Vector3d pos;
     Eigen::Vector2d posxy;
-    pos[2] = map_.at("elevation", idx);
     map_.getPosition(idx, posxy);
-    pos[0] = posxy.x();
-    pos[1] = posxy.y();
-    gcs_visualizer_.visSphere({pos}, radius);
-    return;
+    return posxy;
 }
-
-void CVX_TrajOpt::drawSegmentIdx(const GridPt &idx1, const GridPt &idx2)
-{
-    Eigen::Vector3d pos1, pos2;
-    Eigen::Vector2d posxy1, posxy2;
-    pos1[2] = map_.at("elevation", idx1);
-    map_.getPosition(idx1, posxy1);
-    pos1[0] = posxy1.x();
-    pos1[1] = posxy1.y();
-    pos2[2] = map_.at("elevation", idx2);
-    map_.getPosition(idx2, posxy2);
-    pos2[0] = posxy2.x();
-    pos2[1] = posxy2.y();
-    std::vector<Eigen::Vector3d> pts;
-    pts.push_back(pos1);
-    pts.push_back(pos2);
-    gcs_visualizer_.visCurve(pts, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
-    return;
-}
-
-////////////////////
-// Corridor Intersect Border
 
 
 ////////////////////
@@ -205,6 +178,7 @@ void CVX_TrajOpt::segmentIntersectTest()
  */
 void CVX_TrajOpt::schematic_drawer()
 {
+    gcs_visualizer_.delAll();
     std::vector<Eigen::Matrix3Xd> RegionBuf;
     std::vector<Eigen::Matrix3Xd> CorridorBuf;
 
@@ -266,11 +240,21 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     GridPt start_idx, goal_idx;
     map_.getIndex(start, start_idx);
     map_.getIndex(goal, goal_idx);
-    drawSphereIdx(start_idx, 0.02);
-    drawSphereIdx(goal_idx, 0.02);
+    // Start
+    Point3D pos;
+    pos.head(2) = getPos(start_idx);
+    pos[2] = map_.at("elevation", start_idx);
+    gcs_visualizer_.visSphere(pos, 0.02);
+    // Goal
+    pos.head(2) = getPos(goal_idx);
+    pos[2] = map_.at("elevation", goal_idx);
+    gcs_visualizer_.visSphere(pos, 0.02);
+
     Eigen::Vector3d start3d, goal3d;
     start3d << start[0], start[1], map_.at("elevation", start_idx);
     goal3d << goal[0], goal[1], map_.at("elevation", goal_idx);
+    gcs_visualizer_.visSphere(start3d, 0.01);
+    gcs_visualizer_.visSphere(goal3d, 0.01);
 
     std::vector<Polyhedra> polys;
     for (int i = 0; i < waypoints.rows(); i++)
@@ -296,7 +280,6 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     std::vector<Eigen::Vector3d> border_pos;
     for (uint i = 0; i < Border.size(); i++)
     {
-        // drawSphereIdx(path.at(i));
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy;
         pos[2] = border_check.queryHeight(Border.at(i));
@@ -312,7 +295,10 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     findConcavePoint(Border, concave_pts);
     for (uint i = 0; i < concave_pts.size(); i++)
     {
-        drawSphereIdx(concave_pts.at(i), 0.02);
+        Eigen::Vector3d pos;
+        pos.head(2) = getPos(concave_pts.at(i));
+        pos[2] = border_check.queryHeight(concave_pts.at(i));
+        gcs_visualizer_.visSphere(pos, 0.02);
     }
 
     // Visiblity Graph
@@ -327,7 +313,15 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         {
             if (vis_graph.isVisibile(i, j))
             {
-                drawSegmentIdx(vis_graph.getPt(i), vis_graph.getPt(j));
+                Point3D pos1, pos2;
+                pos1.head(2) = getPos(vis_graph.getPt(i));
+                pos2.head(2) = getPos(vis_graph.getPt(j));
+                pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
+                pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
+                std::vector<Point3D> line;
+                line.push_back(pos1);
+                line.push_back(pos2);
+                gcs_visualizer_.visMesh(line, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
             }
         }
     }
@@ -342,7 +336,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         // printf("path.at(%d): (%d %d)\n", i, path.at(i)[0], path.at(i)[1]);
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy;
-        pos[2] = map_.at("elevation", path.at(i));
+        pos[2] = border_check.queryHeight(path.at(i));
         map_.getPosition(path.at(i), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();

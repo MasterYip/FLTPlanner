@@ -84,8 +84,7 @@ public:
                        std::vector<GridPt> &path);
 
     // Vis
-    void drawSphereIdx(const GridPt &idx, const double radius);
-    void drawSegmentIdx(const GridPt &idx1, const GridPt &idx2);
+    Eigen::Vector2d getPos(const GridPt &idx);
 
     // Test
     void test_map();

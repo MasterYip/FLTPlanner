@@ -3,7 +3,7 @@
     <!-- Settings -->
     <arg name="with_robot" value="false" />
     <arg name="with_ceiling" value="true" />
-    <arg name="max_height" value="1.5" />
+    <arg name="max_height" value="1.0" />
     <!-- Ground & Ceiling (must be of the same size) -->
     <arg name="grid_map_file" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" />
     <arg name="grid_map_file_ceiling" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ceiling.png" />
