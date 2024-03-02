@@ -20,6 +20,11 @@
 
 #define FRAME_ID "odom"
 
+// Marker NameSpace for markder type management
+
+#define CURVE "curve"
+#define SPHERE "sphere"
+
 struct MarkerStyle
 {
     double r, g, b, a;
@@ -31,6 +36,8 @@ struct MarkerStyle
     MarkerStyle(double r_, double g_, double b_, double a_, double x_, double y_, double z_)
         : r(r_), g(g_), b(b_), a(a_), x(x_), y(y_), z(z_){};
 };
+
+
 
 // Visualizer for the planner
 class Visualizer
@@ -318,7 +325,7 @@ public:
         sphereMarkers.header.frame_id = FRAME_ID;
         sphereMarkers.pose.orientation.w = 1.00;
         sphereMarkers.action = visualization_msgs::Marker::ADD;
-        sphereMarkers.ns = "spheres";
+        sphereMarkers.ns = SPHERE;
         sphereMarkers.color.r = 0.00;
         sphereMarkers.color.g = 1.00;
         sphereMarkers.color.b = 0.00;
@@ -344,7 +351,7 @@ public:
         sphereMarkers.header.frame_id = FRAME_ID;
         sphereMarkers.pose.orientation.w = 1.00;
         sphereMarkers.action = visualization_msgs::Marker::DELETE;
-        sphereMarkers.ns = "spheres";
+        sphereMarkers.ns = SPHERE;
         sphereMarkers.color.r = 0.00;
         sphereMarkers.color.g = 1.00;
         sphereMarkers.color.b = 0.00;
@@ -357,7 +364,6 @@ public:
         sphereMarkers.points.clear();
     }
 
-    // FIXME: Cant visualize multiple curves (all curves will be connected)
     inline void visualizeCurve(const std::vector<Eigen::Vector3d> &curve, const MarkerStyle style = MarkerStyle())
     {
         visualization_msgs::Marker curveMarker;
