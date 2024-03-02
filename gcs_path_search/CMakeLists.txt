@@ -19,7 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
   grid_map_ros
   grid_map_msgs
   dynamic_reconfigure
-  )
+  ros_visualizer
+)
 
 
 include_directories(
@@ -50,8 +51,18 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
+# Visualizer
+add_library(gcs_visualizer
+  src/gcs_visualizer.cpp
+)
+target_link_libraries(gcs_visualizer
+  ${catkin_LIBRARIES}
+  gcs_traj_opt
+)
+
 # Executables
 
+# Polyve node
 add_executable(polyve_node 
   src/polyve_node.cpp
   src/polyve.cpp)
@@ -59,7 +70,7 @@ target_link_libraries(polyve_node
   ${catkin_LIBRARIES}
   gcs_traj_opt)
 
-
+# Trajectory optimizer
 add_executable(cvx_trajopt_node
   src/cvx_trajopt_node.cpp
   src/cvx_trajopt.cpp)
@@ -67,9 +78,10 @@ add_executable(cvx_trajopt_node
 add_dependencies(cvx_trajopt_node ${PROJECT_NAME}_gencfg)
 target_link_libraries(cvx_trajopt_node
   ${catkin_LIBRARIES} 
-  gcs_traj_opt) 
+  gcs_traj_opt
+  gcs_visualizer)
 
-
+# Schematic drawer
 add_executable(schematic_drawer
 src/schematic_drawer.cpp
 src/cvx_trajopt.cpp)
@@ -77,6 +89,18 @@ src/cvx_trajopt.cpp)
 add_dependencies(schematic_drawer ${PROJECT_NAME}_gencfg)
 target_link_libraries(schematic_drawer
   ${catkin_LIBRARIES} 
-  gcs_traj_opt) 
+  gcs_traj_opt
+  gcs_visualizer) 
+
+
+# Test gcs_visualizer
+add_executable(test_gcs_visualizer
+  src/test_gcs_visualizer.cpp
+)
+target_link_libraries(test_gcs_visualizer
+  ${catkin_LIBRARIES}
+  
+  gcs_visualizer
+)
 
 

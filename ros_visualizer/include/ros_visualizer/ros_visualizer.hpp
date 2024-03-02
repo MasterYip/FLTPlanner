@@ -74,7 +74,7 @@ namespace ros_visualizer
     {
     private:
         std::string frame_id_ = "odom";
-        std::string topic_name_ = "~visualizer_markers";
+        std::string topic_name_ = "visualizer_markers";
 
         ros::NodeHandle nh_;
         ros::Publisher marker_pub_;

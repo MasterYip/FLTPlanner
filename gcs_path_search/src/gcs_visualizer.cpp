@@ -11,6 +11,14 @@
 
 #include "misc/gcs_visualizer.hpp"
 
+// GCSVisualizer::GCSVisualizer(ros::NodeHandle &nh) : ros_visualizer::ROSVisualizer(nh)
+// {
+// }
+
+GCSVisualizer::GCSVisualizer(ros::NodeHandle &nh, std::string frame_id, std::string topic_name) : ros_visualizer::ROSVisualizer(nh, frame_id, topic_name)
+{
+}
+
 void GCSVisualizer::visPolytope(const Eigen::Matrix3Xd &vPoly)
 {
     std::vector<Eigen::Matrix3Xd> vPolys;
@@ -49,8 +57,8 @@ void GCSVisualizer::visPolytope(const std::vector<Eigen::Matrix3Xd> &vPolys)
             mesh.col(6 * i + 3 + j) = facets.col(3 * i + (j + 1) % 3);
         }
     }
-    visFacet(facets);
-    visMesh(mesh);
+    visFacet(facets.transpose());
+    visMesh(mesh.transpose());
     return;
 }
 

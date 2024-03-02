@@ -107,9 +107,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES ros_visualizer
-#  CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs visualization_msgs
+ INCLUDE_DIRS include
+ LIBRARIES ros_visualizer
+ CATKIN_DEPENDS geometry_msgs roscpp rospy std_msgs visualization_msgs
 #  DEPENDS system_lib
 )
 

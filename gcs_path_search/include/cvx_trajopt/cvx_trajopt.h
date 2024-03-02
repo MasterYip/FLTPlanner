@@ -23,6 +23,7 @@
 
 #include "gcs_traj_opt/geo_utils/quickhull.hpp"
 #include "misc/visualizer.hpp"
+#include "misc/gcs_visualizer.hpp"
 // TODO: Change project name
 #include <gcs_path_search/CvxTrajOptConfig.h>
 
@@ -107,6 +108,7 @@ private:
     Timer timer_;
 
     Visualizer visualizer_;
+    GCSVisualizer gcs_visualizer_;
     CVX_TrajOpt_Config conf_;
     grid_map::GridMap map_;
     bool map_received_ = false;

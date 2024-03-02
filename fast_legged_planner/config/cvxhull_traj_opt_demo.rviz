@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /Image2Gridmap_ground1
-        - /MarkerArray1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -215,7 +214,7 @@ Visualization Manager:
       Marker Topic: /visualizer/mesh
       Name: HullMesh
       Namespaces:
-        mesh: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -223,7 +222,7 @@ Visualization Manager:
       Marker Topic: /visualizer/edge
       Name: HullEdge
       Namespaces:
-        edge: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -231,7 +230,7 @@ Visualization Manager:
       Marker Topic: /visualizer/spheres
       Name: Spheres
       Namespaces:
-        spheres: true
+        sphere: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -244,10 +243,12 @@ Visualization Manager:
       Value: false
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /visualizer/markers
+      Marker Topic: /visualizer_markers
       Name: MarkerArray
       Namespaces:
         curve: true
+        facet: true
+        mesh: true
       Queue Size: 100
       Value: true
   Enabled: true

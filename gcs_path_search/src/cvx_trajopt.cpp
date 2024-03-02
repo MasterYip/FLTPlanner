@@ -8,7 +8,9 @@
 /* external project header files */
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_ros/GridMapRosConverter.hpp>
+
 /* internal project header files */
+
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
 #include "gcs_traj_opt/poly_traj/intersect_border.hpp"
 #include "gcs_traj_opt/geo_utils/guide_surf.hpp"
@@ -100,7 +102,8 @@ bool GCS_AStarSearch(VisibilityGraph &vis_graph, std::vector<GridPt> &path)
     return false;
 }
 
-CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf, ros::NodeHandle &nh_) : nh_(nh_), visualizer_(nh_), conf_(conf)
+CVX_TrajOpt::CVX_TrajOpt(CVX_TrajOpt_Config &conf,
+                         ros::NodeHandle &nh_) : nh_(nh_), visualizer_(nh_), gcs_visualizer_(nh_), conf_(conf)
 {
     ROS_INFO("CVX_TrajOpt::CVX_TrajOpt()");
     map_sub_ = nh_.subscribe(conf_.mapTopic, 1, &CVX_TrajOpt::map_callback, this);
@@ -451,7 +454,7 @@ void CVX_TrajOpt::schematic_drawer()
         Polyhedra poly(region);
         key_points.push_back(poly.getInterior());
     }
-    
+
     visualizer_.visualizePolytope(CorridorBuf);
     HarmonicGuideSurf guide_surf(key_points, 1);
     map_.add("guide_surf");
@@ -621,6 +624,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
     // clean
     visualizer_.deleteCurve();
     visualizer_.deleteSphere();
+    gcs_visualizer_.delAll();
 
     Eigen::MatrixX3d waypoints(3, 3);
     waypoints << -0.5, 0.0, 0.2,
@@ -647,7 +651,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
 
     PolyCorridor poly_corridor(polys, start3d, goal3d);
     std::vector<Polyhedra> tmp_corridor = poly_corridor.getCorridor();
-    visualizer_.visualizePolytope(tmp_corridor);
+    gcs_visualizer_.visPolytope(tmp_corridor);
     BorderCheck border_check(poly_corridor, map_, "elevation");
     IntersectBorder intersect_border(poly_corridor, border_check);
     GridPolyLine Border = intersect_border.getIntersectBorder(start_idx, goal_idx);
@@ -671,7 +675,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
         pos[1] = posxy.y();
         border_pos.push_back(pos);
     }
-    visualizer_.visualizeCurve(border_pos, MarkerStyle(1, 0, 0, 1, 0.01));
+    gcs_visualizer_.visCurve(border_pos);
 
     // Concave Points
     GridPoints concave_pts;
@@ -714,7 +718,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
         pos[1] = posxy.y();
         path_pos.push_back(pos);
     }
-    visualizer_.visualizeCurve(path_pos, MarkerStyle(0, 1, 0, 1, 0.01));
+    gcs_visualizer_.visCurve(path_pos);
 }
 
 void CVX_TrajOpt::segmentIntersectTest()

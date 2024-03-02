@@ -28,13 +28,13 @@
 class GCSVisualizer : public ros_visualizer::ROSVisualizer
 {
 public:
-    GCSVisualizer(ros::NodeHandle &nh) : ROSVisualizer(nh) {};
-    GCSVisualizer(ros::NodeHandle &nh, std::string frame_id, std::string topic_name) : ROSVisualizer(nh, frame_id, topic_name) {};
-    ~GCSVisualizer() {};
+    // GCSVisualizer(ros::NodeHandle &nh);
+    GCSVisualizer(ros::NodeHandle &nh, std::string frame_id="odom", std::string topic_name="visualizer_markers");
+    ~GCSVisualizer() = default;
 
     void visPolytope(const Eigen::Matrix3Xd &vPoly);
     void visPolytope(const std::vector<Eigen::Matrix3Xd> &vPolys);
     void visPolytope(const Eigen::MatrixX4d &hPoly);
     void visPolytope(const std::vector<Eigen::MatrixX4d> &hPolys);
     void visPolytope(std::vector<Polyhedra> &polys);
-}
+};
