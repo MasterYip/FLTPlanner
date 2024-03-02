@@ -665,7 +665,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest2()
         // drawSphereIdx(path.at(i));
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy;
-        pos[2] = map_.at("elevation", Border.at(i));
+        pos[2] = border_check.queryHeight(Border.at(i));
         map_.getPosition(Border.at(i), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();
