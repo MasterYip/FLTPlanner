@@ -20,7 +20,6 @@
 #include "gcs_traj_opt/geo_utils/geo_utils.hpp"
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
 
-
 #include "gcs_traj_opt/geo_utils/quickhull.hpp"
 #include "misc/visualizer.hpp"
 #include "misc/gcs_visualizer.hpp"
@@ -93,6 +92,11 @@ public:
     void segmentIntersectTest();
     void drawCorriderIntersectBorderTest();
 
+    // Benchmark
+    void benchmarkInit();
+    void benchmarkCheck(std::string prefix = "Elapsed", bool algo = false);
+    void benchmarkEnd();
+
 private:
     ros::NodeHandle nh_;
     ros::Subscriber map_sub_;
@@ -112,4 +116,9 @@ private:
 
     Eigen::Vector2d start = {-0.4, -0.3};
     Eigen::MatrixX3d pos_shift = {1, 3};
+
+    // Benchmark
+    double tot_time = 0;
+    double algo_time = 0;
+    double period_time = 0;
 };
