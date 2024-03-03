@@ -83,7 +83,59 @@ Eigen::Vector2d CVX_TrajOpt::getPos(const GridPt &idx)
 ////////////////////
 // GCS Path Search
 
-void CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d)
+Eigen::Matrix3Xd randomPoly(int samples = 20, double scale = 1.0)
+{
+    Eigen::Matrix3Xd mesh;
+    Eigen::Matrix<double, 3, -1, Eigen::ColMajor> vertices;
+    Eigen::Vector3d inner;
+
+    // Randomly generate a set of points
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(-0.5, 0.5);
+    vertices.resize(3, samples);
+    for (int i = 0; i < samples; i++)
+    {
+        vertices.col(i) << dis(gen), dis(gen), dis(gen);
+    }
+    vertices.array() *= scale;
+    vertices.row(0).array() += dis(gen) * 2.0 * scale;
+    vertices.row(1).array() += dis(gen) * 2.0 * scale;
+    vertices.row(2).array() += dis(gen) * 2.0 * scale;
+
+    // Get the convex hull(that includes the points) in mesh
+    quickhull::QuickHull<double> qh;
+    const auto cvxHull = qh.getConvexHull(vertices.data(),
+                                          vertices.cols(),
+                                          false, false);
+    const auto &idBuffer = cvxHull.getIndexBuffer(); // A buffer storing order of indices for triangle vertices revisiting
+    const auto &vtBuffer = cvxHull.getVertexBuffer();
+    int ids = idBuffer.size();
+    // The mesh is represented by triangles(3 vertices) in right hand rule USING idBuffer
+    mesh.resize(3, ids);
+    quickhull::Vector3<double> v;
+    for (int i = 0; i < ids; i++)
+    {
+        v = vtBuffer[idBuffer[i]];
+        mesh(0, i) = v.x;
+        mesh(1, i) = v.y;
+        mesh(2, i) = v.z;
+    }
+
+    return mesh;
+}
+
+Point3D randomPoint(double scale = 1.0)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(-0.5, 0.5);
+    Point3D pt;
+    pt << dis(gen) * scale, dis(gen) * scale, dis(gen) * scale;
+    return pt;
+}
+
+bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d)
 {
     // Path Search
     PolyCorridor poly_corridor(polys, start3d, goal3d);
@@ -91,8 +143,10 @@ void CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     IntersectBorder intersect_border(poly_corridor, border_check);
     PolyTrajSearch poly_traj_search(intersect_border);
     std::vector<Point3D> path;
-    poly_traj_search.search(start3d, goal3d, path);
+    bool ret = poly_traj_search.search(start3d, goal3d, path);
 
+    if (!ret)
+        return false;
     // Draw Result
     // Start & Goal
     Point start = start3d.head(2);
@@ -175,7 +229,8 @@ void CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
         pos[1] = posxy.y();
         path_pos.push_back(pos);
     }
-    gcs_visualizer_.visCurve(path_pos);
+    gcs_visualizer_.visCurve(path_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.04));
+    return true;
 }
 
 ////////////////////
@@ -349,4 +404,41 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     }
 
     gcs_path_search(polys, start3d, goal3d);
+}
+
+void CVX_TrajOpt::testGCSPathSearch()
+{
+    // Settings
+    int poly_num = 3;
+    int samples = 20;
+    double poly_scale = 0.4;
+    double poly_pos_scale = 1.5;
+
+    // Wait for the user to press a key
+    std::cout << "Press any key to continue..." << std::endl;
+    getchar();
+
+    gcs_visualizer_.delAll();
+    std::vector<Polyhedra> polys;
+    for (int i = 0; i < poly_num; i++)
+    {
+        Eigen::Matrix3Xd tmp1 = randomPoly(samples, poly_scale);
+        Eigen::Matrix3Xd tmp2 = (tmp1.array().colwise() + (randomPoint(poly_pos_scale).array() + pos_shift.transpose().col(0).array())).eval();
+        polys.emplace_back(Polyhedra(tmp2));
+    }
+    Point3D start = polys.at(0).getInterior();
+    Point3D goal = polys.at(poly_num - 1).getInterior();
+
+    while (!gcs_path_search(polys, start, goal))
+    {
+        polys.clear();
+        for (int i = 0; i < poly_num; i++)
+        {
+            Eigen::Matrix3Xd tmp1 = randomPoly(samples, poly_scale);
+            Eigen::Matrix3Xd tmp2 = (tmp1.array().colwise() + (randomPoint(poly_pos_scale).array() + pos_shift.transpose().col(0).array())).eval();
+            polys.emplace_back(Polyhedra(tmp2));
+        }
+        start = polys.at(0).getInterior();
+        goal = polys.at(poly_num - 1).getInterior();
+    }
 }

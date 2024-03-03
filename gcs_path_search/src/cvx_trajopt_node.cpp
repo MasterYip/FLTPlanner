@@ -19,7 +19,8 @@ int main(int argc, char **argv)
         ros::Rate lr(config.testRate);
         while (ros::ok())
         {
-            trajopt.drawCorriderIntersectBorderTest();
+            // trajopt.drawCorriderIntersectBorderTest();
+            trajopt.testGCSPathSearch();
             ros::spinOnce();
             lr.sleep();
         }

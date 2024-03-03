@@ -43,14 +43,14 @@ public:
                        std::vector<GridPt> &path);
 
     Eigen::Vector2d getPos(const GridPt &idx);
-
-    void gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d);
+    bool gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d);
 
     // Test
     void test_map();
     void schematic_drawer();
     void segmentIntersectTest();
     void drawCorriderIntersectBorderTest();
+    void testGCSPathSearch();
 
 private:
     ros::NodeHandle nh_;

@@ -60,6 +60,7 @@ GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const Grid
     resetPtr();
     if (border_check_.inPoly(idx) != 0)
     {
+        // TODO: use bool return type
         std::cerr << "Start point not in poly 0! find in poly " << border_check_.inPoly(idx) << std::endl;
         return path;
     }

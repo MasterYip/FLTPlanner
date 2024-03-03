@@ -30,7 +30,7 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     border_ = intersect_border_.getIntersectBorder(start_2d, goal_2d);
     if (border_.size() < 3)
     {
-        printf("Warning: border_.size() < 3");
+        std::cout << "Warning: border_.size() < 3" << std::endl;
         return false;
     }
     benchmark_.record("Intersect Border", RecordType::CRITICAL);
