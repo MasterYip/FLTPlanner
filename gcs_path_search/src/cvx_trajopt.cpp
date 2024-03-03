@@ -139,6 +139,7 @@ bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
 {
     // Path Search
     PolyCorridor poly_corridor(polys, start3d, goal3d);
+    // TODO: add enable ceiling
     BorderCheck border_check(poly_corridor, map_, "elevation");
     IntersectBorder intersect_border(poly_corridor, border_check);
     PolyTrajSearch poly_traj_search(intersect_border);
