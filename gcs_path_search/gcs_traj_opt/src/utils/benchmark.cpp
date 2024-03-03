@@ -34,8 +34,6 @@ void Benchmark::record(std::string name, uint type)
 
 void Benchmark::end()
 {
-    records_.emplace_back(Record((double)timer_.timerCheck() / 1e6, "end", RecordType::CRITICAL));
-    timer_.timerReset();
     for (auto &record : records_)
     {
         record.print();

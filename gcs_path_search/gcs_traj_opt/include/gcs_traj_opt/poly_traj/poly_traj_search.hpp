@@ -34,6 +34,7 @@ private:
     PolyCorridor &poly_corridor_;
     BorderCheck &border_check_;
     const grid_map::GridMap &map_;
+    VisibilityGraph vis_graph_;
 
     Benchmark benchmark_;
     // output data
@@ -50,4 +51,5 @@ public:
     GridPolyLine getBorder() const { return border_; }
     GridPoints getConcavePts() const { return concave_pts_; }
     GridPolyLine getGridTraj() const { return grid_traj_; }
+    VisibilityGraph getVisGraph() const { return vis_graph_; }
 };

@@ -25,7 +25,6 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     std::vector<Point3D> init_path;
 
     // Intersect Border
-    // FIXME: this takes a long time ~8ms
     Point start_2d = start.head(2);
     Point goal_2d = goal.head(2);
     border_ = intersect_border_.getIntersectBorder(start_2d, goal_2d);
@@ -45,11 +44,11 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     map_.getIndex(start.head(2), start_grid);
     map_.getIndex(goal.head(2), goal_grid);
     // FIXME: needs to improve the performance
-    VisibilityGraph vis_graph(border_, concave_pts_, start_grid, goal_grid);
+    vis_graph_ = VisibilityGraph(border_, concave_pts_, start_grid, goal_grid);
     benchmark_.record("Visibility Graph Init", RecordType::CRITICAL);
 
     // A* Search
-    bool ret = GCS_AStarSearch(vis_graph, grid_traj_);
+    bool ret = GCS_AStarSearch(vis_graph_, grid_traj_);
     benchmark_.record("A* Search", RecordType::CRITICAL);
     benchmark_.end();
     // TODO: path init

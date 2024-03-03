@@ -328,6 +328,8 @@ namespace geo_utils_2d
         uint size_;
 
     public:
+        VisibilityGraph(void) = default;
+
         VisibilityGraph(const GridPolyLine &Border, const GridPoints &concavePts, const GridPt &start, const GridPt &goal)
             : Border_(Border), concavePts_(concavePts), start_(start), goal_(goal)
         {
