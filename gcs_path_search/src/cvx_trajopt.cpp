@@ -260,7 +260,10 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
 
     Eigen::MatrixX3d waypoints(3, 3);
     waypoints << -0.5, 0.0, 0.2,
-        0.0, 0.0, 0.4,
+        0.0, 0.4, 0.4,
+        // -0.2, 0.0, 0.5,
+        // 0.2, 0.0, 0.5,
+        // 0.3, 0.0, 0.3,
         0.5, 0.0, 0.2;
     // Eigen::Vector2d start(-0.4, -0.3), goal(0.4, -0.3);
     Eigen::Vector2d goal(0.4, -0.3);
