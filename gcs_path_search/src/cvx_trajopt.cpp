@@ -229,7 +229,7 @@ bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
         pos[1] = posxy.y();
         path_pos.push_back(pos);
     }
-    gcs_visualizer_.visCurve(path_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.04));
+    gcs_visualizer_.visCurve(path_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.01));
     return true;
 }
 

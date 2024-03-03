@@ -90,7 +90,7 @@ namespace ros_visualizer
         ros::Publisher marker_pub_;
         visualization_msgs::MarkerArray marker_array_;
 
-        int marker_id_ptr_ = 0;
+        long long marker_id_ptr_ = 0;
 
     public:
         ROSVisualizer(ros::NodeHandle &nh);

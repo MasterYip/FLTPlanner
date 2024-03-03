@@ -50,16 +50,16 @@ namespace ros_visualizer
         }
     }
 
+    // FIXME: Sometimes it cant clear
     void ROSVisualizer::delAll(void)
     {
         for (auto &marker : marker_array_.markers)
         {
             marker.action = visualization_msgs::Marker::DELETE;
         }
-
         marker_pub_.publish(marker_array_);
-
         marker_array_.markers.clear();
+        marker_id_ptr_ = 0;
     }
 
     void ROSVisualizer::visCurve(const std::vector<Eigen::Vector3d> &curve, const VisStyle &style)
