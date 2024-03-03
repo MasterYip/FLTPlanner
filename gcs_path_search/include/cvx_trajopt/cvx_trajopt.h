@@ -42,8 +42,9 @@ public:
                        const Eigen::Vector2d &goal,
                        std::vector<GridPt> &path);
 
-    // Vis
     Eigen::Vector2d getPos(const GridPt &idx);
+
+    void gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d);
 
     // Test
     void test_map();
@@ -51,15 +52,9 @@ public:
     void segmentIntersectTest();
     void drawCorriderIntersectBorderTest();
 
-    // Benchmark
-    void benchmarkInit();
-    void benchmarkCheck(std::string prefix = "Elapsed", bool algo = false);
-    void benchmarkEnd();
-
 private:
     ros::NodeHandle nh_;
     ros::Subscriber map_sub_;
-    Timer timer_;
 
     GCSVisualizer gcs_visualizer_;
     CVX_TrajOpt_Config conf_;
