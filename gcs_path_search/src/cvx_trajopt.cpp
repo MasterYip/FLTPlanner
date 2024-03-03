@@ -227,6 +227,13 @@ void CVX_TrajOpt::schematic_drawer()
 
 void CVX_TrajOpt::drawCorriderIntersectBorderTest()
 {
+    // Benchmark Init
+    double tot_time = 0;
+    double algo_time = 0;
+    double period_time = 0;
+    timer_.timerReset();
+    ROS_INFO("==========Benchmark==========");
+
     // clean
     gcs_visualizer_.delAll();
 
@@ -263,6 +270,12 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         polys.emplace_back(Polyhedra(tmpvPoly));
     }
 
+    // Benchmark - Polytope Init time
+    period_time = timer_.timerCheck();
+    tot_time += period_time;
+    ROS_INFO("Polytope Init time: %f ms", period_time / 1e6);
+    timer_.timerReset();
+
     PolyCorridor poly_corridor(polys, start3d, goal3d);
     std::vector<Polyhedra> tmp_corridor = poly_corridor.getCorridor();
     gcs_visualizer_.visPolytope(tmp_corridor);
@@ -275,6 +288,13 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         ROS_ERROR("Border.size() < 3");
         return;
     }
+
+    // Benchmark - Intersect Border time
+    period_time = timer_.timerCheck();
+    tot_time += period_time;
+    algo_time += period_time;
+    ROS_INFO("Intersect Border time: %f ms", period_time / 1e6);
+    timer_.timerReset();
 
     // Draw path
     std::vector<Eigen::Vector3d> border_pos;
@@ -290,9 +310,23 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     }
     gcs_visualizer_.visCurve(border_pos);
 
+    // Benchmark - Draw Intersect Border time
+    period_time = timer_.timerCheck();
+    tot_time += period_time;
+    ROS_INFO("Draw Intersect Border time: %f ms", period_time / 1e6);
+    timer_.timerReset();
+
     // Concave Points
     GridPoints concave_pts;
     findConcavePoint(Border, concave_pts);
+
+    // Benchmark - Concave Points time
+    period_time = timer_.timerCheck();
+    tot_time += period_time;
+    algo_time += period_time;
+    ROS_INFO("Concave Points time: %f ms", period_time / 1e6);
+    timer_.timerReset();
+
     for (uint i = 0; i < concave_pts.size(); i++)
     {
         Eigen::Vector3d pos;
@@ -300,6 +334,12 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         pos[2] = border_check.queryHeight(concave_pts.at(i));
         gcs_visualizer_.visSphere(pos, 0.02);
     }
+
+    // Benchmark - Draw Concave Points time
+    period_time = timer_.timerCheck();
+    tot_time += period_time;
+    ROS_INFO("Draw Concave Points time: %f ms", period_time / 1e6);
+    timer_.timerReset();
 
     // Visiblity Graph
     GridPt start_grid, goal_grid; // FIXME: is this appropriate?
@@ -326,9 +366,24 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         }
     }
 
+    // Benchmark - Draw Visiblity Graph time
+    period_time = timer_.timerCheck();
+    tot_time += period_time;
+    ROS_INFO("Draw Visiblity Graph time: %f ms", period_time / 1e6);
+    timer_.timerReset();
+
+    // A* Search
     std::vector<GridPt> path;
     bool ret = GCS_AStarSearch(vis_graph, path);
     // minlengthPath(Border, start, goal, path);
+
+    // Benchmark - A* Search time
+    period_time = timer_.timerCheck();
+    tot_time += period_time;
+    algo_time += period_time;
+    ROS_INFO("A* Search time: %f ms", period_time / 1e6);
+    timer_.timerReset();
+
     // Draw path
     std::vector<Eigen::Vector3d> path_pos;
     for (uint i = 0; i < path.size(); i++)
@@ -343,5 +398,15 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         path_pos.push_back(pos);
     }
     gcs_visualizer_.visCurve(path_pos);
+
+    // Benchmark - Draw Path time
+    period_time = timer_.timerCheck();
+    tot_time += period_time;
+    ROS_INFO("Draw Path time: %f ms", period_time / 1e6);
+    timer_.timerReset();
+
+    // Benchmark - Total time
+    ROS_INFO("\033[1;31mTotal time: %f ms\033[0m", tot_time / 1e6);
+    ROS_INFO("\033[1;31mAlgo time: %f ms\033[0m", algo_time / 1e6);
 }
 

@@ -50,17 +50,18 @@ public:
         ts.tv_nsec = (ms % 1000) * 1000000;
         nanosleep(&ts, NULL);
     }
-    void timerStart(void)
+    void timerReset(void)
     {
         time_point_ = std::chrono::system_clock::now();
     }
 
     /**
-     * @brief Stop timer and return elapsed time in nanoseconds
+     * @brief CHeck elapsed time in nanoseconds
+     * @note Call timerStart() before calling this function (multiple times if needed)
      *
      * @return uint64_t elapsed time in nanoseconds
      */
-    uint64_t timerStop(void)
+    uint64_t timerCheck(void)
     {
         auto time_point_now = std::chrono::system_clock::now();
         auto duration =
