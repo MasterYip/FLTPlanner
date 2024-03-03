@@ -96,8 +96,10 @@ void CVX_TrajOpt::benchmarkCheck(std::string prefix, bool algo)
     if (algo)
     {
         algo_time += period_time;
+        ROS_INFO("\033[1;32m%s time:\t%f ms\033[0m", prefix.c_str(), period_time / 1e6);
     }
-    ROS_INFO("%s time:\t%f ms", prefix.c_str(), period_time / 1e6);
+    else
+        ROS_INFO("%s time:\t%f ms", prefix.c_str(), period_time / 1e6);
     timer_.timerReset();
 }
 
@@ -345,28 +347,30 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     GridPt start_grid, goal_grid; // FIXME: is this appropriate?
     map_.getIndex(start, start_grid);
     map_.getIndex(goal, goal_grid);
+    // FIXME: needs to improve the performance
     VisibilityGraph vis_graph(Border, concave_pts, start_grid, goal_grid);
-    uint size = vis_graph.size();
-    for (uint i = 0; i < size; i++)
-    {
-        for (uint j = i + 1; j < size; j++)
-        {
-            if (vis_graph.isVisibile(i, j))
-            {
-                Point3D pos1, pos2;
-                pos1.head(2) = getPos(vis_graph.getPt(i));
-                pos2.head(2) = getPos(vis_graph.getPt(j));
-                pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
-                pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
-                std::vector<Point3D> line;
-                line.push_back(pos1);
-                line.push_back(pos2);
-                gcs_visualizer_.visMesh(line, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
-            }
-        }
-    }
+    // uint size = vis_graph.size();
+    // for (uint i = 0; i < size; i++)
+    // {
+    //     for (uint j = i + 1; j < size; j++)
+    //     {
+    //         if (vis_graph.isVisibile(i, j))
+    //         {
+    //             Point3D pos1, pos2;
+    //             pos1.head(2) = getPos(vis_graph.getPt(i));
+    //             pos2.head(2) = getPos(vis_graph.getPt(j));
+    //             pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
+    //             pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
+    //             std::vector<Point3D> line;
+    //             line.push_back(pos1);
+    //             line.push_back(pos2);
+    //             gcs_visualizer_.visMesh(line, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
+    //         }
+    //     }
+    // }
 
-    benchmarkCheck("3.3 Draw Visiblity Graph");
+    // benchmarkCheck("3.3 Draw Visiblity Graph");
+    benchmarkCheck("3.3 Init Visiblity Graph");
 
     // A* Search
     std::vector<GridPt> path;
