@@ -3,7 +3,8 @@ project(gcs_traj_opt)
 
 set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
+# disable -Wclass-memaccess
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC -Wno-class-memaccess")
 
 find_package(Eigen3 REQUIRED)
 find_package(CGAL REQUIRED)

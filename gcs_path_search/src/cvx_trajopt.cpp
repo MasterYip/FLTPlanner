@@ -110,6 +110,14 @@ void CVX_TrajOpt::benchmarkEnd()
 }
 
 ////////////////////
+// GCS Path Search
+
+// void CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start, Point3D goal)
+// {
+
+// }
+
+////////////////////
 // rope straining method
 
 /**
@@ -253,8 +261,6 @@ void CVX_TrajOpt::schematic_drawer()
 
 void CVX_TrajOpt::drawCorriderIntersectBorderTest()
 {
-    benchmarkInit();
-
     // clean
     gcs_visualizer_.delAll();
 
@@ -293,65 +299,15 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
         Eigen::Matrix3Xd tmpvPoly = (vPoly.array().colwise() + (waypoints.transpose().col(i).array() + pos_shift.transpose().col(0).array())).eval();
         polys.emplace_back(Polyhedra(tmpvPoly));
     }
-
-    benchmarkCheck("1.1 Polytope Init");
+    // gcs_visualizer_.visPolytope(polys);
 
     PolyCorridor poly_corridor(polys, start3d, goal3d);
-    benchmarkCheck("2.1 PolyCorridor Init", true);
-    std::vector<Polyhedra> tmp_corridor = poly_corridor.getCorridor();
-    gcs_visualizer_.visPolytope(tmp_corridor);
-    benchmarkCheck("2.2 Draw Corridor");
     BorderCheck border_check(poly_corridor, map_, "elevation");
     IntersectBorder intersect_border(poly_corridor, border_check);
-    // FIXME: this takes a long time ~8ms
-    GridPolyLine Border = intersect_border.getIntersectBorder(start_idx, goal_idx);
+    PolyTrajSearch poly_traj_search(intersect_border);
+    std::vector<Point3D> path;
+    poly_traj_search.search(start3d, goal3d, path);
 
-    if (Border.size() < 3)
-    {
-        ROS_ERROR("Border.size() < 3");
-        return;
-    }
-
-    benchmarkCheck("2.3 Intersect Border", true);
-
-    // Draw path
-    std::vector<Eigen::Vector3d> border_pos;
-    for (uint i = 0; i < Border.size(); i++)
-    {
-        Eigen::Vector3d pos;
-        Eigen::Vector2d posxy;
-        pos[2] = border_check.queryHeight(Border.at(i));
-        map_.getPosition(Border.at(i), posxy);
-        pos[0] = posxy.x();
-        pos[1] = posxy.y();
-        border_pos.push_back(pos);
-    }
-    gcs_visualizer_.visCurve(border_pos);
-
-    benchmarkCheck("2.4 Draw Intersect Border");
-
-    // Concave Points
-    GridPoints concave_pts;
-    findConcavePoint(Border, concave_pts);
-
-    benchmarkCheck("3.1 Concave Points", true);
-
-    for (uint i = 0; i < concave_pts.size(); i++)
-    {
-        Eigen::Vector3d pos;
-        pos.head(2) = getPos(concave_pts.at(i));
-        pos[2] = border_check.queryHeight(concave_pts.at(i));
-        gcs_visualizer_.visSphere(pos, 0.02);
-    }
-
-    benchmarkCheck("3.2 Draw Concave Points");
-
-    // Visiblity Graph
-    GridPt start_grid, goal_grid; // FIXME: is this appropriate?
-    map_.getIndex(start, start_grid);
-    map_.getIndex(goal, goal_grid);
-    // FIXME: needs to improve the performance
-    VisibilityGraph vis_graph(Border, concave_pts, start_grid, goal_grid);
     // uint size = vis_graph.size();
     // for (uint i = 0; i < size; i++)
     // {
@@ -372,32 +328,49 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
     //     }
     // }
 
-    // benchmarkCheck("3.3 Draw Visiblity Graph");
-    benchmarkCheck("3.3 Init Visiblity Graph");
+    // Draw Corridor
+    std::vector<Polyhedra> corridor = poly_corridor.getCorridor();
+    gcs_visualizer_.visPolytope(corridor);
 
-    // A* Search
-    std::vector<GridPt> path;
-    bool ret = GCS_AStarSearch(vis_graph, path);
-    // minlengthPath(Border, start, goal, path);
-
-    benchmarkCheck("3.4 A* Search", true);
-
-    // Draw path
-    std::vector<Eigen::Vector3d> path_pos;
-    for (uint i = 0; i < path.size(); i++)
+    // Draw Concave Points
+    std::vector<Point3D> concave_pts;
+    for (auto pt : poly_traj_search.getConcavePts())
     {
-        // printf("path.at(%d): (%d %d)\n", i, path.at(i)[0], path.at(i)[1]);
+        Point3D pos;
+        pos.head(2) = getPos(pt);
+        pos[2] = border_check.queryHeight(pt);
+        concave_pts.push_back(pos);
+    }
+    gcs_visualizer_.visSphere(concave_pts, 0.02);
+
+    // Draw border
+    GridPolyLine border = poly_traj_search.getBorder();
+    std::vector<Eigen::Vector3d> border_pos;
+    for (uint i = 0; i < border.size(); i++)
+    {
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy;
-        pos[2] = border_check.queryHeight(path.at(i));
-        map_.getPosition(path.at(i), posxy);
+        pos[2] = border_check.queryHeight(border.at(i));
+        map_.getPosition(border.at(i), posxy);
+        pos[0] = posxy.x();
+        pos[1] = posxy.y();
+        border_pos.push_back(pos);
+    }
+    gcs_visualizer_.visCurve(border_pos);
+
+    // Draw grid_traj
+    GridPolyLine grid_traj = poly_traj_search.getGridTraj();
+    std::vector<Eigen::Vector3d> path_pos;
+    for (uint i = 0; i < grid_traj.size(); i++)
+    {
+        Eigen::Vector3d pos;
+        Eigen::Vector2d posxy;
+        pos[2] = border_check.queryHeight(grid_traj.at(i));
+        map_.getPosition(grid_traj.at(i), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();
         path_pos.push_back(pos);
     }
     gcs_visualizer_.visCurve(path_pos);
 
-    benchmarkCheck("3.5 Draw Path");
-
-    benchmarkEnd();
 }

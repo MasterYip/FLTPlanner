@@ -19,13 +19,6 @@ PolyCorridor::PolyCorridor(const std::vector<Polyhedra> &polys) : polys_(polys)
     {
         corridor_.emplace_back(geo_utils::mergeVpoly(polys_.at(i).getVRep(), polys_.at(i + 1).getVRep()));
     }
-    // // guide plane
-    // for (uint i = 0; i < poly_size_ - 1; i++)
-    // {
-    //     Eigen::Vector3d p1 = polys_.at(i).getInterior();
-    //     Eigen::Vector3d p2 = polys_.at(i + 1).getInterior();
-    //     guide_plane_.emplace_back(geo_utils::getGuidancePlane(p1, p2));
-    // }
     // guide surf
     std::vector<geo_utils::Point3D> key_points;
     for (uint i = 0; i < poly_size_; i++)
@@ -35,22 +28,11 @@ PolyCorridor::PolyCorridor(const std::vector<Polyhedra> &polys) : polys_(polys)
     guide_surf_ = HarmonicGuideSurf(key_points);
 }
 
-PolyCorridor::PolyCorridor(const std::vector<Polyhedra> &polys, const Eigen::Vector3d &start, const Eigen::Vector3d &goal) : PolyCorridor(polys)
+PolyCorridor::PolyCorridor(const std::vector<Polyhedra> &polys,
+                           const Point3D &start, const Point3D &goal) : PolyCorridor(polys)
 {
-    // if (poly_size_ == 2)
-    // {
-    //     guide_plane_.at(0) = geo_utils::getGuidancePlane(start, goal);
-    // }
-    // else if (poly_size_ > 2)
-    // {
-    //     guide_plane_.at(0) = geo_utils::getGuidancePlane(start, polys_.at(1).getInterior());
-    //     guide_plane_.at(poly_size_ - 2) = geo_utils::getGuidancePlane(polys_.at(poly_size_ - 2).getInterior(), goal);
-    // }
-    // else
-    // {
-    //     throw std::invalid_argument("PolyCorridor: poly_size_ should be at least 2");
-    // }
-
+    start_ = start;
+    goal_ = goal;
     // guide surf
     if (poly_size_ >= 2)
     {
@@ -68,16 +50,6 @@ PolyCorridor::PolyCorridor(const std::vector<Polyhedra> &polys, const Eigen::Vec
     {
         throw std::invalid_argument("PolyCorridor: poly_size_ should be at least 2");
     }
-}
-
-void PolyCorridor::appendPoly(const Polyhedra &poly)
-{
-    polys_.emplace_back(poly);
-    poly_size_++;
-    corridor_.emplace_back(geo_utils::mergeVpoly(polys_.at(poly_size_ - 2).getVRep(), polys_.at(poly_size_ - 1).getVRep()));
-    Eigen::Vector3d p1 = polys_.at(poly_size_ - 2).getInterior();
-    Eigen::Vector3d p2 = polys_.at(poly_size_ - 1).getInterior();
-    guide_plane_.emplace_back(geo_utils::getGuidancePlane(p1, p2));
 }
 
 // TODO: faster search algorithm?
@@ -103,9 +75,4 @@ int PolyCorridor::isInPoly(const Eigen::Vector3d &pos)
         }
     }
     return -1;
-}
-
-geo_utils::Plain PolyCorridor::getGuidePlain(uint corridor_idx) const
-{
-    return guide_plane_.at(corridor_idx);
 }

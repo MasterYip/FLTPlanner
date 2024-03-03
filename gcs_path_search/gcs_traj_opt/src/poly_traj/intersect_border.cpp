@@ -39,10 +39,19 @@ IntersectBorder::IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &borde
     }
 }
 
+GridPolyLine IntersectBorder::getIntersectBorder(const Point &start, const Point &goal)
+{
+    GridPt start_idx, goal_idx;
+    border_check_.getMap().getIndex(start, start_idx);
+    border_check_.getMap().getIndex(goal, goal_idx);
+    return getIntersectBorder(start_idx, goal_idx);
+}
+
 GridPolyLine IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal)
 {
     GridPolyLine path;
-    GridPt start_idx = start, goal_idx = goal;
+    GridPt start_idx = start;
+    // GridPt goal_idx = goal;
     GridPt idx, start_border_idx, tmp_idx, revisit_idx;
     // TODO: put idx in the class
     idx = start_idx;

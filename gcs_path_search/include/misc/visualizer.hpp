@@ -413,7 +413,7 @@ public:
 
         markersPub.publish(Markers);
 
-        for (int i = 0; i < Markers.markers.size(); i++)
+        for (uint i = 0; i < Markers.markers.size(); i++)
         {
             if (Markers.markers[i].ns == "curve")
             {

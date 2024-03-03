@@ -24,40 +24,7 @@ BorderCheck::BorderCheck(PolyCorridor &poly_corridor,
 {
 }
 
-// Query the height using the guide plane
-[[deprecated]]  double BorderCheck::queryHeight(const Eigen::Vector2d &pos2d, uint corridor_idx)
-{
-    geo_utils::Plain guide_plain = poly_corridor_.getGuidePlain(corridor_idx);
-    double query_height = (-guide_plain(3) - guide_plain(0) * pos2d(0) - guide_plain(1) * pos2d(1)) / guide_plain(2);
-    if (query_height < map_.atPosition(ground_layer_, pos2d))
-    {
-        query_height = map_.atPosition(ground_layer_, pos2d);
-    }
-    if (enable_ceiling_ && query_height > map_.atPosition(ceiling_layer_, pos2d))
-    {
-        query_height = map_.atPosition(ceiling_layer_, pos2d);
-    }
-    return query_height;
-}
 
-[[deprecated]] double BorderCheck::queryHeight(const GridPt &grid2d, uint corridor_idx)
-{
-    geo_utils::Plain guide_plain = poly_corridor_.getGuidePlain(corridor_idx);
-    Eigen::Vector2d pos2d;
-    map_.getPosition(grid2d, pos2d);
-    double query_height = (-guide_plain(3) - guide_plain(0) * pos2d(0) - guide_plain(1) * pos2d(1)) / guide_plain(2);
-    if (query_height < map_.at(ground_layer_, grid2d))
-    {
-        query_height = map_.at(ground_layer_, grid2d);
-    }
-    if (enable_ceiling_ && query_height > map_.at(ceiling_layer_, grid2d))
-    {
-        query_height = map_.at(ceiling_layer_, grid2d);
-    }
-    return query_height;
-}
-
-// Query the height using the guide surface
 double BorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
 {
     geo_utils_2d::Point pos;

@@ -29,15 +29,12 @@ class BorderCheck
 {
 private:
     /* data */
-    std::string ground_layer_;
-    std::string ceiling_layer_;
-    bool enable_ceiling_;
     // PROBLEM: Is this safe to use reference here?
     PolyCorridor &poly_corridor_;
-    // PROBLEM: How to share the map_ground_ and map_ceiling_ with the other class?
     const grid_map::GridMap &map_;
-
-
+    std::string ground_layer_;
+    bool enable_ceiling_;
+    std::string ceiling_layer_;
 
 public:
     BorderCheck(PolyCorridor &poly_corridor,
@@ -45,10 +42,6 @@ public:
                 const std::string ground_layer = "elevation",
                 const bool enable_ceiling = false,
                 const std::string ceiling_layer = "ceiling");
-
-    [[deprecated]] double queryHeight(const Eigen::Vector2d &pos2d, uint corridor_idx);
-
-    [[deprecated]] double queryHeight(const GridPt &grid2d, uint corridor_idx);
 
     double queryHeight(const Eigen::Vector2d &pos2d);
 
@@ -80,4 +73,9 @@ public:
      * @return int The FIRST index of the polyhedra that the position is in, -1 if not in any segment
      */
     int inPoly(const GridPt &grid2d);
+
+    const grid_map::GridMap &getMap() const
+    {
+        return map_;
+    }
 };

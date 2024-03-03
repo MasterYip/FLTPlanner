@@ -62,7 +62,17 @@ public:
      */
     void updatePtr(const GridPt &grid2d);
 
-    // GridPolyLine getIntersectBorder(const Point &start, const Point &goal);
+    GridPolyLine getIntersectBorder(const Point &start, const Point &goal);
 
     GridPolyLine getIntersectBorder(const GridPt &start, const GridPt &goal);
+
+    PolyCorridor &getPolyCorridor()
+    {
+        return poly_corridor_;
+    }
+
+    BorderCheck &getBorderCheck()
+    {
+        return border_check_;
+    }
 };

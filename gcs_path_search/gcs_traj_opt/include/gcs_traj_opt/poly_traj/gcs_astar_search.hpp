@@ -23,6 +23,8 @@
 #include "gcs_traj_opt/astar/stlastar.h"
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
 
+using namespace geo_utils_2d;
+
 class GridPtState : public AStarState<GridPtState>
 {
 private:
