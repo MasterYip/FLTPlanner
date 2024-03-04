@@ -27,7 +27,11 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     // Intersect Border
     Point start_2d = start.head(2);
     Point goal_2d = goal.head(2);
-    border_ = intersect_border_.getIntersectBorder(start_2d, goal_2d);
+    if (!intersect_border_.getIntersectBorder(start_2d, goal_2d, border_))
+    {
+        std::cout << "Warning: intersect_border_.getIntersectBorder failed" << std::endl;
+        return false;
+    }
     if (border_.size() < 3)
     {
         std::cout << "Warning: border_.size() < 3" << std::endl;

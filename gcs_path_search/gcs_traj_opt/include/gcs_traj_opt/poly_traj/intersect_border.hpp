@@ -45,26 +45,9 @@ private:
 public:
     IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &border_check);
 
-    /**
-     * @brief Reset the state pointer to poly0 and corridor0
-     *
-     */
-    void resetPtr(void)
-    {
-        poly_ptr_ = 0;
-        corridor_ptr_ = 0;
-    };
+    bool getIntersectBorder(const GridPt &start, const GridPt &goal, GridPolyLine &border);
 
-    /**
-     * @brief Update the state pointer according to the given GridPoint
-     *
-     * @param grid2d
-     */
-    void updatePtr(const GridPt &grid2d);
-
-    GridPolyLine getIntersectBorder(const Point &start, const Point &goal);
-
-    GridPolyLine getIntersectBorder(const GridPt &start, const GridPt &goal);
+    bool getIntersectBorder(const Point &start, const Point &goal, GridPolyLine &border);
 
     PolyCorridor &getPolyCorridor()
     {

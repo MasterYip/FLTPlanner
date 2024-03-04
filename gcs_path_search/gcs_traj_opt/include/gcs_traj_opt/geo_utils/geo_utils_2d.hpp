@@ -1,12 +1,12 @@
 /**
  * @file geo_utils_2d.hpp
  * @author your name (you@domain.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-02-23
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #pragma once
@@ -39,10 +39,10 @@ namespace geo_utils_2d
     using GridPoints = std::vector<GridPt>;
 
     inline bool findConcavePoint(const GridPolyLine &Border,
-                          const GridPt &start,
-                          const GridPt &goal,
-                          GridPoints &ptsSideA,
-                          GridPoints &ptsSideB);
+                                 const GridPt &start,
+                                 const GridPt &goal,
+                                 GridPoints &ptsSideA,
+                                 GridPoints &ptsSideB);
     inline bool findConcavePoint(const GridPolyLine &Border, GridPoints &concavePts, bool isClockwise);
 
     // Utils
@@ -108,10 +108,10 @@ namespace geo_utils_2d
      * @return false
      */
     inline bool findConcavePoint(const GridPolyLine &Border,
-                          const GridPt &start,
-                          const GridPt &goal,
-                          GridPoints &ptsSideA,
-                          GridPoints &ptsSideB)
+                                 const GridPt &start,
+                                 const GridPt &goal,
+                                 GridPoints &ptsSideA,
+                                 GridPoints &ptsSideB)
     {
         ptsSideA.clear();
         ptsSideB.clear();
@@ -198,7 +198,7 @@ namespace geo_utils_2d
      * @return 3 overlap
      */
     inline uint segmentIntersect(const Point &p1, const Point &p2,
-                          const Point &q1, const Point &q2, const bool verbose = false)
+                                 const Point &q1, const Point &q2, const bool verbose = false)
     {
         // Judge if intersect at the end or overlap
         uint tmp = 1;
@@ -236,7 +236,7 @@ namespace geo_utils_2d
     }
 
     inline uint segmentIntersect(const GridPt &p1, const GridPt &p2,
-                          const GridPt &q1, const GridPt &q2, const bool verbose = false)
+                                 const GridPt &q1, const GridPt &q2, const bool verbose = false)
     {
         return segmentIntersect(Point(p1[0], p1[1]), Point(p2[0], p2[1]),
                                 Point(q1[0], q1[1]), Point(q2[0], q2[1]), verbose);
@@ -245,6 +245,7 @@ namespace geo_utils_2d
     /**
      * @brief Check if two points are visible to each other
      * TODO: Test robustness
+     * TODO: what if p1 p2 can be outside the border
      * @param Border
      * @param p1 On or Inside the Border
      * @param p2 On or Inside the Border
@@ -271,8 +272,9 @@ namespace geo_utils_2d
             GridPt vec1 = Border.at(p1_idx) - Border.at(minus1);
             GridPt vec2 = Border.at(plus1) - Border.at(p1_idx);
             GridPt vec_p1p2 = p2 - p1;
-            if ((crossProd(vec1, vec2) > 0 && crossProd(vec1, vec_p1p2) > 0 && crossProd(vec2, vec_p1p2) > 0) || // Concave Point
-                (crossProd(vec1, vec2) < 0 && (crossProd(vec1, vec_p1p2) > 0 || crossProd(vec2, vec_p1p2) > 0))) // Convex Point
+            if ((crossProd(vec1, vec2) > 0 && (crossProd(vec1, vec_p1p2) > 0 && crossProd(vec2, vec_p1p2) > 0)) || // Concave Point
+                (crossProd(vec1, vec2) < 0 && (crossProd(vec1, vec_p1p2) > 0 || crossProd(vec2, vec_p1p2) > 0)) || // Convex Point
+                (crossProd(vec1, vec2) == 0 && crossProd(vec1, vec_p1p2) > 0))                                     // Straight Line
             {
                 return false;
             }
@@ -284,8 +286,9 @@ namespace geo_utils_2d
             GridPt vec1 = Border.at(p2_idx) - Border.at(minus1);
             GridPt vec2 = Border.at(plus1) - Border.at(p2_idx);
             GridPt vec_p2p1 = p1 - p2;
-            if ((crossProd(vec1, vec2) > 0 && crossProd(vec1, vec_p2p1) > 0 && crossProd(vec2, vec_p2p1) > 0) || // Concave Point
-                (crossProd(vec1, vec2) < 0 && (crossProd(vec1, vec_p2p1) > 0 || crossProd(vec2, vec_p2p1) > 0))) // Convex Point
+            if ((crossProd(vec1, vec2) > 0 && (crossProd(vec1, vec_p2p1) > 0 && crossProd(vec2, vec_p2p1) > 0)) || // Concave Point
+                (crossProd(vec1, vec2) < 0 && (crossProd(vec1, vec_p2p1) > 0 || crossProd(vec2, vec_p2p1) > 0)) || // Convex Point
+                (crossProd(vec1, vec2) == 0 && crossProd(vec1, vec_p2p1) > 0))                                     // Straight Line
             {
                 return false;
             }
