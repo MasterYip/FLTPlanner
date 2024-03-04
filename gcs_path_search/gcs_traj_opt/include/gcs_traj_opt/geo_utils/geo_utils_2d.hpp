@@ -74,6 +74,7 @@ namespace geo_utils_2d
         return ((dir_cross_prod > 0 && clockwise) || (dir_cross_prod < 0 && !clockwise));
     }
 
+    // BUG: start point check is wrong
     inline bool findConcavePoint(const GridPolyLine &Border, GridPoints &concavePts, bool isClockwise = true)
     {
         concavePts.clear();
@@ -98,7 +99,6 @@ namespace geo_utils_2d
 
     /**
      * @brief
-     * BUG: start point check is wrong
      * @param[in] Border
      * @param[in] start
      * @param[in] goal
@@ -107,11 +107,11 @@ namespace geo_utils_2d
      * @return true
      * @return false
      */
-    inline bool findConcavePoint(const GridPolyLine &Border,
-                                 const GridPt &start,
-                                 const GridPt &goal,
-                                 GridPoints &ptsSideA,
-                                 GridPoints &ptsSideB)
+    [[deprecated]] inline bool findConcavePoint(const GridPolyLine &Border,
+                                                const GridPt &start,
+                                                const GridPt &goal,
+                                                GridPoints &ptsSideA,
+                                                GridPoints &ptsSideB)
     {
         ptsSideA.clear();
         ptsSideB.clear();
@@ -247,6 +247,7 @@ namespace geo_utils_2d
      * BUG: Start point check is wrong
      * TODO: what if p1 p2 can be outside the border
      * @param Border
+     * IMPORTANT: Border should be clockwise, Border.at(0) != Border.at(-1)
      * @param p1 On or Inside the Border
      * @param p2 On or Inside the Border
      * @return true
@@ -255,13 +256,13 @@ namespace geo_utils_2d
     inline bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const GridPt &p2)
     {
         int p1_idx = -1, p2_idx = -1; // check if p1 and p2 are border point
-        for (uint i = 0; i < Border.size() - 1; i++)
+        for (uint i = 0; i < Border.size(); i++)
         {
             if (Border.at(i).isApprox(p1))
                 p1_idx = i;
             if (Border.at(i).isApprox(p2))
                 p2_idx = i;
-            if (segmentIntersect(Border.at(i), Border.at(i + 1), p1, p2) == 1)
+            if (segmentIntersect(Border.at(i), Border.at((i + 1) % Border.size()), p1, p2) == 1)
                 return false;
         }
         // Judge if p1 and p2 are visible to each other from outside (should not be counted as visible)

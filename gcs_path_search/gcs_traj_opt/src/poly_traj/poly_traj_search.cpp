@@ -56,7 +56,7 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     benchmark_.record("A* Search", RecordType::CRITICAL);
     if (!ret)
     {
-        std::cout << "Warning: A* Search failed" << std::endl;
+        std::cout << "Info: No solution - A* Search failed" << std::endl;
         return false;
     }
 

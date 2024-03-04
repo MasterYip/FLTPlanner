@@ -205,12 +205,13 @@ bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     // Draw border
     GridPolyLine border = poly_traj_search.getBorder();
     std::vector<Eigen::Vector3d> border_pos;
-    for (uint i = 0; i < border.size(); i++)
+    for (uint i = 0; i <= border.size(); i++)
     {
+        uint k = i % border.size();
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy;
-        pos[2] = border_check.queryHeight(border.at(i));
-        map_.getPosition(border.at(i), posxy);
+        pos[2] = border_check.queryHeight(border.at(k));
+        map_.getPosition(border.at(k), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();
         border_pos.push_back(pos);

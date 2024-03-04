@@ -120,6 +120,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
         }
 
     } while (idx[0] != start_border_idx[0] || idx[1] != start_border_idx[1]);
-
+    // IMPORTANT: the last point should NOT be the same as the first point
+    border.pop_back();
     return true;
 }
