@@ -413,7 +413,8 @@ void CVX_TrajOpt::testGCSPathSearch()
     int poly_num = 3;
     int samples = 20;
     double poly_scale = 0.4;
-    double poly_pos_scale = 1.5;
+    double poly_pos_scale_xy = 1.5;
+    double poly_pos_scale_z = 0.5;
 
     // Wait for the user to press a key
     std::cout << "Press any key to continue..." << std::endl;
@@ -421,25 +422,20 @@ void CVX_TrajOpt::testGCSPathSearch()
 
     gcs_visualizer_.delAll();
     std::vector<Polyhedra> polys;
-    for (int i = 0; i < poly_num; i++)
-    {
-        Eigen::Matrix3Xd tmp1 = randomPoly(samples, poly_scale);
-        Eigen::Matrix3Xd tmp2 = (tmp1.array().colwise() + (randomPoint(poly_pos_scale).array() + pos_shift.transpose().col(0).array())).eval();
-        polys.emplace_back(Polyhedra(tmp2));
-    }
-    Point3D start = polys.at(0).getInterior();
-    Point3D goal = polys.at(poly_num - 1).getInterior();
-
-    while (!gcs_path_search(polys, start, goal))
+    Point3D start, goal;
+    do
     {
         polys.clear();
         for (int i = 0; i < poly_num; i++)
         {
             Eigen::Matrix3Xd tmp1 = randomPoly(samples, poly_scale);
-            Eigen::Matrix3Xd tmp2 = (tmp1.array().colwise() + (randomPoint(poly_pos_scale).array() + pos_shift.transpose().col(0).array())).eval();
+            Point3D randPt = randomPoint();
+            randPt.head(2) *= poly_pos_scale_xy;
+            randPt[2] *= poly_pos_scale_z;
+            Eigen::Matrix3Xd tmp2 = (tmp1.array().colwise() + (randPt.array() + pos_shift.transpose().col(0).array())).eval();
             polys.emplace_back(Polyhedra(tmp2));
         }
         start = polys.at(0).getInterior();
         goal = polys.at(poly_num - 1).getInterior();
-    }
+    } while (!gcs_path_search(polys, start, goal));
 }
