@@ -25,6 +25,8 @@
 
 using namespace geo_utils_2d;
 
+
+
 class IntersectBorder
 {
 private:
@@ -36,6 +38,8 @@ private:
     // corridor pointer: n for inside the n-th corridor
     int corridor_ptr_ = 0;
 
+    // BUG
+    // TODO: the direction should decide by the previous direction
     // Connectivity 8 Clockwise Search
     // 7 8 1
     // 6 * 2

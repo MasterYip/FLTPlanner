@@ -98,7 +98,7 @@ namespace geo_utils_2d
 
     /**
      * @brief
-     *
+     * BUG: start point check is wrong
      * @param[in] Border
      * @param[in] start
      * @param[in] goal
@@ -244,7 +244,7 @@ namespace geo_utils_2d
 
     /**
      * @brief Check if two points are visible to each other
-     * TODO: Test robustness
+     * BUG: Start point check is wrong
      * TODO: what if p1 p2 can be outside the border
      * @param Border
      * @param p1 On or Inside the Border

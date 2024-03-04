@@ -2,13 +2,14 @@
     <!-- Demo for single trajectory optimization (with HIT spider robot) -->
     <!-- Settings -->
     <arg name="with_robot" value="false" />
-    <arg name="with_ceiling" value="true" />
-    <arg name="max_height" value="1.0" />
+    <arg name="with_ceiling" value="false" />
+    <arg name="max_height" value="1.4" />
     <arg name="update_rate" value="5" />
     
     <arg name="grid_map_topic" value="grid_map" />
     <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="grid_map_file" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" />
+    <!-- <arg name="grid_map_file" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" /> -->
+    <arg name="grid_map_file" value="$(find gcs_path_search)/data/randmap_60_60/map_00006.jpg" />
     <arg name="grid_map_file_ceiling" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ceiling.png" />
     <arg name="elevation_layer" value="elevation" />
     <arg name="ceiling_layer" value="ceiling" />
