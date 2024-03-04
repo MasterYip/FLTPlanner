@@ -56,14 +56,9 @@ public:
      */
     int inBorder(const Eigen::Vector2d &pos2d);
 
-    /**
-     * @brief Check if the given position is in the corridor intersection border
-     *
-     * @param grid2d GridPoint in 2D
-     * @param corridor_idx The index of the corridor segment
-     * @return int The FIRST index of the corridor segment that the position is in, -1 if not in any segment
-     */
     int inBorder(const GridPt &grid2d);
+
+    bool inCorridor(const GridPt &grid2d, const int &corridor_idx);
 
     /**
      * @brief Check if the given position is in the polyhedra

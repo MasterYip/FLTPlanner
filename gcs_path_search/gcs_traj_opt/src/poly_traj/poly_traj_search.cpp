@@ -54,6 +54,12 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     // A* Search
     bool ret = GCS_AStarSearch(vis_graph_, grid_traj_);
     benchmark_.record("A* Search", RecordType::CRITICAL);
+    if (!ret)
+    {
+        std::cout << "Warning: A* Search failed" << std::endl;
+        return false;
+    }
+
     benchmark_.end();
     // TODO: path init
     return ret;

@@ -30,7 +30,6 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
     GridPt start_idx = start;
     // GridPt goal_idx = goal;
     GridPt idx, start_border_idx, tmp_idx, revisit_idx;
-    // TODO: put idx in the class
     idx = start_idx;
 
     // BUG: this is not a good way to check if the start point is in the polyhedra
@@ -54,29 +53,41 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
     // FIXME: Sometimes it stucks (loop)
     uint max_tries = 200;
     uint cnt = 0;
+    // int idx_incorridor_idx1 = border_check_.inBorder(idx);
+    // int idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
+    int tmp_incorridor_idx = -1;
     do
     {
         cnt++;
         if (cnt > max_tries)
         {
-            std::cerr << "getCorriderIntersectBorder() stucks!" << std::endl;
+            std::cerr << "getCorriderIntersectBorder() stucks in loop!" << std::endl;
             printf("start(%d %d), now(%d %d)\n", start_border_idx[0], start_border_idx[1], idx[0], idx[1]);
-            return false;
+            return true; // FIXME: to check algo stablity
         }
 
         bool out_corridor_flag = false;
         bool revisit_flag = false;
+        bool nosol_flag = true;
         for (int i = 0; i < 9; i++)
         {
             tmp_idx = idx + c8_cw.at(i);
+            tmp_incorridor_idx = border_check_.inBorder(tmp_idx);
             // flag: pointer out of border
-            if (!out_corridor_flag && border_check_.inBorder(tmp_idx) == -1)
+            // if (!out_corridor_flag && (tmp_incorridor_idx == -1 ||
+            //                            (tmp_incorridor_idx != idx_incorridor_idx1 &&
+            //                             tmp_incorridor_idx != idx_incorridor_idx2)))
+            if (!out_corridor_flag && tmp_incorridor_idx == -1)
             {
                 out_corridor_flag = true;
             }
             // flag: pointer back from border
-            if (out_corridor_flag && border_check_.inBorder(tmp_idx) != -1)
+            // if (out_corridor_flag && tmp_incorridor_idx != -1 &&
+            //     (tmp_incorridor_idx == idx_incorridor_idx1 ||
+            //      tmp_incorridor_idx == idx_incorridor_idx2))
+            if (out_corridor_flag && tmp_incorridor_idx != -1)
             {
+                nosol_flag = false;
                 if (border.size() > 1 && tmp_idx.isApprox(border.at(border.size() - 2)))
                 {
                     revisit_flag = true;
@@ -87,6 +98,8 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
                     revisit_flag = false;
                     border.push_back(tmp_idx);
                     idx = tmp_idx;
+                    // idx_incorridor_idx1 = tmp_incorridor_idx;
+                    // idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
                     break;
                 }
             }
@@ -96,6 +109,14 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
             printf("Warning: Revisit(%d %d)", revisit_idx[0], revisit_idx[1]);
             border.push_back(revisit_idx);
             idx = revisit_idx;
+            // idx_incorridor_idx1 = tmp_incorridor_idx;
+            // idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
+        }
+
+        if (nosol_flag)
+        {
+            std::cerr << "Warning: No next border point found!" << std::endl;
+            return true;
         }
 
     } while (idx[0] != start_border_idx[0] || idx[1] != start_border_idx[1]);

@@ -65,6 +65,16 @@ int PolyCorridor::isInCorridor(const Eigen::Vector3d &pos)
     return -1;
 }
 
+bool PolyCorridor::isInCorridor(const Eigen::Vector3d &pos, const int &corridor_idx)
+{
+    if (corridor_idx < 0 || corridor_idx >= poly_size_ - 1)
+    {
+        // std::cerr << "PolyCorridor: corridor_idx out of range" << std::endl;
+        return false;
+    }
+    return geo_utils::inHpoly(corridor_.at(corridor_idx).getHRep(), pos);
+}
+
 int PolyCorridor::isInPoly(const Eigen::Vector3d &pos)
 {
     for (uint i = 0; i < poly_size_; i++)

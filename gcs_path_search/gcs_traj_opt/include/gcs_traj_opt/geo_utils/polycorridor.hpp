@@ -67,6 +67,8 @@ public:
      */
     int isInCorridor(const Eigen::Vector3d &pos);
 
+    bool isInCorridor(const Eigen::Vector3d &pos, const int &corridor_idx);
+
     int isInPoly(const Eigen::Vector3d &pos);
 
     uint getPolySize() const

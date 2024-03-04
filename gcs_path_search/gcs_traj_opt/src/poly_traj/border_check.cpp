@@ -24,7 +24,6 @@ BorderCheck::BorderCheck(PolyCorridor &poly_corridor,
 {
 }
 
-
 double BorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
 {
     geo_utils_2d::Point pos;
@@ -70,6 +69,14 @@ int BorderCheck::inBorder(const GridPt &grid2d)
     map_.getPosition(grid2d, pos2d);
     return poly_corridor_.isInCorridor(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)));
 }
+
+bool BorderCheck::inCorridor(const GridPt &grid2d, const int &corridor_idx)
+{
+    Eigen::Vector2d pos2d;
+    map_.getPosition(grid2d, pos2d);
+    return poly_corridor_.isInCorridor(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)), corridor_idx);
+}
+
 
 int BorderCheck::inPoly(const GridPt &grid2d)
 {
