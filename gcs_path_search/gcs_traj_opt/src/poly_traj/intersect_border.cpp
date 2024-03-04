@@ -27,11 +27,9 @@ bool IntersectBorder::getIntersectBorder(const Point &start, const Point &goal, 
 bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal, GridPolyLine &border)
 {
     border.clear();
-    GridPt start_idx = start;
-    // GridPt goal_idx = goal;
-    GridPt idx, start_border_idx, tmp_idx, revisit_idx;
-    idx = start_idx;
 
+    GridPt idx, start_border_idx, tmp_idx, revisit_idx;
+    idx = start;
     // BUG: this is not a good way to check if the start point is in the polyhedra
     if (border_check_.inPoly(idx) != 0)
     {
@@ -48,6 +46,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
     idx[0]--; // Back to last inBorder
     start_border_idx = idx;
     border.push_back(start_border_idx);
+    GridPointer grid_ptr(start_border_idx);
 
     // Find the intersect border
     // FIXME: Sometimes it stucks (loop)
@@ -62,7 +61,9 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
         if (cnt > max_tries)
         {
             std::cerr << "getCorriderIntersectBorder() stucks in loop!" << std::endl;
-            printf("start(%d %d), now(%d %d)\n", start_border_idx[0], start_border_idx[1], idx[0], idx[1]);
+            printf("start(%d %d), now(%d %d)\n",
+                   start_border_idx[0], start_border_idx[1],
+                   grid_ptr.getState()[0], grid_ptr.getState()[1]);
             return true; // FIXME: to check algo stablity
         }
 
@@ -71,7 +72,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
         bool nosol_flag = true;
         for (int i = 0; i < 9; i++)
         {
-            tmp_idx = idx + c8_cw.at(i);
+            tmp_idx = grid_ptr.getNextCandidateState();
             tmp_incorridor_idx = border_check_.inBorder(tmp_idx);
             // flag: pointer out of border
             // if (!out_corridor_flag && (tmp_incorridor_idx == -1 ||
@@ -97,7 +98,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
                 {
                     revisit_flag = false;
                     border.push_back(tmp_idx);
-                    idx = tmp_idx;
+                    grid_ptr.updateState(tmp_idx);
                     // idx_incorridor_idx1 = tmp_incorridor_idx;
                     // idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
                     break;
@@ -107,8 +108,9 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
         if (revisit_flag)
         {
             printf("Warning: Revisit(%d %d)", revisit_idx[0], revisit_idx[1]);
-            border.push_back(revisit_idx);
-            idx = revisit_idx;
+            // border.push_back(revisit_idx);
+            border.pop_back(); // Remove the last point
+            grid_ptr.updateState(revisit_idx);
             // idx_incorridor_idx1 = tmp_incorridor_idx;
             // idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
         }
@@ -119,7 +121,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
             return true;
         }
 
-    } while (idx[0] != start_border_idx[0] || idx[1] != start_border_idx[1]);
+    } while (!grid_ptr.getState().isApprox(start_border_idx));
     // IMPORTANT: the last point should NOT be the same as the first point
     border.pop_back();
     return true;
