@@ -33,17 +33,17 @@ include_directories(
 add_subdirectory(gcs_traj_opt)
 
 # Dynamic reconfigure
-set (CVX_DYNCFG_PATH 
+set (DYNCFG_PATH 
   config/cvx_trajopt.cfg
   config/gcs_example.cfg)
-execute_process(COMMAND chmod a+x ${CVX_DYNCFG_PATH}
-      		  	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-      		  	RESULT_VARIABLE cmd_result
-      		 	OUTPUT_VARIABLE cmd_ver)
+execute_process(COMMAND chmod a+x ${DYNCFG_PATH}
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                RESULT_VARIABLE cmd_result
+                OUTPUT_VARIABLE cmd_ver)
 message(STATUS "Chmod a+x the dynamic_reconfigure file")
 
 generate_dynamic_reconfigure_options(
-        ${CVX_DYNCFG_PATH}
+  ${DYNCFG_PATH}
 )
 
 catkin_package(
@@ -63,14 +63,6 @@ target_link_libraries(gcs_visualizer
 )
 
 # Executables
-
-# Polyve node
-add_executable(polyve_node 
-  src/polyve_node.cpp
-  src/polyve.cpp)
-target_link_libraries(polyve_node
-  ${catkin_LIBRARIES}
-  gcs_traj_opt)
 
 # Trajectory optimizer
 add_executable(cvx_trajopt_node

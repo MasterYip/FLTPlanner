@@ -22,7 +22,6 @@
 
 #include "gcs_traj_opt/geo_utils/quickhull.hpp"
 #include "gcs_traj_opt/poly_traj/poly_traj_search.hpp"
-#include "misc/visualizer.hpp"
 #include "misc/gcs_visualizer.hpp"
 // TODO: Change project name
 #include <gcs_path_search/CvxTrajOptConfig.h>
