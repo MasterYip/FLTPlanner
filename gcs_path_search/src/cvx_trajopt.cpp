@@ -137,9 +137,9 @@ Point3D randomPoint(double scale = 1.0)
 
 bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d)
 {
-    // Path Search
-    PolyCorridor poly_corridor(polys, start3d, goal3d);
+    // Init
     // TODO: add enable ceiling
+    PolyCorridor poly_corridor(polys, start3d, goal3d);
     BorderCheck border_check(poly_corridor, map_, "elevation");
     IntersectBorder intersect_border(poly_corridor, border_check);
     PolyTrajSearch poly_traj_search(intersect_border);
@@ -147,13 +147,9 @@ bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
 
     if (!poly_traj_search.endpointValid(start3d, goal3d))
         return false;
-    if (!poly_traj_search.reachable(start3d, goal3d))
-        return false;    
-    bool ret = poly_traj_search.search(start3d, goal3d, path);
-    if (!ret)
-        return false;
+    poly_traj_search.reachable(start3d, goal3d);
 
-    // Draw Result
+    // Draw Rviz
     // Start & Goal
     Point start = start3d.head(2);
     Point goal = goal3d.head(2);
@@ -169,28 +165,6 @@ bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     gcs_visualizer_.visSphere(goal3d_grid, 0.01);
     gcs_visualizer_.visSphere(start3d, 0.02);
     gcs_visualizer_.visSphere(goal3d, 0.02);
-
-    // Draw VisGraph
-    VisibilityGraph vis_graph = poly_traj_search.getVisGraph();
-    std::vector<Point3D> mesh;
-    uint size = vis_graph.size();
-    Point3D pos1, pos2;
-    for (uint i = 0; i < size; i++)
-    {
-        for (uint j = i + 1; j < size; j++)
-        {
-            if (vis_graph.isVisibile(i, j))
-            {
-                pos1.head(2) = getPos(vis_graph.getPt(i));
-                pos2.head(2) = getPos(vis_graph.getPt(j));
-                pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
-                pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
-                mesh.push_back(pos1);
-                mesh.push_back(pos2);
-            }
-        }
-    }
-    gcs_visualizer_.visMesh(mesh, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
 
     // Draw Corridor
     std::vector<Polyhedra> corridor = poly_corridor.getCorridor();
@@ -224,21 +198,62 @@ bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     std::vector<Point3D> head_tail = {border_pos.front(), border_pos.back()};
     gcs_visualizer_.visCurve(head_tail, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 0.5, 0.01));
 
-    // Draw grid_traj
-    GridPolyLine grid_traj = poly_traj_search.getGridTraj();
-    std::vector<Eigen::Vector3d> path_pos;
-    for (uint i = 0; i < grid_traj.size(); i++)
+    if (!poly_traj_search.reachable(start3d, goal3d))
     {
-        Eigen::Vector3d pos;
-        Eigen::Vector2d posxy;
-        pos[2] = border_check.queryHeight(grid_traj.at(i));
-        map_.getPosition(grid_traj.at(i), posxy);
-        pos[0] = posxy.x();
-        pos[1] = posxy.y();
-        path_pos.push_back(pos);
+        std::cout << "Warning: Goal is not reachable" << std::endl;
+        return true;
     }
-    gcs_visualizer_.visCurve(path_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.01));
-    return true;
+    else
+    {
+        // Path Search
+        if (!poly_traj_search.search(start3d, goal3d, path))
+        {
+            std::cout << "Warning: A star search failed" << std::endl;
+            return true;
+        }
+        else
+        {
+            // Draw Result
+            // Draw VisGraph
+            VisibilityGraph vis_graph = poly_traj_search.getVisGraph();
+            std::vector<Point3D> mesh;
+            uint size = vis_graph.size();
+            Point3D pos1, pos2;
+            for (uint i = 0; i < size; i++)
+            {
+                for (uint j = i + 1; j < size; j++)
+                {
+                    if (vis_graph.isVisibile(i, j))
+                    {
+                        pos1.head(2) = getPos(vis_graph.getPt(i));
+                        pos2.head(2) = getPos(vis_graph.getPt(j));
+                        pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
+                        pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
+                        mesh.push_back(pos1);
+                        mesh.push_back(pos2);
+                    }
+                }
+            }
+            gcs_visualizer_.visMesh(mesh, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
+
+            // Draw grid_traj
+            GridPolyLine grid_traj = poly_traj_search.getGridTraj();
+            std::vector<Eigen::Vector3d> path_pos;
+            for (uint i = 0; i < grid_traj.size(); i++)
+            {
+                Eigen::Vector3d pos;
+                Eigen::Vector2d posxy;
+                pos[2] = border_check.queryHeight(grid_traj.at(i));
+                map_.getPosition(grid_traj.at(i), posxy);
+                pos[0] = posxy.x();
+                pos[1] = posxy.y();
+                path_pos.push_back(pos);
+            }
+            gcs_visualizer_.visCurve(path_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.01));
+
+            return true;
+        }
+    }
 }
 
 ////////////////////

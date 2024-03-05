@@ -29,6 +29,9 @@ bool PolyTrajSearch::endpointValid(const Point3D &start, const Point3D &goal)
 
 bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
 {
+    if (reachable_ != 0)
+        return reachable_ == 1;
+
     benchmark_.reset();
     if (!endpointValid(start, goal))
     {
@@ -72,6 +75,7 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
         }
     }
     reachable_ = -1;
+    benchmark_.end();
     return false;
 }
 
@@ -81,7 +85,6 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     if (reachable_ == -1 || (reachable_ == 0 && !reachable(start, goal)))
     {
         std::cout << "Info: No solution - not reachable" << std::endl;
-        benchmark_.end();
         return false;
     }
 
