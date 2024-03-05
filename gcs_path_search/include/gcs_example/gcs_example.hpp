@@ -91,7 +91,8 @@ public:
 
     // Examples
     void example_run(std::string name);
-    void eg_guide_surface(int poly_num = 3);
+    void eg_guide_surface();
     void eg_gcs_barier_demo();
     void eg_gcs_rand_corridor_demo();
+    void eg_gcs_rand_map_demo();
 };

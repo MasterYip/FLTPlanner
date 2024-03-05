@@ -153,12 +153,11 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     PolyTrajSearch poly_traj_search(intersect_border);
     std::vector<Point3D> path;
 
+    // Check validity
     if (!poly_traj_search.endpointValid(start3d, goal3d))
         return false;
     poly_traj_search.reachable(start3d, goal3d);
-
-    // Draw Rviz
-    // Start & Goal
+    // Draw Start & Goal
     Point start = start3d.head(2);
     Point goal = goal3d.head(2);
     GridPt start_idx, goal_idx;
@@ -178,17 +177,6 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     std::vector<Polyhedra> corridor = poly_corridor.getCorridor();
     gcs_visualizer_.visPolytope(corridor);
 
-    // Draw Concave Points
-    std::vector<Point3D> concave_pts;
-    for (auto pt : poly_traj_search.getConcavePts())
-    {
-        Point3D pos;
-        pos.head(2) = getPos(pt);
-        pos[2] = border_check.queryHeight(pt);
-        concave_pts.push_back(pos);
-    }
-    gcs_visualizer_.visSphere(concave_pts, 0.02);
-
     // Draw border
     GridPolyLine border = poly_traj_search.getBorder();
     std::vector<Point3D> border_pos;
@@ -205,6 +193,17 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     gcs_visualizer_.visCurve(border_pos);
     std::vector<Point3D> head_tail = {border_pos.front(), border_pos.back()};
     gcs_visualizer_.visCurve(head_tail, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 0.5, 0.01));
+
+    // Draw Concave Points
+    std::vector<Point3D> concave_pts;
+    for (auto pt : poly_traj_search.getConcavePts())
+    {
+        Point3D pos;
+        pos.head(2) = getPos(pt);
+        pos[2] = border_check.queryHeight(pt);
+        concave_pts.push_back(pos);
+    }
+    gcs_visualizer_.visSphere(concave_pts, 0.02);
 
     if (!poly_traj_search.reachable(start3d, goal3d))
     {
@@ -270,7 +269,7 @@ void GCS_Example::example_run(std::string name)
 {
     if (name == "eg_guide_surface_demo")
     {
-        eg_guide_surface(conf_.polyNum);
+        eg_guide_surface();
     }
     else if (name == "eg_gcs_barier_demo")
     {
@@ -280,12 +279,19 @@ void GCS_Example::example_run(std::string name)
     {
         eg_gcs_rand_corridor_demo();
     }
+    else if (name == "eg_gcs_rand_map_demo")
+    {
+        eg_gcs_rand_map_demo();
+    }
+    else
+    {
+        std::cout << "Example not found" << std::endl;
+    }
 }
 
-void GCS_Example::eg_guide_surface(int poly_num)
+void GCS_Example::eg_guide_surface()
 {
-    std::cout << "Press any key to continue..." << std::endl;
-    getchar();
+    int poly_num = conf_.polyNum;
 
     gcs_visualizer_.delAll();
     std::vector<Polyhedra> polys;
@@ -344,6 +350,9 @@ void GCS_Example::eg_guide_surface(int poly_num)
     {
         std::cout << "Get intersecting border failed" << std::endl;
     }
+
+    std::cout << "Press any key to continue..." << std::endl;
+    getchar();
     return;
 }
 
@@ -381,7 +390,7 @@ void GCS_Example::eg_gcs_barier_demo()
 void GCS_Example::eg_gcs_rand_corridor_demo()
 {
     // Settings
-    int poly_num = 6;
+    int poly_num = conf_.polyNum;
     int samples = 20;
     double poly_scale = 0.4;
     double poly_pos_scale_xy = 1.5;
@@ -409,4 +418,24 @@ void GCS_Example::eg_gcs_rand_corridor_demo()
         start = polys.at(0).getInterior();
         goal = polys.at(poly_num - 1).getInterior();
     } while (!gcs_path_search(polys, start, goal));
+}
+
+void GCS_Example::eg_gcs_rand_map_demo()
+{
+    Eigen::MatrixX3d waypoints(3, 3);
+    waypoints << -0.8, 0.0, 0.2,
+        0.0, 1.2, 0.4,
+        0.8, 0.0, 0.2;
+
+    std::vector<Polyhedra> polys;
+    for (int i = 0; i < waypoints.rows(); i++)
+    {
+        Eigen::Matrix3Xd tmpvPoly = ((vPoly * 1.5).array().colwise() + (waypoints.transpose().col(i).array() + pos_shift.transpose().col(0).array())).eval();
+        polys.emplace_back(Polyhedra(tmpvPoly));
+    }
+
+    Point3D start3d = polys.front().getInterior();
+    Point3D goal3d = polys.back().getInterior();
+    gcs_visualizer_.delAll();
+    gcs_path_search(polys, start3d, goal3d);
 }
