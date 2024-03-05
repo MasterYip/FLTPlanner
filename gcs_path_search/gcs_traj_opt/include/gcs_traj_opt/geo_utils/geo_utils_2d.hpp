@@ -184,7 +184,7 @@ namespace geo_utils_2d
 
     // Intersection
     /**
-     * @brief segment intersect detection (CGAL)[disabled to save complie time]
+     * @brief segment intersect detection (CGAL)
      * TODO: test needed
      * TODO: Optimization needed
      * FIXME: How to deal with Point&GridPt Mix?
@@ -193,8 +193,8 @@ namespace geo_utils_2d
      * @param q1
      * @param q2
      * @return 0 not intersect
-     * @return 1 intersect in the middle
-     * @return 2 intersect at the end
+     * @return 1 intersect in the middle (crossing / endpoint touch the other segment)
+     * @return 2 intersect at the end (at least 1 of endpoints are the same)
      * @return 3 overlap
      */
     inline uint segmentIntersect(const Point &p1, const Point &p2,
@@ -248,23 +248,32 @@ namespace geo_utils_2d
      * TODO: what if p1 p2 can be outside the border
      * @param Border
      * IMPORTANT: Border should be clockwise, Border.at(0) != Border.at(-1)
-     * @param p1 On or Inside the Border
-     * @param p2 On or Inside the Border
+     * @param p1 Least one on or Inside the Border
+     * @param p2 Least one on or Inside the Border
      * @return true
      * @return false
      */
     inline bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const GridPt &p2)
     {
         int p1_idx = -1, p2_idx = -1; // check if p1 and p2 are border point
+        int end_overlap_cnt = 0;
         for (uint i = 0; i < Border.size(); i++)
         {
             if (Border.at(i).isApprox(p1))
                 p1_idx = i;
             if (Border.at(i).isApprox(p2))
                 p2_idx = i;
-            if (segmentIntersect(Border.at(i), Border.at((i + 1) % Border.size()), p1, p2) == 1)
+            int intersect_type = segmentIntersect(Border.at(i), Border.at((i + 1) % Border.size()), p1, p2);
+            if (intersect_type == 1)
                 return false;
+            else if (intersect_type == 2)
+            {
+                end_overlap_cnt++;
+            }
         }
+        // Handle Concave point on Revisit section
+        if (end_overlap_cnt >= 4 && (p1_idx == -1 || p2_idx == -1))
+            return false;
         // Judge if p1 and p2 are visible to each other from outside (should not be counted as visible)
         if (p1_idx != -1)
         {

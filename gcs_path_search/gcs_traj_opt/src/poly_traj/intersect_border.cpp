@@ -27,7 +27,8 @@ bool IntersectBorder::getIntersectBorder(const Point &start, const Point &goal, 
 bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal, GridPolyLine &border)
 {
     border.clear();
-    GridPolyLine tmp_border;
+    // TODO: whether to remove revisited path? (it can alsh be handled in VisGraph)
+    GridPolyLine &tmp_border = border;
     std::vector<GridPt> turning_points;
 
     GridPt idx, start_border_idx, tmp_idx, revisit_idx;
@@ -108,7 +109,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
         }
         if (revisit_flag)
         {
-            printf("Warning: Revisit(%d %d)", revisit_idx[0], revisit_idx[1]);
+            std::cerr << "Warning: Revisit(" << revisit_idx[0] << " " << revisit_idx[1] << ")" << std::endl;
             turning_points.emplace_back(grid_ptr.getState());
             tmp_border.emplace_back(revisit_idx);
             grid_ptr.updateState(revisit_idx);
@@ -127,23 +128,23 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
     tmp_border.pop_back();
 
     // Remove revisited path
-    for (int i = 0; i < tmp_border.size(); i++)
-    {
-        border.emplace_back(tmp_border.at(i));
-        if (turning_points.size() > 0 && tmp_border.at(i).isApprox(turning_points.front()))
-        {
-            turning_points.erase(turning_points.begin());
-            int cnt = 1;
-            while (tmp_border.at((i + cnt) % tmp_border.size())
-                       .isApprox(tmp_border.at((i - 1 + tmp_border.size()) % tmp_border.size())))
-            {
-                if (border.size() > 0)
-                    border.pop_back(); // FIXME: if it is empty?
-                cnt++;
-            }
-            i = (i + cnt - 1) % tmp_border.size();
-        }
-    }
+    // for (int i = 0; i < tmp_border.size(); i++)
+    // {
+    //     border.emplace_back(tmp_border.at(i));
+    //     if (turning_points.size() > 0 && tmp_border.at(i).isApprox(turning_points.front()))
+    //     {
+    //         turning_points.erase(turning_points.begin());
+    //         int cnt = 1;
+    //         while (tmp_border.at((i + cnt) % tmp_border.size())
+    //                    .isApprox(tmp_border.at((i - 1 + tmp_border.size()) % tmp_border.size())))
+    //         {
+    //             if (border.size() > 0)
+    //                 border.pop_back(); // FIXME: if it is empty?
+    //             cnt++;
+    //         }
+    //         i = (i + cnt - 1) % tmp_border.size();
+    //     }
+    // }
 
     return true;
 }
