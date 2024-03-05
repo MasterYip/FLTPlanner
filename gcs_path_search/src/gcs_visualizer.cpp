@@ -11,10 +11,6 @@
 
 #include "misc/gcs_visualizer.hpp"
 
-// GCSVisualizer::GCSVisualizer(ros::NodeHandle &nh) : ros_visualizer::ROSVisualizer(nh)
-// {
-// }
-
 GCSVisualizer::GCSVisualizer(ros::NodeHandle &nh, std::string frame_id, std::string topic_name) : ros_visualizer::ROSVisualizer(nh, frame_id, topic_name)
 {
 }

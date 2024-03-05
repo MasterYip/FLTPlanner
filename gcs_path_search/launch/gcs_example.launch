@@ -1,0 +1,70 @@
+<launch>
+    <!-- Demo for single trajectory optimization (with HIT spider robot) -->
+    <!-- Settings -->
+    <arg name="with_robot" value="false" />
+    <arg name="with_ceiling" value="false" />
+    <arg name="max_height" value="1.4" />
+    <arg name="update_rate" value="5" />
+    
+    <arg name="grid_map_topic" value="grid_map" />
+    <arg name="grid_map_update_rate" value="5" />
+    <!-- Ground & Ceiling (must be of the same size) -->
+    <!-- <arg name="grid_map_file" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" /> -->
+    <!-- <arg name="grid_map_file" value="$(find gcs_path_search)/data/randmap_60_60/map_00006.jpg" /> -->
+    <arg name="grid_map_file" value="$(find gcs_path_search)/data/randmap_60_60" /> 
+    <arg name="grid_map_file_ceiling" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ceiling.png" />
+    <arg name="elevation_layer" value="elevation" />
+    <arg name="ceiling_layer" value="ceiling" />
+
+    <!-- traj_opt_demo node -->
+    <!-- <node pkg="fast_legged_planner" type="traj_opt_demo.py" name="traj_opt_demo" output="screen">
+        <param name="with_robot" value="$(arg with_robot)" />
+    </node> -->
+
+    <!-- GridMap -->
+    <node pkg="fast_legged_planner" type="image_publisher.py" name="image_publisher" output="screen">
+        <param name="image_path" value="$(arg grid_map_file)" />
+        <param name="topic" value="~image" />
+        <param name="rate" value="$(arg grid_map_update_rate)" />
+    </node>
+    <group if="$(arg with_ceiling)">
+        <node pkg="fast_legged_planner" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
+            <param name="image_path" value="$(arg grid_map_file_ceiling)" />
+            <param name="topic" value="~image" />
+            <param name="rate" value="$(arg grid_map_update_rate)" />
+        </node>
+    </group>
+    <node pkg="fast_legged_planner" type="image_to_gridmap" name="image_to_gridmap" output="screen">
+        <param name="with_ceiling" value="$(arg with_ceiling)" />
+        <param name="image_topic" value="/image_publisher/image" />
+        <param name="image_ceiling_topic" value="/image_ceiling_publisher/image" />
+        <param name="resolution" value="0.05" />
+        <param name="map_frame_id" value="odom" />
+        <param name="min_height" value="0" />
+        <param name="max_height" value="$(arg max_height)" />
+        <remap from="/elevation" to="/$(arg elevation_layer)"/>
+        <remap from="/ceiling" to="/$(arg ceiling_layer)"/>
+    </node>
+
+    <!-- sdf_pub for SDF visualization (pointcloud) -->
+    <node pkg="fast_legged_planner" type="sdf_pub" name="sdf_pub" output="screen"/>
+
+    <!-- Robot related -->
+    <group if="$(arg with_robot)">
+        <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider2/xacro/robot.xacro" />
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_legged_planner)/config/cvxhull_traj_opt_demo.rviz" output="screen" />
+    </group>
+    <group unless="$(arg with_robot)">
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_legged_planner)/config/cvxhull_traj_opt_demo.rviz" output="screen" />
+    </group>
+
+    <node pkg="gcs_path_search" type="gcs_example_node" name="gcs_example" output="screen">
+        <param name="TestRate" value="$(arg update_rate)" />
+        <param name="MapTopic" value="$(arg grid_map_topic)" />
+    </node>
+
+    <!-- RQT Reconf -->
+    <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" />
+
+</launch>

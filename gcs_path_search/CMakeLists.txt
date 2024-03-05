@@ -33,7 +33,9 @@ include_directories(
 add_subdirectory(gcs_traj_opt)
 
 # Dynamic reconfigure
-set (CVX_DYNCFG_PATH config/cvx_trajopt.cfg)
+set (CVX_DYNCFG_PATH 
+  config/cvx_trajopt.cfg
+  config/gcs_example.cfg)
 execute_process(COMMAND chmod a+x ${CVX_DYNCFG_PATH}
       		  	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       		  	RESULT_VARIABLE cmd_result
@@ -81,6 +83,17 @@ target_link_libraries(cvx_trajopt_node
   gcs_traj_opt
   gcs_visualizer)
 
+# GCS Examples
+add_executable(gcs_example_node
+  src/gcs_example_node.cpp
+  src/gcs_example.cpp)
+
+add_dependencies(gcs_example_node ${PROJECT_NAME}_gencfg)
+target_link_libraries(gcs_example_node
+  ${catkin_LIBRARIES} 
+  gcs_traj_opt
+  gcs_visualizer)
+
 # Schematic drawer
 add_executable(schematic_drawer
 src/schematic_drawer.cpp
@@ -93,14 +106,5 @@ target_link_libraries(schematic_drawer
   gcs_visualizer) 
 
 
-# Test gcs_visualizer
-add_executable(test_gcs_visualizer
-  src/test_gcs_visualizer.cpp
-)
-target_link_libraries(test_gcs_visualizer
-  ${catkin_LIBRARIES}
-  
-  gcs_visualizer
-)
 
 
