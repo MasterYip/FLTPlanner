@@ -7,9 +7,11 @@
     <arg name="update_rate" value="5" />
     
     <arg name="grid_map_topic" value="grid_map" />
+    <arg name="grid_map_update_rate" value="5" />
     <!-- Ground & Ceiling (must be of the same size) -->
     <!-- <arg name="grid_map_file" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" /> -->
     <arg name="grid_map_file" value="$(find gcs_path_search)/data/randmap_60_60/map_00006.jpg" />
+    <!-- <arg name="grid_map_file" value="$(find gcs_path_search)/data/randmap_60_60" />  -->
     <arg name="grid_map_file_ceiling" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ceiling.png" />
     <arg name="elevation_layer" value="elevation" />
     <arg name="ceiling_layer" value="ceiling" />
@@ -23,11 +25,13 @@
     <node pkg="fast_legged_planner" type="image_publisher.py" name="image_publisher" output="screen">
         <param name="image_path" value="$(arg grid_map_file)" />
         <param name="topic" value="~image" />
+        <param name="rate" value="$(arg grid_map_update_rate)" />
     </node>
     <group if="$(arg with_ceiling)">
         <node pkg="fast_legged_planner" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
             <param name="image_path" value="$(arg grid_map_file_ceiling)" />
             <param name="topic" value="~image" />
+            <param name="rate" value="$(arg grid_map_update_rate)" />
         </node>
     </group>
     <node pkg="fast_legged_planner" type="image_to_gridmap" name="image_to_gridmap" output="screen">
