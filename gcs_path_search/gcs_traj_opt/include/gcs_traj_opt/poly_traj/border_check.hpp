@@ -33,15 +33,17 @@ private:
     PolyCorridor &poly_corridor_;
     const grid_map::GridMap &map_;
     std::string ground_layer_;
-    bool enable_ceiling_;
     std::string ceiling_layer_;
+    bool enable_ceiling_;
+    bool enable_ground_;
 
 public:
     BorderCheck(PolyCorridor &poly_corridor,
                 const grid_map::GridMap &map,
                 const std::string ground_layer = "elevation",
-                const bool enable_ceiling = false,
-                const std::string ceiling_layer = "ceiling");
+                const std::string ceiling_layer = "ceiling",
+                const bool enable_ground = true,
+                const bool enable_ceiling = false);
 
     double queryHeight(const Eigen::Vector2d &pos2d);
 

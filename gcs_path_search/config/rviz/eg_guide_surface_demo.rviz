@@ -4,7 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /guide_surf1
+        - /Global Options1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -127,7 +127,7 @@ Visualization Manager:
       Min Intensity: 0
       Name: guide_surf
       Show Grid Lines: true
-      Topic: /cvx_trajopt_mappub
+      Topic: /gcs_example_mappub
       Unreliable: false
       Use ColorMap: true
       Value: true
@@ -236,7 +236,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.30273175239563
+      Distance: 2.8080477714538574
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -244,17 +244,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.19305749237537384
-        Y: -0.5200207233428955
-        Z: 0.3409647047519684
+        X: -0.11866948008537292
+        Y: -0.09461566060781479
+        Z: -0.359901487827301
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.1659933179616928
+      Pitch: 0.30099183320999146
       Target Frame: <Fixed Frame>
-      Yaw: 4.127441883087158
+      Yaw: 3.2706243991851807
     Saved: ~
 Window Geometry:
   Displays:

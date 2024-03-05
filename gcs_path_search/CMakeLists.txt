@@ -94,17 +94,5 @@ target_link_libraries(gcs_example_node
   gcs_traj_opt
   gcs_visualizer)
 
-# Schematic drawer
-add_executable(schematic_drawer
-src/schematic_drawer.cpp
-src/cvx_trajopt.cpp)
-
-add_dependencies(schematic_drawer ${PROJECT_NAME}_gencfg)
-target_link_libraries(schematic_drawer
-  ${catkin_LIBRARIES} 
-  gcs_traj_opt
-  gcs_visualizer) 
-
-
 
 

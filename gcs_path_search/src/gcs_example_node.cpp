@@ -16,27 +16,21 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "gcs_example_node");
     ros::NodeHandle nh_;
-
-    GCS_Example_Config config;
     ros::NodeHandle nh_priv("~");
 
+    GCS_Example_Config config;
     config.loadParameters(nh_priv);
     GCS_Example gcs(config, nh_);
 
     if (config.testRate > 0.0)
     {
-        ros::Rate lr(config.testRate);
+        ros::Rate loop_rate(config.testRate);
         while (ros::ok())
         {
-            // gcs.drawCorriderIntersectBorderTest();
-            gcs.testGCSPathSearch();
+            gcs.example_run(config.exampleName);
             ros::spinOnce();
-            lr.sleep();
+            loop_rate.sleep();
         }
-    }
-    else
-    {
-        ros::spin();
     }
 
     return 0;

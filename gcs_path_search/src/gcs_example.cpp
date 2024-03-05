@@ -1,14 +1,13 @@
 /**
  * @file gcs_example.cpp
  * @author Master Yip (2205929492@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-03-05
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
-
 
 /* related header files */
 #include "gcs_example/gcs_example.hpp"
@@ -27,6 +26,8 @@
 #include "gcs_traj_opt/geo_utils/guide_surf.hpp"
 
 using namespace geo_utils_2d;
+
+// Constructor & Destructor
 
 GCS_Example::GCS_Example(GCS_Example_Config &conf,
                          ros::NodeHandle &nh_) : nh_(nh_), gcs_visualizer_(nh_), conf_(conf)
@@ -65,9 +66,7 @@ GCS_Example::GCS_Example(GCS_Example_Config &conf,
     }
 }
 
-GCS_Example::~GCS_Example()
-{
-}
+// Callbacks
 
 void GCS_Example::dyn_reconf_callback(gcs_path_search::GCSExampleConfig &config, uint32_t level)
 {
@@ -83,15 +82,14 @@ void GCS_Example::map_callback(const grid_map_msgs::GridMap::ConstPtr &msg)
     return;
 }
 
+// Utils
+
 Eigen::Vector2d GCS_Example::getPos(const GridPt &idx)
 {
     Eigen::Vector2d posxy;
     map_.getPosition(idx, posxy);
     return posxy;
 }
-
-////////////////////
-// GCS Path Search
 
 Eigen::Matrix3Xd randomPoly(int samples = 20, double scale = 1.0)
 {
@@ -266,134 +264,49 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     }
 }
 
-////////////////////
-// rope straining method
+// Examples
 
-/**
- * @brief Get the min length path using `rope straining method`
- * BUG: not properly implemented
- * @param[in] Border
- * @param[in] start
- * @param[in] goal
- * @param[out] path
- * @return true
- * @return false
- */
-bool GCS_Example::minlengthPath(const std::vector<GridPt> &Border,
-                                const Eigen::Vector2d &start,
-                                const Eigen::Vector2d &goal,
-                                std::vector<GridPt> &path)
+void GCS_Example::example_run(std::string name)
 {
-    GridPt start_idx, goal_idx; // FIXME: is this appropriate?
-    map_.getIndex(start, start_idx);
-    map_.getIndex(goal, goal_idx);
-    path.clear();
-    path.push_back(start_idx);
-    path.push_back(goal_idx);
-
-    // TODO: use Border!
-    std::vector<GridPt> concave_points;
-    findConcavePoint(Border, concave_points);
-    // std::vector<GridPt> ptsSideA, ptsSideB;
-    // findConcavePoint(Border, start, goal, ptsSideA, ptsSideB);
-    uint i = 0, ip1; // Concave point index
-    int intersect_id = -1;
-    uint last_update_cnt = 0;
-    uint max_seg = 20;
-    while (true)
+    if (name == "eg_guide_surface_demo")
     {
-        ip1 = (i + 1) % concave_points.size();
-        intersect_id = pathIntersect(path, concave_points.at(i), concave_points.at(ip1));
-        if (intersect_id >= 0)
-        {
-            printf("i: %d, ip1: %d, intersect_id: %d\n", i, ip1, intersect_id);
-            printf("p1: (%d %d), p2: (%d %d)\n", concave_points.at(i)[0], concave_points.at(i)[1], concave_points.at(ip1)[0], concave_points.at(ip1)[1]);
-            printf("path_i: (%d %d), path_ip1: (%d %d)\n", path.at(intersect_id)[0], path.at(intersect_id)[1], path.at(intersect_id + 1)[0], path.at(intersect_id + 1)[1]);
-            last_update_cnt = 0;
-            path.insert(path.begin() + intersect_id + 1, concave_points.at(ip1));
-        }
-
-        i = ip1;
-        last_update_cnt++;
-        if (last_update_cnt > concave_points.size())
-        {
-            break;
-        }
-        if (path.size() > max_seg)
-        {
-            break;
-        }
+        eg_guide_surface(conf_.polyNum);
     }
-    return true;
+    else if (name == "eg_gcs_barier_demo")
+    {
+        eg_gcs_barier_demo();
+    }
+    else if (name == "eg_gcs_rand_corridor_demo")
+    {
+        eg_gcs_rand_corridor_demo();
+    }
 }
 
-////////////////////
-// Tests
-
-void GCS_Example::test_map()
+void GCS_Example::eg_guide_surface(int poly_num)
 {
-    for (uint i = 0; i < map_.getLayers().size(); i++)
-    {
-        printf("%s\n", map_.getLayers()[i].c_str());
-    }
+    std::cout << "Press any key to continue..." << std::endl;
+    getchar();
 
-    for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
-    {
-        printf("%f\n", map_.at("elevation", *iterator));
-    }
-    return;
-}
-
-void GCS_Example::segmentIntersectTest()
-{
-    GridPt p1, p2, q1, q2;
-    p1 << 0, 0;
-    p2 << 1, 1;
-    q1 << 0, 1;
-    q2 << 1, 0;
-    segmentIntersect(p1, p2, q1, q2, true);
-    return;
-}
-
-/**
- * @brief Temporarily is used to draw the feasible connected domain & robot
- *
- */
-void GCS_Example::schematic_drawer()
-{
     gcs_visualizer_.delAll();
-    std::vector<Eigen::Matrix3Xd> RegionBuf;
-    std::vector<Eigen::Matrix3Xd> CorridorBuf;
+    std::vector<Polyhedra> polys;
 
-    Eigen::MatrixX3d waypoints(3, 3);
-    // For normal ElSpider Air
-    waypoints << -0.2, -0.08, 0.16,
-        0.0, -0.08, 0.3,
-        0.2, -0.08, 0.16;
-
-    // For Guide Surf Demo
-    waypoints << -1.0, -0.5, 0,
-        0.0, 0.5, 1.6,
-        0.5, -0.5, 0.0;
-
-    for (int i = 0; i < waypoints.rows(); i++)
+    for (int i = 0; i < poly_num; i++)
     {
-        RegionBuf.push_back((vPoly.array().colwise() + waypoints.transpose().col(i).array()).eval());
-        if (i > 0)
-        {
-            CorridorBuf.push_back(geo_utils::mergeVpoly(RegionBuf.at(i - 1), RegionBuf.at(i)));
-        }
+        Point3D randPos = randomPoint(1.0);
+        randPos[2] *= 2;
+        Eigen::Matrix3Xd tmp1 = randomPoly(20, 0.4);
+        Eigen::Matrix3Xd tmp2 = (tmp1.array().colwise() + (randPos.array() + pos_shift.transpose().col(0).array())).eval();
+        polys.emplace_back(Polyhedra(tmp2));
     }
+    PolyCorridor corridor(polys);
 
-    // visualizer.visualizePolytope(RegionBuf);
     std::vector<Point3D> key_points;
-    for (auto region : RegionBuf)
+    for (auto poly : corridor.getPolys())
     {
-        Polyhedra poly(region);
         key_points.push_back(poly.getInterior());
     }
 
-    gcs_visualizer_.visPolytope(CorridorBuf);
+    gcs_visualizer_.visPolytope(corridor.getCorridor());
     HarmonicGuideSurf guide_surf(key_points, 1);
     map_.add("guide_surf");
     for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
@@ -405,10 +318,36 @@ void GCS_Example::schematic_drawer()
     grid_map_msgs::GridMap gm_message;
     grid_map::GridMapRosConverter::toMessage(map_, gm_message);
     map_pub_.publish(gm_message);
+
+    BorderCheck border_check(corridor, map_, "elevation", "ceiling", false, false);
+    IntersectBorder intersect_border(corridor, border_check);
+    Point start_2d = key_points.front().head(2);
+    Point goal_2d = key_points.back().head(2);
+    GridPolyLine border;
+    bool ret = intersect_border.getIntersectBorder(start_2d, goal_2d, border);
+    if (ret)
+    {
+        std::vector<Point3D> border_pos;
+        for (uint i = 0; i < border.size(); i++)
+        {
+            Point3D pos;
+            Eigen::Vector2d posxy;
+            pos[2] = border_check.queryHeight(border.at(i));
+            map_.getPosition(border.at(i), posxy);
+            pos[0] = posxy.x();
+            pos[1] = posxy.y();
+            border_pos.push_back(pos);
+        }
+        gcs_visualizer_.visCurve(border_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.02));
+    }
+    else
+    {
+        std::cout << "Get intersecting border failed" << std::endl;
+    }
     return;
 }
 
-void GCS_Example::drawCorriderIntersectBorderTest()
+void GCS_Example::eg_gcs_barier_demo()
 {
     // clean
     gcs_visualizer_.delAll();
@@ -439,7 +378,7 @@ void GCS_Example::drawCorriderIntersectBorderTest()
     gcs_path_search(polys, start3d, goal3d);
 }
 
-void GCS_Example::testGCSPathSearch()
+void GCS_Example::eg_gcs_rand_corridor_demo()
 {
     // Settings
     int poly_num = 6;
