@@ -84,3 +84,10 @@ int BorderCheck::inPoly(const GridPt &grid2d)
     map_.getPosition(grid2d, pos2d);
     return poly_corridor_.isInPoly(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)));
 }
+
+int BorderCheck::inPoly(const GridPt &grid2d, const int &poly_idx)
+{
+    Eigen::Vector2d pos2d;
+    map_.getPosition(grid2d, pos2d);
+    return poly_corridor_.isInPoly(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)), poly_idx);
+}

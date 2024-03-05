@@ -144,10 +144,15 @@ bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     IntersectBorder intersect_border(poly_corridor, border_check);
     PolyTrajSearch poly_traj_search(intersect_border);
     std::vector<Point3D> path;
-    bool ret = poly_traj_search.search(start3d, goal3d, path);
 
+    if (!poly_traj_search.endpointValid(start3d, goal3d))
+        return false;
+    if (!poly_traj_search.reachable(start3d, goal3d))
+        return false;    
+    bool ret = poly_traj_search.search(start3d, goal3d, path);
     if (!ret)
         return false;
+
     // Draw Result
     // Start & Goal
     Point start = start3d.head(2);
@@ -412,7 +417,7 @@ void CVX_TrajOpt::drawCorriderIntersectBorderTest()
 void CVX_TrajOpt::testGCSPathSearch()
 {
     // Settings
-    int poly_num = 3;
+    int poly_num = 6;
     int samples = 20;
     double poly_scale = 0.4;
     double poly_pos_scale_xy = 1.5;

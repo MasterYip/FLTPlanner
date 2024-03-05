@@ -86,3 +86,12 @@ int PolyCorridor::isInPoly(const Eigen::Vector3d &pos)
     }
     return -1;
 }
+
+bool PolyCorridor::isInPoly(const Eigen::Vector3d &pos, const int &poly_idx)
+{
+    if (poly_idx < 0 || poly_idx >= poly_size_)
+    {
+        return false;
+    }
+    return geo_utils::inHpoly(polys_.at(poly_idx).getHRep(), pos);
+}

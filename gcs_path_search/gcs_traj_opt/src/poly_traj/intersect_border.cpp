@@ -16,6 +16,18 @@ IntersectBorder::IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &borde
 {
 }
 
+bool IntersectBorder::checkPointProjectInPoly(const Point &pt, int poly_idx)
+{
+    GridPt grid_pt;
+    border_check_.getMap().getIndex(pt, grid_pt);
+    return border_check_.inPoly(grid_pt, poly_idx);
+}
+
+bool IntersectBorder::checkPointProjectInPoly(const GridPt &pt, int poly_idx)
+{
+    return border_check_.inPoly(pt, poly_idx);
+}
+
 bool IntersectBorder::getIntersectBorder(const Point &start, const Point &goal, GridPolyLine &border)
 {
     GridPt start_idx, goal_idx;
@@ -33,7 +45,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
 
     GridPt idx, start_border_idx, tmp_idx, revisit_idx;
     idx = start;
-    if (border_check_.inPoly(idx) != 0)
+    if (!checkPointProjectInPoly(start, 0))
     {
         std::cerr << "Start point not in poly 0! find in poly " << border_check_.inPoly(idx) << std::endl;
         return false;

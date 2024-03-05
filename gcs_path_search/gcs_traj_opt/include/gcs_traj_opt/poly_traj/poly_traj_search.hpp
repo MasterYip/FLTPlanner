@@ -37,6 +37,7 @@ private:
     VisibilityGraph vis_graph_;
 
     Benchmark benchmark_;
+    int reachable_ = 0; // 0: unknown, 1: reachable, -1: unreachable
     // output data
     GridPolyLine border_;
     GridPoints concave_pts_;
@@ -46,6 +47,8 @@ public:
     PolyTrajSearch(IntersectBorder &intersect_border);
     ~PolyTrajSearch() = default;
 
+    bool endpointValid(const Point3D &start, const Point3D &goal);
+    bool reachable(const Point3D &start, const Point3D &goal);
     bool search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
 
     GridPolyLine getBorder() const { return border_; }

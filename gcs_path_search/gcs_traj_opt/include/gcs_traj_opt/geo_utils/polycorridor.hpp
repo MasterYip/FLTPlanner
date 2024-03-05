@@ -71,6 +71,8 @@ public:
 
     int isInPoly(const Eigen::Vector3d &pos);
 
+    bool isInPoly(const Eigen::Vector3d &pos, const int &poly_idx);
+
     uint getPolySize() const
     {
         return poly_size_;

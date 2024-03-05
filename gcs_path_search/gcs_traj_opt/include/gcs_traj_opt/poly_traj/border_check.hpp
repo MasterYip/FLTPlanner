@@ -69,6 +69,8 @@ public:
      */
     int inPoly(const GridPt &grid2d);
 
+    int inPoly(const GridPt &grid2d, const int &poly_idx);
+
     const grid_map::GridMap &getMap() const
     {
         return map_;

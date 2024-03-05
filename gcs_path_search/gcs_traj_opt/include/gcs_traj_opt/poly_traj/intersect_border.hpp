@@ -66,7 +66,7 @@ public:
         state_ += delta;
         last_move_ = delta;
 
-        for (int i = 0; i < c8_cw.size(); i++)
+        for (uint i = 0; i < c8_cw.size(); i++)
         {
             if (c8_cw[i].isApprox(-last_move_))
             {
@@ -101,6 +101,18 @@ private:
 
 public:
     IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &border_check);
+
+    /**
+     * @brief Check the given point projection on aux plain (T) is in the polyhedra (used for start & goal)
+     * 
+     * @param pt 
+     * @param poly_idx 
+     * @return true 
+     * @return false 
+     */
+    bool checkPointProjectInPoly(const GridPt &pt, int poly_idx);
+
+    bool checkPointProjectInPoly(const Point &pt, int poly_idx);
 
     bool getIntersectBorder(const GridPt &start, const GridPt &goal, GridPolyLine &border);
 

@@ -19,10 +19,22 @@ PolyTrajSearch::PolyTrajSearch(IntersectBorder &intersect_border)
 {
 }
 
-bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path)
+bool PolyTrajSearch::endpointValid(const Point3D &start, const Point3D &goal)
+{
+    Point start_2d = start.head(2);
+    Point goal_2d = goal.head(2);
+    return intersect_border_.checkPointProjectInPoly(start_2d, 0) &&
+           intersect_border_.checkPointProjectInPoly(goal_2d, intersect_border_.getPolyCorridor().getPolySize() - 1);
+}
+
+bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
 {
     benchmark_.reset();
-    std::vector<Point3D> init_path;
+    if (!endpointValid(start, goal))
+    {
+        std::cout << "Warning: endpointValid failed" << std::endl;
+        return false;
+    }
 
     // Intersect Border
     Point start_2d = start.head(2);
@@ -50,6 +62,28 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     // FIXME: needs to improve the performance
     vis_graph_ = VisibilityGraph(border_, concave_pts_, start_grid, goal_grid);
     benchmark_.record("Visibility Graph Init", RecordType::CRITICAL);
+
+    for (uint i = 2; i < vis_graph_.size(); i++)
+    {
+        if (vis_graph_.isVisibile(1, i))
+        {
+            reachable_ = 1;
+            return true;
+        }
+    }
+    reachable_ = -1;
+    return false;
+}
+
+bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path)
+{
+    std::vector<Point3D> init_path;
+    if (reachable_ == -1 || (reachable_ == 0 && !reachable(start, goal)))
+    {
+        std::cout << "Info: No solution - not reachable" << std::endl;
+        benchmark_.end();
+        return false;
+    }
 
     // A* Search
     bool ret = GCS_AStarSearch(vis_graph_, grid_traj_);
