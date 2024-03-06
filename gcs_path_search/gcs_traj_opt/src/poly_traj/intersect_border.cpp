@@ -112,7 +112,10 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
                 else
                 {
                     revisit_flag = false;
-                    tmp_border.emplace_back(tmp_idx);
+                    if ((tmp_idx - grid_ptr.getState()).isApprox(grid_ptr.getLastMove()))
+                        tmp_border.back() = tmp_idx;
+                    else
+                        tmp_border.emplace_back(tmp_idx);
                     grid_ptr.updateState(tmp_idx);
                     // idx_incorridor_idx1 = tmp_incorridor_idx;
                     // idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
@@ -135,7 +138,6 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
             std::cerr << "Warning: No next border point found!" << std::endl;
             return false;
         }
-
     } while (!grid_ptr.getState().isApprox(start_border_idx));
     // IMPORTANT: the last point should NOT be the same as the first point
     tmp_border.pop_back();
@@ -158,6 +160,8 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
     //         i = (i + cnt - 1) % tmp_border.size();
     //     }
     // }
+
+    // TODO: Straight line combine for speed
 
     return true;
 }

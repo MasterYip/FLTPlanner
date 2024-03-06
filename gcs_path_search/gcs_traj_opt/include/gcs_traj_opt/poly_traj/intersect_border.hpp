@@ -91,6 +91,11 @@ public:
     {
         return state_;
     }
+
+    GridPt getLastMove() const
+    {
+        return last_move_;
+    }
 };
 
 class IntersectBorder
