@@ -1,7 +1,6 @@
 <launch>
     <!-- GCS Examples Template -->
     <!-- Settings -->
-    <!-- eg_guide_surface_demo / eg_gcs_barier_demo / eg_gcs_rand_corridor_demo -->
     <arg name="example_name" default="eg_gcs_barier_demo"/>
 
     <arg name="with_robot" default="false" />

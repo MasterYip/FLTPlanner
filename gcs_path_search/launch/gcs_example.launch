@@ -95,10 +95,10 @@
             <arg name="example_name" default="$(arg example_name)" />
             <arg name="with_robot" default="$(arg with_robot)" />
             <arg name="with_ceiling" default="$(arg with_ceiling)" />
-            <arg name="max_height" default="0.4"/>
-            <arg name="test_rate" default="10" />
+            <arg name="max_height" default="1.0"/>
+            <arg name="test_rate" default="8" />
             <arg name="grid_map_topic" default="$(arg grid_map_topic)" />
-            <arg name="grid_map_update_rate" default="4" />
+            <arg name="grid_map_update_rate" default="2" />
             <arg name="grid_map_file" default="$(find gcs_path_search)/data/randmap_60_60" />
             <arg name="grid_map_file_ceiling" default="$(find fast_legged_planner)/data/traj_opt_demo/3-RandCorridor-ceiling.png" />
             <arg name="elevation_layer" default="elevation" />

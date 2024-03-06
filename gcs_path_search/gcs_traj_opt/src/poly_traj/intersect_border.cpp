@@ -28,15 +28,17 @@ bool IntersectBorder::checkPointProjectInPoly(const GridPt &pt, int poly_idx)
     return border_check_.inPoly(pt, poly_idx);
 }
 
-bool IntersectBorder::getIntersectBorder(const Point &start, const Point &goal, GridPolyLine &border)
+bool IntersectBorder::getIntersectBorder(const Point &start, const Point &goal,
+                                         GridPolyLine &border, int max_iter)
 {
     GridPt start_idx, goal_idx;
     border_check_.getMap().getIndex(start, start_idx);
     border_check_.getMap().getIndex(goal, goal_idx);
-    return getIntersectBorder(start_idx, goal_idx, border);
+    return getIntersectBorder(start_idx, goal_idx, border, max_iter);
 }
 
-bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal, GridPolyLine &border)
+bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal,
+                                         GridPolyLine &border, int max_iter)
 {
     border.clear();
     // TODO: whether to remove revisited path? (it can alsh be handled in VisGraph)
@@ -64,7 +66,6 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
 
     // Find the intersect border
     // FIXME: Sometimes it stucks (loop)
-    uint max_tries = 200;
     uint cnt = 0;
     // int idx_incorridor_idx1 = border_check_.inBorder(idx);
     // int idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
@@ -72,7 +73,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
     do
     {
         cnt++;
-        if (cnt > max_tries)
+        if (cnt > max_iter)
         {
             std::cerr << "getCorriderIntersectBorder() stucks in loop!" << std::endl;
             printf("start(%d %d), now(%d %d)\n",

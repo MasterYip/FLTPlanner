@@ -203,7 +203,7 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
         pos[2] = border_check.queryHeight(pt);
         concave_pts.push_back(pos);
     }
-    gcs_visualizer_.visSphere(concave_pts, 0.02);
+    gcs_visualizer_.visSphere(concave_pts, 0.03);
 
     if (!poly_traj_search.reachable(start3d, goal3d))
     {
@@ -256,7 +256,7 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
                 pos[1] = posxy.y();
                 path_pos.push_back(pos);
             }
-            gcs_visualizer_.visCurve(path_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.01));
+            gcs_visualizer_.visCurve(path_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.02));
 
             return true;
         }
@@ -422,20 +422,34 @@ void GCS_Example::eg_gcs_rand_corridor_demo()
 
 void GCS_Example::eg_gcs_rand_map_demo()
 {
-    Eigen::MatrixX3d waypoints(3, 3);
-    waypoints << -0.8, 0.0, 0.2,
-        0.0, 1.2, 0.4,
-        0.8, 0.0, 0.2;
+    Eigen::MatrixX3d poly(10, 3);
+    poly << -0.3, -0.3, -0.3,
+        0.23, -0.3, -0.3,
+        0.3, 0.25, -0.3,
+        -0.2, 0.3, -0.3,
+        -0.3, -0.3, 0.3,
+        0.3, -0.3, 0.3,
+        0.3, 0.3, 0.3,
+        -0.3, 0.3, 0.3,
+        0.0, 0.1, 0.44,
+        -0.4, 0.2, 0.4;
+    Eigen::MatrixX3d waypoints(6, 3);
+    waypoints << 0.0, 0.0, 0.8,
+        0.0, -1.0, 0.7,
+        1.0, -1.0, 0.4,
+        1.0, 1.0, 0.7,
+        -1.0, 1.0, 0.5,
+        -1.0, -1.0, 0.8;
 
     std::vector<Polyhedra> polys;
     for (int i = 0; i < waypoints.rows(); i++)
     {
-        Eigen::Matrix3Xd tmpvPoly = ((vPoly * 1.5).array().colwise() + (waypoints.transpose().col(i).array() + pos_shift.transpose().col(0).array())).eval();
+        Eigen::Matrix3Xd tmpvPoly = (poly.transpose().array().colwise() + (waypoints.transpose().col(i).array() + pos_shift.transpose().col(0).array())).eval();
         polys.emplace_back(Polyhedra(tmpvPoly));
     }
 
-    Point3D start3d = polys.front().getInterior();
-    Point3D goal3d = polys.back().getInterior();
+    Point3D start3d(0.0, 0.0, 0.8);
+    Point3D goal3d(-1.0, -1.0, 0.8);
     gcs_visualizer_.delAll();
     gcs_path_search(polys, start3d, goal3d);
 }

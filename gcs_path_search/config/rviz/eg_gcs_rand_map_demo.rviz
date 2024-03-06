@@ -82,7 +82,8 @@ Visualization Manager:
       Show Arrows: true
       Show Axes: true
       Show Names: true
-      Tree: {}
+      Tree:
+        {}
       Update Interval: 0
       Value: false
     - Alpha: 0.30000001192092896
@@ -165,7 +166,8 @@ Visualization Manager:
       Enabled: true
       Marker Topic: /traj_opt
       Name: FootTraj
-      Namespaces: {}
+      Namespaces:
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -216,7 +218,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.087843418121338
+      Distance: 3.2820706367492676
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -224,17 +226,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.27594396471977234
-        Y: -0.26028257608413696
-        Z: -0.21727372705936432
+        X: -0.1543111652135849
+        Y: 0.1792515069246292
+        Z: 0.5685043931007385
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.3797965049743652
+      Pitch: 0.2397974133491516
       Target Frame: <Fixed Frame>
-      Yaw: 4.374520301818848
+      Yaw: 4.317685604095459
     Saved: ~
 Window Geometry:
   Displays:

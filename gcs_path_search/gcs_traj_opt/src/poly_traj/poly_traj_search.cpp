@@ -66,9 +66,9 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
     vis_graph_ = VisibilityGraph(border_, concave_pts_, start_grid, goal_grid);
     benchmark_.record("Visibility Graph Init", RecordType::CRITICAL);
 
-    for (uint i = 2; i < vis_graph_.size(); i++)
+    for (uint i = 0; i < vis_graph_.size(); i++)
     {
-        if (vis_graph_.isVisibile(1, i))
+        if (i != 1 && vis_graph_.isVisibile(1, i))
         {
             reachable_ = 1;
             return true;
