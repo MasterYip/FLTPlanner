@@ -4,6 +4,7 @@ project(fast_legged_planner_cpp)
 add_compile_options(-std=c++14)
 
 # Settings
+# IMPORTANT Disable conda to use gtest, otherwise it will lead to unknown error.
 set(USE_GTEST "ON")
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -47,7 +48,11 @@ if(USE_GTEST)
     ${GTEST_INCLUDE_DIRS}
     ${MathGL_INCLUDE_DIRS}
     test)
-  target_link_libraries(flplanner_tests ${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} pthread ${MathGL_LIBRARIES})
+  target_link_libraries(flplanner_tests 
+    ${PROJECT_NAME}
+    ${GTEST_BOTH_LIBRARIES}
+    pthread
+    ${MathGL_LIBRARIES})
 endif()
 
 # Tests
