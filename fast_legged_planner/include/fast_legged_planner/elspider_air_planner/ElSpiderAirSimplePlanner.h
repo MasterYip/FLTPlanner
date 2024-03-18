@@ -92,6 +92,16 @@ MDT::RobotState initRobotState(const MDT::Pose &robotPoseW, MDT::Vector6b gaitTo
     return state_;
 }
 
+void randomizeRobotState(MDT::RobotState &state_, double noise_amp = 0.1)
+{
+    for (int i = 0; i < 6; i++)
+    {
+        state_.feetPosition[i] += Eigen::Vector3d((rand() % 200 - 100) / 100.0 * noise_amp,
+                                                  (rand() % 200 - 100) / 100.0 * noise_amp,
+                                                  (rand() % 200 - 100) / 100.0 * noise_amp);
+    }
+}
+
 class ElSpiderAirSimplePlanner
 {
 private:
@@ -129,6 +139,8 @@ private:
 
     // Settings
     bool fake_estimation_;
+    bool fake_estimation_noisy_ = true;
+    double noise_amp_ = 0.1;
     bool simulation_;
 
 public:
@@ -229,6 +241,10 @@ public:
         if (fake_estimation_)
         {
             robot_state_ = next_planned_state_;
+            if (fake_estimation_noisy_)
+            {
+                randomizeRobotState(robot_state_, noise_amp_);
+            }
         }
         else
         {
