@@ -1,1 +1,0 @@
-# IK_Fast_forHexMini
