@@ -1,3 +1,7 @@
 [submodule "hexapod_robot_assets"]
 	path = hexapod_robot_assets
 	url = https://github.com/HITSME-HexLab/hexapod_robot_assets.git
+[submodule "fast_legged_planner/mcts_planner"]
+	path = fast_legged_planner/mcts_planner
+	url = https://github.com/BetterEthan/contactPlanner_HexMIni.git
+	branch = feature/elspider_air
