@@ -24,6 +24,7 @@ set(GRID_MAP_SET
   grid_map_sdf
   pcl_ros
   pcl_conversions
+  ros_visualizer
 )
 
 ## Find catkin macros and libraries

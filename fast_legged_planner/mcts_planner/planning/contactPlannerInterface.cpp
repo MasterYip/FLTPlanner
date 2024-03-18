@@ -10,7 +10,10 @@
 namespace CONTACT_PLANNER
 {
 
-    MDT::RobotState singleMCTS_planner(const MDT::RobotState &state_, const grid_map::GridMap &mapData, const std::vector<Eigen::Vector3f> &pathPnts, int search_nodes = 100)
+    MDT::RobotState singleMCTS_planner(const MDT::RobotState &state_,
+                                       const grid_map::GridMap &mapData,
+                                       const std::vector<Eigen::Vector3f> &pathPnts,
+                                       int search_nodes = 100)
     {
         int oneStepSearchNodeNum = search_nodes; // 搜索一步使用搜索节点个数
 
@@ -21,10 +24,8 @@ namespace CONTACT_PLANNER
         {
             throw std::runtime_error("startNode->candidateNodes.empty()");
         }
-        /*
-        Initialize HashTable
-        */
-        // std::srand(23);
+
+        // Initialize HashTable
         int processorN = 1;
 
         HashTable hsm(processorN, USER::key_element, USER::max_depth, USER::key_element.size()); // 每个线程都有一个hash表
@@ -39,13 +40,6 @@ namespace CONTACT_PLANNER
         for (int i = 1; i < oneStepSearchNodeNum; ++i)
         {
             TreeNode_ptr node = hsm.search_table("&");
-
-            // for (int j = 0; j < int(i / N_Sliding); ++j) {
-            //     if (node->childNodes.empty()) {
-            //         break;
-            //     }
-            //     node = hsm.search_table(node->findBestChild()->hashKey);
-            // }
 
             // 这里包含完整的一轮选择,扩展,仿真和回溯
             while (true)
@@ -180,8 +174,7 @@ namespace CONTACT_PLANNER
         // stateList.push_back(stateLast);
         if (maxExtendedNode_hashKey.size() < 2)
         {
-            std::cout << "no solution" << std::endl;
-            return state_;
+            throw std::runtime_error("No solution");
         }
 
         while (true)
@@ -198,20 +191,24 @@ namespace CONTACT_PLANNER
         }
     }
 
-    MDT::RobotState pathTrackPlanner(const MDT::RobotState &currentState, const std::vector<Eigen::Vector3f> &pathPnts, const grid_map::GridMap &mapData_, const bool isMCTS, int search_nodes)
+    bool pathTrackPlanner(const MDT::RobotState &currentState,
+                          MDT::RobotState &nextState,
+                          const std::vector<Eigen::Vector3f> &pathPnts,
+                          const grid_map::GridMap &mapData_,
+                          const bool isMCTS,
+                          int search_nodes)
     {
-
         if (isMCTS)
         {
             try
             {
-                MDT::RobotState stateNext = singleMCTS_planner(currentState, mapData_, pathPnts, search_nodes);
-                return stateNext;
+                nextState = singleMCTS_planner(currentState, mapData_, pathPnts, search_nodes);
+                return true;
             }
             catch (const std::exception &e)
             {
                 std::cerr << e.what() << '\n';
-                return currentState;
+                return false;
             }
         }
         else
@@ -220,19 +217,17 @@ namespace CONTACT_PLANNER
             MDT::RobotState state_ = currentState;
             auto targetAngle = PLANNING::getTargetYawAndMoveDir(state_, pathPnts);
             state_.moveDirection = targetAngle.second;
-            // 如果旋转角度大于0.05,则只旋转
+            // FIXME: 如果旋转角度大于0.05,则只旋转
             float deltaYaw = state_.moveDirection - state_.pose.yaw;
-            MDT::RobotState stateNext;
             if (fabs(deltaYaw) > USER::onlyRotateThreshold)
             {
-                stateNext = PLANNING::getNextMCTSstateByExpert_rotate(state_, mapData_);
+                nextState = PLANNING::getNextMCTSstateByExpert_rotate(state_, mapData_);
             }
             else
             {
                 state_.pose.yaw = targetAngle.first;
-                stateNext = PLANNING::getNextMCTSstateByExpert_underConstrain(state_, mapData_);
+                nextState = PLANNING::getNextMCTSstateByExpert_underConstrain(state_, mapData_);
             }
-            return stateNext;
         }
     }
 

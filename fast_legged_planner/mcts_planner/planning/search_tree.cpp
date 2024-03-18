@@ -182,7 +182,7 @@ void TreeNode::expansion(const grid_map::GridMap &mapData, const std::vector<Eig
     float deltaYaw = tmpState.moveDirection - tmpState.pose.yaw;
 
     std::vector<MDT::RobotState> stateList;
-    // 如果旋转角度大于0.05,则只旋转
+    // FIXME: 如果旋转角度大于0.05,则只旋转
     if (fabs(deltaYaw) > USER::onlyRotateThreshold)
     {
         stateList = PLANNING::getNextMCTSstateByExpert_rotate_moreState(tmpState, mapData);

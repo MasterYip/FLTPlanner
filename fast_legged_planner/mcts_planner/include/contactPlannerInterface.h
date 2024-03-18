@@ -8,7 +8,8 @@
 #include <grid_map_core/Polygon.hpp>
 #include <grid_map_core/iterators/PolygonIterator.hpp>
 
-namespace CONTACT_PLANNER{
+namespace CONTACT_PLANNER
+{
     /**
      * @brief 用于规划接触点的接口
      * @param currentState 当前机器人状态
@@ -28,9 +29,14 @@ namespace CONTACT_PLANNER{
      * @param mapData_ 地图数据
      * @param isMCTS 是否使用MCTS规划器; true: 使用MCTS规划器; false: 使用专家规划器
      * @return MDT::RobotState 规划后的机器人状态
-     * 
+     *
      */
-    MDT::RobotState pathTrackPlanner(const MDT::RobotState &currentState, const std::vector<Eigen::Vector3f> &pathPnts, const grid_map::GridMap &mapData_, const bool isMCTS, int search_nodes = 100);
+    bool pathTrackPlanner(const MDT::RobotState &currentState,
+                          MDT::RobotState &nextState,
+                          const std::vector<Eigen::Vector3f> &pathPnts,
+                          const grid_map::GridMap &mapData_,
+                          const bool isMCTS,
+                          int search_nodes = 100);
 
 }
 

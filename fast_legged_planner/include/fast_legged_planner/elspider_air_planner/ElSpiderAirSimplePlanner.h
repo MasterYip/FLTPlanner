@@ -39,7 +39,9 @@
 #include <geometry_msgs/TransformStamped.h>
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_listener.h>
+#include "ros_visualizer/ros_visualizer.hpp"
 
 fast_legged_planner::hexapod_State transRobotState(const MDT::RobotState &state_)
 {
@@ -100,6 +102,21 @@ void randomizeRobotState(MDT::RobotState &state_, double noise_amp = 0.1)
                                                   (rand() % 200 - 100) / 100.0 * noise_amp,
                                                   (rand() % 200 - 100) / 100.0 * noise_amp);
     }
+    state_.pose.x += (rand() % 200 - 100) / 100.0 * noise_amp;
+    state_.pose.y += (rand() % 200 - 100) / 100.0 * noise_amp;
+    state_.pose.z += (rand() % 200 - 100) / 100.0 * noise_amp;
+    state_.pose.roll += (rand() % 200 - 100) / 100.0 * noise_amp;
+    state_.pose.pitch += (rand() % 200 - 100) / 100.0 * noise_amp;
+    state_.pose.yaw += (rand() % 200 - 100) / 100.0 * noise_amp;
+    state_.moveDirection += (rand() % 200 - 100) / 100.0 * noise_amp;
+}
+
+MDT::RobotState getInitState(MDT::Pose robotPose = {1, 0, USER::norminalTrunkHeight, 0, 0, 0 * _PI_ / 6},
+                             float moveDir = 0)
+{
+    MDT::Vector6b gaitToNow;
+    gaitToNow << MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG;
+    return initRobotState(robotPose, gaitToNow, moveDir);
 }
 
 class ElSpiderAirSimplePlanner
@@ -130,6 +147,8 @@ private:
     int point_num_ = 3;
     // ROS Timer event
     ros::Timer timer_;
+    // Visualizer
+    ros_visualizer::ROSVisualizer visualizer_;
 
     // Interface
     ElSpiderAirInterfaceROS robot_interface_;
@@ -140,14 +159,14 @@ private:
     // Settings
     bool fake_estimation_;
     bool fake_estimation_noisy_ = true;
-    double noise_amp_ = 0.1;
+    double noise_amp_ = 0.02;
     bool simulation_;
 
 public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirSimplePlanner(bool fake_estimation = false, bool simulation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
                                                                                       gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
-                                                                                      tfListener_(tfBuffer_),
+                                                                                      tfListener_(tfBuffer_), visualizer_(nh_),
                                                                                       rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
@@ -158,12 +177,7 @@ public:
         next_planned_state_.initialize();
         if (fake_estimation_)
         {
-            // 初始化机器人状态,并赋初值
-            MDT::Pose robotPoseW = {1, 0, USER::norminalTrunkHeight, 0, 0, 0 * _PI_ / 6};
-            MDT::Vector6b gaitToNow;
-            gaitToNow << MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG;
-            float moveDir = 0 * _PI_ / 2;
-            robot_state_ = initRobotState(robotPoseW, gaitToNow, moveDir);
+            robot_state_ = getInitState();
             next_planned_state_ = robot_state_;
         }
         else
@@ -174,14 +188,11 @@ public:
 
     void timer_callback(const ros::TimerEvent &event)
     {
-        // Pub foot fdb
         pub_footpos_now();
-
         // Update body state
         try
         {
-            // FIXME: extrapolate to future problem
-            // body_state_tf_ = tfBuffer_.lookupTransform("base", "odom", ros::Time::now());
+            // Use ros::Time(0) to prevent warning of `extrapolate to future`
             body_state_tf_ = tfBuffer_.lookupTransform("odom", "base", ros::Time(0));
             recv_body_state_ = true;
         }
@@ -201,10 +212,20 @@ public:
             update_exp_path();
             update_robot_state();
             gridmap_interface_.lockMapUpdate();
-            // BUG: if robot_state_ feedback is not in a good state, the planner will make it worse.
-            next_planned_state_ = CONTACT_PLANNER::pathTrackPlanner(robot_state_, exp_path_, gridmap_interface_.getMap(), true, 100);
+            bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
+                                                         gridmap_interface_.getMap(), true, 100);
             gridmap_interface_.unlockMapUpdate();
-            whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_), transRobotState(next_planned_state_));
+            if (ret)
+            {
+                whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                        transRobotState(next_planned_state_));
+            }
+            else
+            {
+                ROS_INFO("MCTS failed to plan, reset to nominal state.");
+                whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                        transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
+            }
             traj_planner();
         }
     }
@@ -224,8 +245,15 @@ public:
         }
         for (size_t k = 0; k < 6; ++k)
         {
-            footend_now.emplace_back(robot_state_.feetPosition[k] -
-                                     Eigen::Vector3d(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
+            // xyz rpy robot_state.pose to Isometry3d
+            tf2::Transform transform;
+            tf2::Quaternion quaternion;
+            quaternion.setRPY(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw);
+            transform.setOrigin(tf2::Vector3(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
+            transform.setRotation(quaternion);
+            Eigen::Isometry3d pose = tf2::transformToEigen(tf2::toMsg(transform));
+            // inverse transform
+            footend_now.emplace_back(pose.inverse() * robot_state_.feetPosition[k]);
         }
         robot_interface_.pub_joint_state_from_footendpos(footend_now);
     }
@@ -249,12 +277,6 @@ public:
         else
         {
             // TODO: time stamp?
-            // robot_state_.pose.x = body_state_.pose.position.x;
-            // robot_state_.pose.y = body_state_.pose.position.y;
-            // robot_state_.pose.z = body_state_.pose.position.z;
-            // robot_state_.pose.roll = body_state_.eular.roll;
-            // robot_state_.pose.pitch = body_state_.eular.pitch;
-            // robot_state_.pose.yaw = body_state_.eular.yaw;
             robot_state_.pose.x = body_state_tf_.transform.translation.x;
             robot_state_.pose.y = body_state_tf_.transform.translation.y;
             robot_state_.pose.z = body_state_tf_.transform.translation.z;
@@ -265,16 +287,19 @@ public:
             tf2::Matrix3x3(q).getRPY(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw);
 
             // FIXME: gaitToNow? default 0
+            std::vector<Eigen::Vector3d> footend_vis;
             for (int i = 0; i < 6; ++i)
             {
                 robot_state_.gaitToNow[i] = MDT::SUPPORT_FLAG; // use FootState.contact?
                 robot_state_.faultStateToNow[i] = MDT::NORMAL_LEG_FLAG;
                 // Absolute foot position
-                robot_state_.feetPosition[i].x() = foot_state_.position[i].x + body_state_tf_.transform.translation.x;
-                robot_state_.feetPosition[i].y() = foot_state_.position[i].y + body_state_tf_.transform.translation.y;
-                robot_state_.feetPosition[i].z() = foot_state_.position[i].z + body_state_tf_.transform.translation.z;
+                robot_state_.feetPosition[i] = tf2::transformToEigen(body_state_tf_.transform) *
+                                               Eigen::Vector3d(foot_state_.position[i].x, foot_state_.position[i].y, foot_state_.position[i].z);
                 robot_state_.feetNormalVector[i] << 0, 0, 1; // TODO: use gridmap normal
+                footend_vis.emplace_back(robot_state_.feetPosition[i]);
             }
+            visualizer_.delAll();
+            visualizer_.visSphere(footend_vis, 0.02);
             // FIXME: cmd_ should be under robot frame
             // if (cmd_.linear.x != 0)
             //     robot_state_.moveDirection = atan2(cmd_.linear.y, cmd_.linear.x);
