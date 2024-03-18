@@ -90,7 +90,10 @@ catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
 FakeFeedback | Planning:
 
 ```bash
-roslaunch fast_legged_planner elspider_air_simple_planner.launch fake_feedback:=true
+roslaunch fast_legged_planner elspider_air_simple_planner.launch \
+fake_feedback:=true \
+sim:=true \
+joystick_type:=keyboard_sim
 ```
 
 
@@ -111,7 +114,7 @@ roslaunch fast_legged_planner elspider_air_simple_planner.launch sim:=true
 Hardware | Perception & Planning & Control:
 
 ```bash
-# Terminal1: start HexapodSoftware Gazebo simulation
+# Terminal1: start HexapodSoftware Hardware
 # Get in to sudo mode
 sudo su
 # Start HexapodSoftware (after source the workspace)

@@ -52,7 +52,14 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
         std::cout << "Warning: border_.size() < 3" << std::endl;
         return false;
     }
-    benchmark_.record("Intersect Border", RecordType::CRITICAL);
+    double border_length = 0;
+    for (uint i = 0; i < border_.size() - 1; i++)
+    {
+        auto delta = border_[i + 1] - border_[i];
+        border_length += sqrt(delta[0] * delta[0] + delta[1] * delta[1]);
+    }
+    std::string msg = "Intersect Border - Length: " + to_string(border_length);
+    benchmark_.record(msg, RecordType::CRITICAL);
 
     // Concave Points
     findConcavePoint(border_, concave_pts_);
