@@ -174,6 +174,6 @@ bool SingleLegKin::getJacobian(const Eigen::Vector3d &joints, Eigen::Matrix3Xd &
     // IMPORTANT: DONOT USE WORLD
     pinocchio::getFrameJacobian(model_, data_, model_.getFrameId(end_effector_name_), pinocchio::LOCAL_WORLD_ALIGNED,
                                 J);
-    jac = rot_offset_ * mirror_offset_mat_ * J.topRows(3);
+    jac = rot_offset_ * mirror_offset_mat_ * J.topRows(3) * joint_dir_mat_;
     return true;
 }

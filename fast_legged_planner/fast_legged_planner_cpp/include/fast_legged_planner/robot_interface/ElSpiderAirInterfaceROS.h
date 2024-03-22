@@ -53,7 +53,6 @@ public:
     void pub_shadow_joint_state(const std::vector<double> &q);
     void pub_shadow_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
 
-
     // HexapodSoftware
     /**
      * @brief Publish foot command from foot end position
@@ -61,4 +60,8 @@ public:
      * @param footendpos
      */
     void pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
+
+    void pub_footcmd_from_footendcmd(const std::vector<Eigen::Vector3d> &footendpos,
+                                     const std::vector<Eigen::Vector3d> &footendvel,
+                                     const std::vector<Eigen::Vector3d> &footendeffort);
 };

@@ -30,6 +30,7 @@ set(GRID_MAP_SET
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+# PROBLEM: The dependency may be overwrite by the next find_package(catkin)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
@@ -257,6 +258,17 @@ target_link_libraries(elspider_air_simple_planner
   ${PROJECT_NAME}
   fast_legged_planner_cpp
   mcts_planner
+)
+
+# Tests
+add_executable(test_robot_interface_rviz test/test_robot_interface_rviz.cpp)
+target_include_directories(test_robot_interface_rviz PRIVATE
+  fast_legged_planner_cpp/include
+)
+target_link_libraries(test_robot_interface_rviz
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+  fast_legged_planner_cpp
 )
 
 #############

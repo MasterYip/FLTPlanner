@@ -100,6 +100,8 @@ namespace ros_visualizer
         void delType(const VisType &type);
         void delAll(void);
 
+        void visArrow(const Eigen::Vector3d &start, const Eigen::Vector3d &end, const VisStyle &style = TYPE_ARROW.style);
+        void delArrow(void);
         void visCurve(const std::vector<Eigen::Vector3d> &curve, const VisStyle &style = TYPE_CURVE.style);
         void delCurve(void);
         void visSphere(const Eigen::Vector3d &sphere, double radius=TYPE_SPHERE.style.x, const VisStyle &style = TYPE_SPHERE.style);

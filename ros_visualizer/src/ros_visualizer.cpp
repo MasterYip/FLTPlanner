@@ -62,6 +62,49 @@ namespace ros_visualizer
         marker_id_ptr_ = 0;
     }
 
+    void ROSVisualizer::visArrow(const Eigen::Vector3d &start, const Eigen::Vector3d &end, const VisStyle &style)
+    {
+        visualization_msgs::Marker marker;
+        // Populate marker fields
+        marker.header.frame_id = frame_id_;
+        marker.header.stamp = ros::Time::now();
+        marker.ns = TYPE_ARROW.name_space;
+        marker.id = marker_id_ptr_;
+        marker.type = TYPE_ARROW.marker_type;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = style.x;
+        marker.scale.y = style.y;
+        marker.scale.z = style.z;
+        marker.color.r = style.r;
+        marker.color.g = style.g;
+        marker.color.b = style.b;
+        marker.color.a = style.a;
+
+        // Populate marker points
+        geometry_msgs::Point p1;
+        p1.x = start.x();
+        p1.y = start.y();
+        p1.z = start.z();
+        marker.points.push_back(p1);
+
+        geometry_msgs::Point p2;
+        p2.x = end.x();
+        p2.y = end.y();
+        p2.z = end.z();
+        marker.points.push_back(p2);
+
+        marker_array_.markers.push_back(marker);
+        marker_pub_.publish(marker_array_);
+
+        marker_id_ptr_++;
+    }
+
+    void ROSVisualizer::delArrow()
+    {
+        delType(TYPE_ARROW);
+    }
+
     void ROSVisualizer::visCurve(const std::vector<Eigen::Vector3d> &curve, const VisStyle &style)
     {
         visualization_msgs::Marker marker;

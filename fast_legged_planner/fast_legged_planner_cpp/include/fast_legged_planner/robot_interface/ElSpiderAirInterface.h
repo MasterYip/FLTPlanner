@@ -66,4 +66,9 @@ public:
         }
         return q;
     }
+
+    ElSpiderKin &getRobotKin()
+    {
+        return robot_kin;
+    }
 };
