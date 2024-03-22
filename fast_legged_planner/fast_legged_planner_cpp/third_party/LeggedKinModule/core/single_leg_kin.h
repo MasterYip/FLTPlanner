@@ -93,4 +93,6 @@ class SingleLegKin
                               uint iter = 10);
     bool forwardKin(const Eigen::Vector3d &joints, Eigen::Vector3d &pos);
     bool forwardKinConstraint(const Eigen::Vector3d &joints, Eigen::Vector3d &pos);
+    
+    bool getJacobian(const Eigen::Vector3d &joints, Eigen::Matrix3Xd &jac);
 };

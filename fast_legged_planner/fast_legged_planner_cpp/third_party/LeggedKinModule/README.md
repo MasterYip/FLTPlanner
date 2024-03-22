@@ -17,11 +17,11 @@ A kinematic module for legged robots which have leg-symmetry using Pinocchio &am
 
 2. Generate IKFast
 
-   Use [IKFast_warpper](https://github.com/MasterYip/IKFast_warpper) to generate cpp library named `ikfast_leg_lib` with IK algorithm in namespace `ikfast_leg`.
+   Use [IKFast_wrapper](https://github.com/MasterYip/IKFast_wrapper) to generate cpp library named `ikfast_leg_lib` with IK algorithm in namespace `ikfast_leg`.
 
    Then put it in `config` folder.
 
-   > HexLab repo: [IKFast_warpper](https://github.com/HITSME-HexLab/IKFast_warpper)
+   > HexLab repo: [IKFast_wrapper](https://github.com/HITSME-HexLab/IKFast_wrapper)
 
 3. Write your robot own kinematic module
 
@@ -64,12 +64,25 @@ Eigen::Vector3d ik_approx_point_ = Eigen::Vector3d::Zero();
 - [x] Do dichotomy search outside of IKFast_warpper
 - [x] Consider for code reusability
 - [ ] Add Jacobian & Hessian(Jacobian time derivative) support
+- [ ] Add dichotomy iter arg for robot interface
 
 ## Note
 
 - **`pinocchio` will conflict with `boost`**, which should be included after `pinocchio`
 
   > USE_PINOCCHIO macro is reserved for setting pinocchio & boost include order
+
+## Cite this repo
+
+```bibtex
+@online{leggedkinmodule_repo,
+  author = {Raymon Yip},
+  title = {LeggedKinModule},
+  year = 2024,
+  url = {https://github.com/MasterYip/LeggedKinModule},
+  urldate = {2024-02-25}
+}
+```
 
 ## Contribution
 

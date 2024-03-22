@@ -27,5 +27,10 @@ int main()
             printf("IK: %.4f, %.4f, %.4f\n", sol[0], sol[1], sol[2]);
         else
             printf("IK: no solution\n");
+
+        Eigen::Matrix3Xd jacobian;
+        elair.getJacobian(joints, jacobian, leg_index);
+        std::cout << "Jacobian:\n"
+             << jacobian << std::endl;
     }
 }

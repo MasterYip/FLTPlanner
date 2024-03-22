@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.0.2)
 
-project(LeggedKinModule)
+project(LeggedKinModule 
+    LANGUAGES CXX
+    VERSION 0.1.0)
 
 # Settings
+set(SHARED_VERSION ${PROJECT_VERSION_MAJOR})
+set(LIB_TYPE SHARED) # SHARED or STATIC
 set(BUILD_GTESTING OFF)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -29,7 +33,11 @@ file(GLOB_RECURSE SOURCES core/*.cpp)
 list(APPEND INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/core ${CMAKE_CURRENT_SOURCE_DIR}/config ${pinocchio_INCLUDE_DIRS} ${IKFAST_DIR})
 
 add_subdirectory(${IKFAST_DIR})
-add_library(${PROJECT_NAME} ${SOURCES})
+add_library(${PROJECT_NAME} ${LIB_TYPE} ${SOURCES})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${SHARED_VERSION}
+)
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDES}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/config>

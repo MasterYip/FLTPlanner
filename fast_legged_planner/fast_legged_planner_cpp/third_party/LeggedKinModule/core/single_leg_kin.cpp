@@ -161,3 +161,19 @@ bool SingleLegKin::forwardKinConstraint(const Eigen::Vector3d &joints, Eigen::Ve
     }
     return forwardKin(joints, pos);
 }
+
+bool SingleLegKin::getJacobian(const Eigen::Vector3d &joints, Eigen::Matrix3Xd &jac)
+{
+    pinocchio::computeJointJacobians(model_, data_, joint_dir_mat_ * joints);
+    // void pinocchio::getFrameJacobian(const ModelTpl<Scalar, Options, JointCollectionTpl> &model,
+    //                                  DataTpl<Scalar, Options, JointCollectionTpl> &data,
+    //                                  const FrameIndex frame_id,
+    //                                  const ReferenceFrame rf,
+    //                                  const Eigen::MatrixBase<Matrix6xLike> &J);
+    Eigen::MatrixXd J(6, 3);
+    // IMPORTANT: DONOT USE WORLD
+    pinocchio::getFrameJacobian(model_, data_, model_.getFrameId(end_effector_name_), pinocchio::LOCAL_WORLD_ALIGNED,
+                                J);
+    jac = rot_offset_ * mirror_offset_mat_ * J.topRows(3);
+    return true;
+}
