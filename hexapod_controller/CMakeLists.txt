@@ -52,6 +52,7 @@ find_package(pinocchio REQUIRED)
 add_message_files(
   FILES
   FootCmd.msg
+  FootState.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -125,9 +126,13 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/hexapod_controller.cpp
-# )
+add_library(${PROJECT_NAME}
+  src/vmc_controller.cpp
+)
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${PINOCCHIO_LIBRARIES}
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
