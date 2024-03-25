@@ -11,6 +11,8 @@
 
 #include "hexapod_controller/vmc_controller.hpp"
 
+#include <qpOASES.hpp>
+
 pinocchio::SE3 transformToSE3(const geometry_msgs::TransformStamped &tf)
 {
     return pinocchio::SE3(Eigen::Quaterniond(tf.transform.rotation.w, tf.transform.rotation.x,
@@ -134,6 +136,7 @@ bool getExpWrench(const double mass,
  *
  * @param exp_wrench Expected wrench in WORLD frame
  * @param com_pose   COM pose in WORLD frame
+ * @param contact_flag Contact flag
  * @param foot_pos   Foot positions in BASE frame
  * @param grf        Ground reaction forces in BASE frame
  * @return true
@@ -141,9 +144,50 @@ bool getExpWrench(const double mass,
  */
 bool getGroundReactionForce(const pinocchio::Force &exp_wrench,
                             const pinocchio::SE3 &com_pose,
+                            const hex_contact_flag_t contact_flag,
                             const std::vector<Eigen::Vector3d> foot_pos,
                             std::vector<Eigen::Vector3d> &grf)
 {
+    matrix_t Q(6, 18);
+    Q.setZero();
+    for (size_t i = 0; i < 6; ++i)
+    {
+        if (contact_flag[i])
+        {
+            Q.block(0, 3 * i, 3, 3) = matrix_t::Identity(3, 3);
+            Q.block(3, 3 * i, 3, 3) = -pinocchio::crossM(foot_pos[i]);
+        }
+    }
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> H = Q.transpose() * Q;
+    vector_t g = Q.transpose() * com_pose.actInv(exp_wrench).toVector(); // TODO: Test it
+    Task constraints = formulateFrictionConeTask(contact_flag, cfg_.mu);
+    size_t numConstraints = constraints.b_.size() + constraints.f_.size();
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> A(numConstraints, 18);
+    A << constraints.a_,
+        constraints.d_;
+    lbA << constraints.b_,                                       // Equality constraints
+        -qpOASES::INFTY * vector_t::Ones(constraints.f_.size()); // Inequality constraints
+    ubA << constraints.b_,
+        constraints.f_;
+
+    auto qpProblem = qpOASES::QProblem(getNumDecisionVars(), numConstraints);
+    qpOASES::Options options;
+    options.setToMPC();
+    options.printLevel = qpOASES::PL_LOW;
+    options.enableEqualities = qpOASES::BT_TRUE;
+    qpProblem.setOptions(options);
+    int nWsr = 20;
+    qpProblem.init(H.data(), g.data(), A.data(), nullptr, nullptr, lbA.data(), ubA.data(), nWsr);
+    vector_t qpSol(getNumDecisionVars());
+
+    qpProblem.getPrimalSolution(qpSol.data());
+    for (size_t i = 0; i < 6; ++i)
+    {
+        if (contact_flag[i])
+        {
+            grf[i] = qpSol.segment<3>(3 * i);
+        }
+    }
 }
 
 void VMCController::controllLoop()
@@ -164,4 +208,54 @@ void VMCController::run()
         ros::spinOnce();
         loop_rate.sleep();
     }
+}
+
+Task formulateFrictionConeTask(const hex_contact_flag_t contact_flag,
+                               const double mu)
+{
+    int numContacts = 0;
+    for (size_t i = 0; i < 6; ++i)
+    {
+        if (contact_flag[i])
+        {
+            numContacts++;
+        }
+    }
+    // Equality constraint: a * lambda = b
+    matrix_t a(3 * (6 - numContacts), 18);
+    a.setZero();
+    size_t j = 0;
+    for (size_t i = 0; i < 6; ++i)
+    {
+        if (!contact_flag[i])
+        {
+            // Non-contact, let lambda (contact force) be 0
+            a.block(3 * j++, 3 * i, 3, 3) = matrix_t::Identity(3, 3);
+        }
+    }
+    vector_t b(a.rows());
+    b.setZero();
+
+    // Inequality constraint: d * lambda <= f
+    matrix_t frictionPyramic(5, 3); // clang-format off
+    // H-rep of the friction cone
+    frictionPyramic << 0, 0, -1,
+                      1, 0, -mu,
+                      -1, 0, -mu,
+                      0, 1, -mu,
+                      0,-1, -mu; // clang-format on
+
+    // matrix_t d(5 * numContacts + 3 * (6 - numContacts), 18); // Why adding 3 * (6 - numContacts) here?
+    matrix_t d(5 * numContacts, 18);
+    d.setZero();
+    j = 0;
+    for (size_t i = 0; i < 6; ++i)
+    {
+        if (contact_flag[i])
+        {
+            d.block(5 * j++, 3 * i, 5, 3) = frictionPyramic;
+        }
+    }
+    vector_t f = Eigen::VectorXd::Zero(d.rows());
+    return {a, b, d, f};
 }

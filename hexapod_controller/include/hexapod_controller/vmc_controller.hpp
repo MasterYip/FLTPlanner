@@ -30,6 +30,10 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 /* internal project header files */
+#include "hexapod_controller/Task.h"
+
+
+using hex_contact_flag_t = std::array<bool, 6>;
 
 struct VMCConfig
 {
