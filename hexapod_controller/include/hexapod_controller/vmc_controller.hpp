@@ -19,7 +19,7 @@
 
 /* external project header files */
 #include <pinocchio/spatial/se3.hpp>
-#include <pinocchio/spatial/log.hpp>
+#include <pinocchio/spatial/explog.hpp>
 #include <pinocchio/spatial/motion.hpp>
 #include <pinocchio/spatial/force.hpp>
 #include <hexapod_controller/FootCmd.h>
@@ -29,6 +29,8 @@
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
+#include <nav_msgs/Odometry.h>
+#include "ros_visualizer/ros_visualizer.hpp"
 /* internal project header files */
 #include "hexapod_controller/Task.h"
 
@@ -64,8 +66,8 @@ struct VMCConfig
         nh.param("gravity", gravity, 9.81);
         nh.param("loop_rate", loop_rate, 200.0);
 
-        nh.param("Kp", Kp, 1.0);
-        nh.param("Kd", Kd, 2, 0);
+        nh.param("Kp", Kp, 25.0);
+        nh.param("Kd", Kd, 10.0);
         // Topics
         nh.param("exp_pose_topic_name", exp_pose_topic_name, std::string("/exp_odom"));
         nh.param("fdb_pose_topic_name", fdb_pose_topic_name, std::string("/torso_odom"));
@@ -118,17 +120,19 @@ private:
     hexapod_controller::FootCmd foot_cmd_;
     ros::Publisher foot_cmd_pub_;
 
+    // Misc
+    ros_visualizer::ROSVisualizer rosvis_;
+
 public:
     VMCController(ros::NodeHandle &nh);
     bool fdbPoseLookup();
-    void expPoseCallback(const geometry_msgs::TransformStamped &msg);
+    void fdbPoseCallback(const nav_msgs::Odometry &msg);
+    void expPoseCallback(const nav_msgs::Odometry &msg);
     void fdbFootStateCallback(const hexapod_controller::FootState &msg);
     void expFootStateCallback(const hexapod_controller::FootState &msg);
 
-
-    bool getGroundReactionForce(const pinocchio::Force &exp_wrench,
-                                const std::vector<Eigen::Vector3d> foot_pos,
-                                std::vector<Eigen::Vector3d> &grf);
     void controllLoop();
     void run();
+
+    void test_getExpAcc();
 };

@@ -10,9 +10,11 @@ project(hexapod_controller)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  tf2_ros
   geometry_msgs
   message_generation
   qpoases_catkin
+  ros_visualizer
 )
 
 ## System dependencies are found with CMake's conventions
@@ -143,7 +145,12 @@ target_link_libraries(${PROJECT_NAME}
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/hexapod_controller_node.cpp)
+add_executable(test_getExpAcc test/test_getExpAcc.cpp)
+target_link_libraries(test_getExpAcc
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${PINOCCHIO_LIBRARIES}
+)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

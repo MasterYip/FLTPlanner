@@ -195,7 +195,7 @@ namespace ros_visualizer
         delType(TYPE_SPHERE);
     }
 
-    void ROSVisualizer::visCube(const std::vector<Eigen::Vector3d> &cubes, const VisStyle &style)
+    void ROSVisualizer::visCube(const std::vector<Eigen::Vector3d> &cubes, const Eigen::Vector4d &quat, const VisStyle &style)
     {
         visualization_msgs::Marker marker;
         // Populate marker fields
@@ -205,7 +205,10 @@ namespace ros_visualizer
         marker.id = marker_id_ptr_;
         marker.type = TYPE_CUBE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
-        marker.pose.orientation.w = 1.0;
+        marker.pose.orientation.w = quat(0);
+        marker.pose.orientation.x = quat(1);
+        marker.pose.orientation.y = quat(2);
+        marker.pose.orientation.z = quat(3);
         marker.scale.x = style.x;
         marker.scale.y = style.y;
         marker.scale.z = style.z;
@@ -228,6 +231,13 @@ namespace ros_visualizer
         marker_pub_.publish(marker_array_);
 
         marker_id_ptr_++;
+    }
+
+    void ROSVisualizer::visCube(const Eigen::Vector3d &cube, const Eigen::Vector4d &quat, const VisStyle &style)
+    {
+        std::vector<Eigen::Vector3d> cubes;
+        cubes.push_back(cube);
+        visCube(cubes, quat, style);
     }
 
     void ROSVisualizer::delCube()
