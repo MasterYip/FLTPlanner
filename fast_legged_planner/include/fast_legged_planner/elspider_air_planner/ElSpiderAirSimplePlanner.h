@@ -336,7 +336,9 @@ public:
         {
             state_traj = whole_body_planner_.get_state_traj(0);
             odom_interp = state_traj.eval_torso_traj(t);
+            // Footend position in world frame
             footend_interp = state_traj.eval_foot_traj(t);
+            // Convert to base frame
             for (size_t k = 0; k < 6; ++k)
             {
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
