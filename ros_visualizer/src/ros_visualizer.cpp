@@ -195,6 +195,7 @@ namespace ros_visualizer
         delType(TYPE_SPHERE);
     }
 
+    // NOTE: for multiple cubes it might rotate the frame first and then draw cubes in the rotated frame
     void ROSVisualizer::visCube(const std::vector<Eigen::Vector3d> &cubes, const Eigen::Vector4d &quat, const VisStyle &style)
     {
         visualization_msgs::Marker marker;
@@ -235,9 +236,35 @@ namespace ros_visualizer
 
     void ROSVisualizer::visCube(const Eigen::Vector3d &cube, const Eigen::Vector4d &quat, const VisStyle &style)
     {
-        std::vector<Eigen::Vector3d> cubes;
-        cubes.push_back(cube);
-        visCube(cubes, quat, style);
+        visualization_msgs::Marker marker;
+        // Populate marker fields
+        marker.header.frame_id = frame_id_;
+        marker.header.stamp = ros::Time::now();
+        marker.ns = TYPE_CUBE.name_space;
+        marker.id = marker_id_ptr_;
+        marker.type = TYPE_CUBE.marker_type;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position.x = cube.x();
+        marker.pose.position.y = cube.y();
+        marker.pose.position.z = cube.z();
+        marker.pose.orientation.w = quat(0);
+        marker.pose.orientation.x = quat(1);
+        marker.pose.orientation.y = quat(2);
+        marker.pose.orientation.z = quat(3);
+        marker.scale.x = style.x;
+        marker.scale.y = style.y;
+        marker.scale.z = style.z;
+        marker.color.r = style.r;
+        marker.color.g = style.g;
+        marker.color.b = style.b;
+        marker.color.a = style.a;
+
+        marker.points.push_back(geometry_msgs::Point());
+
+        marker_array_.markers.push_back(marker);
+        marker_pub_.publish(marker_array_);
+
+        marker_id_ptr_++;
     }
 
     void ROSVisualizer::delCube()

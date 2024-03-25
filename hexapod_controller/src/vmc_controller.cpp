@@ -90,6 +90,7 @@ Task formulateFrictionConeTask(const hex_contact_flag_t contact_flag,
  * @param[out] exp_acc  Expected acceleration
  * @return true
  * @return false
+ *
  */
 bool getExpAcc(const pinocchio::SE3 &com_pose,
                const pinocchio::Motion &com_vel,
@@ -98,8 +99,10 @@ bool getExpAcc(const pinocchio::SE3 &com_pose,
                const double Kp, const double Kd,
                pinocchio::Motion &exp_acc)
 {
-    pinocchio::Motion err_dir = pinocchio::log6(com_pose.actInv(exp_pose));
+    pinocchio::Motion err_dir = com_pose.act(pinocchio::log6(com_pose.actInv(exp_pose)));
     pinocchio::Motion err_vel = exp_vel - com_vel;
+    // FIXME: Why err_dir.linear is not correct (aMb.act(motion) may not be the one we want)
+    err_dir.linear() = exp_pose.translation() - com_pose.translation();
     exp_acc = Kp * err_dir + Kd * err_vel;
     return true;
 }
@@ -269,30 +272,40 @@ void VMCController::run()
 
 void VMCController::test_getExpAcc()
 {
-    ros::Rate loop_rate(50);
-    double interval = 0.02;
-    pinocchio::SE3 target_pose(Eigen::Quaterniond(1, 0, 0, 0), Eigen::Vector3d(0, 0, 0));
+    ros::Rate loop_rate(100);
+    double interval = 0.01;
+    // pinocchio::SE3 target_pose(Eigen::Quaterniond(0.9, 0, 0, 0.1), Eigen::Vector3d(0, 1, 0));
+    // pinocchio::SE3 target_pose(Eigen::Quaterniond(1, 0, 0, 0), Eigen::Vector3d(0, 0, 0));
+    pinocchio::SE3 target_pose = pinocchio::SE3::Random();
     pinocchio::Motion target_vel(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0));
     ros_visualizer::VisStyle target_style(1, 0.5, 0.5, 1, 0.2);
-    // pinocchio::SE3 state_pose(Eigen::Quaterniond(0.707, 0, 0, 0.707), Eigen::Vector3d(1, 1, 0));
+    // pinocchio::SE3 state_pose(Eigen::Quaterniond(1, 0, 0, 0), Eigen::Vector3d(1, 0, 0));
+    // pinocchio::SE3 state_pose(Eigen::Quaterniond(0.707, 0, 0, 0.707), Eigen::Vector3d(1, 0, 0));
     pinocchio::SE3 state_pose = pinocchio::SE3::Random();
-    pinocchio::Motion state_vel(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0));
+    pinocchio::Motion state_vel(Eigen::Vector3d(0, 3, 0), Eigen::Vector3d(0, 0, 0));
     ros_visualizer::VisStyle state_style(0.5, 1, 0.5, 0.5, 0.2);
 
     pinocchio::Motion exp_acc;
     getExpAcc(state_pose, state_vel, target_pose, target_vel, cfg_.Kp, cfg_.Kd, exp_acc);
-    while (exp_acc.linear().norm() > 1e-2 && exp_acc.angular().norm() > 1e-2)
+    while (exp_acc.linear().norm() > 1e-1 || exp_acc.angular().norm() > 1e-1)
     {
         getExpAcc(state_pose, state_vel, target_pose, target_vel, cfg_.Kp, cfg_.Kd, exp_acc);
         state_vel.linear() += exp_acc.linear() * interval;
         state_vel.angular() += exp_acc.angular() * interval;
         state_pose.translation() += state_vel.linear() * interval;
-        state_pose.rotation() = state_pose.rotation() * pinocchio::exp3(state_vel.angular() * interval);
+        state_pose.rotation() = pinocchio::exp3(state_vel.angular() * interval) * state_pose.rotation();
+        // Visualize
         rosvis_.delAll();
-        pinocchio::SE3::Quaternion quat(target_pose.rotation());
-        rosvis_.visCube(target_pose.translation(), quat.coeffs(), target_style); // Target
+        Eigen::Vector4d quat_vec;
+        pinocchio::SE3::Quaternion quat(target_pose.rotation()); // This is xyzw
+        quat_vec << quat.coeffs().w(), quat.coeffs().x(), quat.coeffs().y(), quat.coeffs().z();
+        rosvis_.visCube(target_pose.translation(), quat_vec, target_style); // Target
         quat = pinocchio::SE3::Quaternion(state_pose.rotation());
-        rosvis_.visCube(state_pose.translation(), quat.coeffs(), state_style); // State
+        quat_vec << quat.coeffs().w(), quat.coeffs().x(), quat.coeffs().y(), quat.coeffs().z();
+        rosvis_.visCube(state_pose.translation(), quat_vec, state_style); // State
+        rosvis_.visArrow(state_pose.translation(), state_pose.translation() + state_vel.linear() * 0.2);
+        rosvis_.visArrow(state_pose.translation(), state_pose.translation() + exp_acc.linear() * 0.04, ros_visualizer::VisStyle(1, 0, 0, 1, 0.04));
+        rosvis_.visCurve({state_pose.translation(), target_pose.translation()});
         ros::spinOnce();
         loop_rate.sleep();
     }
