@@ -34,13 +34,13 @@
 /* internal project header files */
 #include "hexapod_controller/Task.h"
 
-
 using hex_contact_flag_t = std::array<bool, 6>;
 
 struct VMCConfig
 {
     double mu;
     double mass;
+    Eigen::Matrix3d inertia;
     double gravity;
     double loop_rate; // Control rate
 
@@ -63,6 +63,9 @@ struct VMCConfig
     {
         nh.param("mu", mu, 0.5);
         nh.param("mass", mass, 30.0);
+        // TODO
+        inertia = Eigen::Matrix3d::Identity();
+        inertia.diagonal() << 0.3, 0.4, 0.5;
         nh.param("gravity", gravity, 9.81);
         nh.param("loop_rate", loop_rate, 200.0);
 
@@ -135,4 +138,5 @@ public:
     void run();
 
     void test_getExpAcc();
+    void test_getGrf();
 };

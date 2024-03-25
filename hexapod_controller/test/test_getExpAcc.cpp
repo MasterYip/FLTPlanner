@@ -18,7 +18,8 @@ int main(int argc, char **argv)
     VMCController controller(nh);
     while (ros::ok())
     {
-        controller.test_getExpAcc();
+        // controller.test_getExpAcc();
+        controller.test_getGrf();
     }
     return 0;
 }
