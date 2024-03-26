@@ -3,7 +3,7 @@
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
-    <arg name="sim" default="true" />
+    <arg name="sim" default="false" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
@@ -75,7 +75,8 @@
         <param name="sim" value="$(arg sim)" />
     </node>
     <!-- VMC Controller -->
-    <node pkg="hexapod_controller" type="test_vmc_controller" name="test_vmc_controller" output="screen">
+    <node pkg="hexapod_controller" type="vmc_controller_node" name="vmc_controller_node" output="screen">
+        <param name="sim" value="$(arg sim)" />
     </node>
 
     <!-- Robot related -->

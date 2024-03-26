@@ -38,6 +38,8 @@ using hex_contact_flag_t = std::array<bool, 6>;
 
 struct VMCConfig
 {
+    bool sim; // Gazebo | Hardware
+
     double mu;
     double mass;
     Eigen::Matrix3d inertia;
@@ -61,6 +63,7 @@ struct VMCConfig
     inline void
     loadParameters(const ros::NodeHandle &nh)
     {
+        nh.param("sim", sim, true);
         nh.param("mu", mu, 0.5);
         nh.param("mass", mass, 30.0);
         // TODO

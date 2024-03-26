@@ -225,6 +225,8 @@ bool VMCController::fdbPoseLookup()
         return false;
     }
     fdb_pose_ = transformToSE3(body_state_tf_);
+    // FIXME: should not be zero
+    fdb_vel_ = pinocchio::Motion::Zero();
     recv_fdb_pose_ = true;
     return true;
 }
@@ -304,7 +306,9 @@ void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
 
 void VMCController::controllLoop()
 {
-    // fdbPoseLookup();
+    if (!cfg_.sim)
+        fdbPoseLookup(); // FIXME: this do not consider robot velocity
+
     if (!(recv_exp_pose_ && recv_exp_foot_state_ && recv_fdb_foot_state_ && recv_fdb_pose_))
     {
         ROS_WARN("Not all states are received");
