@@ -164,7 +164,10 @@ bool getGroundReactionForce(const pinocchio::Force &exp_wrench,
         }
     }
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> H = Q.transpose() * Q;
-    vector_t g = -Q.transpose() * com_pose.actInv(exp_wrench).toVector(); // TODO: Test it
+    pinocchio::Force exp_wrench_base; // PROBLEM: It seems not correct to use com_pose.actInv(exp_wrench) here
+    exp_wrench_base.linear() = com_pose.rotation().transpose() * exp_wrench.linear(); // Handle the linear part
+    exp_wrench_base.angular() = com_pose.rotation().transpose() * exp_wrench.angular(); // Handle the angular part
+    vector_t g = -Q.transpose() * exp_wrench_base.toVector();                         // TODO: Test it
     Task constraints = formulateFrictionConeTask(contact_flag, mu);
     size_t numConstraints = constraints.b_.size() + constraints.f_.size();
     vector_t lbA(numConstraints), ubA(numConstraints);
@@ -197,7 +200,7 @@ bool getGroundReactionForce(const pinocchio::Force &exp_wrench,
     return ret;
 }
 
-VMCController::VMCController(ros::NodeHandle &nh) : tfListener_(tfBuffer_), rosvis_(nh)
+VMCController::VMCController(ros::NodeHandle &nh) : tfListener_(tfBuffer_), rosvis_(nh, "base", "visualizer_markers")
 {
     cfg_.loadParameters(nh);
     exp_foot_state_sub_ = nh.subscribe(cfg_.exp_foot_state_topic_name, 1, &VMCController::expFootStateCallback, this);
@@ -319,7 +322,7 @@ void VMCController::test_getGrf()
     double interval = 0.02;
     // pinocchio::Motion exp_acc(Eigen::Vector3d(1, 1, 0), Eigen::Vector3d(0, 0, 0));
     pinocchio::Force exp_wrench;
-    pinocchio::SE3 state_pose(Eigen::Quaterniond(1, 0, 0, 0), Eigen::Vector3d(0, 0, 0.3));
+    pinocchio::SE3 state_pose(Eigen::Quaterniond(1, 0, 0, 0), Eigen::Vector3d(0, 0, 0));
     // Contact flag
     hex_contact_flag_t contact_flag;
     contact_flag.fill(true);
@@ -336,7 +339,7 @@ void VMCController::test_getGrf()
     while (ros::ok())
     {
         time += interval;
-        exp_wrench = pinocchio::Force(Eigen::Vector3d(sin(time)*0.2, cos(time)*0.2, 1), Eigen::Vector3d(0, 0, 0));
+        exp_wrench = pinocchio::Force(Eigen::Vector3d(sin(time) * 0.2, cos(time) * 0.2, 1), Eigen::Vector3d(0, 0, 0.3));
         getGroundReactionForce(exp_wrench, state_pose, cfg_.mu, contact_flag, foot_pos, grf);
         rosvis_.delAll();
         // Foot
@@ -352,6 +355,68 @@ void VMCController::test_getGrf()
             rosvis_.visArrow(foot_pos[i], foot_pos[i] + grf[i], ros_visualizer::VisStyle(1, 0, 0, 1, 0.01));
         }
         rosvis_.visArrow(state_pose.translation(), state_pose.translation() + exp_wrench.linear(), ros_visualizer::VisStyle(0, 0, 1, 1, 0.04));
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+}
+
+void VMCController::test_fdbCalcGrf()
+{
+    // ros::Rate loop_rate(cfg_.loop_rate);
+    ros::Rate loop_rate(10);
+    // while (!(recv_exp_pose_ && recv_exp_foot_state_ && recv_fdb_foot_state_ && recv_fdb_pose_))
+    while (!(recv_fdb_foot_state_ && recv_fdb_pose_))
+    {
+        ROS_WARN("Not all states are received");
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
+    // Expeccted
+    exp_pose_ = pinocchio::SE3::Identity();
+    exp_vel_ = pinocchio::Motion::Zero();
+
+    pinocchio::Motion exp_acc;
+    pinocchio::Force exp_wrench;
+    std::vector<Eigen::Vector3d> grf(6);
+    hex_contact_flag_t contact_flag;
+    contact_flag.fill(true);
+    std::vector<Eigen::Vector3d> foot_pos(6);
+    while (ros::ok())
+    {
+        getExpAcc(fdb_pose_, fdb_vel_, exp_pose_, exp_vel_, cfg_.Kp, cfg_.Kd, exp_acc);
+        exp_acc.linear().z() += cfg_.gravity;
+        getExpWrench(cfg_.mass, cfg_.inertia, fdb_pose_, fdb_vel_, exp_acc, exp_wrench);
+        std::cout << "Exp Wrench:\n"
+                  << exp_wrench << std::endl;
+        for (size_t i = 0; i < 6; ++i)
+        {
+            foot_pos.at(i) << fdb_foot_state_.position.at(i).x,
+                fdb_foot_state_.position.at(i).y,
+                fdb_foot_state_.position.at(i).z;
+        }
+        pinocchio::SE3 state_pose(Eigen::Quaterniond(1, 0, 0, 0), Eigen::Vector3d(0, 0, 0));
+        getGroundReactionForce(exp_wrench, fdb_pose_, cfg_.mu,
+                               contact_flag, foot_pos, grf);
+
+        // NOTE: rosvis is under frame base
+        double vis_scale = 0.002;
+        rosvis_.delAll();
+        // Foot
+        rosvis_.visSphere(foot_pos);
+        // Body
+        // Eigen::Vector4d quat_vec;
+        // pinocchio::SE3::Quaternion quat(fdb_pose_.rotation()); // This is xyzw
+        // quat_vec << quat.coeffs().w(), quat.coeffs().x(), quat.coeffs().y(), quat.coeffs().z();
+        rosvis_.visCube(Eigen::Vector3d::Zero(), Eigen::Vector4d(1, 0, 0, 0),
+                        ros_visualizer::VisStyle(0.5, 1, 0.5, 0.5, 0.1)); // State
+        // GRF
+        for (size_t i = 0; i < 6; ++i)
+        {
+            rosvis_.visArrow(foot_pos[i], foot_pos[i] + grf[i] * vis_scale,
+                             ros_visualizer::VisStyle(1, 0, 0, 1, 0.01));
+        }
+        rosvis_.visArrow(Eigen::Vector3d::Zero(), exp_wrench.linear() * vis_scale,
+                         ros_visualizer::VisStyle(0, 0, 1, 1, 0.04));
         ros::spinOnce();
         loop_rate.sleep();
     }

@@ -145,8 +145,8 @@ target_link_libraries(${PROJECT_NAME}
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(test_getExpAcc test/test_getExpAcc.cpp)
-target_link_libraries(test_getExpAcc
+add_executable(test_vmc_controller test/test_vmc_controller.cpp)
+target_link_libraries(test_vmc_controller
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${PINOCCHIO_LIBRARIES}

@@ -69,8 +69,8 @@ struct VMCConfig
         nh.param("gravity", gravity, 9.81);
         nh.param("loop_rate", loop_rate, 200.0);
 
-        nh.param("Kp", Kp, 100.0);
-        nh.param("Kd", Kd, 20.0);
+        nh.param("Kp", Kp, 1.0);
+        nh.param("Kd", Kd, 2.0);
         // Topics
         nh.param("exp_pose_topic_name", exp_pose_topic_name, std::string("/exp_odom"));
         nh.param("fdb_pose_topic_name", fdb_pose_topic_name, std::string("/torso_odom"));
@@ -137,6 +137,8 @@ public:
     void controllLoop();
     void run();
 
+    // Tests
     void test_getExpAcc();
     void test_getGrf();
+    void test_fdbCalcGrf();
 };
