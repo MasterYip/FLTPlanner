@@ -3,7 +3,7 @@
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
-    <arg name="sim" default="true" />
+    <arg name="sim" default="false" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->

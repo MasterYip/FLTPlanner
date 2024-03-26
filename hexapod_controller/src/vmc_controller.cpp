@@ -267,11 +267,11 @@ void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
     footcmd.header.stamp = ros::Time::now();
     footcmd.feedforward_type = 0; // Default 0, foot force feedforward
     std::vector<double> joint_kp, joint_kd;
-    if (0) // Hardware
+    if (!cfg_.sim) // Hardware
     {
         // joint_kp = {0.1, 0.15, 0.15};
         // joint_kd = {2, 2, 2};
-        joint_kp = {0.02, 0.02, 0.02};
+        joint_kp = {0.04, 0.04, 0.04};
         joint_kd = {1, 1, 1};
     }
     else // Gazebo
@@ -323,9 +323,10 @@ void VMCController::controllLoop()
     pinocchio::Motion exp_acc;
     pinocchio::Force exp_wrench;
     hex_contact_flag_t contact_flag;
-    std::vector<Eigen::Vector3d> foot_pos(6);
+    std::vector<Eigen::Vector3d> exp_foot_pos(6);
+    std::vector<Eigen::Vector3d> fdb_foot_pos(6);
     std::vector<Eigen::Vector3d> foot_vel(6, Eigen::Vector3d::Zero());
-    std::vector<Eigen::Vector3d> foot_effort(6);
+    std::vector<Eigen::Vector3d> foot_effort(6, Eigen::Vector3d::Zero());
     std::vector<Eigen::Vector3d> grf(6);
 
     getExpAcc(fdb_pose_, fdb_vel_, exp_pose_, exp_vel_, cfg_.Kp, cfg_.Kd, exp_acc);
@@ -334,13 +335,16 @@ void VMCController::controllLoop()
     getExpWrench(cfg_.mass, cfg_.inertia, fdb_pose_, fdb_vel_, exp_acc, exp_wrench);
     for (size_t i = 0; i < 6; ++i)
     {
-        foot_pos.at(i) << exp_foot_state_.position.at(i).x,
+        exp_foot_pos.at(i) << exp_foot_state_.position.at(i).x,
             exp_foot_state_.position.at(i).y,
             exp_foot_state_.position.at(i).z;
         contact_flag[i] = exp_foot_state_.contact.at(i);
+        fdb_foot_pos.at(i) << fdb_foot_state_.position.at(i).x,
+            fdb_foot_state_.position.at(i).y,
+            fdb_foot_state_.position.at(i).z;
     }
     getGroundReactionForce(exp_wrench, fdb_pose_, cfg_.mu,
-                           contact_flag, foot_pos, grf);
+                           contact_flag, fdb_foot_pos, grf);
     for (size_t i = 0; i < 6; ++i)
     {
         // foot_effort.at(i) = -grf.at(i);
@@ -348,21 +352,21 @@ void VMCController::controllLoop()
         foot_effort.at(i) = pid_grf_.at(i).update(-grf.at(i), foot_effort.at(i)) * cfg_.pidgrf_T + foot_effort.at(i);
     }
     // Pub foot_cmd
-    pubFootCmd(foot_pos, foot_vel, foot_effort);
+    pubFootCmd(exp_foot_pos, foot_vel, foot_effort);
 
     // Visualization
     // NOTE: rosvis is under frame `base`
     double vis_scale = 0.002;
     rosvis_.delAll();
     // Foot
-    rosvis_.visSphere(foot_pos);
+    rosvis_.visSphere(fdb_foot_pos);
     // Body
     rosvis_.visCube(Eigen::Vector3d::Zero(), Eigen::Vector4d(1, 0, 0, 0),
                     ros_visualizer::VisStyle(0.5, 1, 0.5, 0.5, 0.1)); // State
     // GRF
     for (size_t i = 0; i < 6; ++i)
     {
-        rosvis_.visArrow(foot_pos[i], foot_pos[i] + grf[i] * vis_scale,
+        rosvis_.visArrow(fdb_foot_pos[i], fdb_foot_pos[i] + grf[i] * vis_scale,
                          ros_visualizer::VisStyle(1, 0, 0, 1, 0.01));
     }
     rosvis_.visArrow(Eigen::Vector3d::Zero(), exp_wrench.linear() * vis_scale,

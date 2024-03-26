@@ -68,7 +68,7 @@ struct VMCConfig
     {
         nh.param("sim", sim, true);
         nh.param("mu", mu, 0.5);
-        nh.param("mass", mass, 30.0);
+        nh.param("mass", mass, 30.0); //30
         // TODO
         inertia = Eigen::Matrix3d::Identity();
         inertia.diagonal() << 0.3, 0.4, 0.5;

@@ -45,7 +45,7 @@ public:
     MCTStateTransfer(hexapod_State state0, hexapod_State state1, SwingTrajPlanner swing_traj_planner);
     pinocchio::SE3 eval_torso_traj(double t);
     PosList eval_foot_traj(double t, bool auto_opt = true);
-    std::array<bool, 6> eval_support_state(double t, double margin = 0.05);
+    std::array<bool, 6> eval_support_state(double t, double margin = 0.02);
     void opt_swing_traj(int index);
     bool opt_check(int index);
 };
