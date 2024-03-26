@@ -33,6 +33,7 @@
 #include "ros_visualizer/ros_visualizer.hpp"
 /* internal project header files */
 #include "hexapod_controller/Task.h"
+#include "hexapod_controller/MultiDimPID.h"
 
 using hex_contact_flag_t = std::array<bool, 6>;
 
@@ -49,6 +50,8 @@ struct VMCConfig
     // PID gains for expected pose accerleration
     // zeta = Kd/2/sqrt(Kp) for double integrator
     double Kp, Kd;
+
+    double pidgrf_Kp, pidgrf_lim, pidgrf_T, pidgrf_tau;
 
     // Topics
     std::string exp_pose_topic_name;
@@ -71,9 +74,16 @@ struct VMCConfig
         inertia.diagonal() << 0.3, 0.4, 0.5;
         nh.param("gravity", gravity, 9.81);
         nh.param("loop_rate", loop_rate, 200.0);
-
+        // Kp Kd for Accerleration PD
         nh.param("Kp", Kp, 1.0);
         nh.param("Kd", Kd, 2.0);
+
+        // Multi-dim PID for grf filtering
+        nh.param("pidgrf_Kp", pidgrf_Kp, 1.0);
+        nh.param("pidgrf_lim", pidgrf_lim, 100.0);
+        pidgrf_T = 1.0 / loop_rate;
+        pidgrf_tau = pidgrf_T / 2.0;
+
         // Topics
         nh.param("exp_pose_topic_name", exp_pose_topic_name, std::string("/exp_odom"));
         nh.param("fdb_pose_topic_name", fdb_pose_topic_name, std::string("/torso_odom"));
@@ -127,6 +137,7 @@ private:
     ros::Publisher foot_cmd_pub_;
 
     // Misc
+    std::vector<MultiDimPID> pid_grf_;
     ros_visualizer::ROSVisualizer rosvis_;
 
 public:

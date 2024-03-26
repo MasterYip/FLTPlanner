@@ -208,6 +208,12 @@ VMCController::VMCController(ros::NodeHandle &nh) : tfListener_(tfBuffer_), rosv
     exp_pose_sub_ = nh.subscribe(cfg_.exp_pose_topic_name, 1, &VMCController::expPoseCallback, this);
     fdb_pose_sub_ = nh.subscribe(cfg_.fdb_pose_topic_name, 1, &VMCController::fdbPoseCallback, this);
     foot_cmd_pub_ = nh.advertise<hexapod_controller::FootCmd>(cfg_.footcmd_topic_name, 1);
+
+    // GRF filter
+    for (uint i = 0; i < 6; i++)
+    {
+        pid_grf_.emplace_back(MultiDimPID(3, cfg_.pidgrf_Kp, 0.0, 0.0, cfg_.pidgrf_tau, cfg_.pidgrf_lim, 0.0, cfg_.pidgrf_T));
+    }
 }
 
 // Callbacks
@@ -337,7 +343,9 @@ void VMCController::controllLoop()
                            contact_flag, foot_pos, grf);
     for (size_t i = 0; i < 6; ++i)
     {
-        foot_effort.at(i) = -grf.at(i);
+        // foot_effort.at(i) = -grf.at(i);
+        // GRF PID filter
+        foot_effort.at(i) = pid_grf_.at(i).update(-grf.at(i), foot_effort.at(i)) * cfg_.pidgrf_T + foot_effort.at(i);
     }
     // Pub foot_cmd
     pubFootCmd(foot_pos, foot_vel, foot_effort);
