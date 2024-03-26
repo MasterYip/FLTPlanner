@@ -164,10 +164,10 @@ bool getGroundReactionForce(const pinocchio::Force &exp_wrench,
         }
     }
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> H = Q.transpose() * Q;
-    pinocchio::Force exp_wrench_base; // PROBLEM: It seems not correct to use com_pose.actInv(exp_wrench) here
-    exp_wrench_base.linear() = com_pose.rotation().transpose() * exp_wrench.linear(); // Handle the linear part
+    pinocchio::Force exp_wrench_base;                                                   // PROBLEM: It seems not correct to use com_pose.actInv(exp_wrench) here
+    exp_wrench_base.linear() = com_pose.rotation().transpose() * exp_wrench.linear();   // Handle the linear part
     exp_wrench_base.angular() = com_pose.rotation().transpose() * exp_wrench.angular(); // Handle the angular part
-    vector_t g = -Q.transpose() * exp_wrench_base.toVector();                         // TODO: Test it
+    vector_t g = -Q.transpose() * exp_wrench_base.toVector();                           // TODO: Test it
     Task constraints = formulateFrictionConeTask(contact_flag, mu);
     size_t numConstraints = constraints.b_.size() + constraints.f_.size();
     vector_t lbA(numConstraints), ubA(numConstraints);
@@ -249,6 +249,53 @@ void VMCController::expFootStateCallback(const hexapod_controller::FootState &ms
 {
     exp_foot_state_ = msg;
     recv_exp_foot_state_ = true;
+}
+
+void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                               const std::vector<Eigen::Vector3d> &footendvel,
+                               const std::vector<Eigen::Vector3d> &footendeffort)
+{
+    hexapod_controller::FootCmd footcmd;
+    footcmd.header.stamp = ros::Time::now();
+    footcmd.feedforward_type = 0; // Default 0, foot force feedforward
+    std::vector<double> joint_kp, joint_kd;
+    if (0) // Hardware
+    {
+        joint_kp = {0.1, 0.15, 0.15};
+        joint_kd = {2, 2, 2};
+    }
+    else // Gazebo
+    {
+        joint_kp = {1500, 3000, 3000};
+        joint_kd = {5, 7.5, 7.5};
+    }
+    for (int i = 0; i < 6; ++i)
+    {
+        geometry_msgs::Point pt;
+        pt.x = footendpos[i][0];
+        pt.y = footendpos[i][1];
+        pt.z = footendpos[i][2];
+        footcmd.foot_position.push_back(pt);
+        geometry_msgs::Vector3 vec3;
+        footcmd.joint_torque.push_back(vec3); // zero, not used
+        vec3.x = footendvel[i][0];
+        vec3.y = footendvel[i][1];
+        vec3.z = footendvel[i][2];
+        footcmd.foot_velocity.push_back(vec3);
+        vec3.x = footendeffort[i][0];
+        vec3.y = footendeffort[i][1];
+        vec3.z = footendeffort[i][2];
+        footcmd.foot_effort.push_back(vec3);
+        vec3.x = joint_kp[0];
+        vec3.y = joint_kp[1];
+        vec3.z = joint_kp[2];
+        footcmd.joint_kp.push_back(vec3);
+        vec3.x = joint_kd[0];
+        vec3.y = joint_kd[1];
+        vec3.z = joint_kd[2];
+        footcmd.joint_kd.push_back(vec3);
+    }
+    foot_cmd_pub_.publish(footcmd);
 }
 
 void VMCController::controllLoop()
@@ -362,8 +409,8 @@ void VMCController::test_getGrf()
 
 void VMCController::test_fdbCalcGrf()
 {
-    // ros::Rate loop_rate(cfg_.loop_rate);
-    ros::Rate loop_rate(10);
+    ros::Rate loop_rate(cfg_.loop_rate);
+    // ros::Rate loop_rate(10);
     // while (!(recv_exp_pose_ && recv_exp_foot_state_ && recv_fdb_foot_state_ && recv_fdb_pose_))
     while (!(recv_fdb_foot_state_ && recv_fdb_pose_))
     {
@@ -372,15 +419,19 @@ void VMCController::test_fdbCalcGrf()
         loop_rate.sleep();
     }
     // Expeccted
-    exp_pose_ = pinocchio::SE3::Identity();
+    // exp_pose_ = pinocchio::SE3::Identity();
+    exp_pose_ = fdb_pose_; // Keep the same
+    exp_pose_.translation().z() = 0.24; // Nominal height
     exp_vel_ = pinocchio::Motion::Zero();
-
+    // Vars
     pinocchio::Motion exp_acc;
     pinocchio::Force exp_wrench;
-    std::vector<Eigen::Vector3d> grf(6);
     hex_contact_flag_t contact_flag;
     contact_flag.fill(true);
+    std::vector<Eigen::Vector3d> grf(6);
     std::vector<Eigen::Vector3d> foot_pos(6);
+    std::vector<Eigen::Vector3d> foot_vel(6, Eigen::Vector3d::Zero());
+    std::vector<Eigen::Vector3d> foot_effort(6);
     while (ros::ok())
     {
         getExpAcc(fdb_pose_, fdb_vel_, exp_pose_, exp_vel_, cfg_.Kp, cfg_.Kd, exp_acc);
@@ -397,8 +448,15 @@ void VMCController::test_fdbCalcGrf()
         pinocchio::SE3 state_pose(Eigen::Quaterniond(1, 0, 0, 0), Eigen::Vector3d(0, 0, 0));
         getGroundReactionForce(exp_wrench, fdb_pose_, cfg_.mu,
                                contact_flag, foot_pos, grf);
+        for (size_t i = 0; i < 6; ++i)
+        {
+            foot_effort.at(i) = -grf.at(i);
+        }
+        // Pub foot_cmd
+        pubFootCmd(foot_pos, foot_vel, foot_effort);
 
-        // NOTE: rosvis is under frame base
+        // Visualization
+        // NOTE: rosvis is under frame `base`
         double vis_scale = 0.002;
         rosvis_.delAll();
         // Foot

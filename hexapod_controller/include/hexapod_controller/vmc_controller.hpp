@@ -134,7 +134,11 @@ public:
     void fdbFootStateCallback(const hexapod_controller::FootState &msg);
     void expFootStateCallback(const hexapod_controller::FootState &msg);
 
-    void controllLoop();
+    void pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                    const std::vector<Eigen::Vector3d> &footendvel,
+                    const std::vector<Eigen::Vector3d> &footendeffort);
+
+        void controllLoop();
     void run();
 
     // Tests
