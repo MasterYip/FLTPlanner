@@ -1,5 +1,5 @@
 /**
- * @file ElSpiderAirForceComPlanner.h
+ * @file ElSpiderAirVMCPlanner.h
  * @author Master Yip (2205929492@qq.com)
  * @brief
  * @version 0.1
@@ -37,7 +37,7 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
-
+#include <nav_msgs/Odometry.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_listener.h>
@@ -119,45 +119,53 @@ MDT::RobotState getInitState(MDT::Pose robotPose = {1, 0, USER::norminalTrunkHei
     return initRobotState(robotPose, gaitToNow, moveDir);
 }
 
-class ElSpiderAirForceComPlanner // Force compensation planner
+class ElSpiderAirVMCPlanner // Force compensation planner
 {
 private:
     ros::Rate rate_;
     ros::NodeHandle nh_;
 
-    // Cmd
+    // Joystick cmd subscribe
     ros::Subscriber cmd_sub_;
     geometry_msgs::Twist cmd_;
 
-    // HexapodSoftware Interface
+    /// Feedback subscribe
+    // Foot state feedback
     ros::Subscriber foot_state_sub_;
     fast_legged_planner::FootState foot_state_;
     bool recv_foot_state_ = false;
 
-    // IMU
-    // ros::Subscriber body_state_sub_; // not used
-    // fast_legged_planner::BodyState body_state_; // not used
+    /// Command publish
+    ros::Publisher exp_foot_state_pub_;
+    fast_legged_planner::FootState exp_foot_state_;
+    ros::Publisher exp_body_state_pub_;
+    nav_msgs::Odometry exp_body_state_;
+
+    // Odometry
     tf2_ros::Buffer tfBuffer_;
     tf2_ros::TransformListener tfListener_;
     geometry_msgs::TransformStamped body_state_tf_;
     bool recv_body_state_ = false;
-    
+
+    /// Interface
+    // Fast legged planner interface
+    ElSpiderAirInterfaceROS robot_interface_;
+    GridMapInterface gridmap_interface_;
+    HITSpiderWholeBodyPlanner whole_body_planner_;
+
     // MCTS planner Interface
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
     std::vector<Eigen::Vector3f> exp_path_;
     float multiply_factor_ = 0.03;
     int point_num_ = 3;
+
+    /// Misc
     // ROS Timer event
     ros::Timer timer_;
+
     // Visualizer
     ros_visualizer::ROSVisualizer visualizer_;
-
-    // Interface
-    ElSpiderAirInterfaceROS robot_interface_;
-    GridMapInterface gridmap_interface_;
-    HITSpiderWholeBodyPlanner whole_body_planner_;
-    // std::vector<hexapod_State> MCT_solution_;
 
     // Settings
     bool fake_estimation_;
@@ -167,14 +175,19 @@ private:
 
 public:
     // FIXME: use ros param to init gridmap_interface_
-    ElSpiderAirForceComPlanner(bool fake_estimation = false, bool simulation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
-                                                                                      gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
-                                                                                      tfListener_(tfBuffer_), visualizer_(nh_),
-                                                                                      rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
+    ElSpiderAirVMCPlanner(bool fake_estimation = false, bool simulation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
+                                                                                   gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
+                                                                                   tfListener_(tfBuffer_), visualizer_(nh_),
+                                                                                   rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
     {
-        cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirForceComPlanner::cmd_callback, this);
-        foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirForceComPlanner::foot_state_callback, this);
-        // body_state_sub_ = nh_.subscribe("/hexapod/body_state_fdb", 1, &ElSpiderAirForceComPlanner::body_state_callback, this);
+        cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirVMCPlanner::cmd_callback, this);
+        foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirVMCPlanner::foot_state_callback, this);
+        exp_foot_state_pub_ = nh_.advertise<fast_legged_planner::FootState>("/exp_foot_state", 1);
+        exp_body_state_pub_ = nh_.advertise<nav_msgs::Odometry>("/exp_odom", 1);
+        exp_foot_state_.position.resize(6);
+        exp_foot_state_.velocity.resize(6);
+        exp_foot_state_.effort.resize(6);
+        exp_foot_state_.contact.resize(6);
 
         robot_state_.initialize();
         next_planned_state_.initialize();
@@ -185,7 +198,7 @@ public:
         }
         else
         {
-            timer_ = nh_.createTimer(ros::Duration(0.05), &ElSpiderAirForceComPlanner::timer_callback, this);
+            timer_ = nh_.createTimer(ros::Duration(0.05), &ElSpiderAirVMCPlanner::timer_callback, this);
         }
     }
 
@@ -330,18 +343,52 @@ public:
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
-        // print rpy
-        std::cout << "rpy: " << robot_state_.pose.roll << " " << robot_state_.pose.pitch << " " << robot_state_.pose.yaw << std::endl;
+        std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
         do
         {
+            // Get Interpolated State
             state_traj = whole_body_planner_.get_state_traj(0);
             odom_interp = state_traj.eval_torso_traj(t);
             footend_interp = state_traj.eval_foot_traj(t);
+            support_state = state_traj.eval_support_state(t);
             for (size_t k = 0; k < 6; ++k)
             {
+                // Convert to BASE
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
             }
-            robot_interface_.pub_footcmd_from_footendpos(footend_interp);
+            // Publish Command
+            // Expected foot state
+            exp_foot_state_.header.stamp = ros::Time::now();
+            for (size_t k = 0; k < 6; ++k)
+            {
+                geometry_msgs::Point pt;
+                pt.x = footend_interp[k][0];
+                pt.y = footend_interp[k][1];
+                pt.z = footend_interp[k][2];
+                exp_foot_state_.position[k] = pt;
+                exp_foot_state_.contact[k] = support_state[k];
+            }
+            exp_foot_state_pub_.publish(exp_foot_state_);
+            // Exoected body state
+            exp_body_state_.header.stamp = ros::Time::now();
+            exp_body_state_.pose.pose.position.x = odom_interp.translation()[0];
+            exp_body_state_.pose.pose.position.y = odom_interp.translation()[1];
+            exp_body_state_.pose.pose.position.z = odom_interp.translation()[2];
+            Eigen::Quaterniond quat(odom_interp.rotation());
+            exp_body_state_.pose.pose.orientation.x = quat.x();
+            exp_body_state_.pose.pose.orientation.y = quat.y();
+            exp_body_state_.pose.pose.orientation.z = quat.z();
+            exp_body_state_.pose.pose.orientation.w = quat.w();
+            // TODO: Temporarily Set velocity to zero
+            exp_body_state_.twist.twist.linear.x = 0.0;
+            exp_body_state_.twist.twist.linear.y = 0.0;
+            exp_body_state_.twist.twist.linear.z = 0.0;
+            exp_body_state_.twist.twist.angular.x = 0.0;
+            exp_body_state_.twist.twist.angular.y = 0.0;
+            exp_body_state_.twist.twist.angular.z = 0.0;
+            exp_body_state_pub_.publish(exp_body_state_);
+            
+            // Visualization
             if (fake_estimation_)
             {
                 robot_interface_.pub_joint_state_from_footendpos(footend_interp);
@@ -351,7 +398,7 @@ public:
             {
                 robot_interface_.pub_odom(odom_interp, "shadowbase", "odom");
                 robot_interface_.pub_shadow_joint_state_from_footendpos(footend_interp);
-                pub_footpos_now();
+                pub_footpos_now(); // Hardware
             }
             t += delta;
             if (t > 1.0)

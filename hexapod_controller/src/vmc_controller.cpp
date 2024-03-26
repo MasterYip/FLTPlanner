@@ -261,13 +261,17 @@ void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
     std::vector<double> joint_kp, joint_kd;
     if (0) // Hardware
     {
-        joint_kp = {0.1, 0.15, 0.15};
-        joint_kd = {2, 2, 2};
+        // joint_kp = {0.1, 0.15, 0.15};
+        // joint_kd = {2, 2, 2};
+        joint_kp = {0.02, 0.02, 0.02};
+        joint_kd = {1, 1, 1};
     }
     else // Gazebo
     {
-        joint_kp = {1500, 3000, 3000};
-        joint_kd = {5, 7.5, 7.5};
+        // joint_kp = {1500, 3000, 3000};
+        // joint_kd = {5, 7.5, 7.5};
+        joint_kp = {100, 100, 100};
+        joint_kd = {3, 3, 3};
     }
     for (int i = 0; i < 6; ++i)
     {
@@ -304,9 +308,53 @@ void VMCController::controllLoop()
     if (!(recv_exp_pose_ && recv_exp_foot_state_ && recv_fdb_foot_state_ && recv_fdb_pose_))
     {
         ROS_WARN("Not all states are received");
+        return;
     }
+    pinocchio::Motion exp_acc;
+    pinocchio::Force exp_wrench;
+    hex_contact_flag_t contact_flag;
+    std::vector<Eigen::Vector3d> foot_pos(6);
+    std::vector<Eigen::Vector3d> foot_vel(6, Eigen::Vector3d::Zero());
+    std::vector<Eigen::Vector3d> foot_effort(6);
+    std::vector<Eigen::Vector3d> grf(6);
+
+    getExpAcc(fdb_pose_, fdb_vel_, exp_pose_, exp_vel_, cfg_.Kp, cfg_.Kd, exp_acc);
     // Gravity compensation
-    // exp_acc.linear().z() += cfg_.gravity;
+    exp_acc.linear().z() += cfg_.gravity;
+    getExpWrench(cfg_.mass, cfg_.inertia, fdb_pose_, fdb_vel_, exp_acc, exp_wrench);
+    for (size_t i = 0; i < 6; ++i)
+    {
+        foot_pos.at(i) << exp_foot_state_.position.at(i).x,
+            exp_foot_state_.position.at(i).y,
+            exp_foot_state_.position.at(i).z;
+        contact_flag[i] = exp_foot_state_.contact.at(i);
+    }
+    getGroundReactionForce(exp_wrench, fdb_pose_, cfg_.mu,
+                           contact_flag, foot_pos, grf);
+    for (size_t i = 0; i < 6; ++i)
+    {
+        foot_effort.at(i) = -grf.at(i);
+    }
+    // Pub foot_cmd
+    pubFootCmd(foot_pos, foot_vel, foot_effort);
+
+    // Visualization
+    // NOTE: rosvis is under frame `base`
+    double vis_scale = 0.002;
+    rosvis_.delAll();
+    // Foot
+    rosvis_.visSphere(foot_pos);
+    // Body
+    rosvis_.visCube(Eigen::Vector3d::Zero(), Eigen::Vector4d(1, 0, 0, 0),
+                    ros_visualizer::VisStyle(0.5, 1, 0.5, 0.5, 0.1)); // State
+    // GRF
+    for (size_t i = 0; i < 6; ++i)
+    {
+        rosvis_.visArrow(foot_pos[i], foot_pos[i] + grf[i] * vis_scale,
+                         ros_visualizer::VisStyle(1, 0, 0, 1, 0.01));
+    }
+    rosvis_.visArrow(Eigen::Vector3d::Zero(), exp_wrench.linear() * vis_scale,
+                     ros_visualizer::VisStyle(0, 0, 1, 1, 0.04));
 }
 
 void VMCController::run()
@@ -420,7 +468,7 @@ void VMCController::test_fdbCalcGrf()
     }
     // Expeccted
     // exp_pose_ = pinocchio::SE3::Identity();
-    exp_pose_ = fdb_pose_; // Keep the same
+    exp_pose_ = fdb_pose_;              // Keep the same
     exp_pose_.translation().z() = 0.24; // Nominal height
     exp_vel_ = pinocchio::Motion::Zero();
     // Vars
@@ -434,6 +482,8 @@ void VMCController::test_fdbCalcGrf()
     std::vector<Eigen::Vector3d> foot_effort(6);
     while (ros::ok())
     {
+        // exp_pose_.translation().z() = 0.24;
+        // exp_pose_.translation().x() =
         getExpAcc(fdb_pose_, fdb_vel_, exp_pose_, exp_vel_, cfg_.Kp, cfg_.Kd, exp_acc);
         exp_acc.linear().z() += cfg_.gravity;
         getExpWrench(cfg_.mass, cfg_.inertia, fdb_pose_, fdb_vel_, exp_acc, exp_wrench);
@@ -445,7 +495,6 @@ void VMCController::test_fdbCalcGrf()
                 fdb_foot_state_.position.at(i).y,
                 fdb_foot_state_.position.at(i).z;
         }
-        pinocchio::SE3 state_pose(Eigen::Quaterniond(1, 0, 0, 0), Eigen::Vector3d(0, 0, 0));
         getGroundReactionForce(exp_wrench, fdb_pose_, cfg_.mu,
                                contact_flag, foot_pos, grf);
         for (size_t i = 0; i < 6; ++i)

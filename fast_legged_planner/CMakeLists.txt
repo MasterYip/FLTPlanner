@@ -9,9 +9,10 @@ set(MSG_DEP_SET
   geometry_msgs
   actionlib_msgs
   sensor_msgs
+  nav_msgs
 )
 
-set(GRID_MAP_SET
+set(CATKIN_BUIL_DEP_SET
   grid_map_core
   grid_map_ros
   # grid_map_cv
@@ -24,6 +25,7 @@ set(GRID_MAP_SET
   grid_map_sdf
   pcl_ros
   pcl_conversions
+  # misc
   ros_visualizer
 )
 
@@ -157,9 +159,9 @@ add_subdirectory(mcts_planner)
 add_subdirectory(fast_legged_planner_cpp)
 
 ###########################
-# Grid Map
+# Other Deps
 find_package(catkin REQUIRED COMPONENTS
-  ${GRID_MAP_SET}
+  ${CATKIN_BUIL_DEP_SET}
 )
 ###########################
 
@@ -254,6 +256,18 @@ target_include_directories(elspider_air_simple_planner PRIVATE
   fast_legged_planner_cpp/include
 )
 target_link_libraries(elspider_air_simple_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+  fast_legged_planner_cpp
+  mcts_planner
+)
+
+# ElSpiderAirVMCPlanner
+add_executable(elspider_air_vmc_planner src/elspider_air_vmc_planner.cpp)
+target_include_directories(elspider_air_vmc_planner PRIVATE
+  fast_legged_planner_cpp/include
+)
+target_link_libraries(elspider_air_vmc_planner
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
   fast_legged_planner_cpp

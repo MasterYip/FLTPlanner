@@ -78,10 +78,27 @@ PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
         else
         {
             // Linear interpolation
-            footend_interp.push_back(footpos_list0[i]*(1-t) + this->footpos_list1[i]*t);
+            footend_interp.push_back(footpos_list0[i] * (1 - t) + this->footpos_list1[i] * t);
         }
     }
     return footend_interp;
+}
+
+std::array<bool, 6> MCTStateTransfer::eval_support_state(double t, double margin)
+{
+    std::array<bool, 6> support_state;
+    if (t < 1 - margin && t > margin)
+    {
+        for (int i = 0; i < 6; ++i)
+        {
+            support_state[i] = (this->state1.support_State_Now[i] == 1);
+        }
+    }
+    else
+    {
+        support_state.fill(true);
+    }
+    return support_state;
 }
 
 void MCTStateTransfer::opt_swing_traj(int index)
