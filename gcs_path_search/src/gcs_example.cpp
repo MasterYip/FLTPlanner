@@ -271,9 +271,9 @@ void GCS_Example::example_run(std::string name)
     {
         eg_guide_surface();
     }
-    else if (name == "eg_gcs_barier_demo")
+    else if (name == "eg_gcs_barrier_demo")
     {
-        eg_gcs_barier_demo();
+        eg_gcs_barrier_demo();
     }
     else if (name == "eg_gcs_rand_corridor_demo")
     {
@@ -356,7 +356,7 @@ void GCS_Example::eg_guide_surface()
     return;
 }
 
-void GCS_Example::eg_gcs_barier_demo()
+void GCS_Example::eg_gcs_barrier_demo()
 {
     // clean
     gcs_visualizer_.delAll();

@@ -50,7 +50,7 @@ struct GCS_Example_Config
     {
         nh_priv.param<double>("testRate", testRate, 4);
         nh_priv.param<std::string>("mapTopic", mapTopic, "grid_map");
-        nh_priv.param<std::string>("exampleName", exampleName, "eg_gcs_barier_demo");
+        nh_priv.param<std::string>("exampleName", exampleName, "eg_gcs_barrier_demo");
         nh_priv.param<double>("polyNum", polyNum, 3);
         return;
     }
@@ -92,7 +92,7 @@ public:
     // Examples
     void example_run(std::string name);
     void eg_guide_surface();
-    void eg_gcs_barier_demo();
+    void eg_gcs_barrier_demo();
     void eg_gcs_rand_corridor_demo();
     void eg_gcs_rand_map_demo();
 };

@@ -12,18 +12,30 @@ catkin build gcs_path_search -DCMAKE_BUILD_TYPE=Release
 
 ## Examples
 
-### Reachability Analysis
+### GCS path search
 
-#### GCS Intersection Search
+<table>
+  <tr>
+    <td><img src="doc/eg_guide_surface_demo.png" alt="eg_guide_surface_demo"></td>
+    <td><img src="doc/eg_gcs_barrier_demo.png" alt="eg_gcs_barrier_demo"></td>
+  </tr>
+  <tr>
+    <td><img src="doc/eg_gcs_rand_corridor_demo.png" alt="eg_gcs_rand_corridor_demo"></td>
+    <td><img src="doc/eg_gcs_rand_map_demo.png" alt="eg_gcs_rand_map_demo"></td>
+  </tr>
+</table>
 
-![eg_gcs_intersection_search.png](doc/eg_gcs_intersection_search.png)
+Example List:
+
+- eg_guide_surface_demo
+- eg_gcs_barrier_demo
+- eg_gcs_rand_corridor_demo
+- eg_gcs_rand_map_demo
 
 ```bash
-roslaunch gcs_path_search gcs_intersection_search.launch
+roslaunch gcs_path_search gcs_example.launch \
+example_name:=eg_guide_surface_demo
 ```
-
-### VisibilityGraph Path Search
-
 
 ## Acknowledgements
 

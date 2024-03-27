@@ -1,17 +1,17 @@
 <launch>
     <!-- GCS Examples Template -->
     <!-- Settings -->
-    <arg name="example_name" default="eg_gcs_barier_demo"/>
+    <arg name="example_name" default="eg_gcs_barrier_demo"/>
 
     <arg name="with_robot" default="false" />
     <arg name="with_ceiling" default="true" />
     <arg name="max_height" default="1.0" />
     <arg name="test_rate" default="5" />
-    
+
     <arg name="grid_map_topic" default="grid_map" />
     <arg name="grid_map_update_rate" default="5" />
     <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="grid_map_file" default="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" /> 
+    <arg name="grid_map_file" default="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" />
     <arg name="grid_map_file_ceiling" default="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ceiling.png" />
     <arg name="elevation_layer" default="elevation" />
     <arg name="ceiling_layer" default="ceiling" />
