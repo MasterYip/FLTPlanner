@@ -37,6 +37,10 @@ roslaunch gcs_path_search gcs_example.launch \
 example_name:=eg_guide_surface_demo
 ```
 
+> Note: `gcs_intersection_search.launch` is DEPRECATED.
+
+### Trajectory Optimization
+
 ## Acknowledgements
 
 - [astar-algorithm-cpp](https://github.com/justinhj/astar-algorithm-cpp)
