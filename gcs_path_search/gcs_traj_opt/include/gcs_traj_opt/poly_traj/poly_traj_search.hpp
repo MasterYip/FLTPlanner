@@ -22,6 +22,7 @@
 /* internal project header files */
 #include "gcs_traj_opt/poly_traj/gcs_astar_search.hpp"
 #include "gcs_traj_opt/poly_traj/intersect_border.hpp"
+#include "gcs_traj_opt/poly_traj/string_straining.hpp"
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
 #include "gcs_traj_opt/geo_utils/guide_surf.hpp"
 #include "gcs_traj_opt/utils/benchmark.hpp"
@@ -50,6 +51,7 @@ public:
     bool endpointValid(const Point3D &start, const Point3D &goal);
     bool reachable(const Point3D &start, const Point3D &goal);
     bool search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
+    bool searchStringStraining(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
 
     GridPolyLine getBorder() const { return border_; }
     GridPoints getConcavePts() const { return concave_pts_; }

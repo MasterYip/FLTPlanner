@@ -35,8 +35,8 @@ using namespace geo_utils_2d;
  * @return 0 Path segment is outward
  * @return 1 Path segment is inward
  */
-int isInward(const Point &b1, const Point &b2,
-             const Point &p1, const Point &p2)
+int inline isInward(const GridPt &b1, const GridPt &b2,
+             const GridPt &p1, const GridPt &p2)
 {
     // if (segmentIntersect(b1, b2, p1, p2) == IntersectType::None)
     // {
@@ -76,6 +76,7 @@ public:
         uint lap_cnt = 0;
         while (no_update_cnt < border_.size() + 1)
         {
+            std::cout<< i << std::endl;
             b1 = border_.at(i);
             b2 = border_.at((i + 1) % border_.size());
             for (size_t j = 0; j < grid_traj_.size() - 1; j++)
@@ -98,8 +99,8 @@ public:
                     if (k2 == IntersectType::EndMid)
                     {
                         bool concave = isConcavePoint(b1, b1m, b2, true);
-                        if (concave && (isInward(b1, b2, p1, p2) == 1 || isInward(b1m, b1, p1, p2) == 1) ||
-                            !concave && isInward(b1, b2, p1, p2) == 1 && isInward(b1m, b1, p1, p2) == 1)
+                        if ((concave && (isInward(b1, b2, p1, p2) == 1 || isInward(b1m, b1, p1, p2) == 1)) ||
+                            (!concave && isInward(b1, b2, p1, p2) == 1 && isInward(b1m, b1, p1, p2) == 1))
                         {
                             grid_traj_.insert(grid_traj_.begin() + j + 1, b2);
                             no_update_cnt = 0;
@@ -139,6 +140,10 @@ public:
                     }
                 }
             }
+            if (no_update_cnt == 0)
+            {
+                std::cout << "Update" << std::endl;
+            }
             no_update_cnt++;
             i = (i + 1) % border_.size();
             if (i == 0)
@@ -146,11 +151,11 @@ public:
                 lap_cnt++;
                 if (lap_cnt >= max_lap)
                 {
-                    return false
+                    return false;
                 }
             }
         }
         result = grid_traj_;
         return true;
     }
-}
+};

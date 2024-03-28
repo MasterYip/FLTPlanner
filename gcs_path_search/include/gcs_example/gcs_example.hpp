@@ -87,7 +87,7 @@ public:
 
     // Utils
     Eigen::Vector2d getPos(const GridPt &idx);
-    bool gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d);
+    bool gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d, bool use_string_straining);
 
     // Examples
     void example_run(std::string name);

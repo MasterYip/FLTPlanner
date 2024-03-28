@@ -126,3 +126,67 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     benchmark_.end();
     return true;
 }
+
+bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path)
+{
+    path.clear();
+
+    benchmark_.reset();
+    if (!endpointValid(start, goal))
+    {
+        std::cout << "Warning: endpointValid failed" << std::endl;
+        return false;
+    }
+
+    // Intersect Border
+    Point start_2d = start.head(2);
+    Point goal_2d = goal.head(2);
+    if (!intersect_border_.getIntersectBorder(start_2d, goal_2d, border_))
+    {
+        std::cout << "Warning: intersect_border_.getIntersectBorder failed" << std::endl;
+        return false;
+    }
+    if (border_.size() < 3)
+    {
+        std::cout << "Warning: border_.size() < 3" << std::endl;
+        return false;
+    }
+    double border_length = 0;
+    for (uint i = 0; i < border_.size() - 1; i++)
+    {
+        auto delta = border_[i + 1] - border_[i];
+        border_length += sqrt(delta[0] * delta[0] + delta[1] * delta[1]);
+    }
+    std::string msg = "Intersect Border - Length: " + to_string(border_length);
+    benchmark_.record(msg, RecordType::CRITICAL);
+
+    // String Straining
+    GridPt start_grid, goal_grid; // FIXME: is this appropriate?
+    map_.getIndex(start.head(2), start_grid);
+    map_.getIndex(goal.head(2), goal_grid);
+    StringStrainingSearch sss(border_, start_grid, goal_grid);
+    bool ret = sss.search(grid_traj_, 4);
+    benchmark_.record("String Straining Search", RecordType::CRITICAL);
+    if (!ret)
+    {
+        std::cout << "Info: No solution - String Straining Search failed" << std::endl;
+        return false;
+    }
+
+    for (uint i = 0; i < grid_traj_.size(); i++)
+    {
+        Eigen::Vector3d pos;
+        Eigen::Vector2d posxy;
+        pos[2] = border_check_.queryHeight(grid_traj_.at(i));
+        map_.getPosition(grid_traj_.at(i), posxy);
+        pos[0] = posxy.x();
+        pos[1] = posxy.y();
+        path.emplace_back(pos);
+    }
+    // Replace the start and goal with the original start and goal
+    path.front() = start;
+    path.back() = goal;
+
+    benchmark_.end();
+    return true;
+}

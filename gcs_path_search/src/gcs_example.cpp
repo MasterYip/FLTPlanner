@@ -143,7 +143,8 @@ Point3D randomPoint(double scale = 1.0)
     return pt;
 }
 
-bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d)
+bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d,
+                                  bool use_string_straining = false)
 {
     // Init
     // TODO: add enable ceiling
@@ -192,7 +193,7 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     }
     gcs_visualizer_.visCurve(border_pos);
     std::vector<Point3D> head_tail = {border_pos.front(), border_pos.back()};
-    gcs_visualizer_.visCurve(head_tail, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 0.5, 0.01));
+    gcs_visualizer_.visCurve(head_tail, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 0.5, 0.02));
 
     // Draw Concave Points
     std::vector<Point3D> concave_pts;
@@ -205,15 +206,19 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     }
     gcs_visualizer_.visSphere(concave_pts, 0.03);
 
-    if (!poly_traj_search.reachable(start3d, goal3d))
+    if (use_string_straining && !poly_traj_search.searchStringStraining(start3d, goal3d, path) ||
+        !poly_traj_search.reachable(start3d, goal3d))
     {
-        std::cout << "Warning: Goal is not reachable" << std::endl;
+        if (!use_string_straining)
+            std::cout << "Warning: Goal is not reachable" << std::endl;
+        else
+            std::cout << "Warning: String Straining Search failed" << std::endl;
         return true;
     }
     else
     {
         // Path Search
-        if (!poly_traj_search.search(start3d, goal3d, path))
+        if (!use_string_straining && !poly_traj_search.search(start3d, goal3d, path))
         {
             std::cout << "Warning: A star search failed" << std::endl;
             return true;
@@ -222,27 +227,29 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
         {
             // Draw Result
             // Draw VisGraph
-            VisibilityGraph vis_graph = poly_traj_search.getVisGraph();
-            std::vector<Point3D> mesh;
-            uint size = vis_graph.size();
-            Point3D pos1, pos2;
-            for (uint i = 0; i < size; i++)
+            if (!use_string_straining)
             {
-                for (uint j = i + 1; j < size; j++)
+                VisibilityGraph vis_graph = poly_traj_search.getVisGraph();
+                std::vector<Point3D> mesh;
+                uint size = vis_graph.size();
+                Point3D pos1, pos2;
+                for (uint i = 0; i < size; i++)
                 {
-                    if (vis_graph.isVisibile(i, j))
+                    for (uint j = i + 1; j < size; j++)
                     {
-                        pos1.head(2) = getPos(vis_graph.getPt(i));
-                        pos2.head(2) = getPos(vis_graph.getPt(j));
-                        pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
-                        pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
-                        mesh.push_back(pos1);
-                        mesh.push_back(pos2);
+                        if (vis_graph.isVisibile(i, j))
+                        {
+                            pos1.head(2) = getPos(vis_graph.getPt(i));
+                            pos2.head(2) = getPos(vis_graph.getPt(j));
+                            pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
+                            pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
+                            mesh.push_back(pos1);
+                            mesh.push_back(pos2);
+                        }
                     }
                 }
+                gcs_visualizer_.visMesh(mesh, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
             }
-            gcs_visualizer_.visMesh(mesh, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
-
             // Draw grid_traj
             GridPolyLine grid_traj = poly_traj_search.getGridTraj();
             std::vector<Eigen::Vector3d> path_pos;
@@ -417,7 +424,7 @@ void GCS_Example::eg_gcs_rand_corridor_demo()
         }
         start = polys.at(0).getInterior();
         goal = polys.at(poly_num - 1).getInterior();
-    } while (!gcs_path_search(polys, start, goal));
+    } while (!gcs_path_search(polys, start, goal, true));
 }
 
 void GCS_Example::eg_gcs_rand_map_demo()
@@ -451,5 +458,5 @@ void GCS_Example::eg_gcs_rand_map_demo()
     Point3D start3d(0.0, 0.0, 0.8);
     Point3D goal3d(-1.0, -1.0, 0.8);
     gcs_visualizer_.delAll();
-    gcs_path_search(polys, start3d, goal3d);
+    gcs_path_search(polys, start3d, goal3d, true);
 }
