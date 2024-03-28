@@ -47,10 +47,10 @@ inline bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const G
             p1_idx = i;
         if (Border.at(i).isApprox(p2))
             p2_idx = i;
-        int intersect_type = segmentIntersect(Border.at(i), Border.at((i + 1) % Border.size()), p1, p2);
-        if (intersect_type == 1)
+        IntersectType intersect_type = segmentIntersect(Border.at(i), Border.at((i + 1) % Border.size()), p1, p2);
+        if (intersect_type == IntersectType::Middle || intersect_type == IntersectType::EndMid || intersect_type == IntersectType::MidEnd)
             return false;
-        else if (intersect_type == 2)
+        else if (intersect_type == IntersectType::End)
         {
             end_overlap_cnt++;
         }
@@ -104,7 +104,7 @@ inline int pathIntersect(const GridPolyLine &path, const GridPt &p1, const GridP
 {
     for (uint i = 0; i < path.size() - 1; i++)
     {
-        if (segmentIntersect(path.at(i), path.at(i + 1), p1, p2))
+        if (segmentIntersect(path.at(i), path.at(i + 1), p1, p2) != IntersectType::None)
         {
             return i;
         }

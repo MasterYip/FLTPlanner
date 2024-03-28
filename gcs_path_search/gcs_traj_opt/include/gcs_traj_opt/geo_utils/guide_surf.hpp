@@ -30,7 +30,6 @@ class HarmonicGuideSurf
 {
 private:
     int key_points_num_;
-    // std::vector<Point3D> key_points_;
     Eigen::MatrixX3d key_points_mat_; // (n points, 3)
     int weight_order_;
     Eigen::VectorXd weights_;

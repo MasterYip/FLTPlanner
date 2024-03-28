@@ -12,8 +12,9 @@
 #include "gcs_traj_opt/geo_utils/guide_surf.hpp"
 
 HarmonicGuideSurf::HarmonicGuideSurf(const std::vector<Point3D> &key_points, int weight_order)
-    : weight_order_(weight_order), weights_(Eigen::VectorXd::Ones(key_points.size())),
-      key_points_num_(key_points.size())
+    : key_points_num_(key_points.size()),
+      weight_order_(weight_order), weights_(Eigen::VectorXd::Ones(key_points.size()))
+
 {
     key_points_mat_.resize(key_points.size(), 3);
     for (uint i = 0; i < key_points.size(); i++)
@@ -23,8 +24,8 @@ HarmonicGuideSurf::HarmonicGuideSurf(const std::vector<Point3D> &key_points, int
 }
 
 HarmonicGuideSurf::HarmonicGuideSurf(const Eigen::MatrixX3d &key_points_mat, int weight_order)
-    : weight_order_(weight_order), weights_(Eigen::VectorXd::Ones(key_points_mat.rows())),
-      key_points_num_(key_points_mat.rows()), key_points_mat_(key_points_mat)
+    : key_points_num_(key_points_mat.rows()), key_points_mat_(key_points_mat),
+      weight_order_(weight_order), weights_(Eigen::VectorXd::Ones(key_points_mat.rows()))
 {
 }
 

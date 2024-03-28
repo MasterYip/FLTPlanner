@@ -22,6 +22,7 @@
 #ifdef USE_CGAL
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/intersections.h>
+#include <CGAL/number_utils.h>
 typedef CGAL::Exact_predicates_exact_constructions_kernel K;
 typedef K::Point_2 Point_2;
 typedef K::Segment_2 Segment_2;
@@ -101,10 +102,12 @@ namespace geo_utils_2d
 
     enum class IntersectType
     {
-        None,
-        Middle,
-        End,
-        Overlap
+        None,   // Not intersect
+        Middle, // Intersect in the middle of segment p & q
+        End,    // Intersect at the end of segment p & q
+        MidEnd, // Intersect in the middle of segment p, and at the end of segment q
+        EndMid, // Intersect at the end of segment p, and in the middle of segment q
+        Overlap // Overlap
     };
 
     // Intersection
@@ -112,17 +115,13 @@ namespace geo_utils_2d
      * @brief segment intersect detection (CGAL)
      * TODO: test needed
      * TODO: Optimization needed
-     * FIXME: How to deal with Point&GridPt Mix?
      * @param p1
      * @param p2
      * @param q1
      * @param q2
-     * @return 0 not intersect
-     * @return 1 intersect in the middle (crossing / endpoint touch the other segment)
-     * @return 2 intersect at the end (at least 1 of endpoints are the same)
-     * @return 3 overlap
+     * @return IntersectType
      */
-    inline uint segmentIntersect(const Point &p1, const Point &p2,
+    inline IntersectType segmentIntersect(const Point &p1, const Point &p2,
                                  const Point &q1, const Point &q2, const bool verbose = false)
     {
         // Judge if intersect at the end or overlap
@@ -131,12 +130,15 @@ namespace geo_utils_2d
             tmp++;
         if (p2.isApprox(q1) || p2.isApprox(q2))
             tmp++;
-        if (tmp > 1)
-            return tmp;
+        if (tmp == 2)
+            return IntersectType::End;
+        else if (tmp == 3)
+            return IntersectType::Overlap;
 
         Segment_2 s1(Point_2(p1[0], p1[1]), Point_2(p2[0], p2[1]));
         Segment_2 s2(Point_2(q1[0], q1[1]), Point_2(q2[0], q2[1]));
         const auto result = intersection(s1, s2);
+        // Verbose
         if (result && verbose)
         {
             if (const Segment_2 *s = boost::get<Segment_2>(&*result))
@@ -153,14 +155,23 @@ namespace geo_utils_2d
         {
             // FIXME: test needed
             if (boost::get<Segment_2>(&*result))
-                return 3; // Overlap
+                return IntersectType::Overlap;
             else
-                return 1;
+            {
+                const Point_2 *p = boost::get<Point_2>(&*result);
+                Point intersectPt(CGAL::to_double(p->x()), CGAL::to_double(p->y()));
+                if (intersectPt.isApprox(p1) || intersectPt.isApprox(p2))
+                    return IntersectType::EndMid;
+                else if (intersectPt.isApprox(q1) || intersectPt.isApprox(q2))
+                    return IntersectType::MidEnd;
+                else
+                    return IntersectType::Middle;
+            }
         }
-        return 0;
+        return IntersectType::None;
     }
 
-    inline uint segmentIntersect(const GridPt &p1, const GridPt &p2,
+    inline IntersectType segmentIntersect(const GridPt &p1, const GridPt &p2,
                                  const GridPt &q1, const GridPt &q2, const bool verbose = false)
     {
         return segmentIntersect(Point(p1[0], p1[1]), Point(p2[0], p2[1]),

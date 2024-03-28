@@ -66,7 +66,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
 
     // Find the intersect border
     // FIXME: Sometimes it stucks (loop)
-    uint cnt = 0;
+    int cnt = 0;
     // int idx_incorridor_idx1 = border_check_.inBorder(idx);
     // int idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
     int tmp_incorridor_idx = -1;
