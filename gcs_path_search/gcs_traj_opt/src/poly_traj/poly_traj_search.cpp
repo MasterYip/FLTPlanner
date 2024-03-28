@@ -86,9 +86,14 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
     return false;
 }
 
+// bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path)
+// {
+
+// }
+
 bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path)
 {
-    std::vector<Point3D> init_path;
+    path.clear();
     if (reachable_ == -1 || (reachable_ == 0 && !reachable(start, goal)))
     {
         std::cout << "Info: No solution - not reachable" << std::endl;
@@ -104,7 +109,20 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
         return false;
     }
 
+    for (uint i = 0; i < grid_traj_.size(); i++)
+    {
+        Eigen::Vector3d pos;
+        Eigen::Vector2d posxy;
+        pos[2] = border_check_.queryHeight(grid_traj_.at(i));
+        map_.getPosition(grid_traj_.at(i), posxy);
+        pos[0] = posxy.x();
+        pos[1] = posxy.y();
+        path.emplace_back(pos);
+    }
+    // Replace the start and goal with the original start and goal
+    path.front() = start;
+    path.back() = goal;
+
     benchmark_.end();
-    // TODO: path init
-    return ret;
+    return true;
 }
