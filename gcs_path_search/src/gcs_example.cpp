@@ -24,6 +24,7 @@
 #include "gcs_traj_opt/geo_utils/geo_utils_2d.hpp"
 #include "gcs_traj_opt/poly_traj/intersect_border.hpp"
 #include "gcs_traj_opt/geo_utils/guide_surf.hpp"
+#include "gcs_traj_opt/traj_opt/minco_trajopt.hpp"
 
 using namespace geo_utils_2d;
 
@@ -252,19 +253,18 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
                 gcs_visualizer_.visMesh(mesh, ros_visualizer::VisStyle(0.3, 0.3, 0.3, 0.3, 0.01));
             }
             // Draw grid_traj
-            GridPolyLine grid_traj = poly_traj_search.getGridTraj();
-            std::vector<Eigen::Vector3d> path_pos;
-            for (uint i = 0; i < grid_traj.size(); i++)
+            gcs_visualizer_.visCurve(path, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.02));
+
+            // Minco Traj Opt
+            MincoTrajOpt minco_traj_opt(path);
+            std::vector<Point3D> traj;
+            bool ret = minco_traj_opt.getTrajSamples(traj, 0.01);
+            if (!ret)
             {
-                Eigen::Vector3d pos;
-                Eigen::Vector2d posxy;
-                pos[2] = border_check.queryHeight(grid_traj.at(i));
-                map_.getPosition(grid_traj.at(i), posxy);
-                pos[0] = posxy.x();
-                pos[1] = posxy.y();
-                path_pos.push_back(pos);
+                std::cout << "Warning: Minco Traj Opt failed" << std::endl;
+                return true;
             }
-            gcs_visualizer_.visCurve(path_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.02));
+            gcs_visualizer_.visCurve(traj, ros_visualizer::VisStyle(0.3, 0.8, 0.3, 1.0, 0.02));
 
             return true;
         }
