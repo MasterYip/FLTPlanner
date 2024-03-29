@@ -205,7 +205,8 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
         concave_pts.push_back(pos);
     }
     gcs_visualizer_.visSphere(concave_pts, 0.03);
-    poly_traj_search.searchStringStraining(start3d, goal3d, path);
+    if (use_string_straining)
+        poly_traj_search.searchStringStraining(start3d, goal3d, path);
     if (use_string_straining && 0 ||
         !poly_traj_search.reachable(start3d, goal3d))
     {
