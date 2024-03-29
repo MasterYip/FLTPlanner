@@ -31,26 +31,20 @@ using namespace geo_utils_2d;
  * @param b2 Border segment end point
  * @param p1 Path segment start point
  * @param p2 Path segment end point
- * @return -1 Uncertain, segments do not intersect (unused)
- * @return 0 Path segment is outward
- * @return 1 Path segment is inward
+ * @return false Path segment is outward
+ * @return true Path segment is inward
  */
-int inline isInward(const GridPt &b1, const GridPt &b2,
-             const GridPt &p1, const GridPt &p2)
+bool inline isInward(const GridPt &b1, const GridPt &b2,
+                     const GridPt &p1, const GridPt &p2)
 {
-    // if (segmentIntersect(b1, b2, p1, p2) == IntersectType::None)
-    // {
-    //     return -1;
-    // }
-    // else
-    // {
-    if (crossProd(b2 - b1, p2 - p1) < 0)
-        return 1;
-    else
-        return 0;
-    // }
+    return crossProd(b2 - b1, p2 - p1) <= 0;
 }
 
+bool inline isInward(const GridPt &b1, const GridPt &b2, const GridPt &b3,
+                     const GridPt &p1, const GridPt &p2)
+{
+    return isConcavePoint(b2, b1, b3, true) ? (isInward(b1, b2, p1, p2) || isInward(b2, b3, p1, p2)) : (isInward(b1, b2, p1, p2) && isInward(b2, b3, p1, p2));
+}
 class StringStrainingSearch
 {
 private:
@@ -66,8 +60,8 @@ public:
         grid_traj_.emplace_back(start);
         grid_traj_.emplace_back(goal);
     }
-
-    bool search(GridPolyLine &result, uint max_lap = 4)
+    // FIXME: This can't solve complex problem
+    bool search(GridPolyLine &result, uint max_lap = 8)
     {
         GridPt b1, b2, b3;
         GridPt p1, p2, p3;
@@ -76,7 +70,6 @@ public:
         uint lap_cnt = 0;
         while (no_update_cnt < border_.size() + 1)
         {
-            std::cout<< i << std::endl;
             b1 = border_.at(i);
             b2 = border_.at((i + 1) % border_.size());
             for (size_t j = 0; j < grid_traj_.size() - 1; j++)
@@ -84,8 +77,7 @@ public:
                 p1 = grid_traj_.at(j);
                 p2 = grid_traj_.at(j + 1);
                 IntersectType k = segmentIntersect(b1, b2, p1, p2);
-
-                if (k == IntersectType::Middle && isInward(b1, b2, p1, p2) == 1)
+                if (k == IntersectType::Middle)
                 {
                     grid_traj_.insert(grid_traj_.begin() + j + 1, b2);
                     no_update_cnt = 0;
@@ -98,9 +90,7 @@ public:
                     IntersectType k2 = segmentIntersect(b1m, b1, p1, p2);
                     if (k2 == IntersectType::EndMid)
                     {
-                        bool concave = isConcavePoint(b1, b1m, b2, true);
-                        if ((concave && (isInward(b1, b2, p1, p2) == 1 || isInward(b1m, b1, p1, p2) == 1)) ||
-                            (!concave && isInward(b1, b2, p1, p2) == 1 && isInward(b1m, b1, p1, p2) == 1))
+                        if (isInward(b1m, b1, b2, p1, p2) != isInward(b1m, b1, b2, p2, p1))
                         {
                             grid_traj_.insert(grid_traj_.begin() + j + 1, b2);
                             no_update_cnt = 0;
@@ -113,7 +103,8 @@ public:
                     if (j < grid_traj_.size() - 2)
                     {
                         GridPt p2p = grid_traj_.at(j + 2);
-                        if (isInward(b1, b2, p1, p2) == 1 && isInward(b1, b2, p2, p2p) == 1)
+                        if (isInward(b1, b2, p2, p1) != isInward(b1, b2, p2, p2p))
+
                         {
                             grid_traj_.at(j + 1) = b2;
                             no_update_cnt = 0;
@@ -127,11 +118,7 @@ public:
                     {
                         GridPt b1m = border_.at((i - 1 + border_.size()) % border_.size());
                         GridPt p2p = grid_traj_.at(j + 2);
-                        bool concave = isConcavePoint(b1, b1m, b2, true);
-                        if ((concave && (isInward(b1, b2, p1, p2) == 1 || isInward(b1m, b1, p1, p2) == 1) &&
-                             (isInward(b1, b2, p2, p2p) == 1 || isInward(b1m, b1, p2, p2p) == 1)) ||
-                            (!concave && isInward(b1, b2, p1, p2) == 1 && isInward(b1m, b1, p1, p2) == 1 &&
-                             isInward(b1, b2, p2, p2p) == 1 && isInward(b1m, b1, p2, p2p) == 1))
+                        if (isInward(b1m, b1, b2, p2, p1) != isInward(b1m, b1, b2, p2, p2p))
                         {
                             grid_traj_.at(j + 1) = b2;
                             no_update_cnt = 0;
@@ -140,10 +127,6 @@ public:
                     }
                 }
             }
-            if (no_update_cnt == 0)
-            {
-                std::cout << "Update" << std::endl;
-            }
             no_update_cnt++;
             i = (i + 1) % border_.size();
             if (i == 0)
@@ -151,6 +134,7 @@ public:
                 lap_cnt++;
                 if (lap_cnt >= max_lap)
                 {
+                    result = grid_traj_;
                     return false;
                 }
             }

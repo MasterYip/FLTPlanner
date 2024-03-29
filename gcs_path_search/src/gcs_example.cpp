@@ -205,8 +205,8 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
         concave_pts.push_back(pos);
     }
     gcs_visualizer_.visSphere(concave_pts, 0.03);
-
-    if (use_string_straining && !poly_traj_search.searchStringStraining(start3d, goal3d, path) ||
+    poly_traj_search.searchStringStraining(start3d, goal3d, path);
+    if (use_string_straining && 0 ||
         !poly_traj_search.reachable(start3d, goal3d))
     {
         if (!use_string_straining)
@@ -424,7 +424,7 @@ void GCS_Example::eg_gcs_rand_corridor_demo()
         }
         start = polys.at(0).getInterior();
         goal = polys.at(poly_num - 1).getInterior();
-    } while (!gcs_path_search(polys, start, goal, true));
+    } while (!gcs_path_search(polys, start, goal, false));
 }
 
 void GCS_Example::eg_gcs_rand_map_demo()
@@ -458,5 +458,5 @@ void GCS_Example::eg_gcs_rand_map_demo()
     Point3D start3d(0.0, 0.0, 0.8);
     Point3D goal3d(-1.0, -1.0, 0.8);
     gcs_visualizer_.delAll();
-    gcs_path_search(polys, start3d, goal3d, true);
+    gcs_path_search(polys, start3d, goal3d, false);
 }
