@@ -24,6 +24,8 @@
 class TrajectoryBase
 {
 public:
+    TrajectoryBase() = default;
+
     /**
      * @brief Evaluate the trajectory at t.
      *
@@ -32,5 +34,9 @@ public:
      * @param normalized whether to use normalized parameter t
      * @return Eigen::VectorXd
      */
-    virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) = 0;
+    virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false)
+    {
+        throw std::runtime_error("Not implemented");
+        return Eigen::VectorXd::Zero(3);
+    }
 };
