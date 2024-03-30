@@ -46,7 +46,17 @@ class MincoTrajectory : public TrajectoryBase
 {
 private:
     Trajectory<3> traj_;
+
 public:
+    MincoTrajectory() = default;
+    MincoTrajectory(const Trajectory<3> &traj)
+    {
+        traj_ = traj;
+    }
+    MincoTrajectory(const minco::MINCO_S2NU &minco)
+    {
+        minco.getTrajectory(traj_);
+    }
 
     Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
     {
@@ -55,10 +65,10 @@ public:
 
         if (normalized)
             t *= traj_.getTotalDuration();
-        
+
         if (t < 0 || t > traj_.getTotalDuration())
             throw std::runtime_error("Invalid time");
-        
+
         if (d_order == 0)
             return traj_.getPos(t);
         else if (d_order == 1)
