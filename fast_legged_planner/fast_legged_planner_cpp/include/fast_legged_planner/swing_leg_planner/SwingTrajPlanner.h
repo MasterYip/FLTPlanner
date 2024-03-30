@@ -16,7 +16,7 @@
 /* c system header files */
 
 /* c++ standard library header files */
-
+#include <memory>
 /* external project header files */
 #include <Eigen/Dense>
 /* internal project header files */
@@ -28,5 +28,5 @@ public:
     SwingTrajPlanner();
     ~SwingTrajPlanner();
     UniBSpline get_default_traj(Eigen::Vector3d &p0, Eigen::Vector3d &p1, double v_lift, double h_lift);
-    bool opt_traj(TrajectoryBase &traj, int index);
+    bool opt_traj(std::shared_ptr<TrajectoryBase> traj, int index);
 };

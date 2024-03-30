@@ -29,7 +29,6 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1, S
     this->swing_traj_planner = swing_traj_planner;
     this->footpos_list0 = FeetPos2PosList(state0.feetPositionNow);
     this->footpos_list1 = FeetPos2PosList(state1.feetPositionNow);
-    this->swingtraj = std::vector<UniBSpline>(6, UniBSpline());
     this->swingtraj_isopt = std::vector<bool>(6, false);
     this->swingtraj_isneeded = std::vector<bool>(6, false);
     for (int i = 0; i < 6; ++i)
@@ -45,8 +44,8 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1, S
         if (this->swingtraj_isneeded[i])
         {
             // Swing Trajectory
-            this->swingtraj[i] = this->swing_traj_planner.get_default_traj(
-                this->footpos_list0[i], this->footpos_list1[i], v_lift, h_lift);
+            this->swingtraj[i] = std::make_shared<UniBSpline>(this->swing_traj_planner.get_default_traj(
+                this->footpos_list0[i], this->footpos_list1[i], v_lift, h_lift));
         }
     }
 }
@@ -73,7 +72,7 @@ PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
             {
                 this->opt_swing_traj(i);
             }
-            footend_interp.push_back(this->swingtraj[i].evaluate(t, 0, true));
+            footend_interp.push_back(this->swingtraj[i]->evaluate(t, 0, true));
         }
         else
         {

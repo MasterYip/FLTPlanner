@@ -30,7 +30,7 @@ UniBSpline SwingTrajPlanner::get_default_traj(Eigen::Vector3d &p0, Eigen::Vector
 }
 
 // TODO:
-bool SwingTrajPlanner::opt_traj(TrajectoryBase &traj, int index)
+bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> traj, int index)
 {
     return true;
 }

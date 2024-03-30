@@ -61,7 +61,7 @@ public:
      * @param normalized whether to use normalized parameter t
      * @return Eigen::VectorXd
      */
-    virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
+    virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false)
     {
         printf("Warning: evaluate() not implemented in derived class\n");
         return Eigen::VectorXd::Zero(get_dimen());
@@ -148,7 +148,7 @@ public:
         return params_;
     }
     // TODO: test it
-    Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
+    virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
     {
         // convert normalized t to real t
         if (normalized)

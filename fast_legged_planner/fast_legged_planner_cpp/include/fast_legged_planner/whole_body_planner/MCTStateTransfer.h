@@ -37,7 +37,7 @@ private:
     SwingTrajPlanner swing_traj_planner;
     PosList footpos_list0;
     PosList footpos_list1;
-    std::vector<UniBSpline> swingtraj;
+    std::shared_ptr<TrajectoryBase> swingtraj[6];
     std::vector<bool> swingtraj_isopt;
     std::vector<bool> swingtraj_isneeded;
 
