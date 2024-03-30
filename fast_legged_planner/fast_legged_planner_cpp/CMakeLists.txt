@@ -16,7 +16,8 @@ find_package(catkin REQUIRED
   grid_map_core
   grid_map_ros
   grid_map_msgs
-  grid_map_sdf)
+  grid_map_sdf
+  gcs_path_search)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE TESTS "test/test_*.cpp")

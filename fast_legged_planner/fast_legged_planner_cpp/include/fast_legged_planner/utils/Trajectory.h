@@ -19,6 +19,7 @@
 
 /* external project header files */
 #include <Eigen/Dense>
+#include "gcs_traj_opt/geo_utils/geo_utils.hpp"
 /* internal project header files */
 
 class TrajectoryBase
@@ -40,3 +41,4 @@ public:
         return Eigen::VectorXd::Zero(3);
     }
 };
+

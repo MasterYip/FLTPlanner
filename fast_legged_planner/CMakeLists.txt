@@ -12,7 +12,7 @@ set(MSG_DEP_SET
   nav_msgs
 )
 
-set(CATKIN_BUIL_DEP_SET
+set(CATKIN_BUILD_DEP_SET
   grid_map_core
   grid_map_ros
   # grid_map_cv
@@ -27,6 +27,7 @@ set(CATKIN_BUIL_DEP_SET
   pcl_conversions
   # misc
   ros_visualizer
+  gcs_path_search
 )
 
 ## Find catkin macros and libraries
@@ -161,7 +162,7 @@ add_subdirectory(fast_legged_planner_cpp)
 ###########################
 # Other Deps
 find_package(catkin REQUIRED COMPONENTS
-  ${CATKIN_BUIL_DEP_SET}
+  ${CATKIN_BUILD_DEP_SET}
 )
 ###########################
 

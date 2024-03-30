@@ -47,10 +47,11 @@ generate_dynamic_reconfigure_options(
 )
 
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES image_receiver
+# FIXME: the gcs_traj_opt_LIBRARIES is not defined
+ INCLUDE_DIRS include gcs_traj_opt/include
+ LIBRARIES ${gcs_traj_opt_LIBRARIES}
 #  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+#  DEPENDS gcs_traj_opt
 )
 
 # Visualizer

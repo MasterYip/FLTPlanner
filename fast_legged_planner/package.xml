@@ -58,6 +58,7 @@
   <build_depend>actionlib_msgs</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>ros_visualizer</build_depend>
+  <build_depend>gcs_path_search</build_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
@@ -66,6 +67,7 @@
   <build_export_depend>geometry_msgs</build_export_depend>
   <build_export_depend>actionlib_msgs</build_export_depend>
   <build_export_depend>ros_visualizer</build_export_depend>
+  <build_export_depend>gcs_path_search</build_export_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
@@ -76,6 +78,7 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>hexapod_robot_assets</exec_depend>
   <exec_depend>ros_visualizer</exec_depend>
+  <exec_depend>gcs_path_search</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
