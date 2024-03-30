@@ -44,8 +44,8 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1, S
         if (this->swingtraj_isneeded[i])
         {
             // Swing Trajectory
-            this->swingtraj[i] = std::make_shared<UniBSpline>(this->swing_traj_planner.get_default_traj(
-                this->footpos_list0[i], this->footpos_list1[i], v_lift, h_lift));
+            this->swingtraj[i] = this->swing_traj_planner.getDefaultTraj(
+                this->footpos_list0[i], this->footpos_list1[i], v_lift, h_lift);
         }
     }
 }

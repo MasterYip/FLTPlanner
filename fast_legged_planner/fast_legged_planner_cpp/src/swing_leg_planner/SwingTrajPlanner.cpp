@@ -20,13 +20,14 @@ SwingTrajPlanner::~SwingTrajPlanner()
 {
 }
 
-UniBSpline SwingTrajPlanner::get_default_traj(Eigen::Vector3d &p0, Eigen::Vector3d &p1, double v_lift, double h_lift)
+std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getDefaultTraj(Eigen::Vector3d &p0, Eigen::Vector3d &p1, double v_lift, double h_lift)
 {
+    // UniBSpline
     Eigen::Vector3d pm = (p0 + p1) / 2;
     pm(2) += h_lift;
     Eigen::MatrixXd knots(3, 3);
     knots << p0.transpose(), pm.transpose(), p1.transpose();
-    return UniBSpline(knots);
+    return std::make_shared<UniBSpline>(knots);
 }
 
 // TODO:

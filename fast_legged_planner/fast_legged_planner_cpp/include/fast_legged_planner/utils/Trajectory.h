@@ -19,7 +19,7 @@
 
 /* external project header files */
 #include <Eigen/Dense>
-#include "gcs_traj_opt/geo_utils/geo_utils.hpp"
+#include "gcs_traj_opt/geo_utils/minco.hpp"
 /* internal project header files */
 
 class TrajectoryBase
@@ -42,3 +42,32 @@ public:
     }
 };
 
+class MincoTrajectory : public TrajectoryBase
+{
+private:
+    Trajectory<3> traj_;
+public:
+
+    Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
+    {
+        if (traj_.getPieceNum() == 0)
+            throw std::runtime_error("Trajectory is empty");
+
+        if (normalized)
+            t *= traj_.getTotalDuration();
+        
+        if (t < 0 || t > traj_.getTotalDuration())
+            throw std::runtime_error("Invalid time");
+        
+        if (d_order == 0)
+            return traj_.getPos(t);
+        else if (d_order == 1)
+            return traj_.getVel(t);
+        else if (d_order == 2)
+            return traj_.getAcc(t);
+        else if (d_order == 3)
+            return traj_.getJer(t);
+        else
+            throw std::runtime_error("Invalid derivative order");
+    }
+};
