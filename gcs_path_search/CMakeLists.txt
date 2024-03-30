@@ -46,14 +46,6 @@ generate_dynamic_reconfigure_options(
   ${DYNCFG_PATH}
 )
 
-catkin_package(
-# FIXME: the gcs_traj_opt_LIBRARIES is not defined
- INCLUDE_DIRS include gcs_traj_opt/include
- LIBRARIES ${gcs_traj_opt_LIBRARIES}
-#  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS gcs_traj_opt
-)
-
 # Visualizer
 add_library(gcs_visualizer
   src/gcs_visualizer.cpp
@@ -62,6 +54,15 @@ target_link_libraries(gcs_visualizer
   ${catkin_LIBRARIES}
   gcs_traj_opt
 )
+
+catkin_package(
+# FIXME: the gcs_traj_opt_LIBRARIES is not defined
+ INCLUDE_DIRS include gcs_traj_opt/include
+ LIBRARIES gcs_visualizer gcs_traj_opt
+#  CATKIN_DEPENDS roscpp rospy std_msgs
+#  DEPENDS gcs_traj_opt
+)
+
 
 # Executables
 
@@ -87,5 +88,12 @@ target_link_libraries(gcs_example_node
   gcs_traj_opt
   gcs_visualizer)
 
+# Install
+
+install(TARGETS gcs_traj_opt
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
 
 

@@ -26,4 +26,6 @@ target_link_libraries(${PROJECT_NAME}
   ${CGAL_LIBRARIES}
 )
 
+# Export as a package
 # export(PACKAGE ${PROJECT_NAME})
+# export(EXPORT ${PROJECT_NAME})

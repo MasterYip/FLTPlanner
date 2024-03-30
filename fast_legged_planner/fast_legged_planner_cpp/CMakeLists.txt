@@ -12,7 +12,7 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 add_subdirectory(third_party/LeggedKinModule)
 find_package(Eigen3 REQUIRED)
 find_package(pinocchio REQUIRED)
-find_package(catkin REQUIRED
+find_package(catkin REQUIRED COMPONENTS
   grid_map_core
   grid_map_ros
   grid_map_msgs

@@ -41,7 +41,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_listener.h>
-#include "ros_visualizer/ros_visualizer.hpp"
+#include "misc/gcs_visualizer.hpp"
 
 fast_legged_planner::hexapod_State transRobotState(const MDT::RobotState &state_)
 {
@@ -151,7 +151,7 @@ private:
     // ROS Timer event
     ros::Timer timer_;
     // Visualizer
-    ros_visualizer::ROSVisualizer visualizer_;
+    GCSVisualizer visualizer_;
 
     // Interface
     ElSpiderAirInterfaceROS robot_interface_;
@@ -169,7 +169,7 @@ public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirSimplePlanner(bool fake_estimation = false, bool simulation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
                                                                                       gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
-                                                                                      tfListener_(tfBuffer_), visualizer_(nh_),
+                                                                                      tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
                                                                                       rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
@@ -299,8 +299,7 @@ public:
                 robot_state_.feetNormalVector[i] << 0, 0, 1; // TODO: use gridmap normal
                 footend_vis.emplace_back(robot_state_.feetPosition[i]);
             }
-            visualizer_.delAll();
-            visualizer_.visSphere(footend_vis, 0.02);
+
             // FIXME: cmd_ should be under robot frame
             // if (cmd_.linear.x != 0)
             //     robot_state_.moveDirection = atan2(cmd_.linear.y, cmd_.linear.x);
@@ -355,6 +354,10 @@ public:
                 robot_interface_.pub_shadow_joint_state_from_footendpos(footend_interp);
                 pub_footpos_now();
             }
+            // Visualization
+            visualizer_.delAll();
+            visualizer_.visPolytope(robot_interface_.getFootPolyhedra(0))
+
             t += delta;
             if (t > 1.0)
             {
