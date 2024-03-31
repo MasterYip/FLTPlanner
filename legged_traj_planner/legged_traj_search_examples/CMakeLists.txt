@@ -3,13 +3,28 @@ project(legged_traj_search_examples)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
+set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+find_package(Eigen3 REQUIRED)
+find_package(CGAL REQUIRED)
+
 find_package(catkin REQUIRED COMPONENTS
   legged_traj_search
   roscpp
+  std_msgs
+  visualization_msgs
+  # Grid map
+  grid_map_core
+  grid_map_ros
+  grid_map_msgs
+
+  dynamic_reconfigure
+  ros_visualizer
 )
 
 ## System dependencies are found with CMake's conventions
@@ -91,6 +106,19 @@ find_package(catkin REQUIRED COMPONENTS
 #   cfg/DynReconf1.cfg
 #   cfg/DynReconf2.cfg
 # )
+# Dynamic reconfigure
+set (DYNCFG_PATH 
+  config/cvx_trajopt.cfg
+  config/gcs_example.cfg)
+execute_process(COMMAND chmod a+x ${DYNCFG_PATH}
+                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+                RESULT_VARIABLE cmd_result
+                OUTPUT_VARIABLE cmd_ver)
+message(STATUS "Chmod a+x the dynamic_reconfigure file")
+
+generate_dynamic_reconfigure_options(
+  ${DYNCFG_PATH}
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -102,9 +130,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES legged_traj_search_examples
-#  CATKIN_DEPENDS legged_traj_search roscpp
+ INCLUDE_DIRS include
+ LIBRARIES legged_traj_search_examples
+ CATKIN_DEPENDS legged_traj_search roscpp
 #  DEPENDS system_lib
 )
 
@@ -115,9 +143,44 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
   ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${CGAL_INCLUDE_DIRS}
+  include
 )
+
+# Visualizer
+add_library(gcs_visualizer
+  src/gcs_visualizer.cpp
+)
+target_link_libraries(gcs_visualizer
+  ${catkin_LIBRARIES}
+)
+
+# Executables
+
+# Trajectory optimizer
+add_executable(cvx_trajopt_node
+  src/cvx_trajopt_node.cpp
+  src/cvx_trajopt.cpp)
+
+add_dependencies(cvx_trajopt_node ${PROJECT_NAME}_gencfg)
+target_link_libraries(cvx_trajopt_node
+  ${catkin_LIBRARIES}
+  ${CGAL_LIBRARIES}
+  gcs_visualizer)
+
+# GCS Examples
+add_executable(gcs_example_node
+  src/gcs_example_node.cpp
+  src/gcs_example.cpp)
+
+add_dependencies(gcs_example_node ${PROJECT_NAME}_gencfg)
+target_link_libraries(gcs_example_node
+  ${catkin_LIBRARIES}
+  ${CGAL_LIBRARIES}
+  gcs_visualizer)
+
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}

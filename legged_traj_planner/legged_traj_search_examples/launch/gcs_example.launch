@@ -1,0 +1,121 @@
+<launch>
+    <!-- eg_guide_surface_demo / eg_gcs_barrier_demo / eg_gcs_rand_corridor_demo / eg_gcs_rand_map_demo-->
+    <arg name="example_name" default="eg_gcs_rand_map_demo"/>
+    <!-- Gloabl Default Settings -->
+    <arg name="with_robot" default="false" />
+    <arg name="with_ceiling" default="false" />
+    <arg name="max_height" default="1.0" />
+    <arg name="test_rate" default="5" />
+    <arg name="grid_map_topic" default="grid_map" />
+    <arg name="grid_map_update_rate" default="5" />
+
+    <!-- eg_guide_surface_demo -->
+    <arg name="poly_num_gs" default="3" />
+
+    <!-- eg_gcs_rand_corridor_demo -->
+    <arg name="poly_num" default="3" />
+
+    <!-- Launch -->
+    <group if="$(eval example_name == 'eg_guide_surface_demo')">
+        <include file="$(find legged_traj_search_examples)/launch/gcs_example_template.launch">
+            <arg name="example_name" default="$(arg example_name)" />
+            <arg name="with_robot" default="$(arg with_robot)" />
+            <arg name="with_ceiling" default="$(arg with_ceiling)" />
+            <arg name="max_height" default="$(arg max_height)" />
+            <arg name="test_rate" default="$(arg test_rate)" />
+            <arg name="grid_map_topic" default="$(arg grid_map_topic)" />
+            <arg name="grid_map_update_rate" default="$(arg grid_map_update_rate)" />
+            <arg name="grid_map_file" default="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" />
+            <arg name="grid_map_file_ceiling" default="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ceiling.png" />
+            <arg name="elevation_layer" default="elevation" />
+            <arg name="ceiling_layer" default="ceiling" />
+        </include>
+        <!-- GCS Example Node -->
+        <node pkg="legged_traj_search_examples" type="gcs_example_node" name="gcs_example" output="screen">
+            <param name="testRate" value="$(arg test_rate)" />
+            <param name="mapTopic" value="$(arg grid_map_topic)" />
+            <param name="exampleName" value="$(arg example_name)" />
+            <param name="polyNum" value="$(arg poly_num_gs)" />
+        </node>
+    </group>
+
+    <group if="$(eval example_name == 'eg_gcs_barrier_demo')">
+        <include file="$(find legged_traj_search_examples)/launch/gcs_example_template.launch">
+            <arg name="example_name" default="$(arg example_name)" />
+            <arg name="with_robot" default="$(arg with_robot)" />
+            <arg name="with_ceiling" default="$(arg with_ceiling)" />
+            <arg name="max_height" default="$(arg max_height)" />
+            <arg name="test_rate" default="$(arg test_rate)" />
+            <arg name="grid_map_topic" default="$(arg grid_map_topic)" />
+            <arg name="grid_map_update_rate" default="$(arg grid_map_update_rate)" />
+            <arg name="grid_map_file" default="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" />
+            <arg name="grid_map_file_ceiling" default="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ceiling.png" />
+            <arg name="elevation_layer" default="elevation" />
+            <arg name="ceiling_layer" default="ceiling" />
+        </include>
+        <!-- RQT Reconf -->
+        <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" />
+
+        <!-- GCS Example Node -->
+        <node pkg="legged_traj_search_examples" type="gcs_example_node" name="gcs_example" output="screen">
+            <param name="testRate" value="$(arg test_rate)" />
+            <param name="mapTopic" value="$(arg grid_map_topic)" />
+            <param name="exampleName" value="$(arg example_name)" />
+        </node>
+    </group>
+
+    <group if="$(eval example_name == 'eg_gcs_rand_corridor_demo')">
+        <include file="$(find legged_traj_search_examples)/launch/gcs_example_template.launch">
+            <arg name="example_name" default="$(arg example_name)" />
+            <arg name="with_robot" default="$(arg with_robot)" />
+            <arg name="with_ceiling" default="$(arg with_ceiling)" />
+            <arg name="max_height" default="$(arg max_height)" />
+            <arg name="test_rate" default="$(arg test_rate)" />
+            <arg name="grid_map_topic" default="$(arg grid_map_topic)" />
+            <arg name="grid_map_update_rate" default="$(arg grid_map_update_rate)" />
+            <arg name="grid_map_file" default="$(find legged_traj_search_examples)/data/randmap_60_60/map_00006.jpg" />
+            <arg name="grid_map_file_ceiling" default="$(find fast_legged_planner)/data/traj_opt_demo/3-RandCorridor-ceiling.png" />
+            <arg name="elevation_layer" default="elevation" />
+            <arg name="ceiling_layer" default="ceiling" />
+        </include>
+        <!-- RQT Reconf -->
+        <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" />
+
+        <!-- GCS Example Node -->
+        <node pkg="legged_traj_search_examples" type="gcs_example_node" name="gcs_example" output="screen">
+            <param name="testRate" value="$(arg test_rate)" />
+            <param name="mapTopic" value="$(arg grid_map_topic)" />
+            <param name="exampleName" value="$(arg example_name)" />
+            <param name="polyNum" value="$(arg poly_num)" />
+        </node>
+    </group>
+
+    <group if="$(eval example_name == 'eg_gcs_rand_map_demo')">
+        <include file="$(find legged_traj_search_examples)/launch/gcs_example_template.launch">
+            <arg name="example_name" default="$(arg example_name)" />
+            <arg name="with_robot" default="$(arg with_robot)" />
+            <arg name="with_ceiling" default="$(arg with_ceiling)" />
+            <arg name="max_height" default="1.0"/>
+            <arg name="test_rate" default="8" />
+            <arg name="grid_map_topic" default="$(arg grid_map_topic)" />
+            <arg name="grid_map_update_rate" default="2" />
+            <arg name="grid_map_file" default="$(find legged_traj_search_examples)/data/randmap_60_60" />
+            <arg name="grid_map_file_ceiling" default="$(find fast_legged_planner)/data/traj_opt_demo/3-RandCorridor-ceiling.png" />
+            <arg name="elevation_layer" default="elevation" />
+            <arg name="ceiling_layer" default="ceiling" />
+        </include>
+        <!-- RQT Reconf -->
+        <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="rqt_reconfigure" output="screen" />
+
+        <!-- GCS Example Node -->
+        <node pkg="legged_traj_search_examples" type="gcs_example_node" name="gcs_example" output="screen">
+            <param name="testRate" value="$(arg test_rate)" />
+            <param name="mapTopic" value="$(arg grid_map_topic)" />
+            <param name="exampleName" value="$(arg example_name)" />
+        </node>
+    </group>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find legged_traj_search_examples)/config/rviz/$(arg example_name).rviz" output="screen" />
+
+
+</launch>
