@@ -35,7 +35,7 @@ public:
     void visPolytope(const std::vector<Eigen::Matrix3Xd> &vPolys);
     void visPolytope(const Eigen::MatrixX4d &hPoly);
     void visPolytope(const std::vector<Eigen::MatrixX4d> &hPolys);
-    void visPolytope(std::vector<Polyhedra> &polys);
+    void visPolytope(std::vector<Polyhedra> polys);
     void visPolytope(Polyhedra &poly);
     void visPolytope(Polyhedra poly);
 };

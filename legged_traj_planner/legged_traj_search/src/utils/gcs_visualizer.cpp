@@ -77,7 +77,7 @@ void GCSVisualizer::visPolytope(const std::vector<Eigen::MatrixX4d> &hPolys)
     visPolytope(vPolys);
 }
 
-void GCSVisualizer::visPolytope(std::vector<Polyhedra> &polys)
+void GCSVisualizer::visPolytope(std::vector<Polyhedra> polys)
 {
     std::vector<Eigen::Matrix3Xd> vPolys;
     for (auto &poly : polys)

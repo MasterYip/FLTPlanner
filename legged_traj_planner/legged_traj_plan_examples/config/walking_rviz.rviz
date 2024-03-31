@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Image2Gridmap_ground1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -353,6 +352,15 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /visualizer_markers
+      Name: ros_viz
+      Namespaces:
+        facet: true
+        mesh: true
+      Queue Size: 1
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
@@ -381,7 +389,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.7002390623092651
+      Distance: 0.7539309859275818
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -389,17 +397,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.47226426005363464
-        Y: -0.608601450920105
-        Z: 0.512637734413147
+        X: 1.1277384757995605
+        Y: -0.37235376238822937
+        Z: 0.15847815573215485
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.274797648191452
+      Pitch: 0.5897971987724304
       Target Frame: <Fixed Frame>
-      Yaw: 3.606379508972168
+      Yaw: 3.9163765907287598
     Saved: ~
 Window Geometry:
   Displays:

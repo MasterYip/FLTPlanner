@@ -178,6 +178,8 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     // Draw Corridor
     std::vector<Polyhedra> corridor = poly_corridor.getCorridor();
     gcs_visualizer_.visPolytope(corridor);
+    // Draw Polys
+    // gcs_visualizer_.visPolytope(polys);
 
     // Draw border
     GridPolyLine border = poly_traj_search.getBorder();

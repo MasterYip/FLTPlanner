@@ -49,31 +49,39 @@ class ElSpiderAirInterface : public BaseRobotInterface
 {
 private:
     std::vector<Polyhedra> foot_polyhedra_; // Defined in BASE frame
-
 public:
     ElSpiderKin robot_kin;
 
     ElSpiderAirInterface(const std::string &urdf, const std::vector<std::string> &package_dirs = {})
         : BaseRobotInterface(urdf, package_dirs)
     {
-        Eigen::MatrixX3d vertices(10, 3);
-        vertices << 0.2412, -0.154, -0.1303,
-            -0.07939, -0.1551, -0.1464,
-            -0.0809, -0.1567, -0.3889,
-            0.2556, -0.1674, -0.3545,
-            -0.3199, -0.3958, 0.006312,
-            -0.2209, -0.2967, -0.3344,
-            0.3721, -0.2772, 0.02371,
-            0.3527, -0.2589, -0.2644,
-            0.05979, -0.4186, -0.2857,
-            0.06059, -0.472, 0.1195;
-        Eigen::Matrix3Xd vertices_transpose = vertices.transpose();
+        // Foot convex hull
+        Eigen::Matrix3Xd FootHull(3, 10);
+        FootHull << 0.2412, -0.07939, -0.0809, 0.2556, -0.3199, -0.2209, 0.3721, 0.3527, 0.05979, 0.06059,
+            -0.154, -0.1551, -0.1567, -0.1674, -0.3958, -0.2967, -0.2772, -0.2589, -0.4186, -0.472,
+            -0.1303, -0.1464, -0.3889, -0.3545, 0.006312, -0.3344, 0.02371, -0.2644, -0.2857, 0.1195;
+        Eigen::Matrix3Xd pos_shift(3, 6);
+        // pos_shift << 0.3, 0.0, -0.3, 0.3, 0.0, -0.3,
+        //     0.06, 0.0, 0.06, -0.06, 0.0, -0.06,
+        //     0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+        pos_shift << 0.3, 0.0, -0.3, 0.3, 0.0, -0.3,
+            -0.04, -0.1, -0.04, 0.04, 0.1, 0.04,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+        Eigen::Matrix3Xd mirror(3, 6);
+        mirror << 1, 1, -1, 1, 1, -1,
+            1, 1, 1, -1, -1, -1,
+            1, 1, 1, 1, 1, 1;
         for (int i = 0; i < 6; i++)
         {
             // TOOD: Transform
-            foot_polyhedra_.emplace_back(Polyhedra(vertices_transpose));
+            Eigen::Matrix3Xd hull = FootHull;
+            hull.row(0) *= mirror(0, i);
+            hull.row(1) *= mirror(1, i);
+            hull.row(2) *= mirror(2, i);
+            foot_polyhedra_.emplace_back(Polyhedra((hull.colwise() + pos_shift.col(i)).eval()));
         }
     }
+
     std::vector<double> IKFast_foots(const std::vector<Eigen::Vector3d> &footendpos)
     {
         std::vector<double> q;
@@ -96,5 +104,10 @@ public:
     Polyhedra getFootPolyhedra(int index) const
     {
         return foot_polyhedra_[index];
+    }
+
+    std::vector<Polyhedra> getFootPolyhedra() const
+    {
+        return foot_polyhedra_;
     }
 };

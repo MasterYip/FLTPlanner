@@ -354,9 +354,11 @@ public:
                 robot_interface_.pub_shadow_joint_state_from_footendpos(footend_interp);
                 pub_footpos_now();
             }
+
             // Visualization
+            // BUG: Eigen Transpose here may lead to strange visualization bug
             visualizer_.delAll();
-            visualizer_.visPolytope(robot_interface_.getFootPolyhedra(0));
+            visualizer_.visPolytope(robot_interface_.getFootPolyhedra());
 
             t += delta;
             if (t > 1.0)
