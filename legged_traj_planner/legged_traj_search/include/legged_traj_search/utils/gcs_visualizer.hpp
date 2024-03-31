@@ -28,7 +28,6 @@
 class GCSVisualizer : public ros_visualizer::ROSVisualizer
 {
 public:
-    // GCSVisualizer(ros::NodeHandle &nh);
     GCSVisualizer(ros::NodeHandle &nh, std::string frame_id = "odom", std::string topic_name = "visualizer_markers");
     ~GCSVisualizer() = default;
 
@@ -37,4 +36,6 @@ public:
     void visPolytope(const Eigen::MatrixX4d &hPoly);
     void visPolytope(const std::vector<Eigen::MatrixX4d> &hPolys);
     void visPolytope(std::vector<Polyhedra> &polys);
+    void visPolytope(Polyhedra &poly);
+    void visPolytope(Polyhedra poly);
 };

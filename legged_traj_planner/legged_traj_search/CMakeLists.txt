@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   grid_map_core
   roscpp
   std_msgs
+  ros_visualizer
 )
 
 ## System dependencies are found with CMake's conventions

@@ -41,7 +41,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_listener.h>
-#include "misc/gcs_visualizer.hpp"
+#include "legged_traj_search/utils/gcs_visualizer.hpp"
 
 legged_traj_plan::hexapod_State transRobotState(const MDT::RobotState &state_)
 {
@@ -356,9 +356,9 @@ public:
             }
             // Visualization
             visualizer_.delAll();
-            visualizer_.visPolytope(robot_interface_.getFootPolyhedra(0))
+            visualizer_.visPolytope(robot_interface_.getFootPolyhedra(0));
 
-                t += delta;
+            t += delta;
             if (t > 1.0)
             {
                 t = 0.0;

@@ -9,7 +9,7 @@
  *
  */
 
-#include "legged_traj_search_examples/misc/gcs_visualizer.hpp"
+#include "legged_traj_search/utils/gcs_visualizer.hpp"
 
 GCSVisualizer::GCSVisualizer(ros::NodeHandle &nh, std::string frame_id, std::string topic_name) : ros_visualizer::ROSVisualizer(nh, frame_id, topic_name)
 {
@@ -85,4 +85,14 @@ void GCSVisualizer::visPolytope(std::vector<Polyhedra> &polys)
         vPolys.push_back(poly.getVRep());
     }
     visPolytope(vPolys);
+}
+
+void GCSVisualizer::visPolytope(Polyhedra &poly)
+{
+    visPolytope(poly.getVRep());
+}
+
+void GCSVisualizer::visPolytope(Polyhedra poly)
+{
+    visPolytope(poly.getVRep());
 }

@@ -3,7 +3,7 @@ project(legged_traj_plan)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++14)
-
+set(CMAKE_BUILD_TYPE "Release")
 # Settings
 # IMPORTANT Disable conda to use gtest, otherwise it will lead to unknown error.
 set(USE_GTEST "ON")
@@ -133,9 +133,14 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES legged_traj_plan
-#  CATKIN_DEPENDS grid_map_core roscpp std_msgs
+ INCLUDE_DIRS 
+  include
+  third_party/LeggedKinModule/core
+  third_party/LeggedKinModule/config
+  third_party/LeggedKinModule/config/ikfast_leg_lib
+  ${pinocchio_INCLUDE_DIRS}
+ LIBRARIES legged_traj_plan LeggedKinModule
+ CATKIN_DEPENDS grid_map_core roscpp std_msgs
 #  DEPENDS system_lib
 )
 

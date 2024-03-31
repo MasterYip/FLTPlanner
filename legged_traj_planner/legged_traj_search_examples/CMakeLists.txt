@@ -149,14 +149,6 @@ include_directories(
   include
 )
 
-# Visualizer
-add_library(gcs_visualizer
-  src/gcs_visualizer.cpp
-)
-target_link_libraries(gcs_visualizer
-  ${catkin_LIBRARIES}
-)
-
 # Executables
 
 # Trajectory optimizer
@@ -167,8 +159,7 @@ add_executable(cvx_trajopt_node
 add_dependencies(cvx_trajopt_node ${PROJECT_NAME}_gencfg)
 target_link_libraries(cvx_trajopt_node
   ${catkin_LIBRARIES}
-  ${CGAL_LIBRARIES}
-  gcs_visualizer)
+  ${CGAL_LIBRARIES})
 
 # GCS Examples
 add_executable(gcs_example_node
@@ -178,8 +169,7 @@ add_executable(gcs_example_node
 add_dependencies(gcs_example_node ${PROJECT_NAME}_gencfg)
 target_link_libraries(gcs_example_node
   ${catkin_LIBRARIES}
-  ${CGAL_LIBRARIES}
-  gcs_visualizer)
+  ${CGAL_LIBRARIES})
 
 
 ## Declare a C++ library

@@ -2,16 +2,34 @@ cmake_minimum_required(VERSION 3.0.2)
 project(legged_traj_plan_examples)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
+set(CMAKE_BUILD_TYPE "Release")
+
+set(GRIDMAP_DEP
+  grid_map_core
+  grid_map_ros
+  # grid_map_cv
+  grid_map_filters
+  grid_map_loader
+  grid_map_msgs
+  # grid_map_octomap
+  grid_map_rviz_plugin
+  grid_map_visualization
+  grid_map_sdf
+  pcl_ros
+  pcl_conversions
+)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  grid_map_core
   legged_traj_plan
+  legged_traj_search
+  ros_visualizer
   roscpp
   std_msgs
+  ${GRIDMAP_DEP}
 )
 
 ## System dependencies are found with CMake's conventions
@@ -114,11 +132,74 @@ catkin_package(
 ## Build ##
 ###########
 
+# MCTS planner
+add_subdirectory(mcts_planner)
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
+)
+
+add_library(${PROJECT_NAME}
+  src/SdfPub.cpp
+  src/ImageToGridmap.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+
+# TXT Grid Map Publisher
+add_executable(grid_map_pub src/grid_map_pub.cpp)
+# add_dependencies(grid_map_pub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(grid_map_pub
+  ${catkin_LIBRARIES}
+)
+
+# Image to Grid Map
+add_executable(image_to_gridmap src/image_to_gridmap_node.cpp)
+target_link_libraries(image_to_gridmap
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+# SDF Publisher (RViz)
+add_executable(sdf_pub src/sdf_pub_node.cpp)
+target_link_libraries(sdf_pub
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+# ElSpiderAirSwingtrajPlanner
+add_executable(elspider_air_swingtraj_planner src/elspider_air_swingtraj_planner.cpp)
+target_link_libraries(elspider_air_swingtraj_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+# ElSpiderAirSimplePlanner
+add_executable(elspider_air_simple_planner src/elspider_air_simple_planner.cpp)
+target_link_libraries(elspider_air_simple_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+  mcts_planner
+)
+
+# ElSpiderAirVMCPlanner
+add_executable(elspider_air_vmc_planner src/elspider_air_vmc_planner.cpp)
+target_link_libraries(elspider_air_vmc_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+  mcts_planner
+)
+
+# Tests
+add_executable(test_robot_interface_rviz test/test_robot_interface_rviz.cpp)
+target_link_libraries(test_robot_interface_rviz
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
 )
 
 ## Declare a C++ library
@@ -160,10 +241,21 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# catkin_install_python(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+catkin_install_python(PROGRAMS
+  scripts/hit_spider_planner.py
+  scripts/elspider_air_swingtraj_planner.py
+
+  scripts/traj_opt_demo.py
+
+  scripts/image_publisher.py
+  scripts/test_elspider_air.py
+  scripts/gridmap_sub.py
+  scripts/pointcloud_parser.py
+
+  scripts/utils/joy_teleop.py
+
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html

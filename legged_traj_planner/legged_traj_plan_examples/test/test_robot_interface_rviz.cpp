@@ -12,7 +12,7 @@
 #include <vector>
 #include <string>
 #include <math.h>
-#include "legged_traj_plan_examples/robot_interface/ElSpiderAirInterfaceROS.h"
+#include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
 #include "ros_visualizer/ros_visualizer.hpp"
 #include <ros/ros.h>
 

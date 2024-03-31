@@ -22,7 +22,7 @@
 #include "legged_traj_search/geo_utils/quickhull.hpp"
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
-#include "legged_traj_search_examples/misc/gcs_visualizer.hpp"
+#include "legged_traj_search/utils/gcs_visualizer.hpp"
 // TODO: Change project name
 #include <legged_traj_search_examples/CvxTrajOptConfig.h>
 
