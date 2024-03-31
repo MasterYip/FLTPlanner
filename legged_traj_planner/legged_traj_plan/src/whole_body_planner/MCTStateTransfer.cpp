@@ -1,0 +1,138 @@
+/**
+ * @file MCTStateTransfer.cpp
+ * @author Master Yip (2205929492@qq.com)
+ * @brief
+ * @version 0.1
+ * @date 2024-02-02
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
+#include "legged_traj_plan/whole_body_planner/MCTStateTransfer.h"
+#include "legged_traj_plan/utils/Geometry.h"
+
+PosList FeetPos2PosList(legged_traj_plan::FeetPosition feet_pos)
+{
+    PosList pos_list;
+    for (int i = 0; i < 6; ++i)
+    {
+        pos_list.push_back(Eigen::Vector3d(feet_pos.foot[i].x, feet_pos.foot[i].y, feet_pos.foot[i].z));
+    }
+    return pos_list;
+}
+
+MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1, SwingTrajPlanner swing_traj_planner)
+{
+    this->state0 = state0;
+    this->state1 = state1;
+    this->swing_traj_planner = swing_traj_planner;
+    this->footpos_list0 = FeetPos2PosList(state0.feetPositionNow);
+    this->footpos_list1 = FeetPos2PosList(state1.feetPositionNow);
+    this->swingtraj_isopt = std::vector<bool>(6, false);
+    this->swingtraj_isneeded = std::vector<bool>(6, false);
+    for (int i = 0; i < 6; ++i)
+    {
+        this->swingtraj_isneeded[i] = (state1.support_State_Now[i] == 0);
+    }
+
+    // Default swing trajectory
+    double v_lift = 0.1; // NOTE: not used
+    double h_lift = 0.10;
+    for (int i = 0; i < 6; ++i)
+    {
+        if (this->swingtraj_isneeded[i])
+        {
+            // Swing Trajectory
+            this->swingtraj[i] = this->swing_traj_planner.getDefaultTraj(
+                this->footpos_list0[i], this->footpos_list1[i], v_lift, h_lift);
+        }
+    }
+}
+
+pinocchio::SE3 MCTStateTransfer::eval_torso_traj(double t)
+{
+    // Evaluate torso trajectory at time t
+    pinocchio::SE3 pose0 = XYZRPY2SE3(this->state0.base_Pose_Now);
+    pinocchio::SE3 pose1 = XYZRPY2SE3(this->state1.base_Pose_Now);
+    pinocchio::Motion err = pinocchio::log6(pose0.actInv(pose1));
+    pinocchio::SE3 odom_interp = pose0.act(pinocchio::exp6(err * t));
+
+    return odom_interp;
+}
+
+PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
+{
+    PosList footend_interp;
+    for (int i = 0; i < 6; ++i)
+    {
+        if (this->swingtraj_isneeded[i])
+        {
+            if (!this->swingtraj_isopt[i] && auto_opt)
+            {
+                this->opt_swing_traj(i);
+            }
+            footend_interp.push_back(this->swingtraj[i]->evaluate(t, 0, true));
+        }
+        else
+        {
+            // Linear interpolation
+            footend_interp.push_back(footpos_list0[i] * (1 - t) + this->footpos_list1[i] * t);
+        }
+    }
+    return footend_interp;
+}
+
+std::array<bool, 6> MCTStateTransfer::eval_support_state(double t, double margin)
+{
+    std::array<bool, 6> support_state;
+    if (t < 1 - margin && t > margin)
+    {
+        for (int i = 0; i < 6; ++i)
+        {
+            support_state[i] = (this->state1.support_State_Now[i] == 1);
+        }
+    }
+    else
+    {
+        support_state.fill(true);
+    }
+    return support_state;
+}
+
+void MCTStateTransfer::opt_swing_traj(int index)
+{
+    if (!this->opt_check(index))
+    {
+        // TODO: add eval_torso_traj
+        this->swing_traj_planner.opt_traj(
+            this->swingtraj[index], index);
+        this->swingtraj_isopt[index] = true;
+    }
+}
+
+/**
+ * @brief Check if the traj does not need to be optimized
+ *
+ * @param index foot index (-1 for all)
+ * @return true: does not need to be optimized
+ * @return false: need to be optimized
+ */
+bool MCTStateTransfer::opt_check(int index = -1)
+{
+    if (index != -1)
+    {
+        return this->swingtraj_isopt[index] || !this->swingtraj_isneeded[index];
+    }
+    else
+    {
+        for (int i = 0; i < 6; ++i)
+        {
+            if (!(this->swingtraj_isopt[i] || !this->swingtraj_isneeded[i]))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+}

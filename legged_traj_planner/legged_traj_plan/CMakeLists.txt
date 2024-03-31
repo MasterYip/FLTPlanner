@@ -2,16 +2,37 @@ cmake_minimum_required(VERSION 3.0.2)
 project(legged_traj_plan)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
+
+# Settings
+# IMPORTANT Disable conda to use gtest, otherwise it will lead to unknown error.
+set(USE_GTEST "ON")
+SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  grid_map_core
-  roscpp
+
+# Dependancy
+set(MSG_DEP_SET
   std_msgs
+  geometry_msgs
+  actionlib_msgs
+  sensor_msgs
+  nav_msgs
 )
+
+add_subdirectory(third_party/LeggedKinModule)
+find_package(Eigen3 REQUIRED)
+find_package(pinocchio REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  ${MSG_DEP_SET}
+  grid_map_core
+  grid_map_ros
+  grid_map_msgs
+  grid_map_sdf
+  legged_traj_search
+  ros_visualizer)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -47,11 +68,20 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  # MCTS
+  FeetNormalVector.msg
+  FeetPosition.msg
+  hexapod_Base_Pose.msg
+  hexapod_RPY.msg
+  hexapod_State.msg
+  # HexapodSoftware
+  FootCmd.msg
+  FootState.msg
+  Euler.msg
+  BodyState.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -68,10 +98,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  ${MSG_DEP_SET}
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -115,10 +145,51 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
+
 include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-)
+  include
+  ${EIGEN3_INCLUDE_DIRS}
+  ${PINOCCHIO_INCLUDE_DIRS}
+  )
+  
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE TESTS "test/test_*.cpp")
+file(GLOB_RECURSE GTESTS "test/gtest_*.cpp")
+
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
+# FIXME: this project depend on catkin, but it is not a catkin package
+target_include_directories(${PROJECT_NAME} PUBLIC include ${catkin_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${catkin_LIBRARIES} LeggedKinModule)
+
+
+# GTest
+if(USE_GTEST)
+  find_package(MathGL REQUIRED)
+  find_package(GTest REQUIRED)  
+  # Configure file
+  set(TEST_URDF_PATH ${PROJECT_SOURCE_DIR}/../../hexapod_robot_assets/model/elspider_air/urdf/el_mini.urdf)
+  set(TEST_PKG_DIRS ${PROJECT_SOURCE_DIR}/../../hexapod_robot_assets/model/elspider_air)
+  configure_file(${PROJECT_SOURCE_DIR}/test/urdf_path.h.in ${PROJECT_SOURCE_DIR}/test/urdf_path.h @ONLY)
+  # Build
+  add_executable(flplanner_tests ${GTESTS})
+  target_include_directories(flplanner_tests
+    PRIVATE
+    ${GTEST_INCLUDE_DIRS}
+    ${MathGL_INCLUDE_DIRS}
+    test)
+  target_link_libraries(flplanner_tests 
+    ${PROJECT_NAME}
+    ${GTEST_BOTH_LIBRARIES}
+    pthread
+    ${MathGL_LIBRARIES})
+endif()
+
+# Tests
+foreach(test ${TESTS})
+  get_filename_component(test_name ${test} NAME_WE)
+  add_executable(${test_name} ${test})
+  target_link_libraries(${test_name} ${PROJECT_NAME})
+endforeach()
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}

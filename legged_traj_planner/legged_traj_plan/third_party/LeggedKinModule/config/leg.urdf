@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- =================================================================================== -->
+<!-- ============ This URDF was created by HIT RCAMC k206 ZZLin 2023.11.07 ============= -->
+<!-- =================================================================================== -->
+<robot name="el_mini">
+  <material name="black">
+    <color rgba="0.0 0.0 0.0 1.0"/>
+  </material>
+  <material name="blue">
+    <color rgba="0.0 0.0 0.8 1.0"/>
+  </material>
+  <material name="green">
+    <color rgba="0.0 0.8 0.0 1.0"/>
+  </material>
+  <material name="grey">
+    <color rgba="0.2 0.2 0.2 1.0"/>
+  </material>
+  <material name="red">
+    <color rgba="0.8 0.0 0.0 1.0"/>
+  </material>
+  <material name="white">
+    <color rgba="1.0 1.0 1.0 1.0"/>
+  </material>
+  <link name="BASE">
+    <inertial>
+      <origin xyz="0.00000732 0.00000000 0.02428745" rpy="0 0 0" />
+      <mass value="15.89907465" />
+      <inertia ixx="0.09260861" ixy="-0.00001892" ixz="0.00000158" iyy="0.47054913" iyz="0.00000000" izz="0.53896766" />
+    </inertial>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.18 0.05 0.05"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="RF_HIP">
+    <inertial>
+      <origin xyz=" -0.01146909 -0.12306389 -0.03643601" rpy="0 0 0" />
+      <mass value="1.20924153" />
+      <inertia ixx="0.00506259" ixy="-0.00037922" ixz="-0.00012353" iyy="0.00134204" iyz="-0.00101741" izz="0.00448477" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.05 0.1 0.05"/>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.2 0.2 0.3 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.18 0.05 0.05"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="RF_HAA" type="revolute">
+    <origin xyz="0.3 -0.08 0.011" rpy="0 0 0" />
+    <parent link="BASE" />
+    <child link="RF_HIP" />
+    <axis xyz="0 0 1" />
+    <limit lower="-0.785" upper="0.785" effort="33.5" velocity="21" />
+  </joint>
+  <link name="RF_THIGH">
+    <inertial>
+      <origin xyz="0.11424797 -0.00005753 -0.01976803" rpy="0 0 0" />
+      <mass value="0.92523512" />
+      <inertia ixx="0.00065690" ixy="0.00000148" ixz="0.00012260" iyy="0.00209449" iyz="0.00000158" izz="0.00237655" />
+    </inertial>
+    <visual>
+      <origin xyz="0.08 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.13 0.05 0.05"/>
+      </geometry>
+      <material name="red">
+        <color rgba="0.2 0.99 0.3 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.18 0.05 0.05"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="RF_HFE" type="revolute">
+    <origin xyz="0.0355 -0.14999 -0.045056" rpy="3.1416 -1.5708 0" />
+    <parent link="RF_HIP" />
+    <child link="RF_THIGH" />
+    <axis xyz="0 0 1" />
+    <limit lower="-0.5233" upper="3.14" effort="33.5" velocity="21" />
+  </joint>
+  <link name="RF_SHANK">
+    <inertial>
+      <origin xyz="0.00000000 -0.07024046 -0.00923673" rpy="0 0 0" />
+      <mass value="0.28148664" />
+      <inertia ixx="0.00256638" ixy="0.00000000" ixz="0.00000000" iyy="0.00009216" iyz="-0.00017328" izz="0.00258818" />
+    </inertial>
+    <visual>
+      <origin xyz="0 -0.1 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.05 0.18 0.05"/>
+      </geometry>
+      <material name="grey">
+        <color rgba="0.9 0.2 0.3 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.05 0.18 0.05"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="RF_KFE" type="revolute">
+    <origin xyz="0.13 0 0" rpy="3.1416 0 1.5708" />
+    <parent link="RF_THIGH" />
+    <child link="RF_SHANK" />
+    <axis xyz="0 0 1" />
+    <limit lower="-0.6978" upper="3.925" effort="33.5" velocity="21" />
+  </joint>
+  <link name="RF_FOOT">
+    <inertial>
+      <origin xyz="0.00000000 -0.0070918 0.00000000" rpy="0 0 0" />
+      <mass value="0.01901289" />
+      <inertia ixx="0.00000396" ixy="0.00000000" ixz="0.00000000" iyy="0.00000573" iyz="0.00000000" izz="0.00000396" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.05 0.05 0.05"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0 0 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.05 0.05 0.05"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="RF_FIX" type="fixed" dont_collapse="true">
+    <origin xyz="0 -0.232000000000001 -0.0179999999999972" rpy="0 0 0" />
+    <parent link="RF_SHANK" />
+    <child link="RF_FOOT" />
+    <axis xyz="0 0 0" />
+  </joint>
+</robot>

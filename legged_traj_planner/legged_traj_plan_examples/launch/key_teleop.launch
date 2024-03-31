@@ -1,0 +1,8 @@
+<launch>
+    <arg name="topic_name" default="/cmd_vel" />
+    <node pkg="turtlesim" type="turtle_teleop_key" name="teleop_key" output="screen">
+        <param name="scale_linear" value="0.5" type="double" />
+        <param name="scale_angular" value="0.5" type="double" />
+        <remap from="turtle1/cmd_vel" to="$(arg topic_name)" />
+    </node>
+</launch>
