@@ -1,2 +1,0 @@
-geometry_msgs/Point position
-hexapod_RPY orientation

@@ -1,1 +1,0 @@
-geometry_msgs/Point[6] foot
