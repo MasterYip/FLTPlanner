@@ -9,32 +9,32 @@
     <arg name="grid_map_topic" value="grid_map" />
     <arg name="grid_map_update_rate" value="5" />
     <!-- Ground & Ceiling (must be of the same size) -->
-    <!-- <arg name="grid_map_file" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" /> -->
+    <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/traj_opt_demo/2-Barrier-ground.png" /> -->
     <arg name="grid_map_file" value="$(find legged_traj_search_examples)/data/randmap_60_60/map_00006.jpg" />
     <!-- <arg name="grid_map_file" value="$(find legged_traj_search_examples)/data/randmap_60_60" />  -->
-    <arg name="grid_map_file_ceiling" value="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ceiling.png" />
+    <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/data/traj_opt_demo/2-Barrier-ceiling.png" />
     <arg name="elevation_layer" value="elevation" />
     <arg name="ceiling_layer" value="ceiling" />
 
     <!-- traj_opt_demo node -->
-    <!-- <node pkg="fast_legged_planner" type="traj_opt_demo.py" name="traj_opt_demo" output="screen">
+    <!-- <node pkg="legged_traj_plan_examples" type="traj_opt_demo.py" name="traj_opt_demo" output="screen">
         <param name="with_robot" value="$(arg with_robot)" />
     </node> -->
 
     <!-- GridMap -->
-    <node pkg="fast_legged_planner" type="image_publisher.py" name="image_publisher" output="screen">
+    <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="screen">
         <param name="image_path" value="$(arg grid_map_file)" />
         <param name="topic" value="~image" />
         <param name="rate" value="$(arg grid_map_update_rate)" />
     </node>
     <group if="$(arg with_ceiling)">
-        <node pkg="fast_legged_planner" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
+        <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
             <param name="image_path" value="$(arg grid_map_file_ceiling)" />
             <param name="topic" value="~image" />
             <param name="rate" value="$(arg grid_map_update_rate)" />
         </node>
     </group>
-    <node pkg="fast_legged_planner" type="image_to_gridmap" name="image_to_gridmap" output="screen">
+    <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="screen">
         <param name="with_ceiling" value="$(arg with_ceiling)" />
         <param name="image_topic" value="/image_publisher/image" />
         <param name="image_ceiling_topic" value="/image_ceiling_publisher/image" />
@@ -47,16 +47,16 @@
     </node>
 
     <!-- sdf_pub for SDF visualization (pointcloud) -->
-    <node pkg="fast_legged_planner" type="sdf_pub" name="sdf_pub" output="screen"/>
+    <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen"/>
 
     <!-- Robot related -->
     <group if="$(arg with_robot)">
         <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider2/xacro/robot.xacro" />
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
-        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_legged_planner)/config/cvxhull_traj_opt_demo.rviz" output="screen" />
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find legged_traj_plan_examples)/config/cvxhull_traj_opt_demo.rviz" output="screen" />
     </group>
     <group unless="$(arg with_robot)">
-        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find fast_legged_planner)/config/cvxhull_traj_opt_demo.rviz" output="screen" />
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find legged_traj_plan_examples)/config/cvxhull_traj_opt_demo.rviz" output="screen" />
     </group>
 
     <node pkg="legged_traj_search_examples" type="cvx_trajopt_node" name="cvx_trajopt" output="screen">

@@ -11,25 +11,25 @@
     <arg name="grid_map_topic" default="grid_map" />
     <arg name="grid_map_update_rate" default="5" />
     <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="grid_map_file" default="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ground.png" />
-    <arg name="grid_map_file_ceiling" default="$(find fast_legged_planner)/data/traj_opt_demo/2-Barrier-ceiling.png" />
+    <arg name="grid_map_file" default="$(find legged_traj_plan_examples)/data/traj_opt_demo/2-Barrier-ground.png" />
+    <arg name="grid_map_file_ceiling" default="$(find legged_traj_plan_examples)/data/traj_opt_demo/2-Barrier-ceiling.png" />
     <arg name="elevation_layer" default="elevation" />
     <arg name="ceiling_layer" default="ceiling" />
 
     <!-- GridMap -->
-    <node pkg="fast_legged_planner" type="image_publisher.py" name="image_publisher" output="screen">
+    <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="screen">
         <param name="image_path" value="$(arg grid_map_file)" />
         <param name="topic" value="~image" />
         <param name="rate" value="$(arg grid_map_update_rate)" />
     </node>
     <group if="$(arg with_ceiling)">
-        <node pkg="fast_legged_planner" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
+        <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
             <param name="image_path" value="$(arg grid_map_file_ceiling)" />
             <param name="topic" value="~image" />
             <param name="rate" value="$(arg grid_map_update_rate)" />
         </node>
     </group>
-    <node pkg="fast_legged_planner" type="image_to_gridmap" name="image_to_gridmap" output="screen">
+    <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="screen">
         <param name="with_ceiling" value="$(arg with_ceiling)" />
         <param name="image_topic" value="/image_publisher/image" />
         <param name="image_ceiling_topic" value="/image_ceiling_publisher/image" />
@@ -42,7 +42,7 @@
     </node>
 
     <!-- sdf_pub for SDF visualization (pointcloud) -->
-    <node pkg="fast_legged_planner" type="sdf_pub" name="sdf_pub" output="screen"/>
+    <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen"/>
 
     <!-- Robot related -->
     <group if="$(arg with_robot)">

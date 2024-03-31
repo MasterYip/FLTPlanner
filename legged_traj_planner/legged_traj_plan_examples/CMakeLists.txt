@@ -26,6 +26,7 @@ set(GRIDMAP_DEP
 find_package(catkin REQUIRED COMPONENTS
   legged_traj_plan
   legged_traj_search
+  hexapod_controller
   ros_visualizer
   roscpp
   std_msgs

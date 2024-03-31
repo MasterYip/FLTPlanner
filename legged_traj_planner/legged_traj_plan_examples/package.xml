@@ -53,14 +53,17 @@
   <build_depend>legged_traj_plan</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>hexapod_controller</build_depend>
   <build_export_depend>grid_map_core</build_export_depend>
   <build_export_depend>legged_traj_plan</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>hexapod_controller</build_export_depend>
   <exec_depend>grid_map_core</exec_depend>
   <exec_depend>legged_traj_plan</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>hexapod_controller</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
