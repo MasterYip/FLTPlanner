@@ -203,6 +203,12 @@ target_link_libraries(test_robot_interface_rviz
   ${PROJECT_NAME}
 )
 
+add_executable(test_visualizer test/test_visualizer.cpp)
+target_link_libraries(test_visualizer
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/legged_traj_plan_examples.cpp

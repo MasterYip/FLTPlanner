@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /swing_traj_planner_vis1/Status1
         - /swing_traj_planner_vis1/Namespaces1
       Splitter Ratio: 0.4954545497894287
     Tree Height: 651
@@ -278,8 +277,8 @@ Visualization Manager:
       Color Transformer: IntensityLayer
       ColorMap: anybotics
       Enabled: true
-      Grid Cell Decimation: 2
-      Grid Line Thickness: 0.10000000149011612
+      Grid Cell Decimation: 1
+      Grid Line Thickness: 0.05000000074505806
       Height Layer: elevation_inpainted
       Height Transformer: Layer
       History Length: 1
@@ -302,8 +301,8 @@ Visualization Manager:
       Color Transformer: IntensityLayer
       ColorMap: anybotics
       Enabled: true
-      Grid Cell Decimation: 2
-      Grid Line Thickness: 0.10000000149011612
+      Grid Cell Decimation: 1
+      Grid Line Thickness: 0.05000000074505806
       Height Layer: ceiling
       Height Transformer: Layer
       History Length: 1
@@ -355,13 +354,13 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /visualizer_markers
       Name: ros_viz
       Namespaces:
-        mesh: true
+        {}
       Queue Size: 1
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /swing_traj_planner_vis
@@ -400,7 +399,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.17529582977295
+      Distance: 2.4637506008148193
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -408,17 +407,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.9450443983078003
-        Y: 1.2799854278564453
-        Z: -1.8589171171188354
+        X: 0.7981511950492859
+        Y: 0.12974052131175995
+        Z: -0.10530051589012146
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5647974610328674
+      Pitch: 0.5897976160049438
       Target Frame: <Fixed Frame>
-      Yaw: 3.5763747692108154
+      Yaw: 3.7363698482513428
     Saved: ~
 Window Geometry:
   Displays:

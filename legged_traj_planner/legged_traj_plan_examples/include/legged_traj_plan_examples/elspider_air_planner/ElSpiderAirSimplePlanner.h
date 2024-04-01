@@ -161,7 +161,7 @@ private:
 
     // Settings
     bool fake_estimation_;
-    bool fake_estimation_noisy_ = true;
+    bool fake_estimation_noisy_ = false;
     double noise_amp_ = 0.02;
     bool simulation_;
 
@@ -358,7 +358,7 @@ public:
             // Visualization
             // BUG: Sometimes the visualizer will display the convex hull as non-convex
             visualizer_.delAll();
-            visualizer_.visPolytope(robot_interface_.getFootPolyhedra());
+            visualizer_.visPolytope(robot_interface_.getFootPolyhedra(2));
 
             t += delta;
             if (t > 1.0)

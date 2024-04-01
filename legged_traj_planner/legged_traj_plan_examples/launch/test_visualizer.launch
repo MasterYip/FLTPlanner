@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find legged_traj_plan_examples)/config/test_visualizer.rviz" output="screen"/>
+    <node pkg="legged_traj_plan_examples" type="test_visualizer" name="test_visualizer" output="screen"/>
+</launch>
