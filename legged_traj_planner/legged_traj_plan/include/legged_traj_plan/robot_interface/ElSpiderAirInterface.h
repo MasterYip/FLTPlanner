@@ -19,7 +19,7 @@
 #include <vector>
 #include <string>
 /* external project header files */
-#include "legged_traj_search/geo_utils/polyhedra.hpp"
+
 /* internal project header files */
 #include "elspider_air_kin.h"
 #include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
@@ -47,8 +47,7 @@ const std::vector<std::string> SHADOW_FOOT_LINK_NAME = {"shadowRF_FOOT", "shadow
 
 class ElSpiderAirInterface : public BaseRobotInterface
 {
-private:
-    std::vector<Polyhedra> foot_polyhedra_; // Defined in BASE frame
+    
 public:
     ElSpiderKin robot_kin;
 
@@ -101,13 +100,5 @@ public:
         return robot_kin;
     }
 
-    Polyhedra getFootPolyhedra(int index) const
-    {
-        return foot_polyhedra_[index];
-    }
 
-    std::vector<Polyhedra> getFootPolyhedra() const
-    {
-        return foot_polyhedra_;
-    }
 };

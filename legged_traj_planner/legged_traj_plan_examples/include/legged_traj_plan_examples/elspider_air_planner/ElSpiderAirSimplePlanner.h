@@ -156,7 +156,7 @@ private:
     // Interface
     ElSpiderAirInterfaceROS robot_interface_;
     GridMapInterface gridmap_interface_;
-    HITSpiderWholeBodyPlanner whole_body_planner_;
+    MCTSWholeBodyPlanner whole_body_planner_;
     // std::vector<hexapod_State> MCT_solution_;
 
     // Settings

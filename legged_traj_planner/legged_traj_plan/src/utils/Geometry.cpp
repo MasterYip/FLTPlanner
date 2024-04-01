@@ -17,3 +17,9 @@ Eigen::Vector3d point_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Vector3d &p
     pinocchio::SE3 aMb = bMa.inverse();
     return aMb.translation() + aMb.rotation() * pt;
 }
+
+Eigen::Matrix3Xd point_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Matrix3Xd &pts)
+{
+    pinocchio::SE3 aMb = bMa.inverse();
+    return aMb.translation().replicate(1, pts.cols()) + aMb.rotation() * pts;
+}

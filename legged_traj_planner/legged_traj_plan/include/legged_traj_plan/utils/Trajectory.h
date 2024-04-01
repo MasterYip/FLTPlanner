@@ -49,9 +49,9 @@ private:
 
 public:
     MincoTrajectory() = default;
-    MincoTrajectory(const Trajectory<3> &traj)
+    MincoTrajectory(const Trajectory<3> traj)
     {
-        traj_ = traj;
+        traj_ = std::move(traj);
     }
     MincoTrajectory(const minco::MINCO_S2NU &minco)
     {

@@ -69,6 +69,13 @@ public:
         }
     }
 
+    Trajectory<3> getTraj()
+    {
+        Trajectory<3> traj;
+        minco_traj_.getTrajectory(traj);
+        return std::move(traj);
+    }
+
     bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01)
     {
         Trajectory<3> traj;

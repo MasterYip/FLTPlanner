@@ -55,6 +55,8 @@ public:
     grid_map::Length getRange() const;
     std::pair<Eigen::Vector3d, Eigen::Vector3d> getSdfRange(size_t index = 0) const;
     grid_map::GridMap &getMap() { return map_; };
+    std::string getGroundLayerName() { return ground_layer; };
+    std::string getCeilingLayerName() { return ceiling_layer; };
     // Map Lock
     void lockMapUpdate() { map_update_lock_ = true; }
     void unlockMapUpdate() { map_update_lock_ = false; }

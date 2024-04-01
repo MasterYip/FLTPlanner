@@ -31,10 +31,10 @@ class PolyTrajSearch
 {
 private:
     // input data
-    IntersectBorder &intersect_border_;
-    PolyCorridor &poly_corridor_;
-    BorderCheck &border_check_;
-    const grid_map::GridMap &map_;
+    PolyCorridor poly_corridor_;
+    const grid_map::GridMap map_;
+    BorderCheck border_check_;
+    IntersectBorder intersect_border_;
     VisibilityGraph vis_graph_;
 
     Benchmark benchmark_;
@@ -46,6 +46,12 @@ private:
 
 public:
     PolyTrajSearch(IntersectBorder &intersect_border);
+    PolyTrajSearch(PolyCorridor &poly_corridor,
+                   const grid_map::GridMap &map,
+                   const std::string ground_layer = "elevation",
+                   const std::string ceiling_layer = "ceiling",
+                   const bool enable_ground = true,
+                   const bool enable_ceiling = false);
     ~PolyTrajSearch() = default;
 
     bool endpointValid(const Point3D &start, const Point3D &goal);

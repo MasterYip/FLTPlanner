@@ -12,10 +12,24 @@
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
 PolyTrajSearch::PolyTrajSearch(IntersectBorder &intersect_border)
-    : intersect_border_(intersect_border),
-      poly_corridor_(intersect_border.getPolyCorridor()),
+    : poly_corridor_(intersect_border.getPolyCorridor()),
+      map_(intersect_border.getBorderCheck().getMap()),
       border_check_(intersect_border.getBorderCheck()),
-      map_(border_check_.getMap()), benchmark_("PolyTrajSearch")
+      intersect_border_(intersect_border),
+      benchmark_("PolyTrajSearch")
+{
+}
+
+PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
+                               const grid_map::GridMap &map,
+                               const std::string ground_layer,
+                               const std::string ceiling_layer,
+                               const bool enable_ground,
+                               const bool enable_ceiling) : poly_corridor_(poly_corridor),
+                                                            map_(map),
+                                                            border_check_(poly_corridor, map, ground_layer, ceiling_layer, enable_ground, enable_ceiling),
+                                                            intersect_border_(poly_corridor_, border_check_),
+                                                            benchmark_("PolyTrajSearch")
 {
 }
 

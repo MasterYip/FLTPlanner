@@ -151,7 +151,7 @@ private:
     // Fast legged planner interface
     ElSpiderAirInterfaceROS robot_interface_;
     GridMapInterface gridmap_interface_;
-    HITSpiderWholeBodyPlanner whole_body_planner_;
+    MCTSWholeBodyPlanner whole_body_planner_;
 
     // MCTS planner Interface
     MDT::RobotState robot_state_;

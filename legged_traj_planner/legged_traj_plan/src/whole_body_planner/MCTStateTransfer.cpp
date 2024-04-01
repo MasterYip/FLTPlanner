@@ -22,18 +22,18 @@ PosList FeetPos2PosList(legged_traj_plan::FeetPosition feet_pos)
     return pos_list;
 }
 
-MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1, SwingTrajPlanner swing_traj_planner)
+MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
+                                   std::shared_ptr<SwingTrajPlanner> swing_traj_planner) : swing_traj_planner_(swing_traj_planner),
+                                                                                           state0_(state0),
+                                                                                           state1_(state1),
+                                                                                           footpos_list0_(FeetPos2PosList(state0.feetPositionNow)),
+                                                                                           footpos_list1_(FeetPos2PosList(state1.feetPositionNow)),
+                                                                                           swingtraj_isopt_(std::vector<bool>(6, false)),
+                                                                                           swingtraj_isneeded_(std::vector<bool>(6, false))
 {
-    this->state0 = state0;
-    this->state1 = state1;
-    this->swing_traj_planner = swing_traj_planner;
-    this->footpos_list0 = FeetPos2PosList(state0.feetPositionNow);
-    this->footpos_list1 = FeetPos2PosList(state1.feetPositionNow);
-    this->swingtraj_isopt = std::vector<bool>(6, false);
-    this->swingtraj_isneeded = std::vector<bool>(6, false);
     for (int i = 0; i < 6; ++i)
     {
-        this->swingtraj_isneeded[i] = (state1.support_State_Now[i] == 0);
+        swingtraj_isneeded_[i] = (state1.support_State_Now[i] == 0);
     }
 
     // Default swing trajectory
@@ -41,11 +41,15 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1, S
     double h_lift = 0.10;
     for (int i = 0; i < 6; ++i)
     {
-        if (this->swingtraj_isneeded[i])
+        if (swingtraj_isneeded_[i])
         {
-            // Swing Trajectory
-            this->swingtraj[i] = this->swing_traj_planner.getDefaultTraj(
-                this->footpos_list0[i], this->footpos_list1[i], v_lift, h_lift);
+            // Default Swing Trajectory
+            // swingtraj_[i] = swing_traj_planner_->getDefaultTraj(
+            //     footpos_list0_[i], footpos_list1_[i], v_lift, h_lift);
+            // GCS Search Traj
+            swingtraj_[i] = swing_traj_planner_->getInitTraj(
+                XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
+                footpos_list0_[i], footpos_list1_[i], v_lift, i);
         }
     }
 }
@@ -53,8 +57,8 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1, S
 pinocchio::SE3 MCTStateTransfer::eval_torso_traj(double t)
 {
     // Evaluate torso trajectory at time t
-    pinocchio::SE3 pose0 = XYZRPY2SE3(this->state0.base_Pose_Now);
-    pinocchio::SE3 pose1 = XYZRPY2SE3(this->state1.base_Pose_Now);
+    pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
+    pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
     pinocchio::Motion err = pinocchio::log6(pose0.actInv(pose1));
     pinocchio::SE3 odom_interp = pose0.act(pinocchio::exp6(err * t));
 
@@ -66,18 +70,18 @@ PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
     PosList footend_interp;
     for (int i = 0; i < 6; ++i)
     {
-        if (this->swingtraj_isneeded[i])
+        if (swingtraj_isneeded_[i])
         {
-            if (!this->swingtraj_isopt[i] && auto_opt)
+            if (!swingtraj_isopt_[i] && auto_opt)
             {
                 this->opt_swing_traj(i);
             }
-            footend_interp.push_back(this->swingtraj[i]->evaluate(t, 0, true));
+            footend_interp.push_back(swingtraj_[i]->evaluate(t, 0, true));
         }
         else
         {
             // Linear interpolation
-            footend_interp.push_back(footpos_list0[i] * (1 - t) + this->footpos_list1[i] * t);
+            footend_interp.push_back(footpos_list0_[i] * (1 - t) + footpos_list1_[i] * t);
         }
     }
     return footend_interp;
@@ -90,7 +94,7 @@ std::array<bool, 6> MCTStateTransfer::eval_support_state(double t, double margin
     {
         for (int i = 0; i < 6; ++i)
         {
-            support_state[i] = (this->state1.support_State_Now[i] == 1);
+            support_state[i] = (state1_.support_State_Now[i] == 1);
         }
     }
     else
@@ -105,9 +109,9 @@ void MCTStateTransfer::opt_swing_traj(int index)
     if (!this->opt_check(index))
     {
         // TODO: add eval_torso_traj
-        this->swing_traj_planner.opt_traj(
-            this->swingtraj[index], index);
-        this->swingtraj_isopt[index] = true;
+        swing_traj_planner_->opt_traj(
+            swingtraj_[index], index);
+        swingtraj_isopt_[index] = true;
     }
 }
 
@@ -122,13 +126,13 @@ bool MCTStateTransfer::opt_check(int index = -1)
 {
     if (index != -1)
     {
-        return this->swingtraj_isopt[index] || !this->swingtraj_isneeded[index];
+        return swingtraj_isopt_[index] || !swingtraj_isneeded_[index];
     }
     else
     {
         for (int i = 0; i < 6; ++i)
         {
-            if (!(this->swingtraj_isopt[i] || !this->swingtraj_isneeded[i]))
+            if (!(swingtraj_isopt_[i] || !swingtraj_isneeded_[i]))
             {
                 return false;
             }

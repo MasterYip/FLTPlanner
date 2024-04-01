@@ -32,17 +32,17 @@ using PosList = std::vector<Eigen::Vector3d>;
 class MCTStateTransfer
 {
 private:
-    hexapod_State state0;
-    hexapod_State state1;
-    SwingTrajPlanner swing_traj_planner;
-    PosList footpos_list0;
-    PosList footpos_list1;
-    std::shared_ptr<TrajectoryBase> swingtraj[6];
-    std::vector<bool> swingtraj_isopt;
-    std::vector<bool> swingtraj_isneeded;
+    hexapod_State state0_;
+    hexapod_State state1_;
+    std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
+    PosList footpos_list0_;
+    PosList footpos_list1_;
+    std::shared_ptr<TrajectoryBase> swingtraj_[6];
+    std::vector<bool> swingtraj_isopt_;
+    std::vector<bool> swingtraj_isneeded_;
 
 public:
-    MCTStateTransfer(hexapod_State state0, hexapod_State state1, SwingTrajPlanner swing_traj_planner);
+    MCTStateTransfer(hexapod_State state0, hexapod_State state1, std::shared_ptr<SwingTrajPlanner> swing_traj_planner);
     pinocchio::SE3 eval_torso_traj(double t);
     PosList eval_foot_traj(double t, bool auto_opt = true);
     std::array<bool, 6> eval_support_state(double t, double margin = 0.02);

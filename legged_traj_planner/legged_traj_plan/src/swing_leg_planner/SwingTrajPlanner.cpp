@@ -9,14 +9,15 @@
  *
  */
 
-#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include <iostream>
+#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
+#include "legged_traj_plan/utils/Geometry.h"
+#include "legged_traj_search/poly_traj/poly_traj_search.hpp"
+#include "legged_traj_search/traj_opt/minco_trajopt.hpp"
 
-SwingTrajPlanner::SwingTrajPlanner()
-{
-}
-
-SwingTrajPlanner::~SwingTrajPlanner()
+SwingTrajPlanner::SwingTrajPlanner(BaseRobotInterface &robot_interface,
+                                   GridMapInterface &gridmap_interface) : robot_interface_(robot_interface),
+                                                                                gridmap_interface_(gridmap_interface)
 {
 }
 
@@ -44,6 +45,39 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getDefaultTraj(Eigen::Vector3d
     minco.setConditions(head_state, tail_state, 2);
     minco.setParameters(knots, ts);
     return std::make_shared<MincoTrajectory>(minco);
+}
+
+std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                              Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                              double v_lift, uint index)
+{
+    Eigen::Matrix3Xd hull = robot_interface_.getFootPolyhedra(index).getVRep();
+    std::vector<Polyhedra> hulls;
+    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(point_SE3Act(pose0, hull))));
+    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(point_SE3Act(pose1, hull))));
+    PolyCorridor corridor(hulls, p0, p1);
+    PolyTrajSearch poly_traj_search(corridor, gridmap_interface_.getMap(),
+                                    gridmap_interface_.getGroundLayerName(),
+                                    gridmap_interface_.getCeilingLayerName(), true, false);
+
+    if (!poly_traj_search.endpointValid(p0, p1))
+    {
+        std::cout << "Warning: poly_traj_search.endpointValid failed" << std::endl;
+        return getDefaultTraj(p0, p1, v_lift);
+    }
+    if (!poly_traj_search.reachable(p0, p1))
+    {
+        std::cout << "Warning: poly_traj_search.reachable failed" << std::endl;
+        return getDefaultTraj(p0, p1, v_lift);
+    }
+    std::vector<Point3D> poly_path;
+    if (!poly_traj_search.search(p0, p1, poly_path))
+    {
+        std::cout << "Warning: poly_traj_search.search failed" << std::endl;
+        return getDefaultTraj(p0, p1, v_lift);
+    }
+    MincoTrajOpt minco_traj_opt(poly_path);
+    return std::make_shared<MincoTrajectory>(minco_traj_opt.getTraj());
 }
 
 // TODO:

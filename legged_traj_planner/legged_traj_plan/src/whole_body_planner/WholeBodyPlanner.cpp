@@ -1,23 +1,23 @@
 #include "legged_traj_plan/whole_body_planner/WholeBodyPlanner.h"
 
-// HITSpiderWholeBodyPlanner::HITSpiderWholeBodyPlanner()
+// MCTSWholeBodyPlanner::MCTSWholeBodyPlanner()
 // {
 //     swing_traj_planner = SwingTrajPlanner();
 // }
 
-HITSpiderWholeBodyPlanner::HITSpiderWholeBodyPlanner(GridMapInterface &gridmap_interface, BaseRobotInterface &robot_interface)
-    : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface)
+MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(GridMapInterface &gridmap_interface, BaseRobotInterface &robot_interface)
+    : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
+      swing_traj_planner_(std::make_shared<SwingTrajPlanner>(robot_interface_, gridmap_interface_))
 {
-    swing_traj_planner = SwingTrajPlanner();
 }
 
-bool HITSpiderWholeBodyPlanner::enqueue_MCTsolution(hexapod_State state0, hexapod_State state1)
+bool MCTSWholeBodyPlanner::enqueue_MCTsolution(hexapod_State state0, hexapod_State state1)
 {
-    state_trajs.emplace_back(MCTStateTransfer(state0, state1, swing_traj_planner));
+    state_trajs.emplace_back(MCTStateTransfer(state0, state1, swing_traj_planner_));
     return true;
 }
 
-MCTStateTransfer HITSpiderWholeBodyPlanner::dequeue_MCTsolution()
+MCTStateTransfer MCTSWholeBodyPlanner::dequeue_MCTsolution()
 {
     MCTStateTransfer ret = state_trajs.front();
     assert(!state_trajs.empty());
@@ -25,17 +25,17 @@ MCTStateTransfer HITSpiderWholeBodyPlanner::dequeue_MCTsolution()
     return ret;
 }
 
-MCTStateTransfer HITSpiderWholeBodyPlanner::get_state_traj(int index)
+MCTStateTransfer MCTSWholeBodyPlanner::get_state_traj(int index)
 {
     return state_trajs.at(index);
 }
 
-int HITSpiderWholeBodyPlanner::get_state_traj_length()
+int MCTSWholeBodyPlanner::get_state_traj_length()
 {
     return state_trajs.size();
 }
 
-// std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>> HITSpiderWholeBodyPlanner::get_foot_traj(double t, int point_num, double delta) {
+// std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>> MCTSWholeBodyPlanner::get_foot_traj(double t, int point_num, double delta) {
 //     std::vector<std::vector<double>> default_traj_list(6, std::vector<double>());
 //     std::vector<std::vector<double>> opt_traj_list(6, std::vector<double>());
 //     int index = 0;

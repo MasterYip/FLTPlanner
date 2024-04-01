@@ -43,7 +43,7 @@ private:
 
 public:
     GridPointer(const GridPt &state)
-        : state_(state), last_state_(state)
+        : state_(state), last_state_(state), last_move_(GridPt::Zero())
     {
     }
 

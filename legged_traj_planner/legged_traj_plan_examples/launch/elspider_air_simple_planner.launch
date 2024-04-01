@@ -3,11 +3,11 @@
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
-    <arg name="sim" default="false" />
+    <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
-    <arg name="fake_feedback" default="false" />
+    <arg name="fake_feedback" default="true" />
     <arg name="with_ceiling" value="false" />
     <arg name="max_height" value="0.4" />
     <!-- Only used when fake_feedback=true -->

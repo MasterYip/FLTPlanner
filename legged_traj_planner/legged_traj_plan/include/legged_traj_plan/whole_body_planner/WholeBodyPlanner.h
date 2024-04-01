@@ -25,19 +25,19 @@
 #include "legged_traj_plan/whole_body_planner/MCTStateTransfer.h"
 #include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
-class HITSpiderWholeBodyPlanner
+class MCTSWholeBodyPlanner
 {
 private:
     std::vector<MCTStateTransfer> state_trajs;
-    SwingTrajPlanner swing_traj_planner;
     // TODO: use shared_ptr
     BaseRobotInterface &robot_interface_;
     GridMapInterface &gridmap_interface_;
+    std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
 
 public:
-    // HITSpiderWholeBodyPlanner();
+    // MCTSWholeBodyPlanner();
 
-    HITSpiderWholeBodyPlanner(GridMapInterface &gridmap_interface, BaseRobotInterface &robot_interface);
+    MCTSWholeBodyPlanner(GridMapInterface &gridmap_interface, BaseRobotInterface &robot_interface);
 
     bool enqueue_MCTsolution(hexapod_State state0, hexapod_State state1);
 

@@ -23,7 +23,7 @@
 #include <pinocchio/algorithm/kinematics.hpp>
 #include <pinocchio/multibody/model.hpp>
 #include <pinocchio/multibody/data.hpp>
-
+#include "legged_traj_search/geo_utils/polyhedra.hpp"
 /* internal project header files */
 
 class BaseRobotInterface
@@ -31,7 +31,8 @@ class BaseRobotInterface
 private:
     pinocchio::Model model_;
     pinocchio::Data data_;
-
+protected:
+    std::vector<Polyhedra> foot_polyhedra_; // Defined in BASE frame
 public:
     BaseRobotInterface(const std::string &urdf, const std::vector<std::string> &package_dirs = {})
     {
@@ -70,6 +71,16 @@ public:
         // pinocchio::forwardKinematics(model_, data_, joint_dir_mat_ * q);
         pinocchio::forwardKinematics(model_, data_, q);
         return pinocchio::updateFramePlacement(model_, data_, model_.getFrameId(frame_name));
+    }
+
+    Polyhedra getFootPolyhedra(int index) const
+    {
+        return foot_polyhedra_.at(index);
+    }
+
+    std::vector<Polyhedra> getFootPolyhedra() const
+    {
+        return foot_polyhedra_;
     }
 
     // Debug
