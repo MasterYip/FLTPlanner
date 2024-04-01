@@ -6,7 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-      Splitter Ratio: 0.5
+        - /swing_traj_planner_vis1/Status1
+        - /swing_traj_planner_vis1/Namespaces1
+      Splitter Ratio: 0.4954545497894287
     Tree Height: 651
   - Class: rviz/Selection
     Name: Selection
@@ -357,9 +359,18 @@ Visualization Manager:
       Marker Topic: /visualizer_markers
       Name: ros_viz
       Namespaces:
-        facet: true
         mesh: true
       Queue Size: 1
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /swing_traj_planner_vis
+      Name: swing_traj_planner_vis
+      Namespaces:
+        facet: true
+        mesh: true
+        sphere: true
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
@@ -389,7 +400,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.7539309859275818
+      Distance: 8.17529582977295
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -397,17 +408,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.1277384757995605
-        Y: -0.37235376238822937
-        Z: 0.15847815573215485
+        X: 1.9450443983078003
+        Y: 1.2799854278564453
+        Z: -1.8589171171188354
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5897971987724304
+      Pitch: 0.5647974610328674
       Target Frame: <Fixed Frame>
-      Yaw: 3.9163765907287598
+      Yaw: 3.5763747692108154
     Saved: ~
 Window Geometry:
   Displays:

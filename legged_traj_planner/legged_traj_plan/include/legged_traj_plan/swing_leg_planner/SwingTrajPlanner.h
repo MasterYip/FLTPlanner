@@ -29,6 +29,8 @@ class SwingTrajPlanner
 private:
     BaseRobotInterface &robot_interface_;
     GridMapInterface &gridmap_interface_;
+    ros::NodeHandle nh_;
+    GCSVisualizer visualizer_;
 
 public:
     SwingTrajPlanner(BaseRobotInterface &robot_interface, GridMapInterface &gridmap_interface);

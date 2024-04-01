@@ -17,7 +17,8 @@
 
 SwingTrajPlanner::SwingTrajPlanner(BaseRobotInterface &robot_interface,
                                    GridMapInterface &gridmap_interface) : robot_interface_(robot_interface),
-                                                                          gridmap_interface_(gridmap_interface)
+                                                                          gridmap_interface_(gridmap_interface),
+                                                                          visualizer_(nh_, "odom", "swing_traj_planner_vis")
 {
 }
 
@@ -53,12 +54,18 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pos
 {
     Eigen::Matrix3Xd hull = robot_interface_.getFootPolyhedra(index).getVRep();
     std::vector<Polyhedra> hulls;
-    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0, hull))));
-    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose1, hull))));
+    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0.inverse(), hull))));
+    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose1.inverse(), hull))));
     PolyCorridor corridor(hulls, p0, p1);
     PolyTrajSearch poly_traj_search(corridor, gridmap_interface_.getMap(),
                                     gridmap_interface_.getGroundLayerName(),
                                     gridmap_interface_.getCeilingLayerName(), true, false);
+    if (index == 0)
+        visualizer_.delAll();
+    visualizer_.visPolytope(corridor.getCorridor());
+    visualizer_.visSphere(p0, 0.01);
+    visualizer_.visSphere(p1, 0.01);
+
     if (!poly_traj_search.endpointValid(p0, p1))
     {
         std::cout << "Warning: poly_traj_search.endpointValid failed (leg " << index << ")" << std::endl;

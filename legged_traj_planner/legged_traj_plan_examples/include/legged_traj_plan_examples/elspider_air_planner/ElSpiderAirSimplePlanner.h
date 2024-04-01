@@ -356,7 +356,7 @@ public:
             }
 
             // Visualization
-            // BUG: Eigen Transpose here may lead to strange visualization bug
+            // BUG: Sometimes the visualizer will display the convex hull as non-convex
             visualizer_.delAll();
             visualizer_.visPolytope(robot_interface_.getFootPolyhedra());
 
