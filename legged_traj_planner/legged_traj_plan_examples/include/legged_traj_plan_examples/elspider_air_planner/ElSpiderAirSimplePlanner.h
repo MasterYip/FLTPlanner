@@ -43,6 +43,15 @@
 #include <tf2_ros/transform_listener.h>
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
+// BUG
+// IMPORTANT: Add this function to avoid Convex hull display error. (unknown reason)
+void AVOID_DISPLAY_ERROR(void)
+{
+    Eigen::Vector3d vec(1, 1, 1);
+    quickhull::QuickHull<double> qh;
+    const auto cvxHull = qh.getConvexHull(vec.data(), vec.cols(), false, false);
+}
+
 legged_traj_plan::hexapod_State transRobotState(const MDT::RobotState &state_)
 {
     legged_traj_plan::hexapod_State hexapodState;
