@@ -17,7 +17,7 @@
 
 SwingTrajPlanner::SwingTrajPlanner(BaseRobotInterface &robot_interface,
                                    GridMapInterface &gridmap_interface) : robot_interface_(robot_interface),
-                                                                                gridmap_interface_(gridmap_interface)
+                                                                          gridmap_interface_(gridmap_interface)
 {
 }
 
@@ -53,16 +53,15 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pos
 {
     Eigen::Matrix3Xd hull = robot_interface_.getFootPolyhedra(index).getVRep();
     std::vector<Polyhedra> hulls;
-    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(point_SE3Act(pose0, hull))));
-    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(point_SE3Act(pose1, hull))));
+    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0, hull))));
+    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose1, hull))));
     PolyCorridor corridor(hulls, p0, p1);
     PolyTrajSearch poly_traj_search(corridor, gridmap_interface_.getMap(),
                                     gridmap_interface_.getGroundLayerName(),
                                     gridmap_interface_.getCeilingLayerName(), true, false);
-
     if (!poly_traj_search.endpointValid(p0, p1))
     {
-        std::cout << "Warning: poly_traj_search.endpointValid failed" << std::endl;
+        std::cout << "Warning: poly_traj_search.endpointValid failed (leg " << index << ")" << std::endl;
         return getDefaultTraj(p0, p1, v_lift);
     }
     if (!poly_traj_search.reachable(p0, p1))

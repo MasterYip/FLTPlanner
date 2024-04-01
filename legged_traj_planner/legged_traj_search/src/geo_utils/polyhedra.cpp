@@ -13,6 +13,8 @@
 
 Polyhedra::Polyhedra(const Eigen::Matrix3Xd vpoly)
 {
+    if (vpoly.cols() < 4)
+        throw std::runtime_error("Not enough vertices");
     v_rep_ = vpoly;
     v_rep_valid = true;
 }

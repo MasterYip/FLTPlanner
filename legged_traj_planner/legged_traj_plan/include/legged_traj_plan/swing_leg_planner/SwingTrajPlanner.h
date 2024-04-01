@@ -23,7 +23,7 @@
 #include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
-
+#include "legged_traj_search/utils/gcs_visualizer.hpp"
 class SwingTrajPlanner
 {
 private:
