@@ -60,11 +60,6 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pos
     PolyTrajSearch poly_traj_search(corridor, gridmap_interface_.getMap(),
                                     gridmap_interface_.getGroundLayerName(),
                                     gridmap_interface_.getCeilingLayerName(), true, false);
-    if (index == 0)
-        visualizer_.delAll();
-    visualizer_.visPolytope(corridor.getCorridor());
-    visualizer_.visSphere(p0, 0.01);
-    visualizer_.visSphere(p1, 0.01);
 
     if (!poly_traj_search.endpointValid(p0, p1))
     {
@@ -83,6 +78,38 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pos
         return getDefaultTraj(p0, p1, v_lift);
     }
     MincoTrajOpt minco_traj_opt(poly_path);
+
+    if (index == 0)
+    {
+        visualizer_.delAll();
+        // Polytope
+        visualizer_.visPolytope(corridor.getCorridor());
+        // Start Goal
+        visualizer_.visSphere(p0, 0.02);
+        visualizer_.visSphere(p1, 0.02);
+        // Border
+        GridPolyLine border = poly_traj_search.getBorder();
+        std::vector<Point3D> border_pos;
+        for (uint i = 0; i < border.size(); i++)
+        {
+            Point3D pos;
+            Eigen::Vector2d posxy;
+            pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
+            gridmap_interface_.getMap().getPosition(border.at(i), posxy);
+            pos[0] = posxy.x();
+            pos[1] = posxy.y();
+            border_pos.emplace_back(pos);
+        }
+        border_pos.push_back(border_pos.front());
+        visualizer_.visCurve(border_pos, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.01));
+        // Poly Path
+        visualizer_.visCurve(poly_path, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.02));
+        // Minco
+        std::vector<Point3D> poly_path_opt;
+        minco_traj_opt.getTrajSamples(poly_path_opt);
+        visualizer_.visCurve(poly_path_opt);
+    }
+
     return std::make_shared<MincoTrajectory>(minco_traj_opt.getTraj());
 }
 

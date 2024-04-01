@@ -63,4 +63,6 @@ public:
     GridPoints getConcavePts() const { return concave_pts_; }
     GridPolyLine getGridTraj() const { return grid_traj_; }
     VisibilityGraph getVisGraph() const { return vis_graph_; }
+
+    BorderCheck& getBorderCheck() { return border_check_; }
 };
