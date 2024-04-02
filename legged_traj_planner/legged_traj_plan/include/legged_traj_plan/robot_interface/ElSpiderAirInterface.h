@@ -47,7 +47,7 @@ const std::vector<std::string> SHADOW_FOOT_LINK_NAME = {"shadowRF_FOOT", "shadow
 
 class ElSpiderAirInterface : public BaseRobotInterface
 {
-    
+
 public:
     ElSpiderKin robot_kin;
 
@@ -95,10 +95,22 @@ public:
         return q;
     }
 
+    Eigen::Vector3d IKFast_foot(const Eigen::Vector3d &footendpos, int index)
+    {
+        Eigen::Vector3d q_i;
+        robot_kin.inverseKinConstraint(footendpos, q_i, index);
+        return q_i;
+    }
+
+    Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index)
+    {
+        Eigen::Vector3d footendpos;
+        robot_kin.forwardKinConstraint(q, footendpos, index);
+        return footendpos;
+    }
+
     ElSpiderKin &getRobotKin()
     {
         return robot_kin;
     }
-
-
 };

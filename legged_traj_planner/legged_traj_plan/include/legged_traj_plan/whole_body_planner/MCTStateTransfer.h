@@ -40,9 +40,11 @@ private:
     std::shared_ptr<TrajectoryBase> swingtraj_[6];
     std::vector<bool> swingtraj_isopt_;
     std::vector<bool> swingtraj_isneeded_;
+    bool use_cfg_space_ = false;
 
 public:
-    MCTStateTransfer(hexapod_State state0, hexapod_State state1, std::shared_ptr<SwingTrajPlanner> swing_traj_planner);
+    MCTStateTransfer(hexapod_State state0, hexapod_State state1,
+                     std::shared_ptr<SwingTrajPlanner> swing_traj_planner, bool use_cfg_space = false);
     pinocchio::SE3 eval_torso_traj(double t);
     PosList eval_foot_traj(double t, bool auto_opt = true);
     std::array<bool, 6> eval_support_state(double t, double margin = 0.02);

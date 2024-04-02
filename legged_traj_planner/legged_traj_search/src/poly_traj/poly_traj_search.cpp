@@ -204,3 +204,4 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
     benchmark_.end();
     return true;
 }
+

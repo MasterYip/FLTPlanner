@@ -5,7 +5,7 @@
 //     swing_traj_planner = SwingTrajPlanner();
 // }
 
-MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(GridMapInterface &gridmap_interface, BaseRobotInterface &robot_interface)
+MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(GridMapInterface &gridmap_interface, ElSpiderAirInterface &robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       swing_traj_planner_(std::make_shared<SwingTrajPlanner>(robot_interface_, gridmap_interface_))
 {
@@ -13,7 +13,7 @@ MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(GridMapInterface &gridmap_interface, 
 
 bool MCTSWholeBodyPlanner::enqueue_MCTsolution(hexapod_State state0, hexapod_State state1)
 {
-    state_trajs.emplace_back(MCTStateTransfer(state0, state1, swing_traj_planner_));
+    state_trajs.emplace_back(MCTStateTransfer(state0, state1, swing_traj_planner_, use_cfg_space_));
     return true;
 }
 

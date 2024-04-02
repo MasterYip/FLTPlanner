@@ -23,13 +23,15 @@ PosList FeetPos2PosList(legged_traj_plan::FeetPosition feet_pos)
 }
 
 MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
-                                   std::shared_ptr<SwingTrajPlanner> swing_traj_planner) : swing_traj_planner_(swing_traj_planner),
-                                                                                           state0_(state0),
-                                                                                           state1_(state1),
-                                                                                           footpos_list0_(FeetPos2PosList(state0.feetPositionNow)),
-                                                                                           footpos_list1_(FeetPos2PosList(state1.feetPositionNow)),
-                                                                                           swingtraj_isopt_(std::vector<bool>(6, false)),
-                                                                                           swingtraj_isneeded_(std::vector<bool>(6, false))
+                                   std::shared_ptr<SwingTrajPlanner> swing_traj_planner,
+                                   bool use_cfg_space) : swing_traj_planner_(swing_traj_planner),
+                                                         state0_(state0),
+                                                         state1_(state1),
+                                                         footpos_list0_(FeetPos2PosList(state0.feetPositionNow)),
+                                                         footpos_list1_(FeetPos2PosList(state1.feetPositionNow)),
+                                                         swingtraj_isopt_(std::vector<bool>(6, false)),
+                                                         swingtraj_isneeded_(std::vector<bool>(6, false)),
+                                                         use_cfg_space_(use_cfg_space)
 {
     for (int i = 0; i < 6; ++i)
     {
@@ -43,13 +45,22 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
     {
         if (swingtraj_isneeded_[i])
         {
-            // Default Swing Trajectory
-            // swingtraj_[i] = swing_traj_planner_->getDefaultTraj(
-            //     footpos_list0_[i], footpos_list1_[i], v_lift, h_lift);
-            // GCS Search Traj
-            swingtraj_[i] = swing_traj_planner_->getInitTraj(
-                XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
-                footpos_list0_[i], footpos_list1_[i], v_lift, i);
+            if (!use_cfg_space_)
+            {
+                // Default Swing Trajectory
+                // swingtraj_[i] = swing_traj_planner_->getDefaultTraj(
+                //     footpos_list0_[i], footpos_list1_[i], v_lift, h_lift);
+                // GCS Search Traj
+                swingtraj_[i] = swing_traj_planner_->getInitTraj(
+                    XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
+                    footpos_list0_[i], footpos_list1_[i], v_lift, i);
+            }
+            else
+            {
+                swingtraj_[i] = swing_traj_planner_->getCfgInitTraj(
+                    XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
+                    footpos_list0_[i], footpos_list1_[i], v_lift, i);
+            }
         }
     }
 }
@@ -76,7 +87,15 @@ PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
             {
                 this->opt_swing_traj(i);
             }
-            footend_interp.push_back(swingtraj_[i]->evaluate(t, 0, true));
+            if (!use_cfg_space_)
+            {
+                footend_interp.push_back(swingtraj_[i]->evaluate(t, 0, true));
+            }
+            else
+            {
+                Eigen::Vector3d base_pt = swing_traj_planner_->getRobotInterface().FK_foot(swingtraj_[i]->evaluate(t, 0, true), i);
+                footend_interp.push_back(point_SE3Act(eval_torso_traj(t).inverse(), base_pt));
+            }
         }
         else
         {

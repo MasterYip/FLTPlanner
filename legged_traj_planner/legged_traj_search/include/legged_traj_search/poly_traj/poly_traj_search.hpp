@@ -53,16 +53,18 @@ public:
                    const bool enable_ground = true,
                    const bool enable_ceiling = false);
     ~PolyTrajSearch() = default;
-
+    // Poly Traj Search
     bool endpointValid(const Point3D &start, const Point3D &goal);
     bool reachable(const Point3D &start, const Point3D &goal);
     bool search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
     bool searchStringStraining(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
 
+    // Getters
+    // Data
     GridPolyLine getBorder() const { return border_; }
     GridPoints getConcavePts() const { return concave_pts_; }
     GridPolyLine getGridTraj() const { return grid_traj_; }
     VisibilityGraph getVisGraph() const { return vis_graph_; }
-
-    BorderCheck& getBorderCheck() { return border_check_; }
+    // Objects
+    BorderCheck &getBorderCheck() { return border_check_; }
 };
