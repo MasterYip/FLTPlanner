@@ -194,10 +194,10 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 
     Eigen::Vector3d start_vel = Eigen::Vector3d(0, 0, v_lift);
     Eigen::Vector3d goal_vel = Eigen::Vector3d(0, 0, -v_lift);
     Eigen::Matrix3Xd J = robot_interface_.getJacobian(cfg_poly_path.front(), index);
-    Eigen::Matrix3Xd J_inv =  (J * J.transpose()).inverse() * J.transpose();
+    Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
     start_vel = J_inv * start_vel;
     J = robot_interface_.getJacobian(cfg_poly_path.back(), index);
-    J_inv =  (J * J.transpose()).inverse() * J.transpose();
+    J_inv = J.transpose() * (J * J.transpose()).inverse();
     goal_vel = J_inv * goal_vel;
     MincoTrajOpt minco_traj_opt(cfg_poly_path, start_vel, goal_vel, 1.0);
 #ifdef ENABLE_VISUALIZER
