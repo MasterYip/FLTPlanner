@@ -29,13 +29,19 @@ class MincoTrajOpt
 private:
     std::vector<Point3D> poly_path_;
     minco::MINCO_S2NU minco_traj_;
-    Eigen::Vector3d start_vel_ = {0, 0, 0.3};
-    Eigen::Vector3d goal_vel_ = {0, 0, -0.3};
-    double total_time_ = 1.0;
+    Eigen::Vector3d start_vel_;
+    Eigen::Vector3d goal_vel_;
+    double total_time_;
 
 public:
-    MincoTrajOpt(const std::vector<Point3D> &poly_path)
-        : poly_path_(poly_path)
+    MincoTrajOpt(const std::vector<Point3D> &poly_path,
+                 Eigen::Vector3d start_vel = {0, 0, 0.3},
+                 Eigen::Vector3d goal_vel = {0, 0, -0.3},
+                 double total_time = 1.0)
+        : poly_path_(poly_path),
+          start_vel_(start_vel),
+          goal_vel_(goal_vel),
+          total_time_(total_time)
     {
         Eigen::Matrix<double, 3, 2> start_state;
         start_state.col(0) = poly_path_.front();

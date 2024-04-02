@@ -109,6 +109,13 @@ public:
         return footendpos;
     }
 
+    Eigen::Matrix3Xd getJacobian(const Eigen::Vector3d &q, int index)
+    {
+        Eigen::Matrix3Xd J(3, 3);
+        robot_kin.getJacobian(q, J, index);
+        return J;
+    }
+
     ElSpiderKin &getRobotKin()
     {
         return robot_kin;

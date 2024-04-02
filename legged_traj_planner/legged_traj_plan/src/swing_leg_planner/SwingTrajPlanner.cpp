@@ -153,8 +153,9 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pos
     {
         return getDefaultTraj(p0, p1, v_lift);
     }
-
-    MincoTrajOpt minco_traj_opt(poly_path);
+    Eigen::Vector3d start_vel = Eigen::Vector3d(0, 0, v_lift);
+    Eigen::Vector3d goal_vel = Eigen::Vector3d(0, 0, -v_lift);
+    MincoTrajOpt minco_traj_opt(poly_path, start_vel, goal_vel, 1.0);
 #ifdef ENABLE_VISUALIZER
     // Minco
     std::vector<Point3D> poly_path_opt;
@@ -188,7 +189,17 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 
     Point3D base_pt = point_SE3Act(pose1, poly_path.back());
     cfg_poly_path.emplace_back(robot_interface_.IKFast_foot(base_pt, index));
 
-    MincoTrajOpt minco_traj_opt(cfg_poly_path);
+    // Get start and goal velocity in config space
+    // FIXME: the vel is in BASE frame, not in WORLD frame
+    Eigen::Vector3d start_vel = Eigen::Vector3d(0, 0, v_lift);
+    Eigen::Vector3d goal_vel = Eigen::Vector3d(0, 0, -v_lift);
+    Eigen::Matrix3Xd J = robot_interface_.getJacobian(cfg_poly_path.front(), index);
+    Eigen::Matrix3Xd J_inv =  (J * J.transpose()).inverse() * J.transpose();
+    start_vel = J_inv * start_vel;
+    J = robot_interface_.getJacobian(cfg_poly_path.back(), index);
+    J_inv =  (J * J.transpose()).inverse() * J.transpose();
+    goal_vel = J_inv * goal_vel;
+    MincoTrajOpt minco_traj_opt(cfg_poly_path, start_vel, goal_vel, 1.0);
 #ifdef ENABLE_VISUALIZER
     // Minco
     std::vector<Point3D> cfg_path_opt;
