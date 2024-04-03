@@ -166,28 +166,39 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pos
     return std::make_shared<MincoTrajectory>(minco_traj_opt.getTraj());
 }
 
-std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                                 Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                                 double v_lift, uint index)
+bool SwingTrajPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
+                                      pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                      Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                      uint index)
 {
+    cfg_poly_traj.clear();
     std::vector<Point3D> poly_path;
     if (!searchPolyTraj(poly_path, pose0, pose1, p0, p1, index))
-    {
-        return getDefaultTraj(p0, p1, v_lift);
-    }
+        return false;
     // Convert to config space
     Eigen::VectorXd t_vec = getTrajTimeVec(poly_path, 1.0);
-    std::vector<Point3D> cfg_poly_path;
     double t = 0;
     for (uint i = 0; i < poly_path.size() - 1; i++)
     {
         // Convert to base frame
         Point3D base_pt = point_SE3Act(poseLinearInterp(pose0, pose1, t), poly_path[i]);
-        cfg_poly_path.emplace_back(robot_interface_.IKFast_foot(base_pt, index));
+        cfg_poly_traj.emplace_back(robot_interface_.IKFast_foot(base_pt, index));
         t += t_vec(i);
     }
     Point3D base_pt = point_SE3Act(pose1, poly_path.back());
-    cfg_poly_path.emplace_back(robot_interface_.IKFast_foot(base_pt, index));
+    cfg_poly_traj.emplace_back(robot_interface_.IKFast_foot(base_pt, index));
+    return true;
+}
+
+std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                                 Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                                 double v_lift, uint index)
+{
+    std::vector<Point3D> cfg_poly_path;
+    if (!getCfgPolyTraj(cfg_poly_path, pose0, pose1, p0, p1, index))
+    {
+        return getDefaultTraj(p0, p1, v_lift);
+    }
 
     // Get start and goal velocity in config space
     // FIXME: the vel is in BASE frame, not in WORLD frame
@@ -205,7 +216,7 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 
     std::vector<Point3D> cfg_path_opt;
     std::vector<Point3D> path_opt;
     double ts = 0.01;
-    t = 0;
+    double t = 0;
     minco_traj_opt.getTrajSamples(cfg_path_opt, ts);
     for (auto pt : cfg_path_opt)
     {
