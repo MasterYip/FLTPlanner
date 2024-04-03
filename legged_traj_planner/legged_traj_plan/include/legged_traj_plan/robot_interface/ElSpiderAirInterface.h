@@ -60,6 +60,7 @@ public:
             -0.154, -0.1551, -0.1567, -0.1674, -0.3958, -0.2967, -0.2772, -0.2589, -0.4186, -0.472,
             -0.1303, -0.1464, -0.3889, -0.3545, 0.006312, -0.3344, 0.02371, -0.2644, -0.2857, 0.1195;
         Eigen::Matrix3Xd pos_shift(3, 6);
+        // FIXME: Installation shift
         // pos_shift << 0.3, 0.0, -0.3, 0.3, 0.0, -0.3,
         //     0.06, 0.0, 0.06, -0.06, 0.0, -0.06,
         //     0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
@@ -88,6 +89,7 @@ public:
         {
             Eigen::Vector3d q_i;
             robot_kin.inverseKinConstraint(footendpos[i], q_i, i);
+            // robot_kin.inverseKin(footendpos[i], q_i, i);
             q.push_back(q_i[0]);
             q.push_back(q_i[1]);
             q.push_back(q_i[2]);
@@ -99,6 +101,7 @@ public:
     {
         Eigen::Vector3d q_i;
         robot_kin.inverseKinConstraint(footendpos, q_i, index);
+        // robot_kin.inverseKin(footendpos, q_i, index);
         return q_i;
     }
 
