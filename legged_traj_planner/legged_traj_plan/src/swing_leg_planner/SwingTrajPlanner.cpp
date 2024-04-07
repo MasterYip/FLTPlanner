@@ -13,7 +13,6 @@
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
-#include "legged_traj_search/traj_opt/minco_trajopt.hpp"
 
 #define ENABLE_VISUALIZER
 
@@ -255,13 +254,15 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
                           timeWeight, lengthPerPiece, smoothingFactor, integralResolution,
                           magnitudeBounds, penaltyWeights, physicalParams);
     swing_traj_opt_.optimize(minco_traj->getTraj(), relCostTol);
+
 #ifdef ENABLE_VISUALIZER
     // Minco
     std::vector<Point3D> cfg_path_opt;
     std::vector<Point3D> path_opt;
     double ts = 0.01;
     double t = 0;
-    minco_traj->getTrajSamples(cfg_path_opt, ts, false);
+    minco_traj->getTrajSamples(cfg_path_opt, ts);
+
     for (auto pt : cfg_path_opt)
     {
         Point3D base_pt = robot_interface_.FK_foot(pt, index);

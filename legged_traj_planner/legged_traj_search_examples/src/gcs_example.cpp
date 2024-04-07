@@ -24,7 +24,7 @@
 #include "legged_traj_search/geo_utils/geo_utils_2d.hpp"
 #include "legged_traj_search/poly_traj/intersect_border.hpp"
 #include "legged_traj_search/geo_utils/guide_surf.hpp"
-#include "legged_traj_search/traj_opt/minco_trajopt.hpp"
+#include "legged_traj_search/poly_traj/minco_traj_init.hpp"
 
 using namespace geo_utils_2d;
 
@@ -258,7 +258,7 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
             gcs_visualizer_.visCurve(path, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.02));
 
             // Minco Traj Opt
-            MincoTrajOpt minco_traj_opt(path);
+            MincoTrajInit minco_traj_opt(path);
             std::vector<Point3D> traj;
             bool ret = minco_traj_opt.getTrajSamples(traj, 0.01);
             if (!ret)

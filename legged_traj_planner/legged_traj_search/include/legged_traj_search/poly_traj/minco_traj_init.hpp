@@ -24,7 +24,7 @@
 #include "legged_traj_search/geo_utils/minco.hpp"
 #include "legged_traj_search/geo_utils/trajectory.hpp"
 
-class MincoTrajOpt
+[[deprecated("Deprecated")]] class MincoTrajInit
 {
 private:
     std::vector<Point3D> poly_path_;
@@ -34,10 +34,10 @@ private:
     double total_time_;
 
 public:
-    MincoTrajOpt(const std::vector<Point3D> &poly_path,
-                 Eigen::Vector3d start_vel = {0, 0, 0.3},
-                 Eigen::Vector3d goal_vel = {0, 0, -0.3},
-                 double total_time = 1.0)
+    MincoTrajInit(const std::vector<Point3D> &poly_path,
+                  Eigen::Vector3d start_vel = {0, 0, 0.3},
+                  Eigen::Vector3d goal_vel = {0, 0, -0.3},
+                  double total_time = 1.0)
         : poly_path_(poly_path),
           start_vel_(start_vel),
           goal_vel_(goal_vel),
@@ -87,20 +87,16 @@ public:
         return minco_traj_;
     }
 
-    bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01)
+    bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01, bool normalized = true)
     {
+        discrete_traj.clear();
         Trajectory<3> traj;
         minco_traj_.getTrajectory(traj);
         if (traj.getPieceNum() == 0)
-        {
             return false;
-        }
-        discrete_traj.clear();
-        Eigen::Vector3d lastX = traj.getPos(0.0);
-        for (double t = T; t < traj.getTotalDuration(); t += T)
-        {
+        double delta = normalized ? T * traj.getTotalDuration() : T;
+        for (double t = 0; t < traj.getTotalDuration(); t += delta)
             discrete_traj.emplace_back(traj.getPos(t));
-        }
         return true;
     }
 };

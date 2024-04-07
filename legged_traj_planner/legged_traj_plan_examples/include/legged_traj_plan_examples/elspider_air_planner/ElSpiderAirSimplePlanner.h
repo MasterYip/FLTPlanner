@@ -166,7 +166,6 @@ private:
     ElSpiderAirInterfaceROS robot_interface_;
     GridMapInterface gridmap_interface_;
     MCTSWholeBodyPlanner whole_body_planner_;
-    // std::vector<hexapod_State> MCT_solution_;
 
     // Settings
     bool fake_estimation_;
@@ -179,7 +178,7 @@ public:
     ElSpiderAirSimplePlanner(bool fake_estimation = false, bool simulation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
                                                                                       gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
                                                                                       tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
-                                                                                      rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
+                                                                                      rate_(25), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
         foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirSimplePlanner::foot_state_callback, this);

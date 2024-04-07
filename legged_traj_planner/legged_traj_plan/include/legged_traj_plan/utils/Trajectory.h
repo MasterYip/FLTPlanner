@@ -115,6 +115,11 @@ public:
         minco_traj_.getTrajectory(traj_);
     }
 
+    void updateTraj(const Trajectory<3> &traj)
+    {
+        traj_ = traj;
+    }
+
     Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
     {
         if (traj_.getPieceNum() == 0)
@@ -148,20 +153,14 @@ public:
     }
 
     // Test
-    bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01, bool update = false)
+    bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01, bool normalized = true)
     {
-        if (update)
-            updateTraj();
-        if (traj_.getPieceNum() == 0)
-        {
-            return false;
-        }
         discrete_traj.clear();
-        Eigen::Vector3d lastX = traj_.getPos(0.0);
-        for (double t = T; t < traj_.getTotalDuration(); t += T)
-        {
+        if (traj_.getPieceNum() == 0)
+            return false;
+        double delta = normalized ? T * traj_.getTotalDuration() : T;
+        for (double t = 0; t < traj_.getTotalDuration(); t += delta)
             discrete_traj.emplace_back(traj_.getPos(t));
-        }
         return true;
     }
 };
