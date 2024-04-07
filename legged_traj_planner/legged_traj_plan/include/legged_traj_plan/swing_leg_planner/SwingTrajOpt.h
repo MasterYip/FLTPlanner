@@ -25,6 +25,9 @@
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
+#include "legged_traj_search/geo_utils/lbfgs.hpp"
+#include "legged_traj_search/geo_utils/polyhedra.hpp"
+
 class SwingTrajOpt
 {
 
@@ -125,38 +128,6 @@ private:
     }
 
     // Soft Constraint
-    template <typename EIGENVEC>
-    static inline void normRetrictionLayer(const Eigen::VectorXd &xi,
-                                           const Eigen::VectorXi &vIdx,
-                                           const PolyhedraV &vPolys,
-                                           double &cost,
-                                           EIGENVEC &gradXi)
-    {
-        const int sizeP = vIdx.size();
-        gradXi.resize(xi.size());
-
-        double sqrNormQ, sqrNormViolation, c, dc;
-        Eigen::VectorXd q;
-        for (int i = 0, j = 0, k; i < sizeP; i++, j += k)
-        {
-            k = vPolys[vIdx(i)].cols();
-
-            q = xi.segment(j, k);
-            sqrNormQ = q.squaredNorm();
-            sqrNormViolation = sqrNormQ - 1.0;
-            if (sqrNormViolation > 0.0)
-            {
-                c = sqrNormViolation * sqrNormViolation;
-                dc = 3.0 * c;
-                c *= sqrNormViolation;
-                cost += c;
-                gradXi.segment(j, k) += dc * 2.0 * q;
-            }
-        }
-
-        return;
-    }
-
     static inline bool smoothedL1(const double &x,
                                   const double &mu,
                                   double &f,
@@ -261,7 +232,7 @@ private:
                 pena = 0.0;
 
                 // Joint Soft Constraints
-                if (smmothedL1(violaPos, smoothFactor, violaPosPena, violaPosPenaD))
+                if (smoothedL1(violaPos, smoothFactor, violaPosPena, violaPosPenaD))
                 {
                     gradPos += weightPos * violaPosPenaD * 2.0 * pos;
                     pena += weightPos * violaPosPena;

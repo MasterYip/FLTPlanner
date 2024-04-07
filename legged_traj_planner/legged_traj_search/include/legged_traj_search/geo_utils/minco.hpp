@@ -44,7 +44,11 @@ namespace minco
     {
     public:
         BandedSystem() = default;
-        BandedSystem(const BandedSystem &) = delete;
+        BandedSystem(const BandedSystem &sys)
+        {
+            // Use the assignment operator
+            *this = sys;
+        };
 
         // The size of A, as well as the lower/upper
         // banded width p/q are needed
@@ -97,7 +101,7 @@ namespace minco
             return ptrData[(i - j + upperBw) * N + j];
         }
 
-        inline void operator=(const BandedSystem & sys)
+        inline void operator=(const BandedSystem &sys)
         {
             N = sys.N;
             lowerBw = sys.lowerBw;
