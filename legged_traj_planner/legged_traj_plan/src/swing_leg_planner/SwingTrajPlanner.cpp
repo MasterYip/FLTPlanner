@@ -237,8 +237,7 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::Matrix3Xd poly_path_mat(3, poly_path.size());
     for (size_t i = 0; i < poly_path.size(); i++)
         poly_path_mat.col(i) = poly_path[i];
-    std::cout << "Index: " << index << std::endl;
-    std::cout << "Poly path size: " << poly_path.size() << std::endl;
+    std::cout << "Index: " << index << ", Poly path size: " << poly_path.size() << std::endl;
 
     // Tmp params
     double timeWeight = 20.0;
