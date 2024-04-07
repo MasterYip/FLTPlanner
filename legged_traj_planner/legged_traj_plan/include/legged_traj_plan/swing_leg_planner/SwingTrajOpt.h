@@ -293,11 +293,11 @@ private:
 
         double cost;
         obj.minco.setParameters(obj.points, obj.times);
-        obj.minco.getEnergy(cost);
+        obj.minco.getEnergy(cost); // 1.Energy cost
         obj.minco.getEnergyPartialGradByCoeffs(obj.partialGradByCoeffs);
         obj.minco.getEnergyPartialGradByTimes(obj.partialGradByTimes);
 
-        // TODO
+        // TODO: 2.Penalty cost
         attachPenaltyFunctional(obj.times, obj.minco.getCoeffs(),
                                 obj.smoothEps, obj.integralRes,
                                 obj.magnitudeBd, obj.penaltyWt,
@@ -307,8 +307,15 @@ private:
         obj.minco.propogateGrad(obj.partialGradByCoeffs, obj.partialGradByTimes,
                                 obj.gradByPoints, obj.gradByTimes);
 
+        // 3.Time cost
         cost += weightT * obj.times.sum();
-        obj.gradByTimes.array() += weightT;
+        obj.gradByTimes.array() += weightT; // PROBLEM
+
+        // update gradXi
+        for (int i = 0; i < obj.spatialDim / 3; i++)
+        {
+            gradXi.segment<3>(3 * i) = obj.gradByPoints.col(i);
+        }
 
         backwardGradT(tau, obj.gradByTimes, gradTau);
 
@@ -430,8 +437,8 @@ public:
         return true;
     }
 
-    inline double optimize(Trajectory<3> &traj,
-                           const double &relCostTol)
+    inline bool optimize(Trajectory<3> &traj,
+                         const double &relCostTol)
     {
         Eigen::VectorXd x(temporalDim + spatialDim);
         Eigen::Map<Eigen::VectorXd> tau(x.data(), temporalDim);
@@ -465,13 +472,13 @@ public:
         }
         else
         {
-            traj.clear();
+            // traj.clear();
             minCostFunctional = INFINITY;
             std::cout << "Optimization Failed: "
                       << lbfgs::lbfgs_strerror(ret)
                       << std::endl;
         }
-
-        return minCostFunctional;
+        return ret >= 0;
+        // return minCostFunctional;
     }
 };

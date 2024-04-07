@@ -242,10 +242,10 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
 
     // Tmp params
     double timeWeight = 20.0;
-    double lengthPerPiece = 1.0;
+    double lengthPerPiece = 10.0; // BUG: Once this is triggered, the optimization will fail
     double smoothingFactor = 1.0e-2;
     int integralResolution = 16;
-    Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3) * 3; // FIXME
+    Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3) * 10; // FIXME
     Eigen::VectorXd penaltyWeights = Eigen::VectorXd::Ones(3);
     Eigen::VectorXd physicalParams = Eigen::VectorXd::Ones(3);
     double relCostTol = 1.0e-5;
@@ -253,24 +253,27 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
     swing_traj_opt_.setup(poly_path_mat, start_vel, goal_vel,
                           timeWeight, lengthPerPiece, smoothingFactor, integralResolution,
                           magnitudeBounds, penaltyWeights, physicalParams);
-    swing_traj_opt_.optimize(minco_traj->getTraj(), relCostTol);
+    bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), relCostTol);
 
 #ifdef ENABLE_VISUALIZER
-    // Minco
-    std::vector<Point3D> cfg_path_opt;
-    std::vector<Point3D> path_opt;
-    double ts = 0.01;
-    double t = 0;
-    minco_traj->getTrajSamples(cfg_path_opt, ts);
-
-    for (auto pt : cfg_path_opt)
+    if (ret)
     {
-        Point3D base_pt = robot_interface_.FK_foot(pt, index);
-        path_opt.emplace_back(point_SE3Act(poseLinearInterp(pose0, pose1, t).inverse(), base_pt));
-        t += ts;
+        // Minco
+        std::vector<Point3D> cfg_path_opt;
+        std::vector<Point3D> path_opt;
+        double ts = 0.01;
+        double t = 0;
+        minco_traj->getTrajSamples(cfg_path_opt, ts);
+
+        for (auto pt : cfg_path_opt)
+        {
+            Point3D base_pt = robot_interface_.FK_foot(pt, index);
+            path_opt.emplace_back(point_SE3Act(poseLinearInterp(pose0, pose1, t).inverse(), base_pt));
+            t += ts;
+        }
+        std::cout << "Visualize optimized traj(leg " << index << ")" << std::endl;
+        visualizer_.visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
     }
-    std::cout<< "Visualize optimized traj(leg " << index << ")" << std::endl;
-    visualizer_.visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
 #endif
     return true;
 }
