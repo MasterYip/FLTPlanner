@@ -52,7 +52,7 @@ SwingTrajPlanner::SwingTrajPlanner(ElSpiderAirInterface &robot_interface,
 {
 }
 
-std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getDefaultTraj(Eigen::Vector3d &p0, Eigen::Vector3d &p1, double v_lift, double h_lift)
+std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getDefaultTraj(Eigen::Vector3d &p0, Eigen::Vector3d &p1, double v_lift, double h_lift)
 {
     // UniBSpline
     // Eigen::Vector3d pm = (p0 + p1) / 2;
@@ -144,9 +144,9 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     return true;
 }
 
-std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                              Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                              double v_lift, uint index)
+std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                               Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                               double v_lift, uint index)
 {
     std::vector<Point3D> poly_path;
     if (!searchPolyTraj(poly_path, pose0, pose1, p0, p1, index))
@@ -163,7 +163,7 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pos
     visualizer_.visCurve(poly_path_opt);
 #endif
 
-    return std::make_shared<MincoTrajectory>(minco_traj_opt.getTraj());
+    return std::make_shared<MincoTrajectory>(minco_traj_opt.getMinco());
 }
 
 bool SwingTrajPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
@@ -190,9 +190,9 @@ bool SwingTrajPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
     return true;
 }
 
-std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                                 Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                                 double v_lift, uint index)
+std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                                  Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                                  double v_lift, uint index)
 {
     std::vector<Point3D> cfg_poly_path;
     if (!getCfgPolyTraj(cfg_poly_path, pose0, pose1, p0, p1, index))
@@ -226,11 +226,14 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 
     }
     visualizer_.visCurve(path_opt);
 #endif
-    return std::make_shared<MincoTrajectory>(minco_traj_opt.getTraj());
+    return std::make_shared<MincoTrajectory>(minco_traj_opt.getMinco());
 }
 
 // TODO:
 bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> traj, int index)
 {
+    // FIXME: Temporarily cast to MincoTrajectory
+    std::shared_ptr<MincoTrajectory> minco_traj = std::dynamic_pointer_cast<MincoTrajectory>(traj);
+    minco::MINCO_S2NU& minco = minco_traj->getMinco();
     return true;
 }

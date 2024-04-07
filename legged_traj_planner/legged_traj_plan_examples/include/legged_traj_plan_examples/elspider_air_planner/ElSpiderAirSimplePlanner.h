@@ -338,8 +338,6 @@ public:
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
-        // print rpy
-        std::cout << "rpy: " << robot_state_.pose.roll << " " << robot_state_.pose.pitch << " " << robot_state_.pose.yaw << std::endl;
         do
         {
             state_traj = whole_body_planner_.get_state_traj(0);

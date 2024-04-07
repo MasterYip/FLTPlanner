@@ -46,16 +46,20 @@ class MincoTrajectory : public TrajectoryBase
 {
 private:
     Trajectory<3> traj_;
+    minco::MINCO_S2NU minco_;
 
 public:
     MincoTrajectory() = default;
-    MincoTrajectory(const Trajectory<3> traj)
-    {
-        traj_ = std::move(traj);
-    }
+
+    // MincoTrajectory(const Trajectory<3> traj)
+    // {
+    //     traj_ = std::move(traj);
+    // }
+
     MincoTrajectory(const minco::MINCO_S2NU &minco)
     {
-        minco.getTrajectory(traj_);
+        minco_ = minco;
+        minco_.getTrajectory(traj_);
     }
 
     Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
@@ -79,5 +83,15 @@ public:
             return traj_.getJer(t);
         else
             throw std::runtime_error("Invalid derivative order");
+    }
+
+    minco::MINCO_S2NU &getMinco()
+    {
+        return minco_;
+    }
+
+    void updateTraj()
+    {
+        minco_.getTrajectory(traj_);
     }
 };

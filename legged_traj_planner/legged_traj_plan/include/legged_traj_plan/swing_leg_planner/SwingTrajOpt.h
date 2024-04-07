@@ -209,37 +209,25 @@ private:
                                                Eigen::VectorXd &gradT,
                                                Eigen::MatrixX3d &gradC)
     {
-        // const double velSqrMax = magnitudeBounds(0) * magnitudeBounds(0);
-        // const double omgSqrMax = magnitudeBounds(1) * magnitudeBounds(1);
-        // const double thetaMax = magnitudeBounds(2);
-        // const double thrustMean = 0.5 * (magnitudeBounds(3) + magnitudeBounds(4));
-        // const double thrustRadi = 0.5 * fabs(magnitudeBounds(4) - magnitudeBounds(3));
-        // const double thrustSqrRadi = thrustRadi * thrustRadi;
+        const double velSqrMax = magnitudeBounds(0) * magnitudeBounds(0);
+        const double accSqrMax = magnitudeBounds(1) * magnitudeBounds(1);
 
-        // const double weightPos = penaltyWeights(0);
-        // const double weightVel = penaltyWeights(1);
-        // const double weightOmg = penaltyWeights(2);
-        // const double weightTheta = penaltyWeights(3);
-        // const double weightThrust = penaltyWeights(4);
+        const double weightPos = penaltyWeights(0);
+        const double weightVel = penaltyWeights(1);
+        const double weightAcc = penaltyWeights(2);
 
-        Eigen::Vector3d pos, vel, acc, jer, sna;
-        Eigen::Vector3d totalGradPos, totalGradVel, totalGradAcc, totalGradJer;
-        double totalGradPsi, totalGradPsiD;
-        double thr, cos_theta;
-        Eigen::Vector4d quat;
-        Eigen::Vector3d omg;
-        double gradThr;
-        Eigen::Vector4d gradQuat;
-        Eigen::Vector3d gradPos, gradVel, gradOmg;
+        Eigen::Vector3d pos, vel, acc, jer;
+        Eigen::Vector3d totalGradPos, totalGradVel, totalGradAcc;
+        Eigen::Vector3d gradPos, gradVel, gradAcc;
 
         double step, alpha;
-        double s1, s2, s3, s4, s5;
-        Eigen::Matrix<double, 4, 1> beta0, beta1, beta2, beta3, beta4;
+        double s1, s2, s3;
+        Eigen::Matrix<double, 4, 1> beta0, beta1, beta2, beta3;
         Eigen::Vector3d outerNormal;
         int K, L;
-        double violaPos, violaVel, violaOmg, violaTheta, violaThrust;
-        double violaPosPenaD, violaVelPenaD, violaOmgPenaD, violaThetaPenaD, violaThrustPenaD;
-        double violaPosPena, violaVelPena, violaOmgPena, violaThetaPena, violaThrustPena;
+        double violaPos, violaVel, violaAcc;
+        double violaPosPenaD, violaVelPenaD, violaAccPenaD;
+        double violaPosPena, violaVelPena, violaAccPena;
         double node, pena;
 
         const int pieceNum = T.size();
@@ -254,8 +242,6 @@ private:
                 s1 = j * step;
                 s2 = s1 * s1;
                 s3 = s2 * s1;
-                s4 = s2 * s2;
-                s5 = s4 * s1;
                 beta0(0) = 1.0, beta0(1) = s1, beta0(2) = s2, beta0(3) = s3;
                 beta1(0) = 0.0, beta1(1) = 1.0, beta1(2) = 2.0 * s1, beta1(3) = 3.0 * s2;
                 beta2(0) = 0.0, beta2(1) = 0.0, beta2(2) = 2.0, beta2(3) = 6.0 * s1;
@@ -265,30 +251,20 @@ private:
                 acc = c.transpose() * beta2;
                 jer = c.transpose() * beta3;
 
+                // TODO:
+                // violaPos
+                violaPos = 0;
                 violaVel = vel.squaredNorm() - velSqrMax;
-                violaOmg = omg.squaredNorm() - omgSqrMax;
-                // 2-order approx of cos(theta)
-                cos_theta = 1.0 - 2.0 * (quat(1) * quat(1) + quat(2) * quat(2));
-                violaTheta = acos(cos_theta) - thetaMax;
-                violaThrust = (thr - thrustMean) * (thr - thrustMean) - thrustSqrRadi;
+                violaAcc = acc.squaredNorm() - accSqrMax;
 
-                gradThr = 0.0;
-                gradQuat.setZero();
-                gradPos.setZero(), gradVel.setZero(), gradOmg.setZero();
+                gradPos.setZero(), gradVel.setZero(), gradAcc.setZero();
                 pena = 0.0;
 
-                L = hIdx(i);
-                K = hPolys[L].rows();
-                // Position out of the corridor
-                for (int k = 0; k < K; k++)
+                // Joint Soft Constraints
+                if (smmothedL1(violaPos, smoothFactor, violaPosPena, violaPosPenaD))
                 {
-                    outerNormal = hPolys[L].block<1, 3>(k, 0);
-                    violaPos = outerNormal.dot(pos) + hPolys[L](k, 3);
-                    if (smoothedL1(violaPos, smoothFactor, violaPosPena, violaPosPenaD))
-                    {
-                        gradPos += weightPos * violaPosPenaD * outerNormal;
-                        pena += weightPos * violaPosPena;
-                    }
+                    gradPos += weightPos * violaPosPenaD * 2.0 * pos;
+                    pena += weightPos * violaPosPena;
                 }
 
                 if (smoothedL1(violaVel, smoothFactor, violaVelPena, violaVelPenaD))
@@ -297,47 +273,35 @@ private:
                     pena += weightVel * violaVelPena;
                 }
 
-                if (smoothedL1(violaOmg, smoothFactor, violaOmgPena, violaOmgPenaD))
+                if (smoothedL1(violaAcc, smoothFactor, violaAccPena, violaAccPenaD))
                 {
-                    gradOmg += weightOmg * violaOmgPenaD * 2.0 * omg;
-                    pena += weightOmg * violaOmgPena;
+                    gradAcc += weightAcc * violaAccPenaD * 2.0 * acc;
+                    pena += weightAcc * violaAccPena;
                 }
 
-                if (smoothedL1(violaTheta, smoothFactor, violaThetaPena, violaThetaPenaD))
-                {
-                    gradQuat += weightTheta * violaThetaPenaD /
-                                sqrt(1.0 - cos_theta * cos_theta) * 4.0 *
-                                Eigen::Vector4d(0.0, quat(1), quat(2), 0.0);
-                    pena += weightTheta * violaThetaPena;
-                }
+                // flatMap.backward(gradPos, gradVel, gradThr, gradQuat, gradAcc,
+                //                  totalGradPos, totalGradVel, totalGradAcc, totalGradJer,
+                //                  totalGradPsi, totalGradPsiD);
+                totalGradPos = gradPos;
+                totalGradVel = gradVel;
+                totalGradAcc = gradAcc;
 
-                if (smoothedL1(violaThrust, smoothFactor, violaThrustPena, violaThrustPenaD))
-                {
-                    gradThr += weightThrust * violaThrustPenaD * 2.0 * (thr - thrustMean);
-                    pena += weightThrust * violaThrustPena;
-                }
-
-                flatMap.backward(gradPos, gradVel, gradThr, gradQuat, gradOmg,
-                                 totalGradPos, totalGradVel, totalGradAcc, totalGradJer,
-                                 totalGradPsi, totalGradPsiD);
-
+                // PROBLEM: What is this
                 node = (j == 0 || j == integralResolution) ? 0.5 : 1.0;
                 alpha = j * integralFrac;
-                gradC.block<6, 3>(i * 6, 0) += (beta0 * totalGradPos.transpose() +
-                                                beta1 * totalGradVel.transpose() +
-                                                beta2 * totalGradAcc.transpose() +
-                                                beta3 * totalGradJer.transpose()) *
-                                               node * step;
+                gradC.block<4, 3>(i * 4, 0) += (beta0 * totalGradPos.transpose() + // 4*3 order-1 newton?
+                                                beta1 * totalGradVel.transpose() + // 4*3
+                                                beta2 * totalGradAcc.transpose() *
+                                                    node * step);
+                // PROBLEM
                 gradT(i) += (totalGradPos.dot(vel) +
                              totalGradVel.dot(acc) +
-                             totalGradAcc.dot(jer) +
-                             totalGradJer.dot(sna)) *
-                                alpha * node * step +
-                            node * integralFrac * pena;
+                             totalGradAcc.dot(jer) *
+                                 alpha * node * step +
+                             node * integralFrac * pena);
                 cost += node * step * pena;
             }
         }
-
         return;
     }
 
@@ -437,7 +401,7 @@ public:
      * @param smoothingFactor
      * @param integralResolution
      * @param magnitudeBounds [p_max, v_max, a_max]^T
-     * @param penaltyWeights [pos_weight, vel_weight, omg_weight, theta_weight, thrust_weight]^T
+     * @param penaltyWeights [pos_weight, vel_weight, acc_weigh]^T
      * @param physicalParams [?]^T
      * @return true
      * @return false
@@ -540,5 +504,3 @@ public:
         return minCostFunctional;
     }
 };
-}
-;

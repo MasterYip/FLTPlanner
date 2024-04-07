@@ -82,6 +82,11 @@ public:
         return std::move(traj);
     }
 
+    const minco::MINCO_S2NU &getMinco()
+    {
+        return minco_traj_;
+    }
+
     bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01)
     {
         Trajectory<3> traj;

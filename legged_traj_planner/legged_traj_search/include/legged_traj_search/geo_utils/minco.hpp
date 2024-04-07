@@ -43,6 +43,9 @@ namespace minco
     class BandedSystem
     {
     public:
+        BandedSystem() = default;
+        BandedSystem(const BandedSystem &) = delete;
+
         // The size of A, as well as the lower/upper
         // banded width p/q are needed
         inline void create(const int &n, const int &p, const int &q)
@@ -93,6 +96,16 @@ namespace minco
         {
             return ptrData[(i - j + upperBw) * N + j];
         }
+
+        inline void operator=(const BandedSystem & sys)
+        {
+            N = sys.N;
+            lowerBw = sys.lowerBw;
+            upperBw = sys.upperBw;
+            int actualSize = N * (lowerBw + upperBw + 1);
+            ptrData = new double[actualSize];
+            std::copy_n(sys.ptrData, actualSize, ptrData);
+        };
 
         // This function conducts banded LU factorization in place
         // Note that NO PIVOT is applied on the matrix "A" for efficiency!!!
@@ -415,10 +428,10 @@ namespace minco
     public:
         /**
          * @brief Set boundary conditions
-         * 
+         *
          * @param headState 3*3 matrix, each column is position, velocity and acceleration
-         * @param tailState 
-         * @param pieceNum 
+         * @param tailState
+         * @param pieceNum
          */
         inline void setConditions(const Eigen::Matrix3d &headState,
                                   const Eigen::Matrix3d &tailState,
@@ -436,12 +449,12 @@ namespace minco
             T5.resize(N);
             return;
         }
-        
+
         /**
          * @brief Set the Parameters by calculating c(q,t)
-         * 
-         * @param inPs 
-         * @param ts 
+         *
+         * @param inPs
+         * @param ts
          */
         inline void setParameters(const Eigen::Matrix3Xd &inPs,
                                   const Eigen::VectorXd &ts)
