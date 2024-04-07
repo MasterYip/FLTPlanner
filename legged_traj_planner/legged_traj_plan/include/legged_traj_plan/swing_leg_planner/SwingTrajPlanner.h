@@ -72,7 +72,13 @@ public:
                                                     Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                     double v_lift, uint index);
 
-    bool opt_traj(std::shared_ptr<TrajectoryBase> traj, int index);
+    bool opt_traj(std::shared_ptr<TrajectoryBase> &traj,
+                  const pinocchio::SE3 &pose0,
+                  const pinocchio::SE3 &pose1,
+                  int index);
 
-    ElSpiderAirInterface &getRobotInterface() { return robot_interface_; }
+    ElSpiderAirInterface &getRobotInterface()
+    {
+        return robot_interface_;
+    }
 };

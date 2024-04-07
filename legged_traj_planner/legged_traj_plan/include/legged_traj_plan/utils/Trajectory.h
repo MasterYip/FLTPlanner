@@ -148,9 +148,10 @@ public:
     }
 
     // Test
-    bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01)
+    bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01, bool update = false)
     {
-        updateTraj();
+        if (update)
+            updateTraj();
         if (traj_.getPieceNum() == 0)
         {
             return false;

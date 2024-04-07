@@ -85,7 +85,7 @@ PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
         {
             if (!swingtraj_isopt_[i] && auto_opt)
             {
-                this->opt_swing_traj(i);
+                opt_swing_traj(i);
             }
             if (!use_cfg_space_)
             {
@@ -125,12 +125,13 @@ std::array<bool, 6> MCTStateTransfer::eval_support_state(double t, double margin
 
 void MCTStateTransfer::opt_swing_traj(int index)
 {
-    if (!this->opt_check(index))
+    if (!opt_check(index))
     {
+        pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
+        pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
         // TODO: add eval_torso_traj
-        swing_traj_planner_->opt_traj(
-            swingtraj_[index], index);
-        swingtraj_isopt_[index] = true;
+        swingtraj_isopt_[index] = swing_traj_planner_->opt_traj(
+            swingtraj_[index], pose0, pose1, index);
     }
 }
 
