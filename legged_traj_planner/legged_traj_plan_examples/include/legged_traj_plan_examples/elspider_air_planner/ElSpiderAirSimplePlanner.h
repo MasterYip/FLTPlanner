@@ -151,21 +151,24 @@ private:
     geometry_msgs::TransformStamped body_state_tf_;
     bool recv_body_state_ = false;
 
+    // Interface
+    ElSpiderAirInterfaceROS robot_interface_;
+    GridMapInterface gridmap_interface_;
+    MCTSWholeBodyPlanner whole_body_planner_;
+
     // MCTS planner Interface
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
     std::vector<Eigen::Vector3f> exp_path_;
     float multiply_factor_ = 0.03;
     int point_num_ = 3;
+
+    /// Misc
     // ROS Timer event
     ros::Timer timer_;
+
     // Visualizer
     GCSVisualizer visualizer_;
-
-    // Interface
-    ElSpiderAirInterfaceROS robot_interface_;
-    GridMapInterface gridmap_interface_;
-    MCTSWholeBodyPlanner whole_body_planner_;
 
     // Settings
     bool fake_estimation_;
@@ -337,14 +340,17 @@ public:
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
+        std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
         do
         {
+            // Get Interpolated State
             odom_interp = state_traj.eval_torso_traj(t);
             // Footend position in world frame
             footend_interp = state_traj.eval_foot_traj(t);
-            // Convert to base frame
+            support_state = state_traj.eval_support_state(t);
             for (size_t k = 0; k < 6; ++k)
             {
+                // Convert to BASE
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
             }
             robot_interface_.pub_footcmd_from_footendpos(footend_interp);
@@ -361,7 +367,6 @@ public:
             }
 
             // Visualization
-            // BUG: Sometimes the visualizer will display the convex hull as non-convex
             visualizer_.delAll();
             visualizer_.visPolytope(robot_interface_.getFootPolyhedra(2));
 

@@ -41,7 +41,16 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_listener.h>
-#include "ros_visualizer/ros_visualizer.hpp"
+#include "legged_traj_search/utils/gcs_visualizer.hpp"
+
+// BUG
+// IMPORTANT: Add this function to avoid Convex hull display error. (unknown reason)
+void AVOID_DISPLAY_ERROR(void)
+{
+    Eigen::Vector3d vec(1, 1, 1);
+    quickhull::QuickHull<double> qh;
+    const auto cvxHull = qh.getConvexHull(vec.data(), vec.cols(), false, false);
+}
 
 legged_traj_plan::hexapod_State transRobotState(const MDT::RobotState &state_)
 {
@@ -165,11 +174,11 @@ private:
     ros::Timer timer_;
 
     // Visualizer
-    ros_visualizer::ROSVisualizer visualizer_;
+    GCSVisualizer visualizer_;
 
     // Settings
     bool fake_estimation_;
-    bool fake_estimation_noisy_ = true;
+    bool fake_estimation_noisy_ = false;
     double noise_amp_ = 0.02;
     bool simulation_;
 
@@ -312,8 +321,7 @@ public:
                 robot_state_.feetNormalVector[i] << 0, 0, 1; // TODO: use gridmap normal
                 footend_vis.emplace_back(robot_state_.feetPosition[i]);
             }
-            visualizer_.delAll();
-            visualizer_.visSphere(footend_vis, 0.02);
+
             // FIXME: cmd_ should be under robot frame
             // if (cmd_.linear.x != 0)
             //     robot_state_.moveDirection = atan2(cmd_.linear.y, cmd_.linear.x);
@@ -347,8 +355,8 @@ public:
         do
         {
             // Get Interpolated State
-            state_traj = whole_body_planner_.get_state_traj(0);
             odom_interp = state_traj.eval_torso_traj(t);
+            // Footend position in world frame
             footend_interp = state_traj.eval_foot_traj(t);
             support_state = state_traj.eval_support_state(t);
             for (size_t k = 0; k < 6; ++k)
@@ -405,6 +413,8 @@ public:
             {
                 t = 0.0;
                 whole_body_planner_.dequeue_MCTsolution();
+                if (whole_body_planner_.get_state_traj_length() > 0)
+                    state_traj = whole_body_planner_.get_state_traj(0);
             }
             rate_.sleep();
         } while (whole_body_planner_.get_state_traj_length() > 0);
