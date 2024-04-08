@@ -20,6 +20,8 @@
 /* external project header files */
 #include <Eigen/Dense>
 /* internal project header files */
+#include "Utils.h"
+
 #include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
@@ -165,31 +167,7 @@ private:
     }
 
     // Soft Constraint
-    static inline bool smoothedL1(const double &x,
-                                  const double &mu,
-                                  double &f,
-                                  double &df)
-    {
-        if (x < 0.0)
-        {
-            return false;
-        }
-        else if (x > mu)
-        {
-            f = x - 0.5 * mu;
-            df = 1.0;
-            return true;
-        }
-        else
-        {
-            const double xdmu = x / mu;
-            const double sqrxdmu = xdmu * xdmu;
-            const double mumxd2 = mu - 0.5 * x;
-            f = mumxd2 * sqrxdmu * xdmu;
-            df = sqrxdmu * ((-0.5) * xdmu + 3.0 * mumxd2 / mu);
-            return true;
-        }
-    }
+
 
     // TODO:
     /**
@@ -267,11 +245,11 @@ private:
                 pena = 0.0;
 
                 // Joint Soft Constraints
-                if (smoothedL1(violaPos, smoothFactor, violaPosPena, violaPosPenaD))
-                {
-                    gradPos += weightPos * violaPosPenaD * 2.0 * pos;
-                    pena += weightPos * violaPosPena;
-                }
+                // if (smoothedL1(violaPos, smoothFactor, violaPosPena, violaPosPenaD))
+                // {
+                //     gradPos += weightPos * violaPosPenaD * 2.0 * pos;
+                //     pena += weightPos * violaPosPena;
+                // }
 
                 if (smoothedL1(violaVel, smoothFactor, violaVelPena, violaVelPenaD))
                 {
