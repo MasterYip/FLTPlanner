@@ -270,7 +270,6 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
             path_opt.emplace_back(point_SE3Act(poseLinearInterp(pose0, pose1, t).inverse(), base_pt));
             t += ts;
         }
-        std::cout << "Visualize optimized traj(leg " << index << ")" << std::endl;
         visualizer_.visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
     }
 #endif

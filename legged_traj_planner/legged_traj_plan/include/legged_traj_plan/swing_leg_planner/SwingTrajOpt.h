@@ -87,6 +87,17 @@ private:
         return;
     }
 
+    static inline void forwareP(const Eigen::VectorXd &xi,
+                                Eigen::Matrix3Xd &points)
+    {
+        const int sizeN = xi.size() / 3;
+        points.resize(3, sizeN);
+        for (int i = 0; i < sizeN; i++)
+        {
+            points.col(i) = xi.segment<3>(3 * i);
+        }
+    }
+
     template <typename EIGENVEC>
     static inline void backwardT(const Eigen::VectorXd &T,
                                  EIGENVEC &tau)
@@ -100,6 +111,19 @@ private:
                          : (1.0 - sqrt(2.0 / T(i) - 1.0));
         }
 
+        return;
+    }
+
+    template <typename EIGENVEC>
+    static inline void backwardP(const Eigen::Matrix3Xd &points,
+                                 EIGENVEC &xi)
+    {
+        for (int i = 0; i < points.cols(); i++)
+        {
+            xi(3 * i) = points(0, i);
+            xi(3 * i + 1) = points(1, i);
+            xi(3 * i + 2) = points(2, i);
+        }
         return;
     }
 
@@ -124,6 +148,19 @@ private:
             }
         }
 
+        return;
+    }
+
+    template <typename EIGENVEC>
+    static inline void backwardGradP(const Eigen::Matrix3Xd &gradByPoints,
+                                     EIGENVEC &gradXi)
+    {
+        for (int i = 0; i < gradByPoints.cols(); i++)
+        {
+            gradXi(3 * i) = gradByPoints(0, i);
+            gradXi(3 * i + 1) = gradByPoints(1, i);
+            gradXi(3 * i + 2) = gradByPoints(2, i);
+        }
         return;
     }
 
@@ -289,7 +326,9 @@ private:
         Eigen::Map<Eigen::VectorXd> gradTau(g.data(), dimTau);
         Eigen::Map<Eigen::VectorXd> gradXi(g.data() + dimTau, dimXi);
 
+        // Forward
         forwardT(tau, obj.times);
+        forwareP(xi, obj.points);
 
         double cost;
         obj.minco.setParameters(obj.points, obj.times);
@@ -311,12 +350,8 @@ private:
         cost += weightT * obj.times.sum();
         obj.gradByTimes.array() += weightT; // PROBLEM
 
-        // update gradXi
-        for (int i = 0; i < obj.spatialDim / 3; i++)
-        {
-            gradXi.segment<3>(3 * i) = obj.gradByPoints.col(i);
-        }
-
+        // Backward
+        backwardGradP(obj.gradByPoints, gradXi);
         backwardGradT(tau, obj.gradByTimes, gradTau);
 
         // TODO: what is this?
@@ -396,7 +431,8 @@ public:
         const int &integralResolution,
         const Eigen::VectorXd &magnitudeBounds,
         const Eigen::VectorXd &penaltyWeights,
-        const Eigen::VectorXd &physicalParams)
+        const Eigen::VectorXd &physicalParams,
+        const bool verbose = false)
     {
         polyPath = cfgPolyPath;
         headPV.col(0) = cfgPolyPath.leftCols(1);
@@ -434,11 +470,19 @@ public:
         partialGradByCoeffs.resize(4 * pieceN, 3); // NOTE:4-order traj
         partialGradByTimes.resize(pieceN);
 
+        if (verbose)
+        {
+            std::cout << "Setup MINCO optimization problem" << std::endl;
+            std::cout << "\tPiece num: " << pieceN << std::endl;
+            std::cout << "\tSpatial dim: " << spatialDim << std::endl;
+            std::cout << "\tTemporal dim: " << temporalDim << std::endl;
+        }
+
         return true;
     }
 
     inline bool optimize(Trajectory<3> &traj,
-                         const double &relCostTol)
+                         const double &relCostTol, const bool verbose = true)
     {
         Eigen::VectorXd x(temporalDim + spatialDim);
         Eigen::Map<Eigen::VectorXd> tau(x.data(), temporalDim);
