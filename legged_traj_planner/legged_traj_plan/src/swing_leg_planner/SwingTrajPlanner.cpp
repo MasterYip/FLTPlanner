@@ -241,7 +241,7 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
 
     // Tmp params
     double timeWeight = 20.0;
-    double lengthPerPiece = 10.0; // BUG: Once this is triggered, the optimization will fail
+    double lengthPerPiece = 1.0;
     double smoothingFactor = 1.0e-2;
     int integralResolution = 16;
     Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3) * 10; // FIXME

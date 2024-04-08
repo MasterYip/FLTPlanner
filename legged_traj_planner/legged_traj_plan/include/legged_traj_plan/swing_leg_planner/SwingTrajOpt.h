@@ -195,18 +195,16 @@ private:
     /**
      * @brief
      *
-     * @param T Time vector
-     * @param coeffs Coefficients of trajectory (3, 4 * pieceNum)
-     * @param smoothFactor Smooth factor for soft constraint cost function
-     * @param integralResolution Integral resolution
-     * @param magnitudeBounds [v_max, a_max]^T
-     * @param penaltyWeights [pos_weight, vel_weight]^T
-     * @param cost Cost
-     * @param gradT Gradient of time allocation
-     * @param gradC Gradient of coefficients
+     * @param[in] T Time vector
+     * @param[in] coeffs Coefficients of trajectory (3, 4 * pieceNum)
+     * @param[in] smoothFactor Smooth factor for soft constraint cost function
+     * @param[in] integralResolution Integral resolution
+     * @param[in] magnitudeBounds [v_max, a_max]^T
+     * @param[in] penaltyWeights [pos_weight, vel_weight, acc_weight]^T
+     * @param[out] cost Cost
+     * @param[out] gradT Gradient of time allocation
+     * @param[out] gradC Gradient of coefficients
      */
-    // physicalParams = [vehicle_mass, gravitational_acceleration, horitonral_drag_coeff,
-    //                   vertical_drag_coeff, parasitic_drag_coeff, speed_smooth_factor]^T
     static inline void attachPenaltyFunctional(const Eigen::VectorXd &T,
                                                const Eigen::MatrixX3d &coeffs,
                                                const double &smoothFactor,
