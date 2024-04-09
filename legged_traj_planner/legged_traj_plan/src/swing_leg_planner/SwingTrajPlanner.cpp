@@ -240,8 +240,9 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
     std::cout << "Index: " << index << ", Poly path size: " << poly_path.size() << std::endl;
 
     // Tmp params
-    double timeWeight = 20.0;
-    double lengthPerPiece = 1.0;
+    // FIXME: params needed refined
+    double timeWeight = 6.0;     // PROBLEM: too large or too small will leads to max-try error
+    double lengthPerPiece = 2.0; // BUG: Once this is triggered, Opt failed (A logic error (negative line-search step) occurred.)
     double smoothingFactor = 1.0e-2;
     int integralResolution = 16;
     Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3) * 10; // FIXME

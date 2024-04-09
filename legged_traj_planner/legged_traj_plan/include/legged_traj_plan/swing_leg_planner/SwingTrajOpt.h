@@ -240,8 +240,6 @@ private:
                 jer = c.transpose() * beta3;
 
                 // TODO:
-                // violaPos
-                violaPos = 0;
                 violaVel = vel.squaredNorm() - velSqrMax;
                 violaAcc = acc.squaredNorm() - accSqrMax;
 
@@ -249,23 +247,6 @@ private:
                 pena = 0.0;
 
                 // Joint Soft Constraints
-                // if (smoothedL1(violaPos, smoothFactor, violaPosPena, violaPosPenaD))
-                // {
-                //     gradPos += weightPos * violaPosPenaD * 2.0 * pos;
-                //     pena += weightPos * violaPosPena;
-                // }
-
-                // if (smoothedL1(violaVel, smoothFactor, violaVelPena, violaVelPenaD))
-                // {
-                //     gradVel += weightVel * violaVelPenaD * 2.0 * vel;
-                //     pena += weightVel * violaVelPena;
-                // }
-
-                // if (smoothedL1(violaAcc, smoothFactor, violaAccPena, violaAccPenaD))
-                // {
-                //     gradAcc += weightAcc * violaAccPenaD * 2.0 * acc;
-                //     pena += weightAcc * violaAccPena;
-                // }
                 obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
 
                 // flatMap.backward(gradPos, gradVel, gradThr, gradQuat, gradAcc,
@@ -375,6 +356,7 @@ private:
                 if (i > 0 || m > 0)
                 {
                     innerPoints.col(k++) = a + c * m;
+                    std::cout << "innerPoint add: " << (a + c * m).transpose() << std::endl;
                 }
             }
         }
@@ -413,7 +395,7 @@ public:
         const Eigen::VectorXd &magnitudeBounds,
         const Eigen::VectorXd &penaltyWeights,
         const Eigen::VectorXd &physicalParams,
-        const bool verbose = false)
+        const bool verbose = true)
     {
         polyPath = cfgPolyPath;
         headPV.col(0) = cfgPolyPath.leftCols(1);
@@ -460,7 +442,7 @@ public:
 
         if (verbose)
         {
-            std::cout << "Setup MINCO optimization problem" << std::endl;
+            // std::cout << "Setup MINCO optimization problem" << std::endl;
             std::cout << "\tPiece num: " << pieceN << std::endl;
             std::cout << "\tSpatial dim: " << spatialDim << std::endl;
             std::cout << "\tTemporal dim: " << temporalDim << std::endl;
