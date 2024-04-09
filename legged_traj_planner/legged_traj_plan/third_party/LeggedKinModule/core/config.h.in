@@ -1,2 +1,0 @@
-#define URDF_PATH "@URDF_PATH@"
-#include "@IKFAST_LIB_NAME@.h"
