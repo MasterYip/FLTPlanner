@@ -28,10 +28,6 @@ int main(int argc, char **argv)
     Eigen::VectorXd dq(18);
     std::vector<Eigen::Vector3d> footendpos(6, Eigen::Vector3d::Zero());
     std::vector<Eigen::Vector3d> footendvel(6, Eigen::Vector3d::Zero());
-    Eigen::Matrix3Xd FootHull(3, 10);
-    FootHull << 0.2412, -0.07939, -0.0809, 0.2556, -0.3199, -0.2209, 0.3721, 0.3527, 0.05979, 0.06059,
-        -0.154, -0.1551, -0.1567, -0.1674, -0.3958, -0.2967, -0.2772, -0.2589, -0.4186, -0.472,
-        -0.1303, -0.1464, -0.3889, -0.3545, 0.006312, -0.3344, 0.02371, -0.2644, -0.2857, 0.1195;
     
     while (ros::ok())
     {
@@ -49,7 +45,6 @@ int main(int argc, char **argv)
             footendvel[i] = J * dq.segment<3>(3 * i);
             visualizer.visArrow(footendpos[i], footendpos[i] + footendvel[i] * 1);
         }
-        visualizer.visPolytope(FootHull);
 
         std::vector<double> q_vec(q.data(), q.data() + q.size());
         robot_interface.pub_joint_state(q_vec);

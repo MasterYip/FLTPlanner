@@ -239,19 +239,14 @@ private:
                 acc = c.transpose() * beta2;
                 jer = c.transpose() * beta3;
 
-                // TODO:
-                violaVel = vel.squaredNorm() - velSqrMax;
-                violaAcc = acc.squaredNorm() - accSqrMax;
+                // TODO: Penalties
 
                 gradPos.setZero(), gradVel.setZero(), gradAcc.setZero();
                 pena = 0.0;
 
-                // Joint Soft Constraints
+                // Joint Limit Soft Constraints
                 obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
 
-                // flatMap.backward(gradPos, gradVel, gradThr, gradQuat, gradAcc,
-                //                  totalGradPos, totalGradVel, totalGradAcc, totalGradJer,
-                //                  totalGradPsi, totalGradPsiD);
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
                 totalGradAcc = gradAcc;
