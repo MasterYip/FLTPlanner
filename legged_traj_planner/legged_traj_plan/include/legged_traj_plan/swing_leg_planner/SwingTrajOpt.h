@@ -21,6 +21,7 @@
 #include <Eigen/Dense>
 /* internal project header files */
 #include "Utils.h"
+#include "LegLimitPenalty.h"
 
 #include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
@@ -58,6 +59,9 @@ private:
     Eigen::VectorXd penaltyWt;
     Eigen::VectorXd physicalPm;
     double allocSpeed;
+
+    // Penalties
+    LegLimitPenalty lmtPena;
 
     lbfgs::lbfgs_parameter_t lbfgs_params;
 
@@ -168,7 +172,6 @@ private:
 
     // Soft Constraint
 
-
     // TODO:
     /**
      * @brief
@@ -183,7 +186,8 @@ private:
      * @param[out] gradT Gradient of time allocation
      * @param[out] gradC Gradient of coefficients
      */
-    static inline void attachPenaltyFunctional(const Eigen::VectorXd &T,
+    static inline void attachPenaltyFunctional(SwingTrajOpt &obj,
+                                               const Eigen::VectorXd &T,
                                                const Eigen::MatrixX3d &coeffs,
                                                const double &smoothFactor,
                                                const int &integralResolution,
@@ -251,17 +255,18 @@ private:
                 //     pena += weightPos * violaPosPena;
                 // }
 
-                if (smoothedL1(violaVel, smoothFactor, violaVelPena, violaVelPenaD))
-                {
-                    gradVel += weightVel * violaVelPenaD * 2.0 * vel;
-                    pena += weightVel * violaVelPena;
-                }
+                // if (smoothedL1(violaVel, smoothFactor, violaVelPena, violaVelPenaD))
+                // {
+                //     gradVel += weightVel * violaVelPenaD * 2.0 * vel;
+                //     pena += weightVel * violaVelPena;
+                // }
 
-                if (smoothedL1(violaAcc, smoothFactor, violaAccPena, violaAccPenaD))
-                {
-                    gradAcc += weightAcc * violaAccPenaD * 2.0 * acc;
-                    pena += weightAcc * violaAccPena;
-                }
+                // if (smoothedL1(violaAcc, smoothFactor, violaAccPena, violaAccPenaD))
+                // {
+                //     gradAcc += weightAcc * violaAccPenaD * 2.0 * acc;
+                //     pena += weightAcc * violaAccPena;
+                // }
+                obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
 
                 // flatMap.backward(gradPos, gradVel, gradThr, gradQuat, gradAcc,
                 //                  totalGradPos, totalGradVel, totalGradAcc, totalGradJer,
@@ -313,7 +318,7 @@ private:
         obj.minco.getEnergyPartialGradByTimes(obj.partialGradByTimes);
 
         // TODO: 2.Penalty cost
-        attachPenaltyFunctional(obj.times, obj.minco.getCoeffs(),
+        attachPenaltyFunctional(obj, obj.times, obj.minco.getCoeffs(),
                                 obj.smoothEps, obj.integralRes,
                                 obj.magnitudeBd, obj.penaltyWt,
                                 cost, obj.partialGradByTimes, obj.partialGradByCoeffs);
@@ -445,6 +450,13 @@ public:
         gradByTimes.resize(pieceN);
         partialGradByCoeffs.resize(4 * pieceN, 3); // NOTE:4-order traj
         partialGradByTimes.resize(pieceN);
+
+        // FIXME: ghost variables
+        Eigen::Matrix<double, 3, 2> posBd;
+        posBd << -0.785, 0.785, -0.5233, 3.14, -0.6978, 3.925;
+        Eigen::Vector2d magBd(5, 5);
+        Eigen::Vector3d weight(1, 1, 1);
+        lmtPena.setup(posBd, magBd, weight, smoothingFactor);
 
         if (verbose)
         {
