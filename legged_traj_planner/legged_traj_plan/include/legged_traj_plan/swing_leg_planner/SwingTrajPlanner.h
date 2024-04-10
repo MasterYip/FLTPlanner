@@ -58,8 +58,13 @@ public:
                         const Eigen::Vector3d p0, const Eigen::Vector3d p1,
                         uint index, bool verbose = true);
 
-    std::shared_ptr<MincoTrajectory> getDefaultTraj(Eigen::Vector3d &p0, Eigen::Vector3d &p1,
+    std::shared_ptr<MincoTrajectory> getDefaultTraj(const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
                                                     double v_lift, double h_lift = 0.1);
+
+    std::shared_ptr<MincoTrajectory> getDefaultCfgTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
+                                                       const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index,
+                                                       double v_lift, double h_lift = 0.1);
+
     std::shared_ptr<MincoTrajectory> getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                  Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                  double v_lift, uint index);
