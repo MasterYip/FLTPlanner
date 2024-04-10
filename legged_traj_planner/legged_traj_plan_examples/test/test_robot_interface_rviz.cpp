@@ -44,7 +44,14 @@ int main(int argc, char **argv)
             robot_interface.getRobotKin().getJacobian(q.segment<3>(3 * i), J, i);
             footendvel[i] = J * dq.segment<3>(3 * i);
             visualizer.visArrow(footendpos[i], footendpos[i] + footendvel[i] * 1);
+            for (int j=0; j<3; j++)
+            {
+                Eigen::Vector3d joint_pos;
+                robot_interface.getRobotKin().forwardKin(q.segment<3>(3 * i), joint_pos, i, j);
+                visualizer.visSphere(joint_pos, 0.13);
+            }
         }
+
 
         std::vector<double> q_vec(q.data(), q.data() + q.size());
         robot_interface.pub_joint_state(q_vec);

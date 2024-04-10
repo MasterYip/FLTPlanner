@@ -5,3 +5,6 @@
 [submodule "legged_traj_planner/legged_traj_plan_examples/mcts_planner"]
 	path = legged_traj_planner/legged_traj_plan_examples/mcts_planner
 	url = https://github.com/BetterEthan/contactPlanner_HexMIni.git
+[submodule "legged_traj_planner/third_party/LeggedKinModule"]
+	path = legged_traj_planner/third_party/LeggedKinModule
+	url = https://github.com/MasterYip/LeggedKinModule

@@ -22,7 +22,6 @@ set(MSG_DEP_SET
   nav_msgs
 )
 
-add_subdirectory(third_party/LeggedKinModule)
 find_package(Eigen3 REQUIRED)
 find_package(pinocchio REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
@@ -32,7 +31,8 @@ find_package(catkin REQUIRED COMPONENTS
   grid_map_msgs
   grid_map_sdf
   legged_traj_search
-  ros_visualizer)
+  ros_visualizer
+  third_party)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -133,15 +133,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS 
-  include
-  third_party/LeggedKinModule/core
-  third_party/LeggedKinModule/config
-  third_party/LeggedKinModule/config/ikfast_leg_lib
-  ${pinocchio_INCLUDE_DIRS}
- LIBRARIES legged_traj_plan LeggedKinModule
- CATKIN_DEPENDS grid_map_core roscpp std_msgs
-#  DEPENDS system_lib
+ INCLUDE_DIRS include
+ LIBRARIES legged_traj_plan 
+ CATKIN_DEPENDS grid_map_core roscpp std_msgs third_party
+ DEPENDS
 )
 
 ###########

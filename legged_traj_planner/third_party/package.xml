@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>third_party</name>
+    <version>0.0.0</version>
+    <description>The third_party package</description>
+
+    <maintainer email="2205929492@qq.com">Master Yip</maintainer>
+    <license>TODO</license>
+    <author email="2205929492@qq.com">Master Yip</author>
+
+    <buildtool_depend>catkin</buildtool_depend>
+
+</package>

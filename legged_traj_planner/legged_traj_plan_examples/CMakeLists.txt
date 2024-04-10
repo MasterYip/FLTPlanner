@@ -30,6 +30,7 @@ find_package(catkin REQUIRED COMPONENTS
   ros_visualizer
   roscpp
   std_msgs
+  third_party
   ${GRIDMAP_DEP}
 )
 
@@ -125,8 +126,8 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES legged_traj_plan_examples
-#  CATKIN_DEPENDS grid_map_core legged_traj_plan roscpp std_msgs
-#  DEPENDS system_lib
+  CATKIN_DEPENDS grid_map_core legged_traj_plan roscpp std_msgs 
+  # DEPENDS LeggedKinModule
 )
 
 ###########
