@@ -52,7 +52,6 @@ int main(int argc, char **argv)
             }
         }
 
-
         std::vector<double> q_vec(q.data(), q.data() + q.size());
         robot_interface.pub_joint_state(q_vec);
         ros::spinOnce();

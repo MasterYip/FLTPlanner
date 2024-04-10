@@ -368,7 +368,7 @@ public:
 
             // Visualization
             visualizer_.delAll();
-            visualizer_.visPolytope(robot_interface_.getFootPolyhedra(2));
+            visualizer_.visPolytope(robot_interface_.getFootPolyhedra());
 
             t += delta;
             if (t > 1.0)
