@@ -26,7 +26,6 @@
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
 #include "SwingTrajOpt.h"
-#include "Utils.h"
 
 using namespace geo_utils;
 

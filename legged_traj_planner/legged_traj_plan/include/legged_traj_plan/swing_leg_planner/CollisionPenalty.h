@@ -18,10 +18,11 @@
 /* c++ standard library header files */
 
 /* external project header files */
-
+#include "legged_traj_search/utils/gcs_visualizer.hpp"
 /* internal project header files */
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
+#include "legged_traj_plan/utils/Geometry.h"
 
 class LegCollisionPenalty
 {
@@ -32,12 +33,16 @@ private:
     Eigen::Vector3d weight_;
     double mu_;
 
+    // Temporary
+    ros::NodeHandle nh_;
+    GCSVisualizer visualizer_;
+
 public:
     LegCollisionPenalty(ElSpiderAirInterface &robot_interface, GridMapInterface &gridmap_interface)
-        : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface)
+        : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface), visualizer_(nh_, "odom", "collision_penalty")
     {
         // TODO: use setup()
-        collBallRadius_ << 0.12, 0.12, 0.5;
+        collBallRadius_ << 0.12, 0.12, 0.05;
         weight_ << 1.0, 1.0, 1.0;
         mu_ = 0.01;
     }
@@ -57,7 +62,7 @@ public:
                     double &pena)
     {
         // WORLD frame
-        Eigen::Vector3d footPos = robot_interface_.FK_foot(posCfg, index);
+        Eigen::Vector3d footPos = point_SE3Act(pose.inverse(), robot_interface_.FK_foot(posCfg, index));
         Eigen::Vector3d sdfGrad;
         Eigen::Vector3d gradPos;
 
@@ -66,12 +71,18 @@ public:
         if (smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
             sdfGrad = gridmap_interface_.sdfDerivative(footPos, 0);
-            gradPos = df * sdfGrad / sdfGrad.norm();
+            gradPos = -df * sdfGrad / sdfGrad.norm();
+            visualizer_.visArrow(footPos, footPos + gradPos, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
             Eigen::Matrix3Xd J = robot_interface_.getJacobian(posCfg, index);
             Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
             // std::cout << "J_inv: " << J_inv << std::endl;
             gradPosCfg += weight_(2) * J_inv * gradPos;
             pena += weight_(2) * f;
         }
+    }
+
+    void visClear()
+    {
+        visualizer_.delAll();
     }
 };

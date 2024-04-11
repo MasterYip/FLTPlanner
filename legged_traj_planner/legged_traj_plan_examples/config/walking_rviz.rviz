@@ -372,6 +372,14 @@ Visualization Manager:
         sphere: true
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /collision_penalty
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -400,7 +408,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.037785530090332
+      Distance: 1.4107599258422852
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -408,17 +416,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.5407469272613525
-        Y: -0.11689183115959167
-        Z: -0.21018540859222412
+        X: 1.5493791103363037
+        Y: 0.04730600118637085
+        Z: -0.01650501973927021
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6347973942756653
+      Pitch: 0.33479762077331543
       Target Frame: <Fixed Frame>
-      Yaw: 3.6613657474517822
+      Yaw: 4.301368236541748
     Saved: ~
 Window Geometry:
   Displays:

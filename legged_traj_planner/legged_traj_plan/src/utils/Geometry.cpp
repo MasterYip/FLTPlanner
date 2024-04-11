@@ -1,5 +1,12 @@
 #include "legged_traj_plan/utils/Geometry.h"
 
+pinocchio::SE3 poseLinearInterp(pinocchio::SE3 pose0, pinocchio::SE3 pose1, double t)
+{
+    pinocchio::Motion err = pinocchio::log6(pose0.actInv(pose1));
+    pinocchio::SE3 interp = pose0.act(pinocchio::exp6(err * t));
+    return interp;
+}
+
 pinocchio::SE3 XYZRPY2SE3(legged_traj_plan::hexapod_Base_Pose pose)
 {
     // RPY to Rotation Matrix

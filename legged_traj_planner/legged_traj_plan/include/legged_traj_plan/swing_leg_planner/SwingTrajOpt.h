@@ -229,6 +229,9 @@ private:
         double time = 0.0;
         for (int i = 0; i < pieceNum; i++)
         {
+            if (i == 0)
+                obj.collPena.visClear();
+
             const Eigen::Matrix<double, 4, 3> &c = coeffs.block<4, 3>(i * 4, 0);
             step = T(i) * integralFrac;
             for (int j = 0; j <= integralResolution; j++)
@@ -248,13 +251,14 @@ private:
                 jer = c.transpose() * beta3;
 
                 // TODO: Penalties
-
                 gradPos.setZero(), gradVel.setZero(), gradAcc.setZero();
                 pena = 0.0;
 
                 // Joint Limit Soft Constraints
                 obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
-                // obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, time / total_time), pos, gradPos, i, pena);
+                double norm_time = time / total_time;
+                if (norm_time < 0.9 && norm_time > 0.1) // Exclude the start and end points
+                    obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
 
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
@@ -409,7 +413,16 @@ public:
         pose0_ = pose0;
         pose1_ = pose1;
         index_ = index;
-        polyPath = cfgPolyPath;
+        if (cfgPolyPath.cols() < 3)
+        {
+            polyPath.resize(3, 3);
+            polyPath.col(0) = cfgPolyPath.col(0);
+            polyPath.col(1) = (cfgPolyPath.col(0) + cfgPolyPath.col(1)) / 2.0;
+            polyPath.col(2) = cfgPolyPath.col(1);
+        }
+        else
+            polyPath = cfgPolyPath;
+
         headPV.col(0) = cfgPolyPath.leftCols(1);
         headPV.col(1) = initialVel;
         tailPV.col(0) = cfgPolyPath.rightCols(1);
