@@ -235,6 +235,7 @@ private:
 
         // Temp vis
         std::vector<Eigen::Vector3d> visTraj;
+        std::vector<Eigen::Vector3d> visInPs;
         obj.collPena.visClear();
         for (int i = 0; i < pieceNum; i++)
         {
@@ -263,11 +264,13 @@ private:
                 // Joint Limit Soft Constraints
                 obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
                 double norm_time = time / total_time;
-                if (norm_time < 0.9 && norm_time > 0.1) // Exclude the start and end points
-                    obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
+                // if (norm_time < 0.9 && norm_time > 0.1) // Exclude the start and end points
+                //     obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
 
                 // Visualizer
                 visTraj.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
+                if (j == 0 || j == integralResolution)
+                    visInPs.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
 
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
@@ -292,6 +295,7 @@ private:
         // Visualizer
         obj.visualizer_.delAll();
         obj.visualizer_.visCurve(visTraj, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
+        obj.visualizer_.visSphere(visInPs, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 1.0, 0.01));
         obj.rate_.sleep();
         return;
     }
@@ -475,8 +479,8 @@ public:
         // FIXME: ghost variables
         Eigen::Matrix<double, 3, 2> posBd;
         posBd << -0.785, 0.785, -0.5233, 3.14, -0.6978, 3.925;
-        Eigen::Vector2d magBd(20, 20);
-        Eigen::Vector3d weight(0.5, 0.4, 0.2);
+        Eigen::Vector2d magBd(5, 10);
+        Eigen::Vector3d weight(0.02, 0.02, 0.01);
         lmtPena.setup(posBd, magBd, weight, smoothingFactor);
 
         if (verbose)
