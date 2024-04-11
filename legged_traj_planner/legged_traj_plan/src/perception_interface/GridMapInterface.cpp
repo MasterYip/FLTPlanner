@@ -85,7 +85,7 @@ double GridMapInterface::sdfValue(const grid_map::Position3 &position, size_t in
         }
         else if (!sdf[1])
         {
-            ROS_WARN("Ceiling SDF is not initialized!");
+            // ROS_WARN("Ceiling SDF is not initialized!");
             return sdf[0]->value(position);
         }
         else

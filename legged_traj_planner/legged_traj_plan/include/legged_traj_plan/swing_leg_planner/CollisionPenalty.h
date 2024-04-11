@@ -36,6 +36,7 @@ public:
     LegCollisionPenalty(ElSpiderAirInterface &robot_interface, GridMapInterface &gridmap_interface)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface)
     {
+        // TODO: use setup()
         collBallRadius_ << 0.12, 0.12, 0.5;
         weight_ << 1.0, 1.0, 1.0;
         mu_ = 0.01;
@@ -68,8 +69,9 @@ public:
             gradPos = df * sdfGrad / sdfGrad.norm();
             Eigen::Matrix3Xd J = robot_interface_.getJacobian(posCfg, index);
             Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
+            // std::cout << "J_inv: " << J_inv << std::endl;
             gradPosCfg += weight_(2) * J_inv * gradPos;
             pena += weight_(2) * f;
         }
     }
-}
+};

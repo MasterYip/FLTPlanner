@@ -16,7 +16,7 @@
 /* c system header files */
 
 /* c++ standard library header files */
-
+#include <pinocchio/spatial/se3.hpp>
 /* external project header files */
 
 /* internal project header files */
@@ -56,4 +56,11 @@ static inline bool smoothedL1(const double &x,
         df = sqrxdmu * ((-0.5) * xdmu + 3.0 * mumxd2 / mu);
         return true;
     }
+}
+
+inline pinocchio::SE3 poseLinearInterp(pinocchio::SE3 pose0, pinocchio::SE3 pose1, double t)
+{
+    pinocchio::Motion err = pinocchio::log6(pose0.actInv(pose1));
+    pinocchio::SE3 interp = pose0.act(pinocchio::exp6(err * t));
+    return interp;
 }

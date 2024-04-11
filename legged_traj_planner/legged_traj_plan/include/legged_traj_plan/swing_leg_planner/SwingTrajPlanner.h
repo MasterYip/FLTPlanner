@@ -24,7 +24,10 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
-#include "legged_traj_plan/swing_leg_planner/SwingTrajOpt.h"
+
+#include "SwingTrajOpt.h"
+#include "Utils.h"
+
 using namespace geo_utils;
 
 class SwingTrajPlanner

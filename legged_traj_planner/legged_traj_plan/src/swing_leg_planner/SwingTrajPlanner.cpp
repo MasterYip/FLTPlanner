@@ -16,13 +16,6 @@
 
 #define ENABLE_VISUALIZER
 
-pinocchio::SE3 poseLinearInterp(pinocchio::SE3 pose0, pinocchio::SE3 pose1, double t)
-{
-    pinocchio::Motion err = pinocchio::log6(pose0.actInv(pose1));
-    pinocchio::SE3 interp = pose0.act(pinocchio::exp6(err * t));
-    return interp;
-}
-
 Eigen::VectorXd getTrajTimeVec(const std::vector<Point3D> &path, double total_time)
 {
     if (path.size() > 2)
@@ -284,7 +277,7 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::VectorXd physicalParams = Eigen::VectorXd::Ones(3);
     double relCostTol = 1.0e-5;
 
-    swing_traj_opt_.setup(poly_path_mat, start_vel, goal_vel,
+    swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
                           timeWeight, lengthPerPiece, smoothingFactor, integralResolution,
                           magnitudeBounds, penaltyWeights, physicalParams);
     bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), relCostTol);

@@ -19,9 +19,11 @@
 #include <memory>
 /* external project header files */
 #include <Eigen/Dense>
+#include <pinocchio/spatial/se3.hpp>
 /* internal project header files */
 #include "Utils.h"
 #include "LegLimitPenalty.h"
+#include "CollisionPenalty.h"
 
 #include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
@@ -37,22 +39,24 @@ class SwingTrajOpt
 private:
     ElSpiderAirInterface &robot_interface_;
     GridMapInterface &gridmap_interface_;
-
     minco::MINCO_S2NU minco;
 
+    // Conditions
     double rho;
     Eigen::Matrix<double, 3, 2> headPV;
     Eigen::Matrix<double, 3, 2> tailPV;
-
     Eigen::Matrix3Xd polyPath;
+    pinocchio::SE3 pose0_;
+    pinocchio::SE3 pose1_;
+    int index_;
 
+    // Minco Parameters
     Eigen::VectorXi pieceIdx;
-
     int pieceN;
-
     int spatialDim;
     int temporalDim;
 
+    // Parameters
     double smoothEps;
     int integralRes;
     Eigen::VectorXd magnitudeBd;
@@ -62,9 +66,10 @@ private:
 
     // Penalties
     LegLimitPenalty lmtPena;
+    LegCollisionPenalty collPena;
 
+    // Intermediate variables
     lbfgs::lbfgs_parameter_t lbfgs_params;
-
     Eigen::Matrix3Xd points;
     Eigen::VectorXd times;
     Eigen::Matrix3Xd gradByPoints;
@@ -219,13 +224,16 @@ private:
         double node, pena;
 
         const int pieceNum = T.size();
+        const double total_time = T.sum();
         const double integralFrac = 1.0 / integralResolution;
+        double time = 0.0;
         for (int i = 0; i < pieceNum; i++)
         {
             const Eigen::Matrix<double, 4, 3> &c = coeffs.block<4, 3>(i * 4, 0);
             step = T(i) * integralFrac;
             for (int j = 0; j <= integralResolution; j++)
             {
+                time += step;
                 // Derivatives of traj
                 s1 = j * step;
                 s2 = s1 * s1;
@@ -246,6 +254,7 @@ private:
 
                 // Joint Limit Soft Constraints
                 obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
+                // obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, time / total_time), pos, gradPos, i, pena);
 
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
@@ -359,7 +368,8 @@ private:
 
 public:
     SwingTrajOpt(ElSpiderAirInterface &robot_interface, GridMapInterface &gridmap_interface)
-        : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface){};
+        : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
+          collPena(robot_interface, gridmap_interface){};
 
     /**
      * @brief Setup MINCO optimization problem
@@ -378,6 +388,10 @@ public:
      * @return false
      */
     inline bool setup(
+        // Conditions
+        const pinocchio::SE3 &pose0,
+        const pinocchio::SE3 &pose1,
+        const int &index,
         // Init waypoints
         const Eigen::Matrix3Xd &cfgPolyPath,
         const Eigen::Vector3d &initialVel,
@@ -392,6 +406,9 @@ public:
         const Eigen::VectorXd &physicalParams,
         const bool verbose = true)
     {
+        pose0_ = pose0;
+        pose1_ = pose1;
+        index_ = index;
         polyPath = cfgPolyPath;
         headPV.col(0) = cfgPolyPath.leftCols(1);
         headPV.col(1) = initialVel;
@@ -437,7 +454,6 @@ public:
 
         if (verbose)
         {
-            // std::cout << "Setup MINCO optimization problem" << std::endl;
             std::cout << "\tPiece num: " << pieceN << std::endl;
             std::cout << "\tSpatial dim: " << spatialDim << std::endl;
             std::cout << "\tTemporal dim: " << temporalDim << std::endl;
