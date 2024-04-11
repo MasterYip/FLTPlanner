@@ -43,7 +43,7 @@ public:
     {
         // TODO: use setup()
         collBallRadius_ << 0.12, 0.12, 0.03;
-        weight_ << 0.2, 0.2, 0.1;
+        weight_ << 1.0, 0.8, 0.5;
         mu_ = 0.01;
     }
 

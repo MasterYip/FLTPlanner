@@ -40,6 +40,10 @@ private:
     ElSpiderAirInterface &robot_interface_;
     GridMapInterface &gridmap_interface_;
     minco::MINCO_S2NU minco;
+    // Visualizer
+    ros::NodeHandle nh_;
+    ros::Rate rate_ = ros::Rate(5);
+    GCSVisualizer visualizer_ = {nh_, "odom", "swing_traj_opt"};
 
     // Conditions
     double rho;
@@ -200,7 +204,8 @@ private:
                                                const Eigen::VectorXd &penaltyWeights,
                                                double &cost,
                                                Eigen::VectorXd &gradT,
-                                               Eigen::MatrixX3d &gradC)
+                                               Eigen::MatrixX3d &gradC,
+                                               bool verbose = true)
     {
         const double velSqrMax = magnitudeBounds(0) * magnitudeBounds(0);
         const double accSqrMax = magnitudeBounds(1) * magnitudeBounds(1);
@@ -227,7 +232,9 @@ private:
         const double total_time = T.sum();
         const double integralFrac = 1.0 / integralResolution;
         double time = 0.0;
+
         // Temp vis
+        std::vector<Eigen::Vector3d> visTraj;
         obj.collPena.visClear();
         for (int i = 0; i < pieceNum; i++)
         {
@@ -259,6 +266,9 @@ private:
                 if (norm_time < 0.9 && norm_time > 0.1) // Exclude the start and end points
                     obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
 
+                // Visualizer
+                visTraj.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
+
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
                 totalGradAcc = gradAcc;
@@ -279,7 +289,10 @@ private:
                 cost += node * step * pena;
             }
         }
-        
+        // Visualizer
+        obj.visualizer_.delAll();
+        obj.visualizer_.visCurve(visTraj, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
+        obj.rate_.sleep();
         return;
     }
 
