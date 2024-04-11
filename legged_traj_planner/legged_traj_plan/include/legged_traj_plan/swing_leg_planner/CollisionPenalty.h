@@ -42,8 +42,8 @@ public:
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface), visualizer_(nh_, "odom", "collision_penalty")
     {
         // TODO: use setup()
-        collBallRadius_ << 0.12, 0.12, 0.05;
-        weight_ << 1.0, 1.0, 1.0;
+        collBallRadius_ << 0.12, 0.12, 0.03;
+        weight_ << 0.2, 0.2, 0.1;
         mu_ = 0.01;
     }
 
@@ -70,9 +70,10 @@ public:
         double f, df;
         if (smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
+            // FIXME: Grad propogation might be wrong
             sdfGrad = gridmap_interface_.sdfDerivative(footPos, 0);
             gradPos = -df * sdfGrad / sdfGrad.norm();
-            visualizer_.visArrow(footPos, footPos + gradPos, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+            visualizer_.visArrow(footPos, footPos + gradPos * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
             Eigen::Matrix3Xd J = robot_interface_.getJacobian(posCfg, index);
             Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
             // std::cout << "J_inv: " << J_inv << std::endl;

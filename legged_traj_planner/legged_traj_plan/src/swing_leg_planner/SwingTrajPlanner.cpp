@@ -268,14 +268,14 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
 
     // Tmp params
     // FIXME: params needed refined
-    double timeWeight = 10.0;     // PROBLEM: too large or too small will leads to max-try error
+    double timeWeight = 8.0;     // PROBLEM: too large or too small will leads to max-try error
     double lengthPerPiece = 2.0; // BUG: Once this is triggered, Opt failed (A logic error (negative line-search step) occurred.)
     double smoothingFactor = 1.0e-2;
     int integralResolution = 16;
     Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3) * 10; // FIXME
     Eigen::VectorXd penaltyWeights = Eigen::VectorXd::Ones(3);
     Eigen::VectorXd physicalParams = Eigen::VectorXd::Ones(3);
-    double relCostTol = 1.0e-5;
+    double relCostTol = 1.0e-2;
 
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
                           timeWeight, lengthPerPiece, smoothingFactor, integralResolution,

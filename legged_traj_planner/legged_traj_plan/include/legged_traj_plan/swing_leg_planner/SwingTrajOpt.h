@@ -364,7 +364,7 @@ private:
                 if (i > 0 || m > 0)
                 {
                     innerPoints.col(k++) = a + c * m;
-                    std::cout << "innerPoint add: " << (a + c * m).transpose() << std::endl;
+                    std::cout << "innerPoint: " << (a + c * m).transpose() << std::endl;
                 }
             }
         }
@@ -423,9 +423,9 @@ public:
         else
             polyPath = cfgPolyPath;
 
-        headPV.col(0) = cfgPolyPath.leftCols(1);
+        headPV.col(0) = polyPath.leftCols(1);
         headPV.col(1) = initialVel;
-        tailPV.col(0) = cfgPolyPath.rightCols(1);
+        tailPV.col(0) = polyPath.rightCols(1);
         tailPV.col(1) = terminalVel;
 
         rho = timeWeight;
@@ -438,8 +438,9 @@ public:
         allocSpeed = magnitudeBd(0) * 3.0;
 
         // subdivide cfg poly path if exceeds length limit
-        const Eigen::Matrix3Xd deltas = cfgPolyPath.rightCols(cfgPolyPath.cols() - 1) -
-                                        cfgPolyPath.leftCols(cfgPolyPath.cols() - 1);
+        const Eigen::Matrix3Xd deltas = polyPath.rightCols(polyPath.cols() - 1) -
+                                        polyPath.leftCols(polyPath.cols() - 1);
+        // FIXME: why innerpoint is added here when piece num =2
         pieceIdx = (deltas.colwise().norm() / lengthPerPiece).cast<int>().transpose();
         pieceIdx.array() += 1;
         pieceN = pieceIdx.sum();
