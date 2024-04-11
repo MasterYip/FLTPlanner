@@ -275,7 +275,7 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3) * 10; // FIXME
     Eigen::VectorXd penaltyWeights = Eigen::VectorXd::Ones(3);
     Eigen::VectorXd physicalParams = Eigen::VectorXd::Ones(3);
-    double relCostTol = 1.0e-2;
+    double relCostTol = 1.0e-6;
 
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
                           timeWeight, lengthPerPiece, smoothingFactor, integralResolution,

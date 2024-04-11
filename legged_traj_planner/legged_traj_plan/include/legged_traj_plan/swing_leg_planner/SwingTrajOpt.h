@@ -227,11 +227,10 @@ private:
         const double total_time = T.sum();
         const double integralFrac = 1.0 / integralResolution;
         double time = 0.0;
+        // Temp vis
+        obj.collPena.visClear();
         for (int i = 0; i < pieceNum; i++)
         {
-            if (i == 0)
-                obj.collPena.visClear();
-
             const Eigen::Matrix<double, 4, 3> &c = coeffs.block<4, 3>(i * 4, 0);
             step = T(i) * integralFrac;
             for (int j = 0; j <= integralResolution; j++)
@@ -280,6 +279,7 @@ private:
                 cost += node * step * pena;
             }
         }
+        
         return;
     }
 
@@ -462,8 +462,8 @@ public:
         // FIXME: ghost variables
         Eigen::Matrix<double, 3, 2> posBd;
         posBd << -0.785, 0.785, -0.5233, 3.14, -0.6978, 3.925;
-        Eigen::Vector2d magBd(5, 5);
-        Eigen::Vector3d weight(1, 1, 1);
+        Eigen::Vector2d magBd(20, 20);
+        Eigen::Vector3d weight(0.5, 0.4, 0.2);
         lmtPena.setup(posBd, magBd, weight, smoothingFactor);
 
         if (verbose)
@@ -494,6 +494,8 @@ public:
         lbfgs_params.min_step = 1.0e-32;
         lbfgs_params.g_epsilon = 0.0;
         lbfgs_params.delta = relCostTol;
+        // FIXME: TEST
+        // lbfgs_params.max_linesearch = 128;
 
         int ret = lbfgs::lbfgs_optimize(x,
                                         minCostFunctional,
