@@ -272,7 +272,7 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
     double lengthPerPiece = 2.0; // BUG: Once this is triggered, Opt failed (A logic error (negative line-search step) occurred.)
     double smoothingFactor = 1.0e-2;
     int integralResolution = 16;
-    Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3) * 10; // FIXME
+    Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3); // FIXME
     Eigen::VectorXd penaltyWeights = Eigen::VectorXd::Ones(3);
     Eigen::VectorXd physicalParams = Eigen::VectorXd::Ones(3);
     double relCostTol = 1.0e-6;

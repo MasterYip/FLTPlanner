@@ -262,7 +262,7 @@ private:
                 pena = 0.0;
 
                 // Joint Limit Soft Constraints
-                obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
+                // obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
                 double norm_time = time / total_time;
                 // if (norm_time < 0.9 && norm_time > 0.1) // Exclude the start and end points
                 //     obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
@@ -272,6 +272,7 @@ private:
                 if (j == 0 || j == integralResolution)
                     visInPs.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
 
+                // Backward
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
                 totalGradAcc = gradAcc;
@@ -293,9 +294,10 @@ private:
             }
         }
         // Visualizer
-        obj.visualizer_.delAll();
+        obj.visualizer_.delCube();
+        obj.visualizer_.delCurve();
         obj.visualizer_.visCurve(visTraj, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
-        obj.visualizer_.visSphere(visInPs, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 1.0, 0.01));
+        obj.visualizer_.visCube(visInPs, Eigen::Vector4d(1, 0, 0, 0), ros_visualizer::VisStyle(0.1, 0.8, 0.1, 1.0, 0.01));
         obj.rate_.sleep();
         return;
     }
@@ -451,8 +453,8 @@ public:
         magnitudeBd = magnitudeBounds;
         penaltyWt = penaltyWeights;
         physicalPm = physicalParams;
-        // FIXME:
-        allocSpeed = magnitudeBd(0) * 3.0;
+        // FIXME: What's this used for?
+        allocSpeed = 1.0;
 
         // subdivide cfg poly path if exceeds length limit
         const Eigen::Matrix3Xd deltas = polyPath.rightCols(polyPath.cols() - 1) -
