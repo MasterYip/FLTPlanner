@@ -53,7 +53,7 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
                 // GCS Search Traj
                 swingtraj_[i] = swing_traj_planner_->getInitTraj(
                     XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
-                    footpos_list0_[i], footpos_list1_[i], v_lift, i);
+                    footpos_list0_[i], footpos_list1_[i], v_lift, h_lift, i);
             }
             else
             {

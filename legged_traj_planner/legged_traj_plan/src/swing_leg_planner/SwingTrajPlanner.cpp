@@ -166,12 +166,12 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
 
 std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                                Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                               double v_lift, uint index)
+                                                               double v_lift, double h_lift, uint index)
 {
     std::vector<Point3D> poly_path;
     if (!searchPolyTraj(poly_path, pose0, pose1, p0, p1, index))
     {
-        return getDefaultTraj(p0, p1, v_lift);
+        return getDefaultTraj(p0, p1, v_lift, h_lift);
     }
     Eigen::Vector3d start_vel = Eigen::Vector3d(0, 0, v_lift);
     Eigen::Vector3d goal_vel = Eigen::Vector3d(0, 0, -v_lift);

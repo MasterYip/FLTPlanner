@@ -69,7 +69,7 @@ public:
 
     std::shared_ptr<MincoTrajectory> getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                  Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                 double v_lift, uint index);
+                                                 double v_lift, double h_lift, uint index);
 
     bool getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
                         pinocchio::SE3 pose0, pinocchio::SE3 pose1,

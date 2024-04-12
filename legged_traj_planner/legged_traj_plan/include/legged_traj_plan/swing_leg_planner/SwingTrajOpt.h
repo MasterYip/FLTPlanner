@@ -263,11 +263,19 @@ private:
                 gradPos.setZero(), gradVel.setZero(), gradAcc.setZero();
                 pena = 0.0;
 
-                // Joint Limit Soft Constraints
-                // obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
                 double norm_time = time / total_time;
-                // if (norm_time < 0.9 && norm_time > 0.1) // Exclude the start and end points
-                //     obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
+                if (obj.useCfgSpace_)
+                {
+                    // Joint Limit Soft Constraints
+                    obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
+                    if (norm_time < 0.9 && norm_time > 0.1) // Exclude the start and end points
+                        obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
+                }
+                else
+                {
+                    // Cartesian Space Soft Constraints
+                    // TODO
+                }
 
                 // Visualizer
                 if (obj.useCfgSpace_)
@@ -408,7 +416,7 @@ public:
     /**
      * @brief Setup MINCO optimization problem
      *
-     * @param cfgPolyPath Config space poly path
+     * @param TrajPolyPath Config space poly path
      * @param initialVel Initial position, velocity
      * @param terminalVel Terminal position, velocity
      * @param timeWeight
@@ -427,7 +435,7 @@ public:
         const pinocchio::SE3 &pose1,
         const int &index,
         // Init waypoints
-        const Eigen::Matrix3Xd &cfgPolyPath,
+        const Eigen::Matrix3Xd &TrajPolyPath,
         const Eigen::Vector3d &initialVel,
         const Eigen::Vector3d &terminalVel,
         // Params
@@ -446,15 +454,15 @@ public:
         pose0_ = pose0;
         pose1_ = pose1;
         index_ = index;
-        if (cfgPolyPath.cols() < 3)
+        if (TrajPolyPath.cols() < 3)
         {
             polyPath.resize(3, 3);
-            polyPath.col(0) = cfgPolyPath.col(0);
-            polyPath.col(1) = (cfgPolyPath.col(0) + cfgPolyPath.col(1)) / 2.0;
-            polyPath.col(2) = cfgPolyPath.col(1);
+            polyPath.col(0) = TrajPolyPath.col(0);
+            polyPath.col(1) = (TrajPolyPath.col(0) + TrajPolyPath.col(1)) / 2.0;
+            polyPath.col(2) = TrajPolyPath.col(1);
         }
         else
-            polyPath = cfgPolyPath;
+            polyPath = TrajPolyPath;
 
         headPV.col(0) = polyPath.leftCols(1);
         headPV.col(1) = initialVel;
@@ -519,6 +527,7 @@ public:
         // Set initial values
         setInitial(polyPath, allocSpeed, pieceIdx, points, times);
         backwardT(times, tau); // times to tau
+        backwardP(points, xi); // points to xi
 
         // lbfgs params
         double minCostFunctional;
