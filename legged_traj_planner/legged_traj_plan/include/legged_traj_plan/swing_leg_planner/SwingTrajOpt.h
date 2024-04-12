@@ -237,6 +237,7 @@ private:
 
         // Temp vis
         std::vector<Eigen::Vector3d> visTraj;
+        std::vector<Eigen::Vector3d> visTraj2;
         std::vector<Eigen::Vector3d> visInPs;
         obj.collPena.visClear();
         for (int i = 0; i < pieceNum; i++)
@@ -281,6 +282,7 @@ private:
                 if (obj.useCfgSpace_)
                 {
                     visTraj.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
+                    visTraj2.push_back(pos);
                     if (j == 0 || j == integralResolution)
                         visInPs.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
                 }
@@ -315,6 +317,7 @@ private:
         // Visualizer
         obj.visualizer_.delCube();
         obj.visualizer_.delCurve();
+        obj.visualizer_.visCurve(visTraj2, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
         obj.visualizer_.visCurve(visTraj, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
         obj.visualizer_.visCube(visInPs, Eigen::Vector4d(1, 0, 0, 0), ros_visualizer::VisStyle(0.1, 0.8, 0.1, 1.0, 0.01));
         obj.rate_.sleep();
