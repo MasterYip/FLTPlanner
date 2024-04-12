@@ -178,10 +178,11 @@ private:
 
 public:
     // FIXME: use ros param to init gridmap_interface_
-    ElSpiderAirSimplePlanner(bool fake_estimation = false, bool simulation = false) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
-                                                                                      gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
-                                                                                      tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
-                                                                                      rate_(25), fake_estimation_(fake_estimation), simulation_(simulation)
+    ElSpiderAirSimplePlanner(bool fake_estimation = false, bool simulation = false,
+                             bool use_cfg_space = true) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
+                                                   gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_, use_cfg_space),
+                                                   tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
+                                                   rate_(25), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
         foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirSimplePlanner::foot_state_callback, this);

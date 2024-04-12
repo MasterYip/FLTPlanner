@@ -17,7 +17,8 @@ int main(int argc, char **argv)
     ros::Time::init(); // FIXME: some where call ros::Time::now() before nh_ initialized
     bool fake_feedback = ros::param::param<bool>("~fake_feedback", false);
     bool simulation = ros::param::param<bool>("~sim", false);
-    ElSpiderAirSimplePlanner planner(fake_feedback, simulation);
+    bool use_cfg_space = ros::param::param<bool>("~use_cfg_space", false);
+    ElSpiderAirSimplePlanner planner(fake_feedback, simulation, use_cfg_space);
     planner.run();
     return 0;
 }

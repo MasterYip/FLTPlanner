@@ -129,9 +129,16 @@ void MCTStateTransfer::opt_swing_traj(int index)
     {
         pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
         pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
-        // TODO: add eval_torso_traj
-        swingtraj_isopt_[index] = swing_traj_planner_->opt_traj(
-            swingtraj_[index], pose0, pose1, index);
+        if (use_cfg_space_)
+        {
+            swingtraj_isopt_[index] = swing_traj_planner_->optCfgTraj(
+                swingtraj_[index], pose0, pose1, index);
+        }
+        else
+        {
+            swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
+                swingtraj_[index], pose0, pose1, index);
+        }
     }
 }
 

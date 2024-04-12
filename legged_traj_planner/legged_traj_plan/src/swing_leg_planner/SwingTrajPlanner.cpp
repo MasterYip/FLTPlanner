@@ -250,10 +250,10 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3
 }
 
 // TODO:
-bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
-                                const pinocchio::SE3 &pose0,
-                                const pinocchio::SE3 &pose1,
-                                int index)
+bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
+                                  const pinocchio::SE3 &pose0,
+                                  const pinocchio::SE3 &pose1,
+                                  int index)
 {
     // FIXME: Temporarily cast to MincoTrajectory
     std::shared_ptr<MincoTrajectory> minco_traj = std::dynamic_pointer_cast<MincoTrajectory>(traj);
@@ -279,7 +279,7 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
 
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
                           timeWeight, lengthPerPiece, smoothingFactor, integralResolution,
-                          magnitudeBounds, penaltyWeights, physicalParams);
+                          magnitudeBounds, penaltyWeights, physicalParams, true);
     bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), relCostTol);
 
 #ifdef ENABLE_VISUALIZER
@@ -298,6 +298,52 @@ bool SwingTrajPlanner::opt_traj(std::shared_ptr<TrajectoryBase> &traj,
             path_opt.emplace_back(point_SE3Act(poseLinearInterp(pose0, pose1, t).inverse(), base_pt));
             t += ts;
         }
+        visualizer_.visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
+    }
+#endif
+    return true;
+}
+
+bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
+                               const pinocchio::SE3 &pose0,
+                               const pinocchio::SE3 &pose1,
+                               int index)
+{
+    // FIXME: Temporarily cast to MincoTrajectory
+    std::shared_ptr<MincoTrajectory> minco_traj = std::dynamic_pointer_cast<MincoTrajectory>(traj);
+    std::vector<Point3D> poly_path;
+    Eigen::Vector3d start_vel;
+    Eigen::Vector3d goal_vel;
+    minco_traj->getInitCondition(poly_path, start_vel, goal_vel);
+    Eigen::Matrix3Xd poly_path_mat(3, poly_path.size());
+    for (size_t i = 0; i < poly_path.size(); i++)
+        poly_path_mat.col(i) = poly_path[i];
+    std::cout << "Index: " << index << ", Poly path size: " << poly_path.size() << std::endl;
+
+    // Tmp params
+    // FIXME: params needed refined
+    double timeWeight = 8.0;     // PROBLEM: too large or too small will leads to max-try error
+    double lengthPerPiece = 2.0; // BUG: Once this is triggered, Opt failed (A logic error (negative line-search step) occurred.)
+    double smoothingFactor = 1.0e-2;
+    int integralResolution = 16;
+    Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3); // FIXME
+    Eigen::VectorXd penaltyWeights = Eigen::VectorXd::Ones(3);
+    Eigen::VectorXd physicalParams = Eigen::VectorXd::Ones(3);
+    double relCostTol = 1.0e-6;
+
+    swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
+                          timeWeight, lengthPerPiece, smoothingFactor, integralResolution,
+                          magnitudeBounds, penaltyWeights, physicalParams, false);
+    bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), relCostTol);
+
+#ifdef ENABLE_VISUALIZER
+    if (ret)
+    {
+        // Minco
+        std::vector<Point3D> path_opt;
+        double ts = 0.01;
+        double t = 0;
+        minco_traj->getTrajSamples(path_opt, ts);
         visualizer_.visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
     }
 #endif

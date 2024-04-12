@@ -6,6 +6,8 @@
     <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
+    <!-- TrajRep -->
+    <arg name="use_cfg_space" default="true" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="true" />
     <arg name="with_ceiling" value="false" />
@@ -72,6 +74,7 @@
     <!-- Simple Planner -->
     <node pkg="legged_traj_plan_examples" type="elspider_air_simple_planner" name="elspider_air_simple_planner" output="screen">
         <param name="fake_feedback" value="$(arg fake_feedback)" />
+        <param name="use_cfg_space" value="$(arg use_cfg_space)" />
         <param name="sim" value="$(arg sim)" />
     </node>
 

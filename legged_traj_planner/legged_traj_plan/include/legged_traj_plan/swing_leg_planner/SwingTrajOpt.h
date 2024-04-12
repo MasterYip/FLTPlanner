@@ -37,6 +37,8 @@ class SwingTrajOpt
 {
 
 private:
+    bool useCfgSpace_;
+
     ElSpiderAirInterface &robot_interface_;
     GridMapInterface &gridmap_interface_;
     minco::MINCO_S2NU minco;
@@ -268,9 +270,18 @@ private:
                 //     obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
 
                 // Visualizer
-                visTraj.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
-                if (j == 0 || j == integralResolution)
-                    visInPs.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
+                if (obj.useCfgSpace_)
+                {
+                    visTraj.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
+                    if (j == 0 || j == integralResolution)
+                        visInPs.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
+                }
+                else
+                {
+                    visTraj.push_back(pos);
+                    if (j == 0 || j == integralResolution)
+                        visInPs.push_back(pos);
+                }
 
                 // Backward
                 totalGradPos = gradPos;
@@ -427,8 +438,11 @@ public:
         const Eigen::VectorXd &magnitudeBounds,
         const Eigen::VectorXd &penaltyWeights,
         const Eigen::VectorXd &physicalParams,
+        // Settings
+        const bool useCfgSpace = false,
         const bool verbose = true)
     {
+        useCfgSpace_ = useCfgSpace;
         pose0_ = pose0;
         pose1_ = pose1;
         index_ = index;

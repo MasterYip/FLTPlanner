@@ -79,10 +79,15 @@ public:
                                                     Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                     double v_lift, uint index);
 
-    bool opt_traj(std::shared_ptr<TrajectoryBase> &traj,
-                  const pinocchio::SE3 &pose0,
-                  const pinocchio::SE3 &pose1,
-                  int index);
+    bool optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
+                    const pinocchio::SE3 &pose0,
+                    const pinocchio::SE3 &pose1,
+                    int index);
+
+    bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
+                 const pinocchio::SE3 &pose0,
+                 const pinocchio::SE3 &pose1,
+                 int index);
 
     ElSpiderAirInterface &getRobotInterface()
     {
