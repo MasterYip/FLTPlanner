@@ -268,7 +268,7 @@ private:
                 if (obj.useCfgSpace_)
                 {
                     // Joint Limit Soft Constraints
-                    obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
+                    // obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
                     if (norm_time < 0.9 && norm_time > 0.1) // Exclude the start and end points
                         obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
                 }
@@ -297,6 +297,10 @@ private:
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
                 totalGradAcc = gradAcc;
+                // pena = 0;
+                // totalGradPos = Eigen::Vector3d::Zero();
+                // totalGradVel = Eigen::Vector3d::Zero();
+                // totalGradAcc = Eigen::Vector3d::Zero();     
 
                 // PROBLEM: What is this
                 node = (j == 0 || j == integralResolution) ? 0.5 : 1.0;

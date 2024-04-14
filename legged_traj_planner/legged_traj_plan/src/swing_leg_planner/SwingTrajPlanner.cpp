@@ -261,6 +261,9 @@ bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::Vector3d start_vel;
     Eigen::Vector3d goal_vel;
     minco_traj->getInitCondition(poly_path, start_vel, goal_vel);
+    // FIXME: start_vel & goal set to zero (test)
+    start_vel = Eigen::Vector3d::Zero();
+    goal_vel = Eigen::Vector3d::Zero();
     Eigen::Matrix3Xd poly_path_mat(3, poly_path.size());
     for (size_t i = 0; i < poly_path.size(); i++)
         poly_path_mat.col(i) = poly_path[i];
@@ -268,8 +271,8 @@ bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
 
     // Tmp params
     // FIXME: params needed refined
-    double timeWeight = 8.0;     // PROBLEM: too large or too small will leads to max-try error
-    double lengthPerPiece = 2.0; // BUG: Once this is triggered, Opt failed (A logic error (negative line-search step) occurred.)
+    double timeWeight = 0.5;     // PROBLEM: too large or too small will leads to max-try error
+    double lengthPerPiece = 0.2; // BUG: Once this is triggered, Opt failed (A logic error (negative line-search step) occurred.)
     double smoothingFactor = 1.0e-2;
     int integralResolution = 16;
     Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3); // FIXME
