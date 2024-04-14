@@ -294,6 +294,7 @@ private:
                 }
 
                 // Backward
+                std::cout<<"gradPos: "<<gradPos.transpose()<<std::endl;
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
                 totalGradAcc = gradAcc;

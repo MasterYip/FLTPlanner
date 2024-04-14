@@ -271,7 +271,7 @@ bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
 
     // Tmp params
     // FIXME: params needed refined
-    double timeWeight = 0.5;     // PROBLEM: too large or too small will leads to max-try error
+    double timeWeight = 0.2;     // PROBLEM: too large or too small will leads to max-try error
     double lengthPerPiece = 0.2; // BUG: Once this is triggered, Opt failed (A logic error (negative line-search step) occurred.)
     double smoothingFactor = 1.0e-2;
     int integralResolution = 16;
