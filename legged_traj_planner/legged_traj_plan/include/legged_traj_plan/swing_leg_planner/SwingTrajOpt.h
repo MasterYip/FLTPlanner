@@ -269,7 +269,7 @@ private:
                 {
                     // Joint Limit Soft Constraints
                     obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
-                    if (norm_time > 0.1 && norm_time < 0.9) // Exclude the start and end points
+                    if (norm_time > 0.2 && norm_time < 0.8) // Exclude the start and end points
                         obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
                 }
                 else
@@ -366,6 +366,8 @@ private:
         // 3.Time cost
         cost += weightT * obj.times.sum();
         obj.gradByTimes.array() += weightT; // PROBLEM
+
+        std::cout << "GradTimes: " << obj.gradByTimes.transpose() << std::endl;
 
         // Backward
         backwardGradP(obj.gradByPoints, gradXi);

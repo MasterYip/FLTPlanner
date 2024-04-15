@@ -43,7 +43,7 @@ public:
     {
         // TODO: use setup()
         collBallRadius_ << 0.12, 0.12, 0.03;
-        weight_ << 0.0, 0.0, 0.1; // NOTE: It will be ignored by optimization if too large
+        weight_ << 0.0, 0.0, 0.05; // NOTE: It will be ignored by optimization if too large
         mu_ = 0.01;
     }
 
