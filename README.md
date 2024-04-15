@@ -15,8 +15,8 @@ Then change the folder name to `src`.
 
 A simple co-simulation for ElSpider Air.
 
-![Co-simulation Framework](fast_legged_planner/doc/elspider_air_cosim_sch.png)
-![Cosimulation example](fast_legged_planner/doc/eg_elspider_air_cosimulation.png)
+![Co-simulation Framework](legged_traj_plan_examples/doc/elspider_air_cosim_sch.png)
+![Cosimulation example](legged_traj_plan_examples/doc/eg_elspider_air_cosimulation.png)
 
 #### Dependent Repos
 
@@ -82,7 +82,7 @@ A simple co-simulation for ElSpider Air.
 
 ```bash
 # Make sure depend repos are properly installed & sourced
-catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
+catkin build legged_traj_plan_examples -DCMAKE_BUILD_TYPE=Release
 ```
 
 ##### Launch procedure
@@ -90,7 +90,7 @@ catkin build fast_legged_planner -DCMAKE_BUILD_TYPE=Release
 FakeFeedback | Planning:
 
 ```bash
-roslaunch fast_legged_planner elspider_air_simple_planner.launch \
+roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch \
 fake_feedback:=true \
 sim:=true \
 joystick_type:=keyboard_sim
@@ -108,7 +108,7 @@ joystick_type:=keyboard_sim \
 gazebo_hang_up:=on_ground \
 interface_type:=gazebo
 # Terminal2: start Planner & elevation mapping
-roslaunch fast_legged_planner elspider_air_simple_planner.launch sim:=true
+roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=true
 ```
 
 Hardware | Perception & Planning & Control:
@@ -125,7 +125,7 @@ joystick_type:=PS5 \
 gazebo_hang_up:=on_ground \
 interface_type:=hardware
 # Terminal2: start Planner & elevation mapping
-roslaunch fast_legged_planner elspider_air_simple_planner.launch sim:=false
+roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=false
 ```
 
 Settings are listed in `elspider_air_simple_planner.launch`.
