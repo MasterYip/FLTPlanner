@@ -518,7 +518,7 @@ public:
         Eigen::Matrix<double, 3, 2> posBd;
         posBd << -0.785, 0.785, -0.5233, 3.14, -0.6978, 3.925;
         Eigen::Vector2d magBd(5, 10);
-        Eigen::Vector3d weight(0.1, 0.1, 0.1);
+        Eigen::Vector3d weight(0.4, 0.1, 0.1);
         lmtPena.setup(posBd, magBd, weight, smoothingFactor);
 
         if (verbose)
