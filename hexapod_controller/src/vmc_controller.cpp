@@ -366,8 +366,9 @@ void VMCController::controllLoop()
     // GRF
     for (size_t i = 0; i < 6; ++i)
     {
-        rosvis_.visArrow(fdb_foot_pos[i], fdb_foot_pos[i] + grf[i] * vis_scale,
-                         ros_visualizer::VisStyle(1, 0, 0, 1, 0.01));
+        if (contact_flag[i])
+            rosvis_.visArrow(fdb_foot_pos[i], fdb_foot_pos[i] + grf[i] * vis_scale,
+                             ros_visualizer::VisStyle(1, 0, 0, 1, 0.01));
     }
     rosvis_.visArrow(Eigen::Vector3d::Zero(), exp_wrench.linear() * vis_scale,
                      ros_visualizer::VisStyle(0, 0, 1, 1, 0.04));
