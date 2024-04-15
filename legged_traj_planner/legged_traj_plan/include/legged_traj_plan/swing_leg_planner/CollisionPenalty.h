@@ -43,7 +43,7 @@ public:
     {
         // TODO: use setup()
         collBallRadius_ << 0.12, 0.12, 0.03;
-        weight_ << 0.0, 0.0, 3;
+        weight_ << 0.0, 0.0, 0.1; // NOTE: It will be ignored by optimization if too large
         mu_ = 0.01;
     }
 
@@ -78,7 +78,7 @@ public:
             Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
             // std::cout << "J_inv: " << J_inv << std::endl;
             gradPosCfg += weight_(2) * J_inv * gradPos;
-            visualizer_.visArrow(posCfg, posCfg + gradPosCfg*0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+            visualizer_.visArrow(posCfg, posCfg + gradPosCfg * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
             pena += weight_(2) * f;
         }
     }

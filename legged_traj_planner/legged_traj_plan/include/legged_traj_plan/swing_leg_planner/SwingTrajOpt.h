@@ -268,8 +268,8 @@ private:
                 if (obj.useCfgSpace_)
                 {
                     // Joint Limit Soft Constraints
-                    // obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
-                    if (norm_time < 0.9 && norm_time > 0.1) // Exclude the start and end points
+                    obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
+                    if (norm_time > 0.1 && norm_time < 0.9) // Exclude the start and end points
                         obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
                 }
                 else
@@ -294,7 +294,8 @@ private:
                 }
 
                 // Backward
-                std::cout<<"gradPos: "<<gradPos.transpose()<<std::endl;
+                // std::cout<<"gradPos: "<<gradPos.transpose()<<std::endl;
+                // std::cout << "pena: " << pena << std::endl;
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
                 totalGradAcc = gradAcc;
@@ -369,6 +370,9 @@ private:
         // Backward
         backwardGradP(obj.gradByPoints, gradXi);
         backwardGradT(tau, obj.gradByTimes, gradTau);
+
+        std::cout << "gradXi: " << gradXi.transpose() << std::endl;
+        std::cout << "gradTau: " << gradTau.transpose() << std::endl;
 
         // TODO: what is this?
         // normRetrictionLayer(xi, obj.vPolyIdx, obj.vPolytopes, cost, gradXi);
@@ -512,7 +516,7 @@ public:
         Eigen::Matrix<double, 3, 2> posBd;
         posBd << -0.785, 0.785, -0.5233, 3.14, -0.6978, 3.925;
         Eigen::Vector2d magBd(5, 10);
-        Eigen::Vector3d weight(0.02, 0.02, 0.01);
+        Eigen::Vector3d weight(0.1, 0.1, 0.1);
         lmtPena.setup(posBd, magBd, weight, smoothingFactor);
 
         if (verbose)
