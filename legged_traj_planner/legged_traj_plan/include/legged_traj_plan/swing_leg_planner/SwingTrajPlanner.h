@@ -38,8 +38,11 @@ private:
     std::shared_ptr<GCSVisualizer> visualizer_;
     SwingTrajOpt swing_traj_opt_;
 
+    SwingTrajPlannerConfig config_;
+
 public:
-    SwingTrajPlanner(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+    SwingTrajPlanner(SwingTrajPlannerConfig config,
+                     std::shared_ptr<ElSpiderAirInterface> robot_interface,
                      std::shared_ptr<GridMapInterface> gridmap_interface);
     ~SwingTrajPlanner() = default;
 

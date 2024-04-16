@@ -5,10 +5,11 @@
 //     swing_traj_planner = SwingTrajPlanner();
 // }
 
-MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(std::shared_ptr<GridMapInterface> gridmap_interface,
+MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+                                           std::shared_ptr<GridMapInterface> gridmap_interface,
                                            std::shared_ptr<ElSpiderAirInterface> robot_interface, bool use_cfg_space)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
-      swing_traj_planner_(std::make_shared<SwingTrajPlanner>(robot_interface_, gridmap_interface_)),
+      swing_traj_planner_(std::make_shared<SwingTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_)),
       use_cfg_space_(use_cfg_space)
 {
 }

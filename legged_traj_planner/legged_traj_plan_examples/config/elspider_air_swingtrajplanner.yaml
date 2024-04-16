@@ -1,0 +1,26 @@
+optimizer:
+  lengthPerPiece: 0.6
+  allocSpeed: 1.0
+  relCostTol: 1.0e-2
+  smoothingFactor: 1.0e-2
+  integralResolution: 16
+
+penalty:
+  timeWeight: 0.00005 # PROBLEM: too large or too small will leads to max-try error
+  joint1PosMin: -0.785
+  joint1PosMax: 0.785
+  joint2PosMin: -0.5233
+  joint2PosMax: 3.14
+  joint3PosMin: -0.6978
+  joint3PosMax: 3.925
+  jointMaxVel: 5.0
+  jointMaxAcc: 10.0
+  jointPosWeight: 0.4
+  jointVelWeight: 0.1
+  jointAccWeight: 0.1
+  CollBall1Rad: 0.12
+  CollBall2Rad: 0.12
+  CollBall3Rad: 0.03
+  CollBall1Weight: 0.0
+  CollBall2Weight: 0.0
+  CollBall3Weight: 0.05

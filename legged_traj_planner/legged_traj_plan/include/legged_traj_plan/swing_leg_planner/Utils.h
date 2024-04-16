@@ -57,3 +57,62 @@ static inline bool smoothedL1(const double &x,
         return true;
     }
 }
+
+struct SwingTrajPlannerConfig
+{
+    // Traj Init
+    double lengthPerPiece;
+    double allocSpeed;
+    // Optimizer Settings
+    double relCostTol;
+    double smoothingFactor;
+    int integralResolution;
+    // Time Cost
+    double timeWeight;
+    // Joint Limit Cost
+    double joint1PosMin;
+    double joint1PosMax;
+    double joint2PosMin;
+    double joint2PosMax;
+    double joint3PosMin;
+    double joint3PosMax;
+    double jointMaxVel;
+    double jointMaxAcc;
+    double jointPosWeight;
+    double jointVelWeight;
+    double jointAccWeight;
+    // Collision Cost
+    double CollBall1Rad;
+    double CollBall2Rad;
+    double CollBall3Rad;
+    double CollBall1Weight;
+    double CollBall2Weight;
+    double CollBall3Weight;
+
+    void loadParams(ros::NodeHandle &nh)
+    {
+        nh.param("optimizer/lengthPerPiece", lengthPerPiece, 0.6);
+        nh.param("optimizer/allocSpeed", allocSpeed, 1.0);
+        nh.param("optimizer/relCostTol", relCostTol, 1.0e-2);
+        nh.param("optimizer/smoothingFactor", smoothingFactor, 1.0e-2);
+        nh.param("optimizer/integralResolution", integralResolution, 16);
+        nh.param("penalty/timeWeight", timeWeight, 0.00005);
+        nh.param("penalty/joint1PosMin", joint1PosMin, -0.785);
+        nh.param("penalty/joint1PosMax", joint1PosMax, 0.785);
+        nh.param("penalty/joint2PosMin", joint2PosMin, -0.5233);
+        nh.param("penalty/joint2PosMax", joint2PosMax, 3.14);
+        nh.param("penalty/joint3PosMin", joint3PosMin, -0.6978);
+        nh.param("penalty/joint3PosMax", joint3PosMax, 3.925);
+        nh.param("penalty/jointMaxVel", jointMaxVel, 5.0);
+        nh.param("penalty/jointMaxAcc", jointMaxAcc, 10.0);
+        nh.param("penalty/jointPosWeight", jointPosWeight, 0.4);
+        nh.param("penalty/jointVelWeight", jointVelWeight, 0.1);
+        nh.param("penalty/jointAccWeight", jointAccWeight, 0.1);
+        nh.param("penalty/CollBall1Rad", CollBall1Rad, 0.12);
+        nh.param("penalty/CollBall2Rad", CollBall2Rad, 0.12);
+        nh.param("penalty/CollBall3Rad", CollBall3Rad, 0.03);
+        nh.param("penalty/CollBall1Weight", CollBall1Weight, 0.0);
+        nh.param("penalty/CollBall2Weight", CollBall2Weight, 0.0);
+        nh.param("penalty/CollBall3Weight", CollBall3Weight, 0.05);
+    }
+};

@@ -40,9 +40,9 @@ private:
     ros::Rate rate_;
 
 public:
-    ElSpiderAirStateFollower() : robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("robot_description", std::string("")))),
+    ElSpiderAirStateFollower(SwingTrajPlannerConfig swing_traj_planner_config) : robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("robot_description", std::string("")))),
                                  gridmap_interface_(std::make_shared<GridMapInterface>("/grid_map")),
-                                 whole_body_planner_(gridmap_interface_, robot_interface_),
+                                 whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
                                  rate_(20)
     {
         sub_ = nh_.subscribe("/supportStateTopic", 100, &ElSpiderAirStateFollower::callback, this);

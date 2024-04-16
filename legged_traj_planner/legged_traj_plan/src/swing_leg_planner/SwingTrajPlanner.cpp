@@ -37,11 +37,13 @@ Eigen::VectorXd getTrajTimeVec(const std::vector<Point3D> &path, double total_ti
     }
 }
 
-SwingTrajPlanner::SwingTrajPlanner(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+SwingTrajPlanner::SwingTrajPlanner(SwingTrajPlannerConfig config,
+                                   std::shared_ptr<ElSpiderAirInterface> robot_interface,
                                    std::shared_ptr<GridMapInterface> gridmap_interface) : robot_interface_(robot_interface),
                                                                                           gridmap_interface_(gridmap_interface),
                                                                                           visualizer_(std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis")),
-                                                                                          swing_traj_opt_(robot_interface_, gridmap_interface_, visualizer_)
+                                                                                          swing_traj_opt_(robot_interface_, gridmap_interface_, visualizer_),
+                                                                                          config_(config)
 {
 }
 
@@ -272,21 +274,9 @@ bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
         poly_path_mat.col(i) = poly_path[i];
     std::cout << "Index: " << index << ", Poly path size: " << poly_path.size() << std::endl;
 
-    // Tmp params
-    // FIXME: params needed refined
-    double timeWeight = 0.00005; // PROBLEM: too large or too small will leads to max-try error
-    double lengthPerPiece = 0.6; // BUG: Once this is triggered, Opt failed (A logic error (negative line-search step) occurred.)
-    double smoothingFactor = 1.0e-2;
-    int integralResolution = 16;
-    Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3); // FIXME
-    Eigen::VectorXd penaltyWeights = Eigen::VectorXd::Ones(3);
-    Eigen::VectorXd physicalParams = Eigen::VectorXd::Ones(3);
-    double relCostTol = 1.0e-2;
-
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
-                          timeWeight, lengthPerPiece, smoothingFactor, integralResolution,
-                          magnitudeBounds, penaltyWeights, physicalParams, true);
-    bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), relCostTol);
+                          config_, true);
+    bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), config_.relCostTol);
 
 #ifdef ENABLE_VISUALIZER
     if (ret)
@@ -327,21 +317,9 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
         poly_path_mat.col(i) = poly_path[i];
     std::cout << "Index: " << index << ", Poly path size: " << poly_path.size() << std::endl;
 
-    // Tmp params
-    // FIXME: params needed refined
-    double timeWeight = 8.0;     // PROBLEM: too large or too small will leads to max-try error
-    double lengthPerPiece = 2.0; // BUG: Once this is triggered, Opt failed (A logic error (negative line-search step) occurred.)
-    double smoothingFactor = 1.0e-2;
-    int integralResolution = 16;
-    Eigen::VectorXd magnitudeBounds = Eigen::VectorXd::Ones(3); // FIXME
-    Eigen::VectorXd penaltyWeights = Eigen::VectorXd::Ones(3);
-    Eigen::VectorXd physicalParams = Eigen::VectorXd::Ones(3);
-    double relCostTol = 1.0e-6;
-
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
-                          timeWeight, lengthPerPiece, smoothingFactor, integralResolution,
-                          magnitudeBounds, penaltyWeights, physicalParams, false);
-    bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), relCostTol);
+                          config_, false);
+    bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), config_.relCostTol);
 
 #ifdef ENABLE_VISUALIZER
     if (ret)

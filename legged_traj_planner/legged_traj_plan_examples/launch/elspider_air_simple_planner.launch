@@ -76,6 +76,7 @@
         <param name="fake_feedback" value="$(arg fake_feedback)" />
         <param name="use_cfg_space" value="$(arg use_cfg_space)" />
         <param name="sim" value="$(arg sim)" />
+        <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air_swingtrajplanner.yaml" />
     </node>
 
     <!-- Robot related -->

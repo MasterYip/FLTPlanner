@@ -41,6 +41,7 @@ private:
 
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
+    SwingTrajPlannerConfig config_;
     minco::MINCO_S2NU minco;
     // Visualizer
     ros::NodeHandle nh_;
@@ -460,13 +461,7 @@ public:
         const Eigen::Vector3d &initialVel,
         const Eigen::Vector3d &terminalVel,
         // Params
-        const double &timeWeight,
-        const double &lengthPerPiece,
-        const double &smoothingFactor,
-        const int &integralResolution,
-        const Eigen::VectorXd &magnitudeBounds,
-        const Eigen::VectorXd &penaltyWeights,
-        const Eigen::VectorXd &physicalParams,
+        SwingTrajPlannerConfig &config,
         // Settings
         const bool useCfgSpace = false,
         const bool verbose = true)
@@ -490,20 +485,19 @@ public:
         tailPV.col(0) = polyPath.rightCols(1);
         tailPV.col(1) = terminalVel;
 
-        rho = timeWeight;
-        smoothEps = smoothingFactor;
-        integralRes = integralResolution;
-        magnitudeBd = magnitudeBounds;
-        penaltyWt = penaltyWeights;
-        physicalPm = physicalParams;
+        config_ = config;
+
+        rho = config_.timeWeight;
+        smoothEps = config_.smoothingFactor;
+        integralRes = config_.integralResolution;
         // FIXME: What's this used for?
-        allocSpeed = 1.0;
+        allocSpeed = config_.allocSpeed;
 
         // subdivide cfg poly path if exceeds length limit
         const Eigen::Matrix3Xd deltas = polyPath.rightCols(polyPath.cols() - 1) -
                                         polyPath.leftCols(polyPath.cols() - 1);
         // FIXME: why innerpoint is added here when piece num =2
-        pieceIdx = (deltas.colwise().norm() / lengthPerPiece).cast<int>().transpose();
+        pieceIdx = (deltas.colwise().norm() / config_.lengthPerPiece).cast<int>().transpose();
         pieceIdx.array() += 1;
         pieceN = pieceIdx.sum();
 
@@ -512,6 +506,8 @@ public:
 
         // Setup for minco
         minco.setConditions(headPV, tailPV, pieceN);
+        // Costs setup
+        collPena.setupParams(config_);
 
         // Allocate temp variables
         points.resize(3, pieceN - 1);
@@ -521,12 +517,13 @@ public:
         partialGradByCoeffs.resize(4 * pieceN, 3); // NOTE:4-order traj
         partialGradByTimes.resize(pieceN);
 
-        // FIXME: ghost variables
         Eigen::Matrix<double, 3, 2> posBd;
-        posBd << -0.785, 0.785, -0.5233, 3.14, -0.6978, 3.925;
-        Eigen::Vector2d magBd(5, 10);
-        Eigen::Vector3d weight(0.4, 0.1, 0.1);
-        lmtPena.setup(posBd, magBd, weight, smoothingFactor);
+        posBd << config_.joint1PosMin, config_.joint1PosMax,
+            config_.joint2PosMin, config_.joint2PosMax,
+            config_.joint3PosMin, config_.joint3PosMax;
+        Eigen::Vector2d magBd(config_.jointMaxVel, config_.jointMaxAcc);
+        Eigen::Vector3d weight(config_.jointPosWeight, config_.jointVelWeight, config_.jointAccWeight);
+        lmtPena.setup(posBd, magBd, weight, config_.smoothingFactor);
 
         if (verbose)
         {

@@ -24,6 +24,8 @@
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/utils/Geometry.h"
 
+#include "Utils.h"
+
 class LegCollisionPenalty
 {
 private:
@@ -42,16 +44,19 @@ public:
                         std::shared_ptr<GCSVisualizer> visualizer = nullptr)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface)
     {
-        // TODO: use setup()
-        collBallRadius_ << 0.12, 0.12, 0.03;
-        weight_ << 0.0, 0.0, 0.05; // NOTE: It will be ignored by optimization if too large
-        mu_ = 0.01;
-
         if (visualizer != nullptr)
         {
             enable_vis_ = true;
             visualizer_ = visualizer;
         }
+    }
+
+    void setupParams(SwingTrajPlannerConfig &config)
+    {
+        collBallRadius_ << config.CollBall1Rad, config.CollBall2Rad, config.CollBall3Rad;
+        weight_ << config.CollBall1Weight, config.CollBall2Weight, config.CollBall3Weight;
+        // NOTE: It will be ignored by optimization if too large
+        mu_ = config.smoothingFactor;
     }
 
     /**
