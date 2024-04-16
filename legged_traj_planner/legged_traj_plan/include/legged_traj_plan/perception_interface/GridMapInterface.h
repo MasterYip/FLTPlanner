@@ -38,8 +38,14 @@ private:
     std::unique_ptr<grid_map::SignedDistanceField> sdf[2];
     std::pair<Eigen::Vector3d, Eigen::Vector3d> sdf_range[2];
     std::string ground_layer;
+    std::string ground_norm_x_layer = {"normal_x"};
+    std::string ground_norm_y_layer = {"normal_y"};
+    std::string ground_norm_z_layer = {"normal_z"};
+    std::string ground_layer_trav;
     std::string ceiling_layer;
     std::atomic<bool> map_update_lock_{false};
+
+    ros::Publisher pub;
 
 public:
     GridMapInterface(const std::string &topic_name = "grid_map",
@@ -48,6 +54,7 @@ public:
 
     void callback(const grid_map_msgs::GridMap &msg);
     void update(bool block = true, double sdf_margin = 0.2);
+    void updateTravMap(void);
     void updateSDF(const std::string &layer_name, uint index = 0, double margin = 0.2);
     double value(const grid_map::Position &position, const std::string &layer_name = "");
     double sdfValue(const grid_map::Position3 &position, size_t index = 0, const std::string &mode = "min");

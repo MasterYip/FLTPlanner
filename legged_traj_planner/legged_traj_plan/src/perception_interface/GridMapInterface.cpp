@@ -18,7 +18,9 @@ GridMapInterface::GridMapInterface(const std::string &topic_name,
                                                                      ceiling_layer(ceiling_layer_name)
 {
     sub = nh.subscribe(topic_name, 1, &GridMapInterface::callback, this);
+    pub = nh.advertise<grid_map_msgs::GridMap>("grid_map_trav_test", 1, true);
     map_.setFrameId("map");
+    ground_layer_trav = ground_layer + "_trav";
     update();
 }
 
@@ -27,8 +29,8 @@ void GridMapInterface::callback(const grid_map_msgs::GridMap &msg)
     if (!map_update_lock_)
     {
         grid_map::GridMapRosConverter::fromMessage(msg, map_);
-        if (!sdf[0])
-            update();
+        // if (!sdf[0])
+        update();
     }
 }
 
@@ -42,9 +44,35 @@ void GridMapInterface::update(bool block, double sdf_margin)
         ros::Duration(0.5).sleep();
     }
     updateSDF(ground_layer, 0, sdf_margin);
+    updateTravMap();
+    // Visualization
+    grid_map_msgs::GridMap message;
+    grid_map::GridMapRosConverter::toMessage(map_, message);
+    pub.publish(message);
+
     if (map_.exists(ceiling_layer))
     {
         updateSDF(ceiling_layer, 1, sdf_margin);
+    }
+}
+
+void GridMapInterface::updateTravMap(void)
+{
+    try
+    {
+        map_.add(ground_layer_trav, map_.get(ground_layer));
+        for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
+        {
+            double normal_tan_ = std::sqrt(std::pow(map_.at(ground_norm_x_layer, *iterator), 2) + std::pow(map_.at(ground_norm_y_layer, *iterator), 2)) / map_.at(ground_norm_z_layer, *iterator);
+            if (normal_tan_ > 0.5)
+            {
+                map_.at(ground_layer_trav, *iterator) = std::nan("");
+            }
+        }
+    }
+    catch (const std::exception &e)
+    {
+        ROS_WARN_STREAM("Failed to update trav map!");
     }
 }
 
