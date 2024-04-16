@@ -91,7 +91,7 @@ namespace ros_visualizer
         visualization_msgs::MarkerArray marker_array_;
 
         // ID manager
-        int group_shift_ = 10; // bit shift
+        int group_shift_ = 8; // bit shift
         long long marker_group_ = 0;
         std::vector<std::pair<long long, long long>> marker_subid_list_; // Group | GroupSubID
 
