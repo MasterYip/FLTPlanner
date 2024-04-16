@@ -91,6 +91,7 @@ namespace ros_visualizer
         visualization_msgs::MarkerArray marker_array_;
 
         // ID manager
+        int group_shift_ = 10; // bit shift
         long long marker_group_ = 0;
         std::vector<std::pair<long long, long long>> marker_subid_list_; // Group | GroupSubID
 
@@ -101,7 +102,7 @@ namespace ros_visualizer
 
         long long getId(long long group_id, long long sub_id)
         {
-            return group_id << 16 | sub_id;
+            return group_id << group_shift_ | sub_id;
         };
         void setIdGroup(long long group_id)
         {
@@ -124,7 +125,7 @@ namespace ros_visualizer
                 if (marker_subid_list_[i].first == marker_group_)
                 {
                     long long subid = marker_subid_list_[i].second + 1;
-                    if (subid > (1 << 15))
+                    if (subid > (1 << (group_shift_ - 1)))
                         subid = 0;
                     marker_subid_list_[i] = std::make_pair(marker_group_, subid);
                     find_flag = true;

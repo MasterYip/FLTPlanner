@@ -135,7 +135,7 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
 #ifdef ENABLE_VISUALIZER
     if (verbose && index == 0)
     {
-        visualizer_->delGroup(1);
+        visualizer_->delAll();
         visualizer_->setIdGroup(1);
         // Polytope
         visualizer_->visPolytope(corridor.getCorridor());

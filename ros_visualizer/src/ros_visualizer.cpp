@@ -32,7 +32,7 @@ namespace ros_visualizer
     {
         for (auto &marker : marker_array_.markers)
         {
-            if (marker.id >> 16 == group_id)
+            if (marker.id >> group_shift_ == group_id)
             {
                 marker.action = visualization_msgs::Marker::DELETE;
             }

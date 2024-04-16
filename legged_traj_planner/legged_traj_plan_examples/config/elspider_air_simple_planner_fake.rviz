@@ -229,46 +229,6 @@ Visualization Manager:
       Reference Frame: fixGu_1
       Show Trail: false
       Value: false
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: visualization_marker
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /footTrajectory
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Alpha: 0.30000001192092896
-      Autocompute Intensity Bounds: true
-      Class: grid_map_rviz_plugin/GridMap
-      Color: 200; 200; 200
-      Color Layer: 3D_feeling
-      Color Transformer: ""
-      ColorMap: default
-      Enabled: true
-      Grid Cell Decimation: 1
-      Grid Line Thickness: 0.10000000149011612
-      Height Layer: 3D_feeling
-      Height Transformer: Layer
-      History Length: 1
-      Invert ColorMap: false
-      Max Color: 255; 255; 255
-      Max Intensity: 10
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: TerrainFile Gridmap
-      Show Grid Lines: false
-      Topic: /grid_map
-      Unreliable: false
-      Use ColorMap: true
-      Value: true
     - Alpha: 0.20000000298023224
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
@@ -346,14 +306,6 @@ Visualization Manager:
       Use rainbow: true
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /hit_spider_expected_traj
-      Name: FootTraj
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /visualizer_markers
       Name: ros_viz
@@ -365,25 +317,6 @@ Visualization Manager:
       Enabled: true
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
-      Namespaces:
-        curve: true
-        facet: true
-        mesh: true
-        sphere: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /collision_penalty
-      Name: Vis_CollisionPenalty
-      Namespaces:
-        arrow: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /swing_traj_opt
-      Name: Vis_SwingTrajOpt
       Namespaces:
         {}
       Queue Size: 100
