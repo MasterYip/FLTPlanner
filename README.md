@@ -109,6 +109,8 @@ gazebo_hang_up:=on_ground \
 interface_type:=gazebo
 # Terminal2: start Planner & elevation mapping
 roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=true
+#or
+roslaunch legged_traj_plan_examples elspider_air_vmc_planner.launch sim:=true
 ```
 
 Hardware | Perception & Planning & Control:
@@ -126,6 +128,8 @@ gazebo_hang_up:=on_ground \
 interface_type:=hardware
 # Terminal2: start Planner & elevation mapping
 roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=false
+#or
+roslaunch legged_traj_plan_examples elspider_air_vmc_planner.launch sim:=false
 ```
 
 Settings are listed in `elspider_air_simple_planner.launch`.

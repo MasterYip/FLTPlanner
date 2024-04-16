@@ -281,18 +281,21 @@ private:
                 }
 
                 // Visualizer
-                if (obj.useCfgSpace_)
+                if (obj.enable_vis_)
                 {
-                    visTraj.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_->FK_foot(pos, obj.index_)));
-                    visTraj2.push_back(pos);
-                    if (j == 0 || j == integralResolution)
-                        visInPs.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_->FK_foot(pos, obj.index_)));
-                }
-                else
-                {
-                    visTraj.push_back(pos);
-                    if (j == 0 || j == integralResolution)
-                        visInPs.push_back(pos);
+                    if (obj.useCfgSpace_)
+                    {
+                        visTraj.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_->FK_foot(pos, obj.index_)));
+                        visTraj2.push_back(pos);
+                        if (j == 0 || j == integralResolution)
+                            visInPs.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_->FK_foot(pos, obj.index_)));
+                    }
+                    else
+                    {
+                        visTraj.push_back(pos);
+                        if (j == 0 || j == integralResolution)
+                            visInPs.push_back(pos);
+                    }
                 }
 
                 // Backward
@@ -434,6 +437,15 @@ public:
         if (visualizer != nullptr)
             enable_vis_ = true;
     };
+
+    void setVisualizer(std::shared_ptr<GCSVisualizer> visualizer)
+    {
+        if (visualizer != nullptr)
+        {
+            visualizer_ = visualizer;
+            enable_vis_ = true;
+        }
+    }
 
     /**
      * @brief Setup MINCO optimization problem

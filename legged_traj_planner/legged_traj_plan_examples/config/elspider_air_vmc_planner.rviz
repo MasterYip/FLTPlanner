@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /ROSVis1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -455,7 +454,7 @@ Visualization Manager:
       Color Layer: elevation
       Color Transformer: IntensityLayer
       ColorMap: terrain
-      Enabled: false
+      Enabled: true
       Grid Cell Decimation: 2
       Grid Line Thickness: 0.10000000149011612
       Height Layer: elevation_inpainted
@@ -471,7 +470,7 @@ Visualization Manager:
       Topic: /grid_map
       Unreliable: false
       Use ColorMap: true
-      Value: false
+      Value: true
     - Alpha: 0.5
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
@@ -613,34 +612,6 @@ Visualization Manager:
       Unreliable: false
       Use ColorMap: true
       Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /swing_traj_opt
-      Name: SwingTrajOpt
-      Namespaces:
-        cube: true
-        curve: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /swing_traj_planner_vis
-      Name: SwingTrajPlanner
-      Namespaces:
-        curve: true
-        facet: true
-        mesh: true
-        sphere: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /collision_penalty
-      Name: CollPenalty
-      Namespaces:
-        arrow: true
-      Queue Size: 100
-      Value: true
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -669,7 +640,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 2.31040096282959
+      Distance: 1.147432565689087
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -677,17 +648,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.2521858811378479
-        Y: -0.4749235212802887
-        Z: -0.1689741462469101
+        X: 0.605006217956543
+        Y: 0.10702034831047058
+        Z: -0.16897423565387726
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7147977352142334
+      Pitch: 0.3947979211807251
       Target Frame: base
-      Yaw: 4.446359634399414
+      Yaw: 6.061384201049805
     Saved: ~
 Window Geometry:
   Displays:

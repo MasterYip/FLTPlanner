@@ -41,10 +41,12 @@ SwingTrajPlanner::SwingTrajPlanner(SwingTrajPlannerConfig config,
                                    std::shared_ptr<ElSpiderAirInterface> robot_interface,
                                    std::shared_ptr<GridMapInterface> gridmap_interface) : robot_interface_(robot_interface),
                                                                                           gridmap_interface_(gridmap_interface),
-                                                                                          visualizer_(std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis")),
-                                                                                          swing_traj_opt_(robot_interface_, gridmap_interface_, visualizer_),
+                                                                                          swing_traj_opt_(robot_interface_, gridmap_interface_),
                                                                                           config_(config)
 {
+    visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
+    if (config_.enableOptVis)
+        swing_traj_opt_.setVisualizer(visualizer_);
 }
 
 std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getDefaultTraj(const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,

@@ -57,6 +57,16 @@ Visualization Manager:
       Enabled: true
       Links:
         All Links Enabled: true
+        BPearl_Lidar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        BPearl_Lidar_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
@@ -186,7 +196,49 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        camera_accel_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_fisheye1_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_fisheye1_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_fisheye2_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_fisheye2_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_gyro_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_odom_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_pose_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        sensorSupport:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -512,25 +564,7 @@ Visualization Manager:
       Marker Topic: /visualizer_markers
       Name: ROSVis
       Namespaces:
-        facet: true
-        mesh: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /collision_penalty
-      Name: collision penalty
-      Namespaces:
-        arrow: true
-      Queue Size: 100
-      Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /swing_traj_opt
-      Name: swing_traj_opt
-      Namespaces:
-        cube: true
-        curve: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -572,7 +606,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 2.0833280086517334
+      Distance: 1.6089650392532349
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -580,17 +614,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.6658903956413269
-        Y: -1.0377488136291504
-        Z: -0.16897626221179962
+        X: 0.3228800296783447
+        Y: -0.40415626764297485
+        Z: -0.1689760833978653
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3897971510887146
+      Pitch: 0.37979716062545776
       Target Frame: base
-      Yaw: 5.0463643074035645
+      Yaw: 5.1263628005981445
     Saved: ~
 Window Geometry:
   Displays:

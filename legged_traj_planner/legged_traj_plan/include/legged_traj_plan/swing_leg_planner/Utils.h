@@ -89,6 +89,9 @@ struct SwingTrajPlannerConfig
     double CollBall2Weight;
     double CollBall3Weight;
 
+    // Misc
+    bool enableOptVis;
+
     void loadParams(ros::NodeHandle &nh)
     {
         nh.param("optimizer/lengthPerPiece", lengthPerPiece, 0.6);
@@ -114,5 +117,6 @@ struct SwingTrajPlannerConfig
         nh.param("penalty/CollBall1Weight", CollBall1Weight, 0.0);
         nh.param("penalty/CollBall2Weight", CollBall2Weight, 0.0);
         nh.param("penalty/CollBall3Weight", CollBall3Weight, 0.05);
+        nh.param("misc/enableOptVis", enableOptVis, false);
     }
 };

@@ -73,6 +73,7 @@
     <node pkg="legged_traj_plan_examples" type="elspider_air_vmc_planner" name="elspider_air_vmc_planner" output="screen">
         <param name="fake_feedback" value="$(arg fake_feedback)" />
         <param name="sim" value="$(arg sim)" />
+        <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air_swingtrajplanner.yaml" />
     </node>
     <!-- VMC Controller -->
     <node pkg="hexapod_controller" type="vmc_controller_node" name="vmc_controller_node" output="screen">

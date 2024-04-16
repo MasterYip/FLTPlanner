@@ -9,7 +9,7 @@
     <!-- TrajRep -->
     <arg name="use_cfg_space" default="true" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
-    <arg name="fake_feedback" default="true" />
+    <arg name="fake_feedback" default="false" />
     <arg name="with_ceiling" value="false" />
     <arg name="max_height" value="0.3" />
     <!-- Only used when fake_feedback=true -->
