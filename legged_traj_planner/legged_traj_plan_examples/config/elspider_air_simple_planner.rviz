@@ -572,11 +572,32 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: swing_traj_planner_vis
       Namespaces:
-        curve: true
-        facet: true
-        mesh: true
-        sphere: true
+        {}
       Queue Size: 100
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Class: grid_map_rviz_plugin/GridMap
+      Color: 200; 200; 200
+      Color Layer: elevation
+      Color Transformer: GridMapLayer
+      ColorMap: default
+      Enabled: true
+      Grid Cell Decimation: 1
+      Grid Line Thickness: 0.10000000149011612
+      Height Layer: elevation
+      Height Transformer: GridMapLayer
+      History Length: 1
+      Invert ColorMap: false
+      Max Color: 255; 255; 255
+      Max Intensity: 10
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: TravMap
+      Show Grid Lines: true
+      Topic: /traversability_estimation/traversability_map
+      Unreliable: false
+      Use ColorMap: true
       Value: true
   Enabled: true
   Global Options:
@@ -606,7 +627,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 1.6089650392532349
+      Distance: 2.0182857513427734
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -614,17 +635,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.3228800296783447
-        Y: -0.40415626764297485
+        X: 0.4712878465652466
+        Y: -0.45226722955703735
         Z: -0.1689760833978653
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.37979716062545776
+      Pitch: 0.40979716181755066
       Target Frame: base
-      Yaw: 5.1263628005981445
+      Yaw: 4.30136251449585
     Saved: ~
 Window Geometry:
   Displays:
