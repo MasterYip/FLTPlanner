@@ -28,6 +28,28 @@ namespace ros_visualizer
     {
     }
 
+    void ROSVisualizer::delGroup(long long group_id)
+    {
+        for (auto &marker : marker_array_.markers)
+        {
+            if (marker.id >> 16 == group_id)
+            {
+                marker.action = visualization_msgs::Marker::DELETE;
+            }
+        }
+
+        marker_pub_.publish(marker_array_);
+
+        for (int i = 0; i < marker_array_.markers.size(); i++)
+        {
+            if (marker_array_.markers[i].id >> 32 == group_id)
+            {
+                marker_array_.markers.erase(marker_array_.markers.begin() + i);
+                i--;
+            }
+        }
+    }
+
     void ROSVisualizer::delType(const VisType &type)
     {
         for (auto &marker : marker_array_.markers)
@@ -59,7 +81,7 @@ namespace ros_visualizer
         }
         marker_pub_.publish(marker_array_);
         marker_array_.markers.clear();
-        marker_id_ptr_ = 0;
+        resetId();
     }
 
     void ROSVisualizer::visArrow(const Eigen::Vector3d &start, const Eigen::Vector3d &end, const VisStyle &style)
@@ -69,7 +91,7 @@ namespace ros_visualizer
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
         marker.ns = TYPE_ARROW.name_space;
-        marker.id = marker_id_ptr_;
+        marker.id = idUpdate(marker_group_);
         marker.type = TYPE_ARROW.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
@@ -96,8 +118,6 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-
-        marker_id_ptr_++;
     }
 
     void ROSVisualizer::delArrow()
@@ -112,7 +132,7 @@ namespace ros_visualizer
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
         marker.ns = TYPE_CURVE.name_space;
-        marker.id = marker_id_ptr_;
+        marker.id = idUpdate(marker_group_);
         marker.type = TYPE_CURVE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
@@ -134,8 +154,6 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-        // FIXME: marker_id_ptr_ should be managed by the class
-        marker_id_ptr_++;
     }
 
     void ROSVisualizer::delCurve()
@@ -162,7 +180,7 @@ namespace ros_visualizer
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
         marker.ns = TYPE_SPHERE.name_space;
-        marker.id = marker_id_ptr_;
+        marker.id = idUpdate(marker_group_);
         marker.type = TYPE_SPHERE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
@@ -186,8 +204,6 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-
-        marker_id_ptr_++;
     }
 
     void ROSVisualizer::delSphere()
@@ -203,7 +219,7 @@ namespace ros_visualizer
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
         marker.ns = TYPE_CUBE.name_space;
-        marker.id = marker_id_ptr_;
+        marker.id = idUpdate(marker_group_);
         marker.type = TYPE_CUBE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = quat(0);
@@ -230,8 +246,6 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-
-        marker_id_ptr_++;
     }
 
     void ROSVisualizer::visCube(const Eigen::Vector3d &cube, const Eigen::Vector4d &quat, const VisStyle &style)
@@ -241,7 +255,7 @@ namespace ros_visualizer
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
         marker.ns = TYPE_CUBE.name_space;
-        marker.id = marker_id_ptr_;
+        marker.id = idUpdate(marker_group_);
         marker.type = TYPE_CUBE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position.x = cube.x();
@@ -263,8 +277,6 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-
-        marker_id_ptr_++;
     }
 
     void ROSVisualizer::delCube()
@@ -279,7 +291,7 @@ namespace ros_visualizer
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
         marker.ns = TYPE_FACET.name_space;
-        marker.id = marker_id_ptr_;
+        marker.id = idUpdate(marker_group_);
         marker.type = TYPE_FACET.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
@@ -303,8 +315,6 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-
-        marker_id_ptr_++;
     }
 
     void ROSVisualizer::visFacet(const Eigen::MatrixX3d &facet, const VisStyle &style)
@@ -314,7 +324,7 @@ namespace ros_visualizer
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
         marker.ns = TYPE_FACET.name_space;
-        marker.id = marker_id_ptr_;
+        marker.id = idUpdate(marker_group_);
         marker.type = TYPE_FACET.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
@@ -338,8 +348,6 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-
-        marker_id_ptr_++;
     }
 
     void ROSVisualizer::delFacet()
@@ -354,7 +362,7 @@ namespace ros_visualizer
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
         marker.ns = TYPE_MESH.name_space;
-        marker.id = marker_id_ptr_;
+        marker.id = idUpdate(marker_group_);
         marker.type = TYPE_MESH.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
@@ -376,8 +384,6 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-
-        marker_id_ptr_++;
     }
 
     void ROSVisualizer::visMesh(const Eigen::MatrixX3d &mesh, const VisStyle &style)
@@ -387,7 +393,7 @@ namespace ros_visualizer
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
         marker.ns = TYPE_MESH.name_space;
-        marker.id = marker_id_ptr_;
+        marker.id = idUpdate(marker_group_);
         marker.type = TYPE_MESH.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
@@ -409,8 +415,6 @@ namespace ros_visualizer
 
         marker_array_.markers.push_back(marker);
         marker_pub_.publish(marker_array_);
-
-        marker_id_ptr_++;
     }
 
     void ROSVisualizer::delMesh()

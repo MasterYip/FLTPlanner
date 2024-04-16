@@ -90,13 +90,61 @@ namespace ros_visualizer
         ros::Publisher marker_pub_;
         visualization_msgs::MarkerArray marker_array_;
 
-        long long marker_id_ptr_ = 0;
+        // ID manager
+        long long marker_group_ = 0;
+        std::vector<std::pair<long long, long long>> marker_subid_list_; // Group | GroupSubID
 
     public:
         ROSVisualizer(ros::NodeHandle &nh);
         ROSVisualizer(ros::NodeHandle &nh, std::string frame_id, std::string topic_name);
         ~ROSVisualizer();
 
+        long long getId(long long group_id, long long sub_id)
+        {
+            return group_id << 16 | sub_id;
+        };
+        void setIdGroup(long long group_id)
+        {
+            if (group_id > -1)
+                marker_group_ = group_id;
+        };
+        /**
+         * @brief Update Id
+         *
+         * @param group_id Group ID to update (default: -1, not update group_id)
+         * @return long long New ID
+         */
+        int32_t idUpdate(long long group_id = -1)
+        {
+            bool find_flag = false;
+            if (group_id > -1)
+                marker_group_ = group_id;
+            for (uint i = 0; i < marker_subid_list_.size(); ++i)
+            {
+                if (marker_subid_list_[i].first == marker_group_)
+                {
+                    long long subid = marker_subid_list_[i].second + 1;
+                    if (subid > (1 << 15))
+                        subid = 0;
+                    marker_subid_list_[i] = std::make_pair(marker_group_, subid);
+                    find_flag = true;
+                    return getId(marker_group_, subid);
+                }
+            }
+            if (!find_flag)
+            {
+                marker_subid_list_.push_back(std::make_pair(marker_group_, 0));
+                return getId(marker_group_, 0);
+            }
+        };
+
+        void resetId(void)
+        {
+            marker_group_ = 0;
+            marker_subid_list_.clear();
+        };
+
+        void delGroup(long long group_id);
         void delType(const VisType &type);
         void delAll(void);
 

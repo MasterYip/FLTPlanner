@@ -85,6 +85,7 @@ public:
             pena += weight_(2) * f;
             if (enable_vis_)
             {
+                visualizer_->setIdGroup(3);
                 visualizer_->visArrow(footPos, footPos + gradPos * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
                 visualizer_->visArrow(posCfg, posCfg + gradPosCfg * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
             }
@@ -94,6 +95,6 @@ public:
     void visClear()
     {
         if (enable_vis_)
-            visualizer_->delAll();
+            visualizer_->delGroup(3);
     }
 };

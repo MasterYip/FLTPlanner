@@ -320,8 +320,8 @@ private:
         // Visualizer
         if (obj.enable_vis_)
         {
-            obj.visualizer_->delCube();
-            obj.visualizer_->delCurve();
+            obj.visualizer_->delGroup(2);
+            obj.visualizer_->setIdGroup(2);
             obj.visualizer_->visCurve(visTraj2, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
             obj.visualizer_->visCurve(visTraj, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
             obj.visualizer_->visCube(visInPs, Eigen::Vector4d(1, 0, 0, 0), ros_visualizer::VisStyle(0.1, 0.8, 0.1, 1.0, 0.01));
