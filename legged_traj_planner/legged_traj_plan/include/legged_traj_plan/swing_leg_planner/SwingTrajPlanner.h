@@ -32,14 +32,15 @@ using namespace geo_utils;
 class SwingTrajPlanner
 {
 private:
-    ElSpiderAirInterface &robot_interface_;
-    GridMapInterface &gridmap_interface_;
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
     ros::NodeHandle nh_;
-    GCSVisualizer visualizer_;
+    std::shared_ptr<GCSVisualizer> visualizer_;
     SwingTrajOpt swing_traj_opt_;
 
 public:
-    SwingTrajPlanner(ElSpiderAirInterface &robot_interface, GridMapInterface &gridmap_interface);
+    SwingTrajPlanner(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                     std::shared_ptr<GridMapInterface> gridmap_interface);
     ~SwingTrajPlanner() = default;
 
     /**
@@ -89,7 +90,7 @@ public:
                  const pinocchio::SE3 &pose1,
                  int index);
 
-    ElSpiderAirInterface &getRobotInterface()
+    std::shared_ptr<ElSpiderAirInterface> getRobotInterface()
     {
         return robot_interface_;
     }

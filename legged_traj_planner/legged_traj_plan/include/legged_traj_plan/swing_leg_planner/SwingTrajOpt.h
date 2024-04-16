@@ -39,13 +39,14 @@ class SwingTrajOpt
 private:
     bool useCfgSpace_;
 
-    ElSpiderAirInterface &robot_interface_;
-    GridMapInterface &gridmap_interface_;
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
     minco::MINCO_S2NU minco;
     // Visualizer
     ros::NodeHandle nh_;
     ros::Rate rate_ = ros::Rate(5);
-    GCSVisualizer visualizer_ = {nh_, "odom", "swing_traj_opt"};
+    std::shared_ptr<GCSVisualizer> visualizer_;
+    bool enable_vis_ = false;
 
     // Conditions
     double rho;
@@ -281,10 +282,10 @@ private:
                 // Visualizer
                 if (obj.useCfgSpace_)
                 {
-                    visTraj.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
+                    visTraj.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_->FK_foot(pos, obj.index_)));
                     visTraj2.push_back(pos);
                     if (j == 0 || j == integralResolution)
-                        visInPs.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_.FK_foot(pos, obj.index_)));
+                        visInPs.push_back(point_SE3Act(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time).inverse(), obj.robot_interface_->FK_foot(pos, obj.index_)));
                 }
                 else
                 {
@@ -299,10 +300,6 @@ private:
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
                 totalGradAcc = gradAcc;
-                // pena = 0;
-                // totalGradPos = Eigen::Vector3d::Zero();
-                // totalGradVel = Eigen::Vector3d::Zero();
-                // totalGradAcc = Eigen::Vector3d::Zero();     
 
                 // PROBLEM: What is this
                 node = (j == 0 || j == integralResolution) ? 0.5 : 1.0;
@@ -321,12 +318,15 @@ private:
             }
         }
         // Visualizer
-        obj.visualizer_.delCube();
-        obj.visualizer_.delCurve();
-        obj.visualizer_.visCurve(visTraj2, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
-        obj.visualizer_.visCurve(visTraj, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
-        obj.visualizer_.visCube(visInPs, Eigen::Vector4d(1, 0, 0, 0), ros_visualizer::VisStyle(0.1, 0.8, 0.1, 1.0, 0.01));
-        obj.rate_.sleep();
+        if (obj.enable_vis_)
+        {
+            obj.visualizer_->delCube();
+            obj.visualizer_->delCurve();
+            obj.visualizer_->visCurve(visTraj2, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
+            obj.visualizer_->visCurve(visTraj, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
+            obj.visualizer_->visCube(visInPs, Eigen::Vector4d(1, 0, 0, 0), ros_visualizer::VisStyle(0.1, 0.8, 0.1, 1.0, 0.01));
+            obj.rate_.sleep();
+        }
         return;
     }
 
@@ -423,9 +423,16 @@ private:
     }
 
 public:
-    SwingTrajOpt(ElSpiderAirInterface &robot_interface, GridMapInterface &gridmap_interface)
+    SwingTrajOpt(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                 std::shared_ptr<GridMapInterface> gridmap_interface,
+                 std::shared_ptr<GCSVisualizer> visualizer = nullptr)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
-          collPena(robot_interface, gridmap_interface){};
+          visualizer_(visualizer),
+          collPena(robot_interface, gridmap_interface, visualizer_)
+    {
+        if (visualizer != nullptr)
+            enable_vis_ = true;
+    };
 
     /**
      * @brief Setup MINCO optimization problem

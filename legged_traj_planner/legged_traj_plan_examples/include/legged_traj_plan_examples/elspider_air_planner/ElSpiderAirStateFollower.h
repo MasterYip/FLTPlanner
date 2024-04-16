@@ -33,15 +33,16 @@ class ElSpiderAirStateFollower
 private:
     ros::NodeHandle nh_;
     ros::Subscriber sub_;
-    ElSpiderAirInterfaceROS robot_interface_;
-    GridMapInterface gridmap_interface_;
+    std::shared_ptr<ElSpiderAirInterfaceROS> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
     MCTSWholeBodyPlanner whole_body_planner_;
     std::vector<hexapod_State> MCT_solution_;
     ros::Rate rate_;
 
 public:
-    ElSpiderAirStateFollower() : robot_interface_(nh_.param("robot_description", std::string(""))),
-                                 gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_),
+    ElSpiderAirStateFollower() : robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("robot_description", std::string("")))),
+                                 gridmap_interface_(std::make_shared<GridMapInterface>("/grid_map")),
+                                 whole_body_planner_(gridmap_interface_, robot_interface_),
                                  rate_(20)
     {
         sub_ = nh_.subscribe("/supportStateTopic", 100, &ElSpiderAirStateFollower::callback, this);
@@ -77,9 +78,9 @@ public:
             {
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
             }
-            robot_interface_.pub_footcmd_from_footendpos(footend_interp);
-            robot_interface_.pub_joint_state_from_footendpos(footend_interp);
-            robot_interface_.pub_odom(odom_interp);
+            robot_interface_->pub_footcmd_from_footendpos(footend_interp);
+            robot_interface_->pub_joint_state_from_footendpos(footend_interp);
+            robot_interface_->pub_odom(odom_interp);
             t += delta;
             if (t > 1.0)
             {

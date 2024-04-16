@@ -152,8 +152,8 @@ private:
     bool recv_body_state_ = false;
 
     // Interface
-    ElSpiderAirInterfaceROS robot_interface_;
-    GridMapInterface gridmap_interface_;
+    std::shared_ptr<ElSpiderAirInterfaceROS> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
     MCTSWholeBodyPlanner whole_body_planner_;
 
     // MCTS planner Interface
@@ -179,10 +179,12 @@ private:
 public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirSimplePlanner(bool fake_estimation = false, bool simulation = false,
-                             bool use_cfg_space = true) : nh_(), robot_interface_(nh_.param("robot_description", std::string("")), simulation),
-                                                   gridmap_interface_("/grid_map"), whole_body_planner_(gridmap_interface_, robot_interface_, use_cfg_space),
-                                                   tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
-                                                   rate_(25), fake_estimation_(fake_estimation), simulation_(simulation)
+                             bool use_cfg_space = true) : nh_(),
+                                                          robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("robot_description", std::string("")), simulation)),
+                                                          gridmap_interface_(std::make_shared<GridMapInterface>("/grid_map")),
+                                                          whole_body_planner_(gridmap_interface_, robot_interface_, use_cfg_space),
+                                                          tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
+                                                          rate_(25), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
         foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirSimplePlanner::foot_state_callback, this);
@@ -226,10 +228,10 @@ public:
         {
             update_exp_path();
             update_robot_state();
-            gridmap_interface_.lockMapUpdate();
+            gridmap_interface_->lockMapUpdate();
             bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                         gridmap_interface_.getMap(), true, 100);
-            gridmap_interface_.unlockMapUpdate();
+                                                         gridmap_interface_->getMap(), true, 100);
+            gridmap_interface_->unlockMapUpdate();
             if (ret)
             {
                 whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
@@ -269,7 +271,7 @@ public:
             // inverse transform
             footend_now.emplace_back(pose.inverse() * robot_state_.feetPosition[k]);
         }
-        robot_interface_.pub_joint_state_from_footendpos(footend_now);
+        robot_interface_->pub_joint_state_from_footendpos(footend_now);
     }
     // Deprecated
     [[deprecated]] void body_state_callback(const legged_traj_plan::BodyState &msg)
@@ -354,22 +356,22 @@ public:
                 // Convert to BASE
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
             }
-            robot_interface_.pub_footcmd_from_footendpos(footend_interp);
+            robot_interface_->pub_footcmd_from_footendpos(footend_interp);
             if (fake_estimation_)
             {
-                robot_interface_.pub_joint_state_from_footendpos(footend_interp);
-                robot_interface_.pub_odom(odom_interp);
+                robot_interface_->pub_joint_state_from_footendpos(footend_interp);
+                robot_interface_->pub_odom(odom_interp);
             }
             else
             {
-                robot_interface_.pub_odom(odom_interp, "shadowbase", "odom");
-                robot_interface_.pub_shadow_joint_state_from_footendpos(footend_interp);
+                robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
+                robot_interface_->pub_shadow_joint_state_from_footendpos(footend_interp);
                 pub_footpos_now();
             }
 
             // Visualization
             visualizer_.delAll();
-            visualizer_.visPolytope(robot_interface_.getFootPolyhedra());
+            visualizer_.visPolytope(robot_interface_->getFootPolyhedra());
 
             t += delta;
             if (t > 1.0)

@@ -27,24 +27,31 @@
 class LegCollisionPenalty
 {
 private:
-    ElSpiderAirInterface &robot_interface_;
-    GridMapInterface &gridmap_interface_;
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
     Eigen::Vector3d collBallRadius_;
     Eigen::Vector3d weight_;
     double mu_;
 
-    // Temporary
-    ros::NodeHandle nh_;
-    GCSVisualizer visualizer_;
+    std::shared_ptr<GCSVisualizer> visualizer_;
+    bool enable_vis_ = false;
 
 public:
-    LegCollisionPenalty(ElSpiderAirInterface &robot_interface, GridMapInterface &gridmap_interface)
-        : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface), visualizer_(nh_, "odom", "collision_penalty")
+    LegCollisionPenalty(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                        std::shared_ptr<GridMapInterface> gridmap_interface,
+                        std::shared_ptr<GCSVisualizer> visualizer = nullptr)
+        : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface)
     {
         // TODO: use setup()
         collBallRadius_ << 0.12, 0.12, 0.03;
         weight_ << 0.0, 0.0, 0.05; // NOTE: It will be ignored by optimization if too large
         mu_ = 0.01;
+
+        if (visualizer != nullptr)
+        {
+            enable_vis_ = true;
+            visualizer_ = visualizer;
+        }
     }
 
     /**
@@ -62,29 +69,31 @@ public:
                     double &pena)
     {
         // WORLD frame
-        Eigen::Vector3d footPos = point_SE3Act(pose.inverse(), robot_interface_.FK_foot(posCfg, index));
+        Eigen::Vector3d footPos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
         Eigen::Vector3d sdfGrad;
         Eigen::Vector3d gradPos;
 
-        double sdf = gridmap_interface_.sdfValue(footPos, 0, "min");
+        double sdf = gridmap_interface_->sdfValue(footPos, 0, "min");
         double f, df;
         if (smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
-            // FIXME: Grad propogation might be wrong
-            sdfGrad = gridmap_interface_.sdfDerivative(footPos, 0);
+            sdfGrad = gridmap_interface_->sdfDerivative(footPos, 0);
             gradPos = -df * sdfGrad / sdfGrad.norm();
-            visualizer_.visArrow(footPos, footPos + gradPos * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
-            Eigen::Matrix3Xd J = robot_interface_.getJacobian(posCfg, index);
+            Eigen::Matrix3Xd J = robot_interface_->getJacobian(posCfg, index);
             Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
-            // std::cout << "J_inv: " << J_inv << std::endl;
             gradPosCfg += weight_(2) * J_inv * gradPos;
-            visualizer_.visArrow(posCfg, posCfg + gradPosCfg * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
             pena += weight_(2) * f;
+            if (enable_vis_)
+            {
+                visualizer_->visArrow(footPos, footPos + gradPos * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+                visualizer_->visArrow(posCfg, posCfg + gradPosCfg * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+            }
         }
     }
 
     void visClear()
     {
-        visualizer_.delAll();
+        if (enable_vis_)
+            visualizer_->delAll();
     }
 };

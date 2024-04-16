@@ -30,13 +30,14 @@ class MCTSWholeBodyPlanner
 private:
     std::vector<MCTStateTransfer> state_trajs;
     // TODO: use shared_ptr
-    ElSpiderAirInterface &robot_interface_;
-    GridMapInterface &gridmap_interface_;
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
     bool use_cfg_space_;
 
 public:
-    MCTSWholeBodyPlanner(GridMapInterface &gridmap_interface, ElSpiderAirInterface &robot_interface, bool use_cfg_space = true);
+    MCTSWholeBodyPlanner(std::shared_ptr<GridMapInterface> gridmap_interface,
+                         std::shared_ptr<ElSpiderAirInterface> robot_interface, bool use_cfg_space = true);
 
     bool enqueue_MCTsolution(hexapod_State state0, hexapod_State state1);
 

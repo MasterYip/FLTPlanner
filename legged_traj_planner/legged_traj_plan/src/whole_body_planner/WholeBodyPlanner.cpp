@@ -5,7 +5,8 @@
 //     swing_traj_planner = SwingTrajPlanner();
 // }
 
-MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(GridMapInterface &gridmap_interface, ElSpiderAirInterface &robot_interface, bool use_cfg_space)
+MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(std::shared_ptr<GridMapInterface> gridmap_interface,
+                                           std::shared_ptr<ElSpiderAirInterface> robot_interface, bool use_cfg_space)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       swing_traj_planner_(std::make_shared<SwingTrajPlanner>(robot_interface_, gridmap_interface_)),
       use_cfg_space_(use_cfg_space)

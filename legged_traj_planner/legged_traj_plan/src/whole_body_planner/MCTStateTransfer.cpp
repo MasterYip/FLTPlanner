@@ -93,7 +93,7 @@ PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
             }
             else
             {
-                Eigen::Vector3d base_pt = swing_traj_planner_->getRobotInterface().FK_foot(swingtraj_[i]->evaluate(t, 0, true), i);
+                Eigen::Vector3d base_pt = swing_traj_planner_->getRobotInterface()->FK_foot(swingtraj_[i]->evaluate(t, 0, true), i);
                 footend_interp.push_back(point_SE3Act(eval_torso_traj(t).inverse(), base_pt));
             }
         }
