@@ -97,4 +97,9 @@ public:
     {
         return robot_interface_;
     }
+
+    const SwingTrajPlannerConfig& getConfig() const
+    {
+        return config_;
+    }
 };

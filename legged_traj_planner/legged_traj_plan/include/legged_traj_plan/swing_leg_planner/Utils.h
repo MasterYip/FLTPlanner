@@ -60,15 +60,20 @@ static inline bool smoothedL1(const double &x,
 
 struct SwingTrajPlannerConfig
 {
+    // Traj Init
+    double vLift;
+    double hLift;
+    //// Optimizer
     // Enable
     bool enableOptimizer;
-    // Traj Init
+    // Minco Init
     double lengthPerPiece;
     double allocSpeed;
     // Optimizer Settings
     double relCostTol;
     double smoothingFactor;
     int integralResolution;
+    //// Penalty
     // Time Cost
     double timeWeight;
     // Joint Limit Cost
@@ -96,6 +101,8 @@ struct SwingTrajPlannerConfig
 
     void loadParams(ros::NodeHandle &nh)
     {
+        nh.param("trajInit/vLift", vLift, 0.2);
+        nh.param("trajInit/hLift", hLift, 0.1);
         nh.param("optimizer/enableOptimizer", enableOptimizer, true);
         nh.param("optimizer/lengthPerPiece", lengthPerPiece, 0.6);
         nh.param("optimizer/allocSpeed", allocSpeed, 1.0);

@@ -39,8 +39,8 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
     }
 
     // Default swing trajectory
-    double v_lift = 0.2; // NOTE: not used
-    double h_lift = 0.10;
+    double v_lift = swing_traj_planner_->getConfig().vLift;
+    double h_lift = swing_traj_planner_->getConfig().hLift;
     for (int i = 0; i < 6; ++i)
     {
         if (swingtraj_isneeded_[i])

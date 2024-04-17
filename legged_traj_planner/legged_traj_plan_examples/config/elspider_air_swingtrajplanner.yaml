@@ -1,3 +1,7 @@
+trajInit:
+  vLift: 0.3
+  hLift: 0.1
+
 optimizer:
   enableOptimizer: false
   lengthPerPiece: 0.6

@@ -93,7 +93,7 @@ FakeFeedback | Planning:
 roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch \
 fake_feedback:=true \
 sim:=true \
-joystick_type:=keyboard_sim
+teleop_type:=keyboard
 ```
 
 
