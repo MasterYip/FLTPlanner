@@ -1,4 +1,5 @@
 optimizer:
+  enableOptimizer: false
   lengthPerPiece: 0.6
   allocSpeed: 1.0
   relCostTol: 1.0e-2

@@ -572,9 +572,7 @@ Visualization Manager:
       Marker Topic: /vmc_controller_node/visualizer_markers
       Name: GRF_vis
       Namespaces:
-        arrow: true
-        cube: true
-        sphere: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -582,23 +580,20 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: SwingTrajPlanVis
       Namespaces:
-        curve: true
-        facet: true
-        mesh: true
-        sphere: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
-      Color Layer: traversability
+      Color Layer: elevation
       Color Transformer: GridMapLayer
       ColorMap: default
       Enabled: true
       Grid Cell Decimation: 1
       Grid Line Thickness: 0.10000000149011612
-      Height Layer: elevation
+      Height Layer: elevation_inpainted_trav
       Height Transformer: GridMapLayer
       History Length: 1
       Invert ColorMap: false
@@ -608,7 +603,7 @@ Visualization Manager:
       Min Intensity: 0
       Name: TravMap
       Show Grid Lines: true
-      Topic: /traversability_estimation/traversability_map
+      Topic: /elspider_air_vmc_planner/grid_map_trav_test
       Unreliable: false
       Use ColorMap: true
       Value: true
@@ -640,7 +635,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 1.147432565689087
+      Distance: 2.841001272201538
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -648,17 +643,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.605006217956543
-        Y: 0.10702034831047058
-        Z: -0.16897423565387726
+        X: 0.10031896829605103
+        Y: -0.714015781879425
+        Z: -0.1689741164445877
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3947979211807251
+      Pitch: 0.3647979497909546
       Target Frame: base
-      Yaw: 6.061384201049805
+      Yaw: 3.9063808917999268
     Saved: ~
 Window Geometry:
   Displays:

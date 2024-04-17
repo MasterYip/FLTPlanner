@@ -262,6 +262,8 @@ bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
                                   const pinocchio::SE3 &pose1,
                                   int index)
 {
+    if (!config_.enableOptimizer)
+        return true;
     // FIXME: Temporarily cast to MincoTrajectory
     std::shared_ptr<MincoTrajectory> minco_traj = std::dynamic_pointer_cast<MincoTrajectory>(traj);
     std::vector<Point3D> poly_path;
@@ -308,6 +310,8 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
                                const pinocchio::SE3 &pose1,
                                int index)
 {
+    if (!config_.enableOptimizer)
+        return true;
     // FIXME: Temporarily cast to MincoTrajectory
     std::shared_ptr<MincoTrajectory> minco_traj = std::dynamic_pointer_cast<MincoTrajectory>(traj);
     std::vector<Point3D> poly_path;
