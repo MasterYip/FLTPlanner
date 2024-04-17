@@ -1,9 +1,10 @@
 trajInit:
-  vLift: 0.3
-  hLift: 0.1
+  vLift: 0.4
+  hLift: 0.15
 
 optimizer:
   enableOptimizer: false
+  useCfgSpace: true
   lengthPerPiece: 0.6
   allocSpeed: 1.0
   relCostTol: 1.0e-2

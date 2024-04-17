@@ -67,6 +67,7 @@ struct SwingTrajPlannerConfig
     // Enable
     bool enableOptimizer;
     // Minco Init
+    bool useCfgSpace;
     double lengthPerPiece;
     double allocSpeed;
     // Optimizer Settings
@@ -104,6 +105,7 @@ struct SwingTrajPlannerConfig
         nh.param("trajInit/vLift", vLift, 0.2);
         nh.param("trajInit/hLift", hLift, 0.1);
         nh.param("optimizer/enableOptimizer", enableOptimizer, true);
+        nh.param("optimizer/useCfgSpace", useCfgSpace, true);
         nh.param("optimizer/lengthPerPiece", lengthPerPiece, 0.6);
         nh.param("optimizer/allocSpeed", allocSpeed, 1.0);
         nh.param("optimizer/relCostTol", relCostTol, 1.0e-2);

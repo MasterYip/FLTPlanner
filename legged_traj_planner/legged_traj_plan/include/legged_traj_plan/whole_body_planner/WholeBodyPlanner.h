@@ -37,7 +37,7 @@ private:
 public:
     MCTSWholeBodyPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                          std::shared_ptr<GridMapInterface> gridmap_interface,
-                         std::shared_ptr<ElSpiderAirInterface> robot_interface, bool use_cfg_space = true);
+                         std::shared_ptr<ElSpiderAirInterface> robot_interface);
 
     bool enqueue_MCTsolution(hexapod_State state0, hexapod_State state1);
 
