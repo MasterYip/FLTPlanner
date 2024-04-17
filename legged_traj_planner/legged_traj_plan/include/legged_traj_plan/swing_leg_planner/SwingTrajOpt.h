@@ -432,7 +432,7 @@ public:
                  std::shared_ptr<GCSVisualizer> visualizer = nullptr)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
           visualizer_(visualizer),
-          collPena(robot_interface, gridmap_interface, visualizer_)
+          collPena(robot_interface, gridmap_interface)
     {
         if (visualizer != nullptr)
             enable_vis_ = true;
@@ -443,6 +443,7 @@ public:
         if (visualizer != nullptr)
         {
             visualizer_ = visualizer;
+            collPena.setupVis(visualizer);
             enable_vis_ = true;
         }
     }

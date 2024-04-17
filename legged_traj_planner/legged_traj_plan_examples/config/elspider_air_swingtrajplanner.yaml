@@ -2,12 +2,15 @@ trajInit:
   vLift: 0.4
   hLift: 0.15
 
+misc:
+  enableOptVis: true
+
 optimizer:
-  enableOptimizer: false
+  enableOptimizer: true
   useCfgSpace: true
   lengthPerPiece: 0.6
   allocSpeed: 1.0
-  relCostTol: 1.0e-2
+  relCostTol: 1.0e-1
   smoothingFactor: 1.0e-2
   integralResolution: 16
 
@@ -30,6 +33,3 @@ penalty:
   CollBall1Weight: 0.0
   CollBall2Weight: 0.0
   CollBall3Weight: 0.05
-
-misc:
-  enableOptVis: false

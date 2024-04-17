@@ -51,6 +51,15 @@ public:
         }
     }
 
+    void setupVis(std::shared_ptr<GCSVisualizer> visualizer)
+    {
+        if (visualizer != nullptr)
+        {
+            enable_vis_ = true;
+            visualizer_ = visualizer;
+        }
+    }
+
     void setupParams(SwingTrajPlannerConfig &config)
     {
         collBallRadius_ << config.CollBall1Rad, config.CollBall2Rad, config.CollBall3Rad;
