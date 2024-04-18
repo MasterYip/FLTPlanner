@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Vis_SwingTrajPlanner1/Namespaces1
       Splitter Ratio: 0.49772727489471436
     Tree Height: 651
   - Class: rviz/Selection
@@ -318,8 +317,13 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
       Namespaces:
-        {}
-      Queue Size: 100
+        arrow: true
+        cube: true
+        curve: true
+        facet: true
+        mesh: true
+        sphere: true
+      Queue Size: 1
       Value: true
   Enabled: true
   Global Options:
@@ -365,9 +369,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.49979764223098755
+      Pitch: 0.4797976613044739
       Target Frame: <Fixed Frame>
-      Yaw: 4.121363639831543
+      Yaw: 4.586365222930908
     Saved: ~
 Window Geometry:
   Displays:
