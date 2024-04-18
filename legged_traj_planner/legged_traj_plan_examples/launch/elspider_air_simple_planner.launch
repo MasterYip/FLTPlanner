@@ -7,17 +7,18 @@
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
     <!-- TrajRep -->
-    <arg name="use_cfg_space" default="true" />
+    <arg name="use_cfg_space" default="false" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="false" />
     <arg name="with_ceiling" value="false" />
-    <arg name="max_height" value="1.0" />
+    <arg name="max_height" value="0.3" />
     <!-- Only used when fake_feedback=true -->
     <arg name="elevation_layer" value="elevation_inpainted" />
     <arg name="ceiling_layer" value="ceiling" />
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
     <arg name="grid_map_topic" value="/grid_map" />
-    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain2-HalfSideSlope-ground.png" />
+    <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain2-HalfSideSlope-ground.png" /> -->
+    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ground.png" />
     <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ceiling.png" />
 
     <!-- Launch -->

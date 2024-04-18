@@ -73,8 +73,9 @@ private:
     double allocSpeed;
 
     // Penalties
-    LegLimitPenalty lmtPena;
-    LegCollisionPenalty collPena;
+    LegLimitPenalty lmtPena;         // Config space
+    LegCollisionPenalty legCollPena; // Config space
+    CollisionPenalty collPena;       // Cartesian space
 
     // Intermediate variables
     lbfgs::lbfgs_parameter_t lbfgs_params;
@@ -241,7 +242,7 @@ private:
         std::vector<Eigen::Vector3d> visTraj;
         std::vector<Eigen::Vector3d> visTraj2;
         std::vector<Eigen::Vector3d> visInPs;
-        obj.collPena.visClear();
+        obj.legCollPena.visClear();
         for (int i = 0; i < pieceNum; i++)
         {
             const Eigen::Matrix<double, 4, 3> &c = coeffs.block<4, 3>(i * 4, 0);
@@ -272,12 +273,13 @@ private:
                     // Joint Limit Soft Constraints
                     obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
                     if (norm_time > 0.2 && norm_time < 0.8) // Exclude the start and end points
-                        obj.collPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
+                        obj.legCollPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
                 }
                 else
                 {
                     // Cartesian Space Soft Constraints
-                    // TODO
+                    if (norm_time > 0.2 && norm_time < 0.8)
+                        obj.collPena.attachPena(pos, gradPos, pena);
                 }
 
                 // Visualizer
@@ -432,7 +434,7 @@ public:
                  std::shared_ptr<GCSVisualizer> visualizer = nullptr)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
           visualizer_(visualizer),
-          collPena(robot_interface, gridmap_interface)
+          legCollPena(robot_interface, gridmap_interface), collPena(gridmap_interface_)
     {
         if (visualizer != nullptr)
             enable_vis_ = true;
@@ -443,6 +445,7 @@ public:
         if (visualizer != nullptr)
         {
             visualizer_ = visualizer;
+            legCollPena.setupVis(visualizer);
             collPena.setupVis(visualizer);
             enable_vis_ = true;
         }
@@ -520,6 +523,7 @@ public:
         // Setup for minco
         minco.setConditions(headPV, tailPV, pieceN);
         // Costs setup
+        legCollPena.setupParams(config_);
         collPena.setupParams(config_);
 
         // Allocate temp variables

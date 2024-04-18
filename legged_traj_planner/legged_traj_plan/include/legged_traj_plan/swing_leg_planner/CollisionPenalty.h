@@ -26,6 +26,82 @@
 
 #include "Utils.h"
 
+/**
+ * @brief Collision Penalty for cartesian space (foot)
+ *
+ */
+class CollisionPenalty
+{
+private:
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
+    double collBallRadius_;
+    double weight_;
+    double mu_;
+
+    std::shared_ptr<GCSVisualizer> visualizer_;
+    bool enable_vis_ = false;
+
+public:
+    CollisionPenalty(std::shared_ptr<GridMapInterface> gridmap_interface,
+                     std::shared_ptr<GCSVisualizer> visualizer = nullptr)
+        : gridmap_interface_(gridmap_interface)
+    {
+        if (visualizer != nullptr)
+        {
+            enable_vis_ = true;
+            visualizer_ = visualizer;
+        }
+    }
+
+    void setupVis(std::shared_ptr<GCSVisualizer> visualizer)
+    {
+        if (visualizer != nullptr)
+        {
+            enable_vis_ = true;
+            visualizer_ = visualizer;
+        }
+    }
+
+    void setupParams(SwingTrajPlannerConfig &config)
+    {
+        collBallRadius_ = config.CollBall3Rad;
+        weight_ = config.CollBall3Weight;
+        mu_ = config.smoothingFactor;
+    }
+
+    /**
+     * @brief Attach penalty to position, velocity and acceleration
+     *
+     * @param footPos Position in world frame
+     * @param gradPos Gradient of position in world frame
+     * @param pena Penalty
+     */
+    void attachPena(const Eigen::Vector3d &pos,
+                    Eigen::Vector3d &gradPos,
+                    double &pena)
+    {
+        // WORLD frame
+        Eigen::Vector3d sdfGrad;
+        double sdf = gridmap_interface_->sdfValue(pos, 0, "min");
+        double f, df;
+        if (smoothedL1(collBallRadius_ - sdf, mu_, f, df))
+        {
+            sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
+            gradPos += -df * sdfGrad / sdfGrad.norm();
+            pena += weight_ * f;
+            if (enable_vis_)
+            {
+                visualizer_->setIdGroup(3);
+                visualizer_->visArrow(pos, pos + gradPos * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+            }
+        }
+    }
+};
+
+/**
+ * @brief Collision Penalty for configuration space (config space)
+ * 
+ */
 class LegCollisionPenalty
 {
 private:
@@ -64,7 +140,6 @@ public:
     {
         collBallRadius_ << config.CollBall1Rad, config.CollBall2Rad, config.CollBall3Rad;
         weight_ << config.CollBall1Weight, config.CollBall2Weight, config.CollBall3Weight;
-        // NOTE: It will be ignored by optimization if too large
         mu_ = config.smoothingFactor;
     }
 
