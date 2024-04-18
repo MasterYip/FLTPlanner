@@ -18,7 +18,6 @@ int main(int argc, char **argv)
     ros::Time::init(); // FIXME: some where call ros::Time::now() before nh_ initialized
     bool fake_feedback = ros::param::param<bool>("~fake_feedback", false);
     bool simulation = ros::param::param<bool>("~sim", false);
-    // bool use_cfg_space = ros::param::param<bool>("~use_cfg_space", false);
     SwingTrajPlannerConfig swing_traj_planner_config;
     swing_traj_planner_config.loadParams(nh);
     ElSpiderAirSimplePlanner planner(swing_traj_planner_config, fake_feedback, simulation);

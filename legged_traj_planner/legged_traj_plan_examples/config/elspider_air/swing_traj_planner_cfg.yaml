@@ -1,6 +1,7 @@
 trajInit:
-  vLift: 0.4
+  vLift: 0.01
   hLift: 0.15
+  trajTime: 2.0
 
 misc:
   enableOptVis: true
@@ -8,9 +9,9 @@ misc:
 optimizer:
   enableOptimizer: true
   useCfgSpace: true
-  lengthPerPiece: 0.6
-  allocSpeed: 1.0
-  relCostTol: 1.0e-1
+  lengthPerPiece: 0.2
+  allocSpeed: 0.5
+  relCostTol: 1.0e-3
   smoothingFactor: 1.0e-2
   integralResolution: 16
 

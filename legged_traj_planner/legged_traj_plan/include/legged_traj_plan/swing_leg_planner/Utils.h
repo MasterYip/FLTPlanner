@@ -63,6 +63,7 @@ struct SwingTrajPlannerConfig
     // Traj Init
     double vLift;
     double hLift;
+    double trajTime;
     //// Optimizer
     // Enable
     bool enableOptimizer;
@@ -104,6 +105,7 @@ struct SwingTrajPlannerConfig
     {
         nh.param("trajInit/vLift", vLift, 0.2);
         nh.param("trajInit/hLift", hLift, 0.1);
+        nh.param("trajInit/trajTime", trajTime, 1.0);
         nh.param("optimizer/enableOptimizer", enableOptimizer, true);
         nh.param("optimizer/useCfgSpace", useCfgSpace, true);
         nh.param("optimizer/lengthPerPiece", lengthPerPiece, 0.6);

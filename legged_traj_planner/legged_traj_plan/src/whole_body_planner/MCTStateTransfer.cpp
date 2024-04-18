@@ -106,10 +106,10 @@ PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
     return footend_interp;
 }
 
-std::array<bool, 6> MCTStateTransfer::eval_support_state(double t, double margin)
+std::array<bool, 6> MCTStateTransfer::eval_support_state(double t, double lift_margin, double touch_margin)
 {
     std::array<bool, 6> support_state;
-    if (t < 1 - margin && t > margin)
+    if (t < 1 - touch_margin && t > lift_margin)
     {
         for (int i = 0; i < 6; ++i)
         {
