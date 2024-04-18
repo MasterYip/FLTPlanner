@@ -318,7 +318,6 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::Vector3d start_vel;
     Eigen::Vector3d goal_vel;
     minco_traj->getInitCondition(poly_path, start_vel, goal_vel);
-    std::cout<<"start_vel: "<<start_vel.transpose()<<", goal_vel: "<<goal_vel.transpose()<<std::endl;
     Eigen::Matrix3Xd poly_path_mat(3, poly_path.size());
     for (size_t i = 0; i < poly_path.size(); i++)
         poly_path_mat.col(i) = poly_path[i];

@@ -9,14 +9,14 @@ misc:
 optimizer:
   enableOptimizer: true
   useCfgSpace: false
-  lengthPerPiece: 0.05 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+  lengthPerPiece: 0.1 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
   allocSpeed: 0.05
   relCostTol: 1.0e-3
   smoothingFactor: 1.0e-2
   integralResolution: 16
 
 penalty:
-  timeWeight: 0.000005 # PROBLEM: too large or too small will leads to max-try error
+  timeWeight: 0.001 # PROBLEM: too large or too small will leads to max-try error
   joint1PosMin: -0.785
   joint1PosMax: 0.785
   joint2PosMin: -0.5233

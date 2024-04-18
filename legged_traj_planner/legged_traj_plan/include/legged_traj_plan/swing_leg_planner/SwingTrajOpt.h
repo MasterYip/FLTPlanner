@@ -373,7 +373,6 @@ private:
         cost += weightT * obj.times.sum();
         obj.gradByTimes.array() += weightT; // PROBLEM
 
-        std::cout << "GradTimes: " << obj.gradByTimes.transpose() << std::endl;
 
         // Backward
         backwardGradP(obj.gradByPoints, gradXi);
@@ -381,6 +380,8 @@ private:
 
         std::cout << "gradXi: " << gradXi.transpose() << std::endl;
         std::cout << "gradTau: " << gradTau.transpose() << std::endl;
+        std::cout << "Xi: " << xi.transpose() << std::endl;
+        std::cout << "Tau: " << tau.transpose() << std::endl;
 
         // TODO: what is this?
         // normRetrictionLayer(xi, obj.vPolyIdx, obj.vPolytopes, cost, gradXi);
