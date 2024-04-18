@@ -272,8 +272,8 @@ private:
                 {
                     // Joint Limit Soft Constraints
                     obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
-                    if (norm_time > 0.2 && norm_time < 0.8) // Exclude the start and end points
-                        obj.legCollPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, gradPos, obj.index_, pena);
+                    if (norm_time > 0.2 && norm_time < 0.8) // FIXME: this is not a good way
+                        obj.legCollPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, vel, gradPos, obj.index_, pena);
                 }
                 else
                 {

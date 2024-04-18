@@ -1,5 +1,5 @@
 trajInit:
-  vLift: 0.016
+  vLift: 0.016 # FIXME: it should be perpendicularly to the ground (avoid collision detection)
   hLift: 0.15
   trajTime: 10
 
@@ -10,13 +10,13 @@ optimizer:
   enableOptimizer: true
   useCfgSpace: true
   lengthPerPiece: 0.3 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
-  allocSpeed: 0.05
+  allocSpeed: 0.04
   relCostTol: 1.0e-3
   smoothingFactor: 1.0e-2
   integralResolution: 16
 
 penalty:
-  timeWeight: 0.00001 # PROBLEM: too large or too small will leads to max-try error
+  timeWeight: 0.0003 # PROBLEM: too large or too small will leads to max-try error
 
   joint1PosMin: -0.785
   joint1PosMax: 0.785

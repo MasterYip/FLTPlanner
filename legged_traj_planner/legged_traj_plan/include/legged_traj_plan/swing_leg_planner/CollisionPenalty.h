@@ -100,7 +100,7 @@ public:
 
 /**
  * @brief Collision Penalty for configuration space (config space)
- * 
+ *
  */
 class LegCollisionPenalty
 {
@@ -153,6 +153,7 @@ public:
      */
     void attachPena(const pinocchio::SE3 &pose,
                     const Eigen::Vector3d &posCfg,
+                    const Eigen::Vector3d &velCfg,
                     Eigen::Vector3d &gradPosCfg,
                     int index,
                     double &pena)
@@ -170,6 +171,10 @@ public:
             gradPos = -df * sdfGrad / sdfGrad.norm();
             Eigen::Matrix3Xd J = robot_interface_->getJacobian(posCfg, index);
             Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
+            Eigen::Vector3d vel = J * velCfg;
+            // Perpendicular component of gradPos to vel
+            // FIXME: work to config space do not have Conformal property
+            gradPos = vel.cross(gradPos).cross(vel) / (vel.dot(vel));
             gradPosCfg += weight_(2) * J_inv * gradPos;
             pena += weight_(2) * f;
             if (enable_vis_)
