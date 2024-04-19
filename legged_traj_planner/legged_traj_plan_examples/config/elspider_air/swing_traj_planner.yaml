@@ -34,3 +34,4 @@ penalty:
   CollBall1Weight: 0.0
   CollBall2Weight: 0.0
   CollBall3Weight: 1
+  FootCollExcludeBallRad: 0.03

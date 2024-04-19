@@ -25,7 +25,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: SDF
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -276,7 +276,7 @@ Visualization Manager:
       Unreliable: false
       Use ColorMap: true
       Value: true
-    - Alpha: 0.6000000238418579
+    - Alpha: 0.30000001192092896
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 10
@@ -288,22 +288,22 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: false
+      Enabled: true
       Invert Rainbow: true
       Max Color: 0; 0; 0
       Min Color: 239; 41; 41
       Name: SDF
       Position Transformer: XYZ
-      Queue Size: 10
+      Queue Size: 1
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.019999999552965164
+      Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /occupied_space
+      Topic: /sdf_pointcloud/occupied_space
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /visualizer_markers
@@ -317,12 +317,7 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
       Namespaces:
-        arrow: true
-        cube: true
-        curve: true
-        facet: true
-        mesh: true
-        sphere: true
+        {}
       Queue Size: 1
       Value: true
   Enabled: true
@@ -353,7 +348,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.5858596563339233
+      Distance: 1.904595971107483
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -361,17 +356,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.3293503522872925
-        Y: 0.20103685557842255
-        Z: -0.13682380318641663
+        X: 1.267958402633667
+        Y: 0.2992274761199951
+        Z: -0.05057213455438614
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4797976613044739
+      Pitch: 0.5297974944114685
       Target Frame: <Fixed Frame>
-      Yaw: 4.586365222930908
+      Yaw: 4.2763752937316895
     Saved: ~
 Window Geometry:
   Displays:

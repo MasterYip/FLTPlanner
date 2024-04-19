@@ -97,6 +97,7 @@ struct SwingTrajPlannerConfig
     double CollBall1Weight;
     double CollBall2Weight;
     double CollBall3Weight;
+    double FootCollExcludeBallRad;
 
     // Misc
     bool enableOptVis;
@@ -131,6 +132,7 @@ struct SwingTrajPlannerConfig
         nh.param("penalty/CollBall1Weight", CollBall1Weight, 0.0);
         nh.param("penalty/CollBall2Weight", CollBall2Weight, 0.0);
         nh.param("penalty/CollBall3Weight", CollBall3Weight, 0.05);
+        nh.param("penalty/FootCollExcludeBallRad", FootCollExcludeBallRad, 0.05);
         nh.param("misc/enableOptVis", enableOptVis, false);
     }
 };

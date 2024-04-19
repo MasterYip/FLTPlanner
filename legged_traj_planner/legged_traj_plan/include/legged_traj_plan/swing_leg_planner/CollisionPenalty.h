@@ -38,6 +38,10 @@ private:
     double weight_;
     double mu_;
 
+    double endCollExcludeRadius_; // TODO: use gaussian weight better
+    Eigen::Vector3d startExcludeBall_;
+    Eigen::Vector3d endExcludeBall_;
+
     std::shared_ptr<GCSVisualizer> visualizer_;
     bool enable_vis_ = false;
 
@@ -67,6 +71,19 @@ public:
         collBallRadius_ = config.CollBall3Rad;
         weight_ = config.CollBall3Weight;
         mu_ = config.smoothingFactor;
+        endCollExcludeRadius_ = config.FootCollExcludeBallRad;
+    }
+
+    /**
+     * @brief Setup excluding ball for collision checking (cartesian space)
+     *
+     * @param start
+     * @param end
+     */
+    void setExcludeBall(const Eigen::Vector3d start, const Eigen::Vector3d end)
+    {
+        startExcludeBall_ = start;
+        endExcludeBall_ = end;
     }
 
     /**
@@ -84,7 +101,9 @@ public:
         Eigen::Vector3d sdfGrad;
         double sdf = gridmap_interface_->sdfValue(pos, 0, "min");
         double f, df;
-        if (smoothedL1(collBallRadius_ - sdf, mu_, f, df))
+        if ((pos - startExcludeBall_).norm() > endCollExcludeRadius_ &&
+            (pos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
+            smoothedL1(collBallRadius_ - sdf, mu_, f, df))
         {
             sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
             gradPos += -df * sdfGrad / sdfGrad.norm();
@@ -110,6 +129,10 @@ private:
     Eigen::Vector3d collBallRadius_;
     Eigen::Vector3d weight_;
     double mu_;
+
+    double endCollExcludeRadius_; // TODO: use gaussian weight better
+    Eigen::Vector3d startExcludeBall_;
+    Eigen::Vector3d endExcludeBall_;
 
     std::shared_ptr<GCSVisualizer> visualizer_;
     bool enable_vis_ = false;
@@ -141,6 +164,19 @@ public:
         collBallRadius_ << config.CollBall1Rad, config.CollBall2Rad, config.CollBall3Rad;
         weight_ << config.CollBall1Weight, config.CollBall2Weight, config.CollBall3Weight;
         mu_ = config.smoothingFactor;
+        endCollExcludeRadius_ = config.FootCollExcludeBallRad;
+    }
+
+    /**
+     * @brief Setup excluding ball for collision checking (cartesian space)
+     *
+     * @param start
+     * @param end
+     */
+    void setExcludeBall(const Eigen::Vector3d start, const Eigen::Vector3d end)
+    {
+        startExcludeBall_ = start;
+        endExcludeBall_ = end;
     }
 
     /**
@@ -165,7 +201,9 @@ public:
 
         double sdf = gridmap_interface_->sdfValue(footPos, 0, "min");
         double f, df;
-        if (smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
+        if ((footPos - startExcludeBall_).norm() > endCollExcludeRadius_ &&
+            (footPos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
+            smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
             sdfGrad = gridmap_interface_->sdfDerivative(footPos, 0);
             gradPos = -df * sdfGrad / sdfGrad.norm();

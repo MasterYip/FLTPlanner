@@ -6,7 +6,7 @@
     <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
-    <!-- TrajRep -->
+    <!-- TrajRepresentation -->
     <arg name="use_cfg_space" default="true" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="false" />
@@ -49,10 +49,12 @@
         </node>
 
         <!-- sdf_pub for SDF visualization (pointcloud) -->
-        <!-- <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen"/>
-        <node pkg="grid_map_visualization" type="grid_map_visualization" name="grid_map_visualization" output="screen">
-            <rosparam command="load" file="$(find legged_traj_plan_examples)/config/mapVisual.yaml" />
-        </node> -->
+        <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen">
+            <param name="elevation_layer" value="$(arg elevation_layer)" />
+            <param name="grid_map_topic" value="$(arg grid_map_topic)" />
+            <param name="pointcloud_topic" value="/sdf_pointcloud" />
+        </node>
+
     </group>
     <group if="$(eval fake_feedback == 0)">
         <!-- HexapodSoftware -->

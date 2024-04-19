@@ -272,8 +272,8 @@ private:
                 {
                     // Joint Limit Soft Constraints
                     obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
-                    if (norm_time > 0.2 && norm_time < 0.8) // FIXME: this is not a good way
-                        obj.legCollPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, vel, gradPos, obj.index_, pena);
+                    // if (norm_time > 0.2 && norm_time < 0.8) // FIXME: this is not a good way
+                    obj.legCollPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, vel, gradPos, obj.index_, pena);
                 }
                 else
                 {
@@ -372,7 +372,6 @@ private:
         // 3.Time cost
         cost += weightT * obj.times.sum();
         obj.gradByTimes.array() += weightT; // PROBLEM
-
 
         // Backward
         backwardGradP(obj.gradByPoints, gradXi);
@@ -525,7 +524,11 @@ public:
         minco.setConditions(headPV, tailPV, pieceN);
         // Costs setup
         legCollPena.setupParams(config_);
+        legCollPena.setExcludeBall(point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(headPV.col(0), index)),
+                                   point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(tailPV.col(0), index)));
         collPena.setupParams(config_);
+        collPena.setExcludeBall(point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(headPV.col(0), index)),
+                                point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(tailPV.col(0), index)));
 
         // Allocate temp variables
         points.resize(3, pieceN - 1);

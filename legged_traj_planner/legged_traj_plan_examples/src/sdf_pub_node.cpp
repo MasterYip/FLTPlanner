@@ -15,16 +15,16 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "grid_map_sdf_demo");
-  ros::NodeHandle nodeHandle("");
+  ros::NodeHandle nodeHandle("~");
 
   std::string elevationLayer;
-  nodeHandle.getParam("elevation_layer", elevationLayer);
+  nodeHandle.param("elevation_layer", elevationLayer, std::string("elevation"));
 
   std::string mapTopic;
-  nodeHandle.getParam("grid_map_topic", mapTopic);
+  nodeHandle.param("grid_map_topic", mapTopic, std::string("grid_map"));
 
   std::string pointcloudTopic;
-  nodeHandle.getParam("pointcloud_topic", pointcloudTopic);
+  nodeHandle.param("pointcloud_topic", pointcloudTopic, std::string("sdf_pointcloud"));
 
   grid_map_demos::SdfDemo sdfDemo(nodeHandle, mapTopic, elevationLayer, pointcloudTopic);
 

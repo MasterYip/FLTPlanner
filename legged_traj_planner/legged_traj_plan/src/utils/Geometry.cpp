@@ -19,10 +19,22 @@ pinocchio::SE3 XYZRPY2SE3(legged_traj_plan::hexapod_Base_Pose pose)
     return se3;
 }
 
+/**
+ * @brief Transform a point from frame b to frame a (or apply a SE3 transformation to a point)
+ * 
+ * @param bMa 
+ * @param pt 
+ * @return Eigen::Vector3d 
+ */
 Eigen::Vector3d point_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Vector3d &pt)
 {
     pinocchio::SE3 aMb = bMa.inverse();
     return aMb.translation() + aMb.rotation() * pt;
+}
+
+Eigen::Vector3d vec_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Vector3d &vec)
+{
+    return bMa.inverse().rotation() * vec;
 }
 
 Eigen::Matrix3Xd points_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Matrix3Xd &pts)

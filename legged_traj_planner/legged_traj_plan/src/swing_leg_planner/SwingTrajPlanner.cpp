@@ -178,8 +178,13 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getInitTraj(pinocchio::SE3 po
     {
         return getDefaultTraj(p0, p1, v_lift, h_lift);
     }
-    Eigen::Vector3d start_vel = Eigen::Vector3d(0, 0, v_lift);
-    Eigen::Vector3d goal_vel = Eigen::Vector3d(0, 0, -v_lift);
+    // Start & End Vel in World Frame
+    Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
+    normal.normalize();
+    Eigen::Vector3d start_vel = normal * v_lift;
+    normal = gridmap_interface_->sdfDerivative(p1, 0);
+    normal.normalize();
+    Eigen::Vector3d goal_vel = -normal * v_lift;
     MincoTrajectory minco_traj(poly_path, start_vel, goal_vel, config_.trajTime);
 #ifdef ENABLE_VISUALIZER
     // Minco
@@ -227,9 +232,14 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3
     }
 
     // Get start and goal velocity in config space
-    // FIXME: the vel is in BASE frame, not in WORLD frame
-    Eigen::Vector3d start_vel = Eigen::Vector3d(0, 0, v_lift);
-    Eigen::Vector3d goal_vel = Eigen::Vector3d(0, 0, -v_lift);
+    // NOTE: the vel is in BASE frame
+    Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
+    normal.normalize();
+    Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * v_lift);
+    std::cout << "start_vel: " << normal.transpose() << std::endl;
+    normal = gridmap_interface_->sdfDerivative(p1, 0);
+    normal.normalize();
+    Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * v_lift);
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_path.front(), index);
     Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
     start_vel = J_inv * start_vel;
@@ -256,7 +266,6 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3
     return std::make_shared<MincoTrajectory>(minco_traj);
 }
 
-// TODO:
 bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
                                   const pinocchio::SE3 &pose0,
                                   const pinocchio::SE3 &pose1,
@@ -264,15 +273,11 @@ bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
 {
     if (!config_.enableOptimizer)
         return true;
-    // FIXME: Temporarily cast to MincoTrajectory
     std::shared_ptr<MincoTrajectory> minco_traj = std::dynamic_pointer_cast<MincoTrajectory>(traj);
     std::vector<Point3D> poly_path;
     Eigen::Vector3d start_vel;
     Eigen::Vector3d goal_vel;
     minco_traj->getInitCondition(poly_path, start_vel, goal_vel);
-    // FIXME: start_vel & goal set to zero (test)
-    // start_vel = Eigen::Vector3d::Zero();
-    // goal_vel = Eigen::Vector3d::Zero();
     Eigen::Matrix3Xd poly_path_mat(3, poly_path.size());
     for (size_t i = 0; i < poly_path.size(); i++)
         poly_path_mat.col(i) = poly_path[i];
@@ -312,7 +317,6 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
 {
     if (!config_.enableOptimizer)
         return true;
-    // FIXME: Temporarily cast to MincoTrajectory
     std::shared_ptr<MincoTrajectory> minco_traj = std::dynamic_pointer_cast<MincoTrajectory>(traj);
     std::vector<Point3D> poly_path;
     Eigen::Vector3d start_vel;
