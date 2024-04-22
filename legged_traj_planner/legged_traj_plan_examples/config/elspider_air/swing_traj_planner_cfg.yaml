@@ -4,7 +4,7 @@ trajInit:
   trajTime: 10
 
 misc:
-  enableOptVis: true
+  enableOptVis: false
 
 optimizer:
   enableOptimizer: true

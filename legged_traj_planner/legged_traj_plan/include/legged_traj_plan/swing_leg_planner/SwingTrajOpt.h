@@ -263,7 +263,7 @@ private:
                 acc = c.transpose() * beta2;
                 jer = c.transpose() * beta3;
 
-                // TODO: Penalties
+                // Penalties
                 gradPos.setZero(), gradVel.setZero(), gradAcc.setZero();
                 pena = 0.0;
 
@@ -272,14 +272,12 @@ private:
                 {
                     // Joint Limit Soft Constraints
                     obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
-                    // if (norm_time > 0.2 && norm_time < 0.8) // FIXME: this is not a good way
                     obj.legCollPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, vel, gradPos, obj.index_, pena);
                 }
                 else
                 {
                     // Cartesian Space Soft Constraints
-                    if (norm_time > 0.2 && norm_time < 0.8)
-                        obj.collPena.attachPena(pos, gradPos, pena);
+                    obj.collPena.attachPena(pos, gradPos, pena);
                 }
 
                 // Visualizer
@@ -301,20 +299,18 @@ private:
                 }
 
                 // Backward
-                // std::cout<<"gradPos: "<<gradPos.transpose()<<std::endl;
-                // std::cout << "pena: " << pena << std::endl;
                 totalGradPos = gradPos;
                 totalGradVel = gradVel;
                 totalGradAcc = gradAcc;
 
-                // PROBLEM: What is this
+                // PROBLEM: What is this : maybe a simple partial derivative
                 node = (j == 0 || j == integralResolution) ? 0.5 : 1.0;
                 alpha = j * integralFrac;
                 gradC.block<4, 3>(i * 4, 0) += (beta0 * totalGradPos.transpose() + // 4*3 order-1 newton?
                                                 beta1 * totalGradVel.transpose() + // 4*3
                                                 beta2 * totalGradAcc.transpose() *
                                                     node * step);
-                // PROBLEM
+                // PROBLEM: What is this
                 gradT(i) += (totalGradPos.dot(vel) +
                              totalGradVel.dot(acc) +
                              totalGradAcc.dot(jer) *
