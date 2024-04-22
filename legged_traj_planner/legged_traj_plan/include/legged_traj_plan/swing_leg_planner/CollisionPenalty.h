@@ -89,7 +89,7 @@ public:
     /**
      * @brief Attach penalty to position, velocity and acceleration
      *
-     * @param footPos Position in world frame
+     * @param pos Position in world frame
      * @param gradPos Gradient of position in world frame
      * @param pena Penalty
      */
@@ -183,42 +183,43 @@ public:
      * @brief Attach penalty to position, velocity and acceleration
      *
      * @param pose Pose of base
-     * @param pos Position in config space
-     * @param gradPos Gradient of position in config space
+     * @param posCfg Position in config space
+     * @param gradPosCfg Gradient of position in config space
      * @param pena Penalty
      */
     void attachPena(const pinocchio::SE3 &pose,
                     const Eigen::Vector3d &posCfg,
                     const Eigen::Vector3d &velCfg,
+                    // const Eigen::Vector3d &accCfg,
                     Eigen::Vector3d &gradPosCfg,
                     int index,
                     double &pena)
     {
+        Eigen::Matrix3Xd J = robot_interface_->getJacobian(posCfg, index);
         // WORLD frame
-        Eigen::Vector3d footPos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
+        Eigen::Vector3d pos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
+        Eigen::Vector3d vel = vec_SE3Act(pose.inverse(), J * velCfg);
+        // Eigen::Vector3d acc = vec_SE3Act(pose.inverse(), // TODO: add jac time derivative to robot interface
         Eigen::Vector3d sdfGrad;
-        Eigen::Vector3d gradPos;
+        Eigen::Vector3d gradPcoll;
 
-        double sdf = gridmap_interface_->sdfValue(footPos, 0, "min");
+        double sdf = gridmap_interface_->sdfValue(pos, 0, "min");
         double f, df;
-        if ((footPos - startExcludeBall_).norm() > endCollExcludeRadius_ &&
-            (footPos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
+        if ((pos - startExcludeBall_).norm() > endCollExcludeRadius_ &&
+            (pos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
             smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
-            sdfGrad = gridmap_interface_->sdfDerivative(footPos, 0);
-            gradPos = -df * sdfGrad / sdfGrad.norm();
-            Eigen::Matrix3Xd J = robot_interface_->getJacobian(posCfg, index);
-            Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
-            Eigen::Vector3d vel = J * velCfg;
-            // Perpendicular component of gradPos to vel
-            // FIXME: work to config space do not have Conformal property
-            gradPos = vel.cross(gradPos).cross(vel) / (vel.dot(vel));
-            gradPosCfg += weight_(2) * J_inv * gradPos;
-            pena += weight_(2) * f;
+            Eigen::Vector3d velnorm = vel;
+            velnorm.normalize();
+            sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
+            gradPcoll = -df * sdfGrad / sdfGrad.norm();
+            gradPosCfg += weight_(2) * vel.norm() * J.transpose() *
+                          ((Eigen::MatrixXd::Identity(3, 3) - velnorm * velnorm.transpose()) * gradPcoll  /*FIXME: update*/);
+            pena += weight_(2) * f * vel.norm();
             if (enable_vis_)
             {
                 visualizer_->setIdGroup(3);
-                visualizer_->visArrow(footPos, footPos + gradPos * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+                visualizer_->visArrow(pos, pos + gradPcoll * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
                 visualizer_->visArrow(posCfg, posCfg + gradPosCfg * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
             }
         }
