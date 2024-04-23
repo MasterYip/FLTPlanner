@@ -91,8 +91,3 @@ void GCSVisualizer::visPolytope(Polyhedra &poly)
 {
     visPolytope(poly.getVRep());
 }
-
-void GCSVisualizer::visPolytope(Polyhedra poly)
-{
-    visPolytope(poly.getVRep());
-}

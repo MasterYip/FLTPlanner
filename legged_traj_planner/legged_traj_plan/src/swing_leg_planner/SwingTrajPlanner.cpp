@@ -236,7 +236,6 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3
     Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
     normal.normalize();
     Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * v_lift);
-    std::cout << "start_vel: " << normal.transpose() << std::endl;
     normal = gridmap_interface_->sdfDerivative(p1, 0);
     normal.normalize();
     Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * v_lift);
@@ -284,7 +283,7 @@ bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
     std::cout << "Index: " << index << ", Poly path size: " << poly_path.size() << std::endl;
 
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
-                          config_, true);
+                          config_, true, false);
     bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), config_.relCostTol);
 
 #ifdef ENABLE_VISUALIZER

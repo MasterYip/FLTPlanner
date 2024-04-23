@@ -385,10 +385,10 @@ private:
         backwardGradP(obj.gradByPoints, gradXi);
         backwardGradT(tau, obj.gradByTimes, gradTau);
 
-        std::cout << "gradXi: " << gradXi.transpose() << std::endl;
-        std::cout << "gradTau: " << gradTau.transpose() << std::endl;
-        std::cout << "Xi: " << xi.transpose() << std::endl;
-        std::cout << "Tau: " << tau.transpose() << std::endl;
+        // std::cout << "gradXi: " << gradXi.transpose() << std::endl;
+        // std::cout << "gradTau: " << gradTau.transpose() << std::endl;
+        // std::cout << "Xi: " << xi.transpose() << std::endl;
+        // std::cout << "Tau: " << tau.transpose() << std::endl;
 
         // TODO: what is this?
         // normRetrictionLayer(xi, obj.vPolyIdx, obj.vPolytopes, cost, gradXi);
@@ -430,7 +430,6 @@ private:
                 if (i > 0 || m > 0)
                 {
                     innerPoints.col(k++) = a + c * m;
-                    std::cout << "innerPoint: " << (a + c * m).transpose() << std::endl;
                 }
             }
         }
