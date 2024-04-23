@@ -25,7 +25,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: SDF
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -256,7 +256,7 @@ Visualization Manager:
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
-      Color Layer: elevation
+      Color Layer: ceiling
       Color Transformer: IntensityLayer
       ColorMap: anybotics
       Enabled: true
@@ -288,7 +288,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: true
       Max Color: 0; 0; 0
       Min Color: 239; 41; 41
@@ -303,7 +303,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /visualizer_markers
@@ -348,7 +348,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.904595971107483
+      Distance: 1.3062337636947632
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -356,17 +356,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.267958402633667
-        Y: 0.2992274761199951
-        Z: -0.05057213455438614
+        X: 1.2088292837142944
+        Y: 0.2505905032157898
+        Z: 0.1250072717666626
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5297974944114685
+      Pitch: 0.14479786157608032
       Target Frame: <Fixed Frame>
-      Yaw: 4.2763752937316895
+      Yaw: 5.291378974914551
     Saved: ~
 Window Geometry:
   Displays:

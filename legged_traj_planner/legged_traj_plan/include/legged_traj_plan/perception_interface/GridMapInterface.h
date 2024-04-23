@@ -57,7 +57,7 @@ public:
     void updateTravMap(void);
     void updateSDF(const std::string &layer_name, uint index = 0, double margin = 0.2);
     double value(const grid_map::Position &position, const std::string &layer_name = "");
-    double sdfValue(const grid_map::Position3 &position, size_t index = 0, const std::string &mode = "min");
+    double sdfValue(const grid_map::Position3 &position, const std::string &mode = "min");
     Derivative3 sdfDerivative(const grid_map::Position3 &position, size_t index = 0);
     grid_map::Length getRange() const;
     std::pair<Eigen::Vector3d, Eigen::Vector3d> getSdfRange(size_t index = 0) const;

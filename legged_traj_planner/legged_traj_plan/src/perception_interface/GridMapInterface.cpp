@@ -102,7 +102,7 @@ double GridMapInterface::value(const grid_map::Position &position, const std::st
         return map_.atPosition(layer_name, position);
 }
 
-double GridMapInterface::sdfValue(const grid_map::Position3 &position, size_t index, const std::string &mode)
+double GridMapInterface::sdfValue(const grid_map::Position3 &position, const std::string &mode)
 {
     if (mode == "min")
     {
@@ -123,12 +123,12 @@ double GridMapInterface::sdfValue(const grid_map::Position3 &position, size_t in
     }
     else if (mode == "ground")
     {
-        if (!sdf[index])
+        if (!sdf[0])
         {
             ROS_WARN("SDF is not initialized!");
             return 0.0;
         }
-        return sdf[index]->value(position);
+        return sdf[0]->value(position);
     }
     else
     {

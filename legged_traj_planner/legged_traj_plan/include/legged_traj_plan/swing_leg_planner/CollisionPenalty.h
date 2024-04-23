@@ -99,7 +99,7 @@ public:
     {
         // WORLD frame
         Eigen::Vector3d sdfGrad;
-        double sdf = gridmap_interface_->sdfValue(pos, 0, "min");
+        double sdf = gridmap_interface_->sdfValue(pos, "min");
         double f, df;
         if ((pos - startExcludeBall_).norm() > endCollExcludeRadius_ &&
             (pos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
@@ -200,9 +200,9 @@ public:
         Eigen::Vector3d pos, vel, acc, kappa, veldir, sdfGrad, gradPcoll; // WORLD frame
         double f, df, velnorm, sdf;
 
+        // Foot Collision
         pos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
-        sdf = gridmap_interface_->sdfValue(pos, 0, "min");
-
+        sdf = gridmap_interface_->sdfValue(pos, "min");
         if ((pos - startExcludeBall_).norm() > endCollExcludeRadius_ &&
             (pos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
             smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
@@ -225,6 +225,31 @@ public:
                 visualizer_->setIdGroup(3);
                 visualizer_->visArrow(pos, pos + gradPcoll * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
                 visualizer_->visArrow(posCfg, posCfg + gradPosCfg * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+            }
+        }
+
+        // Joint2 Collision
+        pos = point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 2));
+        sdf = gridmap_interface_->sdfValue(pos, "min");
+        if (smoothedL1(collBallRadius_(1) - sdf, mu_, f, df))
+        {
+            J = robot_interface_->getJacobian_CollBall(posCfg, index, 2);
+            dJ = robot_interface_->getJacobianTimeVariation_CollBall(posCfg, velCfg, index, 2);
+            vel = vec_SE3Act(pose.inverse(), J * velCfg);
+            acc = vec_SE3Act(pose.inverse(), J * accCfg + dJ * velCfg);
+            veldir = vel;
+            veldir.normalize();
+            velnorm = vel.norm();
+            kappa = 1 / (velnorm * velnorm) * (I - veldir * veldir.transpose()) * acc;
+            sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
+            gradPcoll = -df * sdfGrad / sdfGrad.norm();
+            gradPosCfg += weight_(1) * velnorm * J.transpose() *
+                          ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
+            pena += weight_(1) * f * velnorm;
+            if (enable_vis_)
+            {
+                visualizer_->setIdGroup(3);
+                visualizer_->visArrow(pos, pos + gradPcoll * 0.4, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
             }
         }
     }
