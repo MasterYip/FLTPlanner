@@ -11,8 +11,8 @@ optimizer:
   useCfgSpace: true
   lengthPerPiece: 0.5 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
   allocSpeed: 0.03 # NOTE: crucial for optimization 
-  relCostTol: 1.0e-3
-  smoothingFactor: 1.0e-5
+  relCostTol: 1.0e-6
+  smoothingFactor: 1.0e-2
   integralResolution: 16
 
 penalty:
@@ -24,8 +24,8 @@ penalty:
   joint2PosMax: 3.14
   joint3PosMin: -0.6978
   joint3PosMax: 3.925
-  jointMaxVel: 5.0
-  jointMaxAcc: 10.0
+  jointMaxVel: 10.0
+  jointMaxAcc: 50.0
   jointPosWeight: 0.4
   jointVelWeight: 0.1
   jointAccWeight: 0.1
@@ -35,5 +35,5 @@ penalty:
   CollBall3Rad: 0.03
   CollBall1Weight: 0.0
   CollBall2Weight: 0.0
-  CollBall3Weight: 1
+  CollBall3Weight: 1.0
   FootCollExcludeBallRad: 0.05

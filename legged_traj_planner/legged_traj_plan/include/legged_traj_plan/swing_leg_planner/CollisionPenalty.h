@@ -190,32 +190,36 @@ public:
     void attachPena(const pinocchio::SE3 &pose,
                     const Eigen::Vector3d &posCfg,
                     const Eigen::Vector3d &velCfg,
-                    // const Eigen::Vector3d &accCfg,
+                    const Eigen::Vector3d &accCfg,
                     Eigen::Vector3d &gradPosCfg,
                     int index,
                     double &pena)
     {
-        Eigen::Matrix3Xd J = robot_interface_->getJacobian(posCfg, index);
-        // WORLD frame
-        Eigen::Vector3d pos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
-        Eigen::Vector3d vel = vec_SE3Act(pose.inverse(), J * velCfg);
-        // Eigen::Vector3d acc = vec_SE3Act(pose.inverse(), // TODO: add jac time derivative to robot interface
-        Eigen::Vector3d sdfGrad;
-        Eigen::Vector3d gradPcoll;
+        Eigen::Matrix3Xd J, dJ;
+        Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
+        Eigen::Vector3d pos, vel, acc, kappa, veldir, sdfGrad, gradPcoll; // WORLD frame
+        double f, df, velnorm, sdf;
 
-        double sdf = gridmap_interface_->sdfValue(pos, 0, "min");
-        double f, df;
+        pos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
+        sdf = gridmap_interface_->sdfValue(pos, 0, "min");
+
         if ((pos - startExcludeBall_).norm() > endCollExcludeRadius_ &&
             (pos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
             smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
-            Eigen::Vector3d velnorm = vel;
-            velnorm.normalize();
+            J = robot_interface_->getJacobian(posCfg, index);
+            dJ = robot_interface_->getJacobianTimeVariation(posCfg, velCfg, index);
+            vel = vec_SE3Act(pose.inverse(), J * velCfg);
+            acc = vec_SE3Act(pose.inverse(), J * accCfg + dJ * velCfg);
+            veldir = vel;
+            veldir.normalize();
+            velnorm = vel.norm();
+            kappa = 1 / (velnorm * velnorm) * (I - veldir * veldir.transpose()) * acc;
             sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
             gradPcoll = -df * sdfGrad / sdfGrad.norm();
-            gradPosCfg += weight_(2) * vel.norm() * J.transpose() *
-                          ((Eigen::MatrixXd::Identity(3, 3) - velnorm * velnorm.transpose()) * gradPcoll  /*FIXME: update*/);
-            pena += weight_(2) * f * vel.norm();
+            gradPosCfg += weight_(2) * velnorm * J.transpose() *
+                          ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
+            pena += weight_(2) * f * velnorm;
             if (enable_vis_)
             {
                 visualizer_->setIdGroup(3);

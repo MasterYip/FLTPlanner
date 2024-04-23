@@ -272,7 +272,7 @@ private:
                 {
                     // Joint Limit Soft Constraints
                     obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
-                    obj.legCollPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, vel, gradPos, obj.index_, pena);
+                    obj.legCollPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, vel, acc, gradPos, obj.index_, pena);
                 }
                 else
                 {

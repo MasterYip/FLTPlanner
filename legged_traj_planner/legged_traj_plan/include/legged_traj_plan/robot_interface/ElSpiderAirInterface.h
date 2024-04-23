@@ -176,11 +176,26 @@ public:
         return J;
     }
 
+    Eigen::Matrix3Xd getJacobianTimeVariation(const Eigen::Vector3d &q, const Eigen::Vector3d &vel, int index)
+    {
+        Eigen::Matrix3Xd J_dot(3, 3);
+        robot_kin.getJacobianTimeVariation(q, vel, J_dot, index);
+        return J_dot;
+    }
+
     Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx)
     {
         Eigen::Matrix3Xd J(3, 3);
         robot_kin.getJacobian(q, J, legIdx, jointIdx);
         return J;
+    }
+
+    Eigen::Matrix3d getJacobianTimeVariation_CollBall(const Eigen::Vector3d &q, const Eigen::Vector3d &vel,
+                                                      int legIdx, int jointIdx)
+    {
+        Eigen::Matrix3Xd J_dot(3, 3);
+        robot_kin.getJacobianTimeVariation(q, vel, J_dot, legIdx, jointIdx);
+        return J_dot;
     }
 
     ElSpiderKin &getRobotKin()
