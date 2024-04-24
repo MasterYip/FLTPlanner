@@ -1,15 +1,15 @@
-sim: true
+# sim: true # Loaded in launch file
 mu: 0.5
 mass: 30.0
-inertia: [0.3, 0.4, 0.5]
+# inertia: [0.3, 0.4, 0.5]
 gravity: 9.81
 loop_rate: 200.0
-Kp: 1.0
-Kd: 2.0
-pidgrf_Kp: 1.0
-pidgrf_lim: 100.0
-pidgrf_T: 0.005
-pidgrf_tau: 0.0025
+Kp: 100.0
+Kd: 14.0 # kd = 2 \zeta \sqrt(kp)
+pidgrf_Kp: 200.0 # When this equals loop_rate, pid acts as pass-through 
+pidgrf_lim: 60000.0
+# pidgrf_T: 0.005
+# pidgrf_tau: 0.0025
 exp_pose_topic_name: /exp_odom
 fdb_pose_topic_name: /torso_odom
 exp_foot_state_topic_name: /exp_foot_state
@@ -19,6 +19,8 @@ body_frame: base
 world_frame: odom
 joint_kp: [0.04, 0.04, 0.04]
 joint_kd: [1.0, 1.0, 1.0]
-joint_kp_sim: [100.0, 100.0, 100.0]
-joint_kd_sim: [3.0, 3.0, 3.0]
+joint_kp_sim: [10.0, 10.0, 10.0]
+joint_kd_sim: [0.5, 0.5, 0.5]
+# joint_kp_sim: [30.0, 30.0, 30.0]
+# joint_kd_sim: [1.0, 1.0, 1.0]
 

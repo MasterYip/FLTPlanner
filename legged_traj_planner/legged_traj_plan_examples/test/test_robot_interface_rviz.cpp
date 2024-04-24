@@ -59,7 +59,7 @@ void eg_jacobian_vis(ros::NodeHandle nh)
 
 void eg_convexhull_vis(ros::NodeHandle nh)
 {
-        ElSpiderAirInterfaceROS robot_interface(nh.param("robot_description", std::string("")));
+    ElSpiderAirInterfaceROS robot_interface(nh.param("robot_description", std::string("")));
     GCSVisualizer visualizer(nh, std::string("base"), std::string("visualizer_markers"));
     ros::Rate loop_rate(3);
     Eigen::VectorXd q = Eigen::VectorXd::Zero(18);

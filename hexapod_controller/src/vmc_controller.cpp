@@ -347,7 +347,10 @@ void VMCController::controllLoop()
     {
         // foot_effort.at(i) = -grf.at(i);
         // GRF PID filter
-        foot_effort.at(i) = pid_grf_.at(i).update(-grf.at(i), foot_effort.at(i)) * cfg_.pidgrf_T + foot_effort.at(i);
+        if (contact_flag[i])
+            foot_effort.at(i) = pid_grf_.at(i).update(-grf.at(i), foot_effort.at(i)) * cfg_.pidgrf_T + foot_effort.at(i);
+        else
+            foot_effort.at(i).setZero();
     }
     // Pub foot_cmd
     pubFootCmd(exp_foot_pos, foot_vel, foot_effort);
@@ -385,8 +388,8 @@ void VMCController::run()
 
 void VMCController::test_getExpAcc()
 {
-    ros::Rate loop_rate(100);
-    double interval = 0.01;
+    ros::Rate loop_rate(40);
+    double interval = 0.025;
     // pinocchio::SE3 target_pose(Eigen::Quaterniond(0.9, 0, 0, 0.1), Eigen::Vector3d(0, 1, 0));
     // pinocchio::SE3 target_pose(Eigen::Quaterniond(1, 0, 0, 0), Eigen::Vector3d(0, 0, 0));
     pinocchio::SE3 target_pose = pinocchio::SE3::Random();

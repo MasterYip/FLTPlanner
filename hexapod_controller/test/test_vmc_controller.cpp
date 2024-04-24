@@ -16,12 +16,12 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "test_vmc_controller");
     ros::NodeHandle nh;
     VMCController controller(nh);
-    controller.run();
-    // while (ros::ok())
-    // {
-    // controller.test_getExpAcc();
+    // controller.run();
+    while (ros::ok())
+    {
+    controller.test_getExpAcc();
     // controller.test_getGrf();
     // controller.test_fdbCalcGrf();
-    // }
+    }
     return 0;
 }

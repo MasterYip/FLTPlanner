@@ -44,6 +44,18 @@ private:
 public:
     ElSpiderAirInterfaceROS(const std::string &urdf, bool sim = false);
 
+    bool setJointKpKd(const std::vector<double> &kp, const std::vector<double> &kd)
+    {
+        if (kp.size() == 3 && kd.size() == 3)
+        {
+            joint_kp = kp;
+            joint_kd = kd;
+            return true;
+        }
+        ROS_WARN("Invalid kp or kd size");
+        return false;
+    }
+
     // Rviz
     void pub_odom(const pinocchio::SE3 &odom,
                   const std::string &child_frame = "base",
