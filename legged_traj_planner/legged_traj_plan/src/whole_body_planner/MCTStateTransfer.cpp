@@ -118,6 +118,7 @@ std::array<bool, 6> MCTStateTransfer::eval_support_state(double t, double lift_m
     }
     else
     {
+        // FIXME: Should consider error leg
         support_state.fill(true);
     }
     return support_state;

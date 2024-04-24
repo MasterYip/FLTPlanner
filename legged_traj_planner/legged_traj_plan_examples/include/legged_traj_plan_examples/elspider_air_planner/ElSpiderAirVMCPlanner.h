@@ -421,6 +421,14 @@ public:
             }
             rate_.sleep();
         } while (whole_body_planner_.get_state_traj_length() > 0);
+
+        // Set all foot contact to true
+        // FIXME: Should consider error leg
+        for (size_t k = 0; k < 6; ++k)
+        {
+            exp_foot_state_.contact[k] = true;
+        }
+        exp_foot_state_pub_.publish(exp_foot_state_);
     }
 
     void run()

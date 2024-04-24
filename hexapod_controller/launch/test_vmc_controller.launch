@@ -1,5 +1,6 @@
 <launch>
     <node pkg="hexapod_controller" type="test_vmc_controller" name="test_vmc_controller" output="screen">
+        <rosparam command="load" file="$(find hexapod_controller)/config/vmc_config.yaml" />
     </node>
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find hexapod_controller)/config/default.rviz" />
 </launch>

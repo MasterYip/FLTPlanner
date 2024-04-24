@@ -269,17 +269,14 @@ void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
     std::vector<double> joint_kp, joint_kd;
     if (!cfg_.sim) // Hardware
     {
-        // joint_kp = {0.1, 0.15, 0.15};
-        // joint_kd = {2, 2, 2};
-        joint_kp = {0.04, 0.04, 0.04};
-        joint_kd = {1, 1, 1};
+
+        joint_kp = cfg_.joint_kp;
+        joint_kd = cfg_.joint_kd;
     }
     else // Gazebo
     {
-        // joint_kp = {1500, 3000, 3000};
-        // joint_kd = {5, 7.5, 7.5};
-        joint_kp = {100, 100, 100};
-        joint_kd = {3, 3, 3};
+        joint_kp = cfg_.joint_kp_sim;
+        joint_kd = cfg_.joint_kd_sim;
     }
     for (int i = 0; i < 6; ++i)
     {
@@ -317,7 +314,8 @@ void VMCController::controllLoop()
 
     if (!(recv_exp_pose_ && recv_exp_foot_state_ && recv_fdb_foot_state_ && recv_fdb_pose_))
     {
-        ROS_WARN("Not all states are received");
+        ROS_WARN("Not all states are received: ExpPose %d, ExpFootState %d, FdbFootState %d, FdbPose %d",
+                 recv_exp_pose_, recv_exp_foot_state_, recv_fdb_foot_state_, recv_fdb_pose_);
         return;
     }
     pinocchio::Motion exp_acc;

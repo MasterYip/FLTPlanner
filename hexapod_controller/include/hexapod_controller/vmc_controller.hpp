@@ -63,12 +63,17 @@ struct VMCConfig
     std::string body_frame;
     std::string world_frame;
 
+    std::vector<double> joint_kp = {3, 0};
+    std::vector<double> joint_kd = {3, 0};
+    std::vector<double> joint_kp_sim = {3, 0};
+    std::vector<double> joint_kd_sim = {3, 0};
+
     inline void
     loadParameters(const ros::NodeHandle &nh)
     {
         nh.param("sim", sim, true);
         nh.param("mu", mu, 0.5);
-        nh.param("mass", mass, 30.0); //30
+        nh.param("mass", mass, 30.0); // 30
         // TODO
         inertia = Eigen::Matrix3d::Identity();
         inertia.diagonal() << 0.3, 0.4, 0.5;
@@ -93,6 +98,16 @@ struct VMCConfig
 
         nh.param("body_frame", body_frame, std::string("base"));
         nh.param("world_frame", world_frame, std::string("odom"));
+
+        // joint_kp = {0.1, 0.15, 0.15};
+        // joint_kd = {2, 2, 2};
+        nh.param("joint_kp", joint_kp, {0.04, 0.04, 0.04});
+        nh.param("joint_kd", joint_kd, {1.0, 1.0, 1.0});
+        // joint_kp = {1500, 3000, 3000};
+        // joint_kd = {5, 7.5, 7.5};
+        nh.param("joint_kp_sim", joint_kp_sim, {100.0, 100.0, 100.0});
+        nh.param("joint_kd_sim", joint_kd_sim, {3.0, 3.0, 3.0});
+
         return;
     };
 };
@@ -152,7 +167,7 @@ public:
                     const std::vector<Eigen::Vector3d> &footendvel,
                     const std::vector<Eigen::Vector3d> &footendeffort);
 
-        void controllLoop();
+    void controllLoop();
     void run();
 
     // Tests
