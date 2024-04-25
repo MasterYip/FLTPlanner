@@ -64,10 +64,14 @@ struct VMCConfig
     std::string body_frame;
     std::string world_frame;
 
-    std::vector<double> joint_kp = {3, 0};
-    std::vector<double> joint_kd = {3, 0};
-    std::vector<double> joint_kp_sim = {3, 0};
-    std::vector<double> joint_kd_sim = {3, 0};
+    std::vector<double> joint_kp_st = {3, 0};
+    std::vector<double> joint_kd_st = {3, 0};
+    std::vector<double> joint_kp_sw = {3, 0};
+    std::vector<double> joint_kd_sw = {3, 0};
+    std::vector<double> joint_kp_sim_st = {3, 0};
+    std::vector<double> joint_kd_sim_st = {3, 0};
+    std::vector<double> joint_kp_sim_sw = {3, 0};
+    std::vector<double> joint_kd_sim_sw = {3, 0};
 
     inline void
     loadParameters(const ros::NodeHandle &nh)
@@ -103,12 +107,16 @@ struct VMCConfig
 
         // joint_kp = {0.1, 0.15, 0.15};
         // joint_kd = {2, 2, 2};
-        nh.param("joint_kp", joint_kp, {0.04, 0.04, 0.04});
-        nh.param("joint_kd", joint_kd, {1.0, 1.0, 1.0});
+        nh.param("joint_kp_st", joint_kp_st, {0.04, 0.04, 0.04});
+        nh.param("joint_kd_st", joint_kd_st, {1.0, 1.0, 1.0});
+        nh.param("joint_kp_sw", joint_kp_sw, {0.04, 0.04, 0.04});
+        nh.param("joint_kd_sw", joint_kd_sw, {1.0, 1.0, 1.0});
         // joint_kp = {1500, 3000, 3000};
         // joint_kd = {5, 7.5, 7.5};
-        nh.param("joint_kp_sim", joint_kp_sim, {100.0, 100.0, 100.0});
-        nh.param("joint_kd_sim", joint_kd_sim, {3.0, 3.0, 3.0});
+        nh.param("joint_kp_sim_st", joint_kp_sim_st, {100.0, 100.0, 100.0});
+        nh.param("joint_kd_sim_st", joint_kd_sim_st, {3.0, 3.0, 3.0});
+        nh.param("joint_kp_sim_sw", joint_kp_sim_sw, {100.0, 100.0, 100.0});
+        nh.param("joint_kd_sim_sw", joint_kd_sim_sw, {3.0, 3.0, 3.0});
 
         return;
     };
@@ -169,7 +177,8 @@ public:
 
     void pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
                     const std::vector<Eigen::Vector3d> &footendvel,
-                    const std::vector<Eigen::Vector3d> &footendeffort);
+                    const std::vector<Eigen::Vector3d> &footendeffort,
+                    const hex_contact_flag_t &contact_flag = {true, true, true, true, true, true});
 
     void controllLoop();
     void run();

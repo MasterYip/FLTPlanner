@@ -266,22 +266,26 @@ void VMCController::expFootStateCallback(const hexapod_controller::FootState &ms
 
 void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
                                const std::vector<Eigen::Vector3d> &footendvel,
-                               const std::vector<Eigen::Vector3d> &footendeffort)
+                               const std::vector<Eigen::Vector3d> &footendeffort,
+                               const hex_contact_flag_t &contact_flag)
 {
     hexapod_controller::FootCmd footcmd;
     footcmd.header.stamp = ros::Time::now();
     footcmd.feedforward_type = 0; // Default 0, foot force feedforward
-    std::vector<double> joint_kp, joint_kd;
+    std::vector<double> joint_kp_st, joint_kd_st, joint_kp_sw, joint_kd_sw;
     if (!cfg_.sim) // Hardware
     {
-
-        joint_kp = cfg_.joint_kp;
-        joint_kd = cfg_.joint_kd;
+        joint_kp_st = cfg_.joint_kp_st;
+        joint_kd_st = cfg_.joint_kd_st;
+        joint_kp_sw = cfg_.joint_kp_sw;
+        joint_kd_sw = cfg_.joint_kd_sw;
     }
     else // Gazebo
     {
-        joint_kp = cfg_.joint_kp_sim;
-        joint_kd = cfg_.joint_kd_sim;
+        joint_kp_st = cfg_.joint_kp_sim_st;
+        joint_kd_st = cfg_.joint_kd_sim_st;
+        joint_kp_sw = cfg_.joint_kp_sim_sw;
+        joint_kd_sw = cfg_.joint_kd_sim_sw;
     }
     for (int i = 0; i < 6; ++i)
     {
@@ -300,14 +304,28 @@ void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
         vec3.y = footendeffort[i][1];
         vec3.z = footendeffort[i][2];
         footcmd.foot_effort.push_back(vec3);
-        vec3.x = joint_kp[0];
-        vec3.y = joint_kp[1];
-        vec3.z = joint_kp[2];
-        footcmd.joint_kp.push_back(vec3);
-        vec3.x = joint_kd[0];
-        vec3.y = joint_kd[1];
-        vec3.z = joint_kd[2];
-        footcmd.joint_kd.push_back(vec3);
+        if (contact_flag[i])
+        {
+            vec3.x = joint_kp_st[0];
+            vec3.y = joint_kp_st[1];
+            vec3.z = joint_kp_st[2];
+            footcmd.joint_kp.push_back(vec3);
+            vec3.x = joint_kd_st[0];
+            vec3.y = joint_kd_st[1];
+            vec3.z = joint_kd_st[2];
+            footcmd.joint_kd.push_back(vec3);
+        }
+        else
+        {
+            vec3.x = joint_kp_sw[0];
+            vec3.y = joint_kp_sw[1];
+            vec3.z = joint_kp_sw[2];
+            footcmd.joint_kp.push_back(vec3);
+            vec3.x = joint_kd_sw[0];
+            vec3.y = joint_kd_sw[1];
+            vec3.z = joint_kd_sw[2];
+            footcmd.joint_kd.push_back(vec3);
+        }
     }
     foot_cmd_pub_.publish(footcmd);
 }
@@ -358,7 +376,7 @@ void VMCController::controllLoop()
             foot_effort.at(i).setZero();
     }
     // Pub foot_cmd
-    pubFootCmd(exp_foot_pos, foot_vel, foot_effort);
+    pubFootCmd(exp_foot_pos, foot_vel, foot_effort, contact_flag);
 
     // Visualization
     double vis_scale = 0.002;
