@@ -13,6 +13,11 @@
 #include <math.h>
 #include <qpOASES.hpp>
 
+Eigen::Vector3d vec_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Vector3d &vec)
+{
+    return bMa.inverse().rotation() * vec;
+}
+
 pinocchio::SE3 transformToSE3(const geometry_msgs::TransformStamped &tf)
 {
     return pinocchio::SE3(Eigen::Quaterniond(tf.transform.rotation.w, tf.transform.rotation.x,
@@ -160,7 +165,7 @@ bool getGroundReactionForce(const pinocchio::Force &exp_wrench,
         {
             Q.block(0, 3 * i, 3, 3) = matrix_t::Identity(3, 3);
             pinocchio::skew(foot_pos[i], crossMx);
-            Q.block(3, 3 * i, 3, 3) = -crossMx;
+            Q.block(3, 3 * i, 3, 3) = crossMx;
         }
     }
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> H = Q.transpose() * Q;
@@ -356,23 +361,34 @@ void VMCController::controllLoop()
     pubFootCmd(exp_foot_pos, foot_vel, foot_effort);
 
     // Visualization
-    // NOTE: rosvis is under frame `base`
     double vis_scale = 0.002;
-    rosvis_.delAll();
-    // Foot
-    rosvis_.visSphere(fdb_foot_pos);
-    // Body
-    rosvis_.visCube(Eigen::Vector3d::Zero(), Eigen::Vector4d(1, 0, 0, 0),
-                    ros_visualizer::VisStyle(0.5, 1, 0.5, 0.5, 0.1)); // State
-    // GRF
-    for (size_t i = 0; i < 6; ++i)
+    if (ros::Time::now().toSec() - last_vis_time_ > vis_interval_)
     {
-        if (contact_flag[i])
-            rosvis_.visArrow(fdb_foot_pos[i], fdb_foot_pos[i] + grf[i] * vis_scale,
-                             ros_visualizer::VisStyle(1, 0, 0, 1, 0.01));
+        last_vis_time_ = ros::Time::now().toSec();
+        // NOTE: rosvis is under frame `base`
+        rosvis_.delAll();
+        // // Foot
+        // rosvis_.visSphere(fdb_foot_pos);
+        // // Body
+        // rosvis_.visCube(Eigen::Vector3d::Zero(), Eigen::Vector4d(1, 0, 0, 0),
+        //                 ros_visualizer::VisStyle(0.5, 1, 0.5, 0.5, 0.1)); // State
+        // GRF
+        for (size_t i = 0; i < 6; ++i)
+        {
+            if (contact_flag[i])
+                rosvis_.visArrow(fdb_foot_pos[i], fdb_foot_pos[i] + grf[i] * vis_scale,
+                                 ros_visualizer::VisStyle(1, 0, 0, 1, 0.01));
+        }
+        pinocchio::Force exp_wrench_base;
+        exp_wrench_base.linear() = vec_SE3Act(fdb_pose_, exp_wrench.linear());
+        exp_wrench_base.angular() = vec_SE3Act(fdb_pose_, exp_wrench.angular());
+
+        rosvis_.visTwist(Eigen::Vector3d::Zero(),
+                         exp_wrench_base.linear() * vis_scale,
+                         exp_wrench_base.angular() * vis_scale * 10,
+                         ros_visualizer::VisStyle(1.0, 0.45, 0.0, 1.0, 0.02),
+                         ros_visualizer::VisStyle(0.8, 0.45, 0.8, 1.0, 0.02));
     }
-    rosvis_.visArrow(Eigen::Vector3d::Zero(), exp_wrench.linear() * vis_scale,
-                     ros_visualizer::VisStyle(0, 0, 1, 1, 0.04));
 }
 
 void VMCController::run()

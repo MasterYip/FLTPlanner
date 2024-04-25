@@ -26,6 +26,8 @@
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/WrenchStamped.h>
 
 /* internal project header files */
 
@@ -59,6 +61,7 @@ namespace ros_visualizer
     const VisStyle STYLE_SPHERE = VisStyle(1.0, 0.45, 0.0, 1.0, 0.02);
     const VisStyle STYLE_CUBE = VisStyle(1.0, 0.45, 0.0, 1.0, 0.02);
     const VisStyle STYLE_ARROW = VisStyle(1.0, 0.45, 0.0, 1.0, 0.02);
+    const VisStyle STYLE_ARROW2 = VisStyle(0.8, 0.45, 0.8, 1.0, 0.04);
 
     struct VisType
     {
@@ -179,6 +182,10 @@ namespace ros_visualizer
         void visMesh(const std::vector<Eigen::Vector3d> &mesh, const VisStyle &style = TYPE_MESH.style);
         void visMesh(const Eigen::MatrixX3d &mesh, const VisStyle &style = TYPE_MESH.style);
         void delMesh(void);
+
+        void visTwist(const Eigen::Vector3d &pos, const Eigen::Vector3d &linear, const Eigen::Vector3d &angular,
+                      const VisStyle &linear_style = TYPE_ARROW.style,
+                      const VisStyle &angular_style = STYLE_ARROW);
     };
 
 } // namespace ros_visualizer

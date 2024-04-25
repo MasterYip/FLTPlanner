@@ -16,7 +16,7 @@
 /* c system header files */
 
 /* c++ standard library header files */
-
+#include <vector>
 /* external project header files */
 #include <pinocchio/spatial/se3.hpp>
 #include <pinocchio/spatial/explog.hpp>
@@ -43,6 +43,7 @@ struct VMCConfig
 
     double mu;
     double mass;
+    std::vector<double> inertia_diag = {3, 1};
     Eigen::Matrix3d inertia;
     double gravity;
     double loop_rate; // Control rate
@@ -76,7 +77,8 @@ struct VMCConfig
         nh.param("mass", mass, 30.0); // 30
         // TODO
         inertia = Eigen::Matrix3d::Identity();
-        inertia.diagonal() << 0.3, 0.4, 0.5;
+        nh.param("inertia_diag", inertia_diag, {3, 1});
+        inertia.diagonal() << inertia_diag[0], inertia_diag[1], inertia_diag[2];
         nh.param("gravity", gravity, 9.81);
         nh.param("loop_rate", loop_rate, 200.0);
         // Kp Kd for Accerleration PD
@@ -154,6 +156,8 @@ private:
     // Misc
     std::vector<MultiDimPID> pid_grf_;
     ros_visualizer::ROSVisualizer rosvis_;
+    double last_vis_time_ = 0;
+    double vis_interval_ = 0.05;
 
 public:
     VMCController(ros::NodeHandle &nh);

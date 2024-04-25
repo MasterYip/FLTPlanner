@@ -235,10 +235,10 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3
     // NOTE: the vel is in BASE frame
     Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
     normal.normalize();
-    Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * v_lift);
+    Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * v_lift); // Base frame
     normal = gridmap_interface_->sdfDerivative(p1, 0);
     normal.normalize();
-    Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * v_lift);
+    Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * v_lift); // Base frame
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_path.front(), index);
     Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
     start_vel = J_inv * start_vel;

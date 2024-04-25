@@ -422,4 +422,14 @@ namespace ros_visualizer
         delType(TYPE_MESH);
     }
 
+    void ROSVisualizer::visTwist(const Eigen::Vector3d &pos,
+                                 const Eigen::Vector3d &linear,
+                                 const Eigen::Vector3d &angular,
+                                 const VisStyle &linear_style,
+                                 const VisStyle &angular_style)
+    {
+        visArrow(pos, pos + linear, linear_style);
+        visArrow(pos, pos + angular, angular_style);
+    }
+
 } // namespace ros_visualizer

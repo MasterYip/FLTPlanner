@@ -19,9 +19,9 @@ int main(int argc, char **argv)
     // controller.run();
     while (ros::ok())
     {
-    controller.test_getExpAcc();
-    // controller.test_getGrf();
-    // controller.test_fdbCalcGrf();
+        // controller.test_getExpAcc();
+        controller.test_getGrf();
+        // controller.test_fdbCalcGrf();
     }
     return 0;
 }

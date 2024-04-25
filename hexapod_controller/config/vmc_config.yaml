@@ -1,7 +1,8 @@
 # sim: true # Loaded in launch file
-mu: 0.5
+mu: 0.3
 mass: 30.0
-# inertia: [0.3, 0.4, 0.5]
+# inertia_diag: [0.4, 2.0, 2.4]
+inertia_diag: [0.3, 0.6, 0.9]
 gravity: 9.81
 loop_rate: 200.0
 Kp: 100.0
@@ -17,8 +18,10 @@ fdb_foot_state_topic_name: /hexapod/foot_state_fdb
 footcmd_topic_name: /hexapod/hlc/foot_cmd_track
 body_frame: base
 world_frame: odom
-joint_kp: [0.04, 0.04, 0.04]
-joint_kd: [1.0, 1.0, 1.0]
+joint_kp: [0.01, 0.01, 0.01]
+joint_kd: [0.4, 0.4, 0.4]
+# joint_kp: [0.04, 0.04, 0.04]
+# joint_kd: [1.0, 1.0, 1.0]
 joint_kp_sim: [10.0, 10.0, 10.0]
 joint_kd_sim: [0.5, 0.5, 0.5]
 # joint_kp_sim: [30.0, 30.0, 30.0]
