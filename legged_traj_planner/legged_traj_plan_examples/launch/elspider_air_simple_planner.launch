@@ -10,8 +10,8 @@
     <arg name="use_cfg_space" default="true" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="false" />
-    <arg name="with_ceiling" value="true" />
-    <arg name="max_height" value="0.6" />
+    <arg name="with_ceiling" value="false" />
+    <arg name="max_height" value="0.4" />
     <!-- Only used when fake_feedback=true -->
     <arg name="elevation_layer" value="elevation_inpainted" />
     <arg name="ceiling_layer" value="ceiling" />
