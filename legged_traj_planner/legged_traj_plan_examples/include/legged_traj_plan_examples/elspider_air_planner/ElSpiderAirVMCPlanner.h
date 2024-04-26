@@ -240,8 +240,28 @@ public:
             update_exp_path();
             update_robot_state();
             gridmap_interface_->lockMapUpdate();
-            bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                         gridmap_interface_->getMap(), true, 100);
+            // BUG: grid_map positioning error
+            // Get map frame translation
+
+            // MDT::RobotState rbd_state_mcts;
+            // rbd_state_mcts = robot_state_;
+            // geometry_msgs::TransformStamped map_tf = tfBuffer_.lookupTransform("odom", "odom", ros::Time(0));
+            // rbd_state_mcts.pose.x -= map_tf.transform.translation.x;
+            // rbd_state_mcts.pose.y -= map_tf.transform.translation.y;
+            // rbd_state_mcts.pose.z -= map_tf.transform.translation.z;
+            Eigen::Array2i gpt;
+            grid_map::Position pt(robot_state_.pose.x, robot_state_.pose.y );
+            gridmap_interface_->getMap().getIndex(pt, gpt);
+            std::cout << gpt[0] << "," << gpt[1] << std::endl;
+            std::cout<<robot_state_.pose.x<<","<<robot_state_.pose.y<<","<<robot_state_.pose.z<<std::endl;
+            // bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
+            //                                              gridmap_interface_->getMap(), true, 100);
+            next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
+            bool ret = true;
+            // next_planned_state_.pose.x += map_tf.transform.translation.x;
+            // next_planned_state_.pose.y += map_tf.transform.translation.y;
+            // next_planned_state_.pose.z += map_tf.transform.translation.z;
+
             gridmap_interface_->unlockMapUpdate();
             if (ret)
             {
