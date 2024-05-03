@@ -177,10 +177,11 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
 bool RaibertHeuristicPlanner::query(double t, PosList &foot_pos_list, pinocchio::SE3 &pose)
 {
     foot_pos_list.clear();
-    pose = cmd_vel_extraplator_.extrapolate(t- update_time_);
+    pose = cmd_vel_extraplator_.extrapolate(t - update_time_);
     for (int i = 0; i < 6; ++i)
     {
         bool found = false;
+        printf("leg_traj_[%d].size() = %d\n", i, leg_traj_[i].size());
         for (auto &leg_traj : leg_traj_[i])
         {
             if (leg_traj.isInDuration(t))

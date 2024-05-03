@@ -20,5 +20,6 @@ int main(int argc, char **argv)
     bool fake_feedback = ros::param::param<bool>("~fake_feedback", false);
     bool simulation = ros::param::param<bool>("~sim", false);
     ElSpiderAirRaibertVMCPlanner planner(swing_traj_planner_config, fake_feedback, simulation);
+    planner.run();
     return 0;
 }

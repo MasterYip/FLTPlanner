@@ -217,6 +217,12 @@ target_link_libraries(test_robot_interface_rviz
   ${PROJECT_NAME}
 )
 
+add_executable(test_raibert_planner_rviz test/test_raibert_planner_rviz.cpp)
+target_link_libraries(test_raibert_planner_rviz
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
 add_executable(test_visualizer test/test_visualizer.cpp)
 target_link_libraries(test_visualizer
   ${catkin_LIBRARIES}
