@@ -66,7 +66,7 @@ public:
      * @brief Construct a new Leg Switch Scheduler object
      *
      * @param interval Interval of the scheduler (sec)
-     * @param duty Duty (0~1)
+     * @param duty Duty (0~1) of stance phase
      * @param phase_shift_ Phase shift (0~1) - apply DELAY to the scheduler
      */
     LegSwitchScheduler(double interval, double duty, double phase_shift = 0)
@@ -105,8 +105,55 @@ public:
             return false;
     }
 
-    bool getSucceedingSwitchTimePair(double t, &double t_lift, &double t_touch,
-                                     uint succeed_num = 0)
+    /**
+     * @brief Get the Inner Event Times object
+     * @note
+     * Case 1:
+     * eventTimes       stance      swing         stance     swing
+     * ------------------------[--------------]----------[-----------]-------
+     * timeBound ----------[====================================]------------
+     * innerEvent -------------[==============]------------------------------
+     * Output -----------------[--------------]------------------------------
+     *
+     * Case 2:
+     * eventTimes       stance      swing         stance     swing
+     * ------------------------[--------------]----------[-----------]-------
+     * timeBound ----------[===========================================]-----
+     * innerEvent -------------[==============]----------[===========]-------
+     * Output -----------------[--------------]----------[-----------]-------
+     * @param t_lb Lower bound of time
+     * @param t_ub Upper bound of time
+     * @param event_times Event time pairs (lift, touch)
+     * @return true
+     * @return false
+     */
+    bool getEventTimes(double t_lb, double t_ub, std::vector<std::pair<double, double>> &event_times)
+    {
+        event_times.clear();
+        if (!is_running_)
+            return false;
+        double t_local_lb = t_lb - start_time_ - phase_shift_ * interval_;
+        double t_local_ub = t_ub - start_time_ - phase_shift_ * interval_;
+        if (t_local_ub < 0 || t_local_lb < 0)
+            return false;
+        double t_local_lb_mod = fmod(t_local_lb, interval_);
+        double ts_local = t_local_lb - t_local_lb_mod;
+        if (ts_local + duty_ * interval_ < t_local_lb) // if the first lift time is before t_lb
+            ts_local += interval_;
+        while (ts_local + interval_ < t_local_ub)
+        {
+            double t_lift_local = ts + duty_ * interval_;
+            double t_touch_local = ts + interval_;
+            // Convert to global time
+            event_times.emplace_back(std::make_pair(t_lift + start_time_ + phase_shift_ * interval_,
+                                                    t_touch + start_time_ + phase_shift_ * interval_));
+            ts += interval_;
+        }
+        return true;
+    }
+
+    [[deprecated]] bool getSucceedingSwitchTimePair(double t, &double t_lift, &double t_touch,
+                                                    uint succeed_num = 0)
     {
         if (!is_running_)
             return false;
@@ -129,36 +176,51 @@ public:
     }
 }
 
-// FIXME: temporarily use workspace traj
-class LegTrajSet
+struct LegTraj
 {
-private:
-    std::vector<Eigen::Vector3d> foothold_;
-    std::vector<std::shared_ptr<TrajectoryBase>> swing_traj_;
+    double t_lift;
+    double t_touch;
+    double t_mid;
+    // World frame
+    Eigen::Vector3d foothold_lift;
+    Eigen::Vector3d foothold_touch;
+    // World frame OR cfg space
+    std::shared_ptr<MincoTrajectory> swing_traj;
 
-public:
-    LegTrajSet() = default;
+    LegTraj(double t_lift, double t_touch,
+            Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
+            std::shared_ptr<MincoTrajectory> swing_traj)
+        : t_lift(t_lift), t_touch(t_touch), t_mid((t_lift + t_touch) / 2),
+          foothold_lift(foothold_lift), foothold_touch(foothold_touch),
+          swing_traj(swing_traj){};
 
-    setInit(Eigen::Vector3d foothold){
-        foothold_.clear();
-        foothold_.emplace_back(foothold);
+    update(double t_lift, double t_touch,
+           Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
+           Eigen::Vector3d foothold_lift_cfg, Eigen::Vector3d foothold_touch_cfg,
+           Eigen::Vector3d liftvel_cfg, Eigen::Vector3d touchvel_cfg)
+    {
+        t_lift = t_lift;
+        t_touch = t_touch;
+        t_mid = (t_lift + t_touch) / 2;
+        foothold_lift = foothold_lift;
+        foothold_touch = foothold_touch;
+        swing_traj->setConditions(foothold_lift_cfg, foothold_touch_cfg, liftvel_cfg, touchvel_cfg);
+    }
+
+    bool isApproxTmid(double t)
+    {
+        return std::abs(t - t_mid) < 1e-3;
     };
 
-    void appendStepTraj(Eigen::Vector3d foothold, std::shared_ptr<TrajectoryBase> swing_traj)
+    Eigen::VectorXd evaluate(double t)
     {
-        swing_traj_.emplace_back(swing_traj);
-        foothold_.emplace_back(foothold);
+        double norm_t = (t - t_lift) / (t_touch - t_lift);
+        return swing_traj->evaluate(norm_t, 0, true);
     }
 
-    void popStepTraj()
+    bool isInDuration(double t)
     {
-        swing_traj_.pop_front();
-        foothold_.pop_front();
-    }
-
-    Eigen::Vector3d getLastFoothold()
-    {
-        return foothold_.back();
+        return t >= t_lift && t <= t_touch;
     }
 }
 
@@ -204,25 +266,31 @@ public:
 class RaibertHeuristicPlanner
 {
 private:
-    double interval_ = 1.0;
-    double duty_ = 0.5;
-
-    PosList nominal_foothold_base_;
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
     CmdVelExtraplator cmd_vel_extraplator_;
+    std::vector<std::vector<LegTraj>> leg_traj_(6);
     std::vector<LegSwitchScheduler> switch_scheduler_;
-    std::vector<LegTrajSet> leg_traj_set_(6);
+
+    PosList nominal_foothold_base_;
     double update_time_ = 0;
     bool use_cfg_space_;
+
+    double interval_ = 1.0;
+    double duty_ = 0.5;
+    double extrapolate_window_ = 4.0;
 
 public:
     RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                             std::shared_ptr<GridMapInterface> gridmap_interface,
                             std::shared_ptr<ElSpiderAirInterface> robot_interface);
 
-    void start(pinocchio::SE3 pose, PosList foot_pos_list);
+    void start(pinocchio::SE3 pose);
 
     void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel);
+
+    bool toCfgSpace(pinocchio::SE3 pose, Eigen::Vector3d pos, Eigen::Vector3d vel,
+                    Eigen::Vector3d &pos_cfg, Eigen::Vector3d &vel_cfg,
+                    int leg_index)
 }

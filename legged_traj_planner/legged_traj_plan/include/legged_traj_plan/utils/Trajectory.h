@@ -100,6 +100,20 @@ public:
         updateTraj();
     }
 
+    bool setConditions(Eigen::Vector3d start, Eigen::Vector3d end,
+                       Eigen::Vector3d start_vel, Eigen::Vector3d end_vel)
+    {
+        Eigen::Matrix<double, 3, 2> start_state;
+        start_state.col(0) = start;
+        start_state.col(1) = start_vel;
+        Eigen::Matrix<double, 3, 2> goal_state;
+        goal_state.col(0) = end;
+        goal_state.col(1) = end_vel;
+        minco_traj_.setConditions(start_state, goal_state, poly_path_.size() - 1); // PROBLEM: Will Reseting causing failure? 
+        updateTraj();
+        return true;
+    }
+
     minco::MINCO_S2NU &getMinco()
     {
         return minco_traj_;
