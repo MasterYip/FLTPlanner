@@ -16,15 +16,17 @@
 
 /* c++ standard library header files */
 
-/* external project header files */
-#include <geometry_msgs/Twist.h>
-/* internal project header files */
 
+/* internal project header files */
+#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/utils/CircleQueue.h"
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/whole_body_planner/MCTStateTransfer.h"
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
+
+/* external project header files */
+#include <geometry_msgs/Twist.h>
+
 class MCTSWholeBodyPlanner
 {
 private:
@@ -142,17 +144,17 @@ public:
             ts_local += interval_;
         while (ts_local + interval_ < t_local_ub)
         {
-            double t_lift_local = ts + duty_ * interval_;
-            double t_touch_local = ts + interval_;
+            double t_lift_local = ts_local + duty_ * interval_;
+            double t_touch_local = ts_local + interval_;
             // Convert to global time
-            event_times.emplace_back(std::make_pair(t_lift + start_time_ + phase_shift_ * interval_,
-                                                    t_touch + start_time_ + phase_shift_ * interval_));
-            ts += interval_;
+            event_times.emplace_back(std::make_pair(t_lift_local + start_time_ + phase_shift_ * interval_,
+                                                    t_touch_local + start_time_ + phase_shift_ * interval_));
+            ts_local += interval_;
         }
         return true;
     }
 
-    [[deprecated]] bool getSucceedingSwitchTimePair(double t, &double t_lift, &double t_touch,
+    [[deprecated]] bool getSucceedingSwitchTimePair(double t, double t_lift, double t_touch,
                                                     uint succeed_num = 0)
     {
         if (!is_running_)
@@ -174,7 +176,7 @@ public:
             return true;
         }
     }
-}
+};
 
 struct LegTraj
 {
@@ -194,10 +196,10 @@ struct LegTraj
           foothold_lift(foothold_lift), foothold_touch(foothold_touch),
           swing_traj(swing_traj){};
 
-    update(double t_lift, double t_touch,
-           Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
-           Eigen::Vector3d foothold_lift_cfg, Eigen::Vector3d foothold_touch_cfg,
-           Eigen::Vector3d liftvel_cfg, Eigen::Vector3d touchvel_cfg)
+    void update(double t_lift, double t_touch,
+                Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
+                Eigen::Vector3d foothold_lift_cfg, Eigen::Vector3d foothold_touch_cfg,
+                Eigen::Vector3d liftvel_cfg, Eigen::Vector3d touchvel_cfg)
     {
         t_lift = t_lift;
         t_touch = t_touch;
@@ -222,7 +224,7 @@ struct LegTraj
     {
         return t >= t_lift && t <= t_touch;
     }
-}
+};
 
 class CmdVelExtraplator
 {
@@ -248,20 +250,22 @@ public:
     pinocchio::SE3 extrapolate(double dt)
     {
         pinocchio::SE3 pose_new = pose_;
-        Eigen::Vector3d linear_world = pose_.rotation().transpose() * cmd_vel_.linear;
-        Eigen::Vector3d angular_world = pose_.rotation().transpose() * cmd_vel_.angular;
+        Eigen::Vector3d linear_world;
+        linear_world << cmd_vel_.linear.x, cmd_vel_.linear.y, cmd_vel_.linear.z;
+        linear_world = pose_.rotation().transpose() * linear_world;
+        Eigen::Vector3d angular_world;
+        angular_world << cmd_vel_.angular.x, cmd_vel_.angular.y, cmd_vel_.angular.z;
+        angular_world = pose_.rotation().transpose() * angular_world;
+        pinocchio::Motion angular_world_motion;
+        angular_world_motion.linear() = Eigen::Vector3d::Zero();
+        angular_world_motion.angular() = angular_world;
+
         pose_new.translation() += linear_world * dt;
-        pose_new.rotation() = pose_.rotation() * pinocchio::SE3::exp(angular_world * dt).rotation();
+        pose_new.rotation() = pose_.rotation() * pinocchio::exp6(angular_world_motion * dt).rotation();
         return pose_new;
     }
 
-}
-
-// class RaibertHeuristicSelector
-// {
-// private:
-
-// }
+};
 
 class RaibertHeuristicPlanner
 {
@@ -270,7 +274,7 @@ private:
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
     CmdVelExtraplator cmd_vel_extraplator_;
-    std::vector<std::vector<LegTraj>> leg_traj_(6);
+    std::vector<std::vector<LegTraj>> leg_traj_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
 
     PosList nominal_foothold_base_;
@@ -290,7 +294,9 @@ public:
 
     void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel);
 
+    bool query(double t, PosList &foot_pos_list, pinocchio::SE3 &pose);
+
     bool toCfgSpace(pinocchio::SE3 pose, Eigen::Vector3d pos, Eigen::Vector3d vel,
                     Eigen::Vector3d &pos_cfg, Eigen::Vector3d &vel_cfg,
-                    int leg_index)
-}
+                    int leg_index);
+};

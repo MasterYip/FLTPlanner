@@ -82,6 +82,7 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28, -0.28));
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34, -0.28));
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28, -0.28));
+    leg_traj_.resize(6);
 }
 
 void RaibertHeuristicPlanner::start(pinocchio::SE3 pose)
@@ -108,10 +109,10 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
         // Remove old traj
         while (leg_traj_[i].size() > 1 && leg_traj_[i].front().t_touch < update_time_)
         {
-            leg_traj_[i].pop_front();
+            leg_traj_[i].erase(leg_traj_[i].begin());
         }
 
-        if (switch_scheduler_.getEventTimes(update_time_, update_time_ + extrapolate_window_,
+        if (switch_scheduler_[i].getEventTimes(update_time_, update_time_ + extrapolate_window_,
                                             switch_time_pairs))
         {
             // Find index in leg_traj_
@@ -147,7 +148,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                     p0 = leg_traj_[i].back().foothold_touch;
                 }
 
-                double vLift = swing_traj_planner_.getConfig().vLift;
+                double vLift = swing_traj_planner_->getConfig().vLift;
                 if (index < leg_traj_[i].size())
                 {
                     Eigen::Vector3d lift_pos_cfg, lift_vel_cfg, touch_pos_cfg, touch_vel_cfg;
