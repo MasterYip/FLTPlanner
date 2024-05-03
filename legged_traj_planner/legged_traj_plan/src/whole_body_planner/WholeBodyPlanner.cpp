@@ -103,7 +103,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
     update_time_ = ros::Time::now().toSec();
 
     std::vector<std::pair<double, double>> switch_time_pairs;
-    pinocchio::SE3 pose_mid, pose_touch, pose_lift;
+    pinocchio::SE3 pose_st_mid, pose_touch, pose_lift;
     for (int i = 0; i < 6; ++i)
     {
         // Remove old traj
@@ -113,7 +113,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
         }
 
         if (switch_scheduler_[i].getEventTimes(update_time_, update_time_ + extrapolate_window_,
-                                            switch_time_pairs))
+                                               switch_time_pairs))
         {
             // Find index in leg_traj_
             int index = -1;
@@ -131,17 +131,20 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                 leg_traj_.clear(); // FIXME: should not clear
                 index++;
             }
-            for (auto &pair : switch_time_pairs)
+            for (int j = 0; j < switch_time_pairs.size() - 1; j++)
             {
-                pose_mid = cmd_vel_extraplator_.extrapolate((pair.first + pair.second) / 2 - update_time_);
+                auto &pair = switch_time_pairs[j];
+                auto &pair_next = switch_time_pairs[j + 1];
                 pose_lift = cmd_vel_extraplator_.extrapolate(pair.first - update_time_);
+                pose_st_mid = cmd_vel_extraplator_.extrapolate((pair_next.first + pair.second) / 2 - update_time_);
                 pose_touch = cmd_vel_extraplator_.extrapolate(pair.second - update_time_);
                 Eigen::Vector3d p0;
-                Eigen::Vector3d p1 = point_SE3Act(pose_mid.inverse(), nominal_foothold_base_[i]);
+                Eigen::Vector3d p1 = point_SE3Act(pose_st_mid.inverse(), nominal_foothold_base_[i]);
                 if (leg_traj_[i].size() == 0)
                 {
+                    // FIXME: temp solution
                     ROS_WARN("leg_traj_ is empty");
-                    p0 = point_SE3Act(pose_lift, nominal_foothold_base_[i]);
+                    p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
                 }
                 else
                 {
@@ -151,16 +154,19 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                 double vLift = swing_traj_planner_->getConfig().vLift;
                 if (index < leg_traj_[i].size())
                 {
-                    Eigen::Vector3d lift_pos_cfg, lift_vel_cfg, touch_pos_cfg, touch_vel_cfg;
-                    Eigen::Vector3d lift_normal = gridmap_interface_->sdfDerivative(p0, 0);
-                    Eigen::Vector3d touch_normal = gridmap_interface_->sdfDerivative(p1, 0);
-                    lift_normal.normalize();
-                    touch_normal.normalize();
-                    Eigen::Vector3d v0 = lift_normal * vLift;
-                    Eigen::Vector3d v1 = -touch_normal * vLift;
-                    toCfgSpace(pose, p0, v0, lift_pos_cfg, lift_vel_cfg, i);
-                    toCfgSpace(pose, p1, v1, touch_pos_cfg, touch_vel_cfg, i);
-                    leg_traj_[i].at(index).update(pair.first, pair.second, p0, p1, lift_pos_cfg, touch_pos_cfg, lift_vel_cfg, touch_vel_cfg);
+                    // FIXME: temp solution
+                    // Eigen::Vector3d lift_pos_cfg, lift_vel_cfg, touch_pos_cfg, touch_vel_cfg;
+                    // Eigen::Vector3d lift_normal = gridmap_interface_->sdfDerivative(p0, 0);
+                    // Eigen::Vector3d touch_normal = gridmap_interface_->sdfDerivative(p1, 0);
+                    // lift_normal.normalize();
+                    // touch_normal.normalize();
+                    // Eigen::Vector3d v0 = lift_normal * vLift;
+                    // Eigen::Vector3d v1 = -touch_normal * vLift;
+                    // toCfgSpace(pose, p0, v0, lift_pos_cfg, lift_vel_cfg, i);
+                    // toCfgSpace(pose, p1, v1, touch_pos_cfg, touch_vel_cfg, i);
+                    // leg_traj_[i].at(index).update(pair.first, pair.second, p0, p1, lift_pos_cfg, touch_pos_cfg, lift_vel_cfg, touch_vel_cfg);
+                    leg_traj_[i].at(index) = LegTraj(pair.first, pair.second, p0, p1,
+                                                     swing_traj_planner_->getCfgInitTraj(pose_lift, pose_touch, p0, p1, vLift, i));
                     index++;
                 }
                 else
@@ -181,20 +187,31 @@ bool RaibertHeuristicPlanner::query(double t, PosList &foot_pos_list, pinocchio:
     for (int i = 0; i < 6; ++i)
     {
         bool found = false;
-        printf("leg_traj_[%d].size() = %d\n", i, leg_traj_[i].size());
-        for (auto &leg_traj : leg_traj_[i])
+        for (int j = 0; j < leg_traj_[i].size(); j++)
         {
+            auto &leg_traj = leg_traj_[i][j];
             if (leg_traj.isInDuration(t))
             {
-                foot_pos_list.emplace_back(leg_traj.evaluate(t));
+                foot_pos_list.emplace_back(point_SE3Act(pose.inverse(), robot_interface_->FK_foot(leg_traj.evaluate(t), i)));
+                found = true;
+                break;
+            }
+            if (t < leg_traj.t_lift)
+            {
+                foot_pos_list.emplace_back(leg_traj.foothold_lift);
                 found = true;
                 break;
             }
         }
         if (!found)
         {
-            ROS_WARN("No valid leg_traj found for leg %d at time %f", i, t);
-            foot_pos_list.emplace_back(point_SE3Act(pose, nominal_foothold_base_[i]));
+            if (leg_traj_[i].size() > 0)
+                foot_pos_list.emplace_back(leg_traj_[i].back().foothold_touch);
+            else
+            {
+                ROS_WARN("No valid leg_traj found for leg %d at time %f", i, t);
+                foot_pos_list.emplace_back(point_SE3Act(pose.inverse(), nominal_foothold_base_[i]));
+            }
         }
     }
     return true;

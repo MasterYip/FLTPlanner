@@ -5,7 +5,7 @@
     <!-- Gazebo / Hardware -->
     <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
-    <arg name="teleop_type" default="keyboard" />
+    <arg name="teleop_type" default="PS5" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="true" />
     <arg name="with_ceiling" value="false" />

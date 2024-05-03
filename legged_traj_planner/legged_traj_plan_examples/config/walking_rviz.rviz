@@ -366,10 +366,7 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: swing_traj_planner_vis
       Namespaces:
-        curve: true
-        facet: true
-        mesh: true
-        sphere: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -408,7 +405,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.4107599258422852
+      Distance: 3.44269061088562
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -416,17 +413,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.5493791103363037
-        Y: 0.04730600118637085
-        Z: -0.01650501973927021
+        X: 1.4147531986236572
+        Y: 0.23523394763469696
+        Z: -0.29755520820617676
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.33479762077331543
+      Pitch: 0.3247976303100586
       Target Frame: <Fixed Frame>
-      Yaw: 4.301368236541748
+      Yaw: 3.496363639831543
     Saved: ~
 Window Geometry:
   Displays:

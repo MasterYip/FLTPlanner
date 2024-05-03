@@ -16,7 +16,6 @@
 
 /* c++ standard library header files */
 
-
 /* internal project header files */
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/utils/CircleQueue.h"
@@ -136,45 +135,22 @@ public:
             return false;
         double t_local_lb = t_lb - start_time_ - phase_shift_ * interval_;
         double t_local_ub = t_ub - start_time_ - phase_shift_ * interval_;
-        if (t_local_ub < 0 || t_local_lb < 0)
-            return false;
+
         double t_local_lb_mod = fmod(t_local_lb, interval_);
         double ts_local = t_local_lb - t_local_lb_mod;
         if (ts_local + duty_ * interval_ < t_local_lb) // if the first lift time is before t_lb
             ts_local += interval_;
-        while (ts_local + interval_ < t_local_ub)
+        while (ts_local + interval_ < t_local_ub) // FIXME: is it appropriate?
         {
             double t_lift_local = ts_local + duty_ * interval_;
             double t_touch_local = ts_local + interval_;
             // Convert to global time
-            event_times.emplace_back(std::make_pair(t_lift_local + start_time_ + phase_shift_ * interval_,
-                                                    t_touch_local + start_time_ + phase_shift_ * interval_));
+            if (t_lift_local > 0) // Make sure the first lift time is after t_lb
+                event_times.emplace_back(std::make_pair(t_lift_local + start_time_ + phase_shift_ * interval_,
+                                                        t_touch_local + start_time_ + phase_shift_ * interval_));
             ts_local += interval_;
         }
         return true;
-    }
-
-    [[deprecated]] bool getSucceedingSwitchTimePair(double t, double t_lift, double t_touch,
-                                                    uint succeed_num = 0)
-    {
-        if (!is_running_)
-            return false;
-        double t_local = t - start_time_ - phase_shift_ * interval_;
-        if (t_local < 0)
-            return false;
-        double t_local_mod = fmod(t_local, interval_);
-        if (t_local_mod < duty_ * interval_)
-        {
-            t_lift = (t - t_local_mod + duty_ * interval_) + interval_ * succeed_num;
-            t_touch = (t - t_local_mod + interval_) + interval_ * succeed_num;
-            return true;
-        }
-        else
-        {
-            t_lift = (t - t_local_mod + duty_ * interval_ + interval_) + interval_ * succeed_num;
-            t_touch = (t - t_local_mod + interval_ + interval_) + interval_ * succeed_num;
-            return true;
-        }
     }
 };
 
@@ -201,11 +177,11 @@ struct LegTraj
                 Eigen::Vector3d foothold_lift_cfg, Eigen::Vector3d foothold_touch_cfg,
                 Eigen::Vector3d liftvel_cfg, Eigen::Vector3d touchvel_cfg)
     {
-        t_lift = t_lift;
-        t_touch = t_touch;
-        t_mid = (t_lift + t_touch) / 2;
-        foothold_lift = foothold_lift;
-        foothold_touch = foothold_touch;
+        this->t_lift = t_lift;
+        this->t_touch = t_touch;
+        this->t_mid = (t_lift + t_touch) / 2;
+        this->foothold_lift = foothold_lift;
+        this->foothold_touch = foothold_touch;
         swing_traj->setConditions(foothold_lift_cfg, foothold_touch_cfg, liftvel_cfg, touchvel_cfg);
     }
 
@@ -252,10 +228,10 @@ public:
         pinocchio::SE3 pose_new = pose_;
         Eigen::Vector3d linear_world;
         linear_world << cmd_vel_.linear.x, cmd_vel_.linear.y, cmd_vel_.linear.z;
-        linear_world = pose_.rotation().transpose() * linear_world;
+        linear_world = pose_.rotation() * linear_world;
         Eigen::Vector3d angular_world;
         angular_world << cmd_vel_.angular.x, cmd_vel_.angular.y, cmd_vel_.angular.z;
-        angular_world = pose_.rotation().transpose() * angular_world;
+        angular_world = pose_.rotation() * angular_world;
         pinocchio::Motion angular_world_motion;
         angular_world_motion.linear() = Eigen::Vector3d::Zero();
         angular_world_motion.angular() = angular_world;
@@ -264,7 +240,6 @@ public:
         pose_new.rotation() = pose_.rotation() * pinocchio::exp6(angular_world_motion * dt).rotation();
         return pose_new;
     }
-
 };
 
 class RaibertHeuristicPlanner
@@ -281,9 +256,9 @@ private:
     double update_time_ = 0;
     bool use_cfg_space_;
 
-    double interval_ = 1.0;
-    double duty_ = 0.5;
-    double extrapolate_window_ = 4.0;
+    double interval_ = 0.8;
+    double duty_ = 0.6;
+    double extrapolate_window_ = 3;
 
 public:
     RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
