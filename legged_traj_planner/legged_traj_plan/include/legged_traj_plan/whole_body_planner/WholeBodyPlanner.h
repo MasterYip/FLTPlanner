@@ -256,9 +256,9 @@ private:
     double update_time_ = 0;
     bool use_cfg_space_;
 
-    double interval_ = 2;
+    double interval_ = 0.8;
     double duty_ = 0.6;
-    double extrapolate_window_ = 10;
+    double extrapolate_window_ = 5;
 
 public:
     RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,

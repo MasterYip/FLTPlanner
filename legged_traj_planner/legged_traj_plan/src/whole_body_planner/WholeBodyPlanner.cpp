@@ -87,13 +87,10 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
 
 void RaibertHeuristicPlanner::start(pinocchio::SE3 pose)
 {
-    // FIXME: temp
     for (auto &leg_sch : switch_scheduler_)
     {
         leg_sch.reset(ros::Time::now().toSec());
     }
-    // cmd_vel_extraplator_.update(pose);
-    // update_time_ = ros::Time::now().toSec();
     update(pose, geometry_msgs::Twist());
 }
 
@@ -137,6 +134,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                 pose_touch = cmd_vel_extraplator_.extrapolate(pair.second - update_time_);
                 Eigen::Vector3d p0;
                 Eigen::Vector3d p1 = point_SE3Act(pose_st_mid.inverse(), nominal_foothold_base_[i]);
+                p1.z() = gridmap_interface_->value(grid_map::Position(p1.x(), p1.y()));
                 if (index > 0)
                 {
                     p0 = leg_traj_[i][index-1].foothold_touch;
