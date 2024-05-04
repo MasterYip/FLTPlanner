@@ -203,6 +203,25 @@ public:
             robot_interface_->pub_odom(exp_pose);
             robot_interface_->pub_joint_state_from_footendpos(exp_foot_pos);
         }
+        else
+        {
+            // Shadow robot
+            robot_interface_->pub_odom(exp_pose, "shadowbase", "odom");
+            robot_interface_->pub_shadow_joint_state_from_footendpos(exp_foot_pos);
+            pub_footpos_now();
+        }
+    }
+
+    void pub_footpos_now(void)
+    {
+        std::vector<Eigen::Vector3d> footend_now;
+        for (size_t k = 0; k < 6; ++k)
+        {
+            Eigen::Vector3d pos;
+            pos << foot_state_.position[k].x, foot_state_.position[k].y, foot_state_.position[k].z;
+            footend_now.emplace_back(pos);
+        }
+        robot_interface_->pub_joint_state_from_footendpos(footend_now);
     }
 
     void cmd_callback(const geometry_msgs::Twist &msg)
@@ -213,7 +232,7 @@ public:
         if (planner_started_)
         {
             // FIXME: update(body_pose) is unstable
-            if (fake_estimation_ || recv_foot_state_ && recv_body_state_)
+            if (fake_estimation_)
             {
                 PosList foot_pos_list;
                 std::array<bool, 6> contact_state;
@@ -223,7 +242,6 @@ public:
             }
             else if (recv_foot_state_ && recv_body_state_)
             {
-                std::cout << "Update planner" << std::endl;
                 whole_body_planner_.update(body_pose_, cmd_);
             }
             else
