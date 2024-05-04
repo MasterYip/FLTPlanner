@@ -32,3 +32,14 @@ Eigen::Vector3d vec_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Vector3d &vec
 Eigen::Matrix3Xd points_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Matrix3Xd &pts);
 
 pinocchio::SE3 poseLinearInterp(pinocchio::SE3 pose0, pinocchio::SE3 pose1, double t);
+
+/**
+ * @brief Fit a plane to a set of points
+ * 
+ * @param points 
+ * @param plane (a, b, c, d) such that ax + by + cz + d = 0 
+ * (normal vector is (a, b, c) and d is the distance from the origin to the plane
+ * @return true 
+ * @return false 
+ */
+bool plane_fitting(const std::vector<Eigen::Vector3d> &points, Eigen::Vector3d &plane);

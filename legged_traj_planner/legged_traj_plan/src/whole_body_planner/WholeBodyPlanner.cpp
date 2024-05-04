@@ -82,6 +82,17 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28, -0.28));
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34, -0.28));
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28, -0.28));
+
+    PosList pose_sample_pts;
+    for (double x=-0.4; x<=0.4; x+=0.2)
+    {
+        for (double y=-0.4; y<=0.4; y+=0.2)
+        {
+                pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
+        }
+    }
+    cmd_vel_extraplator_.init(gridmap_interface, pose_sample_pts);
+
     leg_traj_.resize(6);
 }
 

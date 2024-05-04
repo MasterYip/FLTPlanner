@@ -56,6 +56,7 @@ void GridMapInterface::update(bool block, double sdf_margin)
     }
     updateSDF(ground_layer, 0, sdf_margin);
     updateTravMap();
+    // FIXME: disabled for performance reasons
     // if (!filter_chain_.update(map_, map_))
     // {
     //     ROS_ERROR("Could not update the grid map filter chain!");

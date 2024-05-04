@@ -204,10 +204,9 @@ struct LegTraj
 
 class CmdVelExtrapolator
 {
-private:
+protected:
     geometry_msgs::Twist cmd_vel_; // cmd vel relative to the BASE frame
     pinocchio::SE3 pose_;
-    std::shared_ptr<GridMapInterface> gridmap_interface_;
 
 public:
     CmdVelExtrapolator() = default;
@@ -224,7 +223,7 @@ public:
      * @param dt Delta t
      * @return pinocchio::SE3
      */
-    pinocchio::SE3 extrapolate(double dt)
+    virtual pinocchio::SE3 extrapolate(double dt)
     {
         pinocchio::SE3 pose_new = pose_;
         Eigen::Vector3d linear_world;
@@ -243,13 +242,54 @@ public:
     }
 };
 
+class GridMapCmdVelExtrapolator : public CmdVelExtrapolator
+{
+protected:
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
+    PosList exp_pose_samples_; // Expected pose sample points in base frame
+    double nominal_height_ = 0.25;
+
+public:
+    void init(std::shared_ptr<GridMapInterface> gridmap_interface,
+              PosList exp_pose_samples)
+    {
+        gridmap_interface_ = gridmap_interface;
+        exp_pose_samples_ = exp_pose_samples;
+    }
+
+    pinocchio::SE3 extrapolate(double dt) override
+    {
+        PosList map_sample_projection;
+        pinocchio::SE3 pose_new = CmdVelExtrapolator::extrapolate(dt);
+        // FIXME: performance can be improved
+        for (auto &pos_base : exp_pose_samples_)
+        {
+            auto pos_world = point_SE3Act(pose_new.inverse(), pos_base);
+            pos_world(2) = gridmap_interface_->value(grid_map::Position(pos_world(0), pos_world(1)));
+            map_sample_projection.emplace_back(pos_world);
+        }
+
+        // plane fitting
+        Eigen::Vector3d plane;
+        plane_fitting(map_sample_projection, plane);
+        pose_new.translation()[2] = plane(0) * pose_new.translation()[0] + plane(1) * pose_new.translation()[1] + plane(2) + nominal_height_;
+        pinocchio::Motion rot_calib_motion;
+        Eigen::Vector3d body_normal = pose_.rotation().col(2);
+        Eigen::Vector3d exp_normal = Eigen::Vector3d(-plane(0), -plane(1), 1);
+        exp_normal.normalize();
+        rot_calib_motion.angular() = body_normal.cross(exp_normal);
+        pose_new.rotation() = pinocchio::exp6(rot_calib_motion).rotation() * pose_new.rotation();
+        return pose_new;
+    }
+};
+
 class RaibertHeuristicPlanner
 {
 private:
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
-    CmdVelExtrapolator cmd_vel_extraplator_;
+    GridMapCmdVelExtrapolator cmd_vel_extraplator_;
     std::vector<std::vector<LegTraj>> leg_traj_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
 

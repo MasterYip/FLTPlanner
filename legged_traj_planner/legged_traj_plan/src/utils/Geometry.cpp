@@ -21,11 +21,12 @@ pinocchio::SE3 XYZRPY2SE3(legged_traj_plan::hexapod_Base_Pose pose)
 
 /**
  * @brief Transform a point from frame b to frame a (or apply a SE3 transformation to a point)
- * 
- * @param bMa 
- * @param pt 
- * @return Eigen::Vector3d 
+ *
+ * @param bMa
+ * @param pt
+ * @return Eigen::Vector3d
  */
+// FIXME: .inverse() is used twice somewhere in the code, performance can be improved.
 Eigen::Vector3d point_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Vector3d &pt)
 {
     pinocchio::SE3 aMb = bMa.inverse();
@@ -41,4 +42,39 @@ Eigen::Matrix3Xd points_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Matrix3Xd
 {
     pinocchio::SE3 aMb = bMa.inverse();
     return aMb.translation().replicate(1, pts.cols()) + aMb.rotation() * pts;
+}
+
+/**
+ * @brief Fit a plane to a set of points
+ *
+ * @param points
+ * @param plane (a, b, c) such that ax + by + c = z
+ * (normal vector is (-a, -b, 1).normal
+ * @return true
+ * @return false
+ */
+bool plane_fitting(const std::vector<Eigen::Vector3d> &points, Eigen::Vector3d &plane)
+{
+    if (points.size() < 3)
+    {
+        std::cerr << "At least 3 points are required for plane fitting" << std::endl;
+        return false;
+    }
+    Eigen::MatrixX3d Pts(points.size(), 3);
+    for (size_t i = 0; i < points.size(); i++)
+    {
+        Pts.row(i) << points[i].transpose();
+    }
+    Eigen::VectorXd X = Pts.col(0);
+    Eigen::VectorXd Y = Pts.col(1);
+    Eigen::VectorXd Z = Pts.col(2);
+    Eigen::VectorXd I = Eigen::VectorXd::Ones(points.size());
+    Eigen::Matrix3d A;
+    Eigen::Vector3d b;
+    A << X.transpose() * X, X.transpose() * Y, X.sum(),
+        Y.transpose() * X, Y.transpose() * Y, Y.sum(),
+        X.sum(), Y.sum(), points.size();
+    b << X.transpose() * Z, Y.transpose() * Z, Z.sum();
+    plane << A.inverse() * b;
+    return true;
 }
