@@ -80,6 +80,7 @@
         <param name="fake_feedback" value="$(arg fake_feedback)" />
         <param name="sim" value="$(arg sim)" />
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air/swing_traj_planner_cfg.yaml" />
+        <rosparam command="load" file="$(find legged_traj_plan)/config/perception_interface.yaml" />
     </node>
 
     <!-- Robot related -->

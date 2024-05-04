@@ -99,9 +99,9 @@ private:
 public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirRaibertVMCPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                                 bool fake_estimation = false, bool simulation = false) : nh_(),
-                                                                                          robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("robot_description", std::string("")), simulation)),
-                                                                                          gridmap_interface_(std::make_shared<GridMapInterface>("/grid_map")),
+                                 bool fake_estimation = false, bool simulation = false) : nh_("~"),
+                                                                                          robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
+                                                                                          gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                           whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
                                                                                           tfListener_(tfBuffer_), visualizer_(nh_),
                                                                                           rate_(50), fake_estimation_(fake_estimation), simulation_(simulation)

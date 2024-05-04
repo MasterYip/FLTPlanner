@@ -185,9 +185,9 @@ private:
 public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirVMCPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                          bool fake_estimation = false, bool simulation = false) : nh_(),
-                                                                                   robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("robot_description", std::string("")), simulation)),
-                                                                                   gridmap_interface_(std::make_shared<GridMapInterface>("/grid_map")),
+                          bool fake_estimation = false, bool simulation = false) : nh_("~"),
+                                                                                   robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
+                                                                                   gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                    whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
                                                                                    tfListener_(tfBuffer_), visualizer_(nh_),
                                                                                    rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
@@ -250,10 +250,10 @@ public:
             // rbd_state_mcts.pose.y -= map_tf.transform.translation.y;
             // rbd_state_mcts.pose.z -= map_tf.transform.translation.z;
             Eigen::Array2i gpt;
-            grid_map::Position pt(robot_state_.pose.x, robot_state_.pose.y );
+            grid_map::Position pt(robot_state_.pose.x, robot_state_.pose.y);
             gridmap_interface_->getMap().getIndex(pt, gpt);
             std::cout << gpt[0] << "," << gpt[1] << std::endl;
-            std::cout<<robot_state_.pose.x<<","<<robot_state_.pose.y<<","<<robot_state_.pose.z<<std::endl;
+            std::cout << robot_state_.pose.x << "," << robot_state_.pose.y << "," << robot_state_.pose.z << std::endl;
             // bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
             //                                              gridmap_interface_->getMap(), true, 100);
             next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);

@@ -21,7 +21,7 @@ void eg_cmdvel_extrapolator(ros::NodeHandle &nh)
 {
     ros::Rate rate(10);
     GCSVisualizer visualizer(nh, std::string("base"), std::string("visualizer_markers"));
-    CmdVelExtraplator extrapolator;
+    CmdVelExtrapolator extrapolator;
     pinocchio::SE3 pose = pinocchio::SE3::Identity();
     pinocchio::SE3 pose_tmp;
     geometry_msgs::Twist cmd_vel;

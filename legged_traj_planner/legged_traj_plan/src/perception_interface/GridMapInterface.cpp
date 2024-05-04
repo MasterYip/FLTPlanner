@@ -11,16 +11,27 @@
 
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 
-GridMapInterface::GridMapInterface(const std::string &topic_name,
+GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
+                                   std::string topic_name,
                                    std::string ground_layer_name,
-                                   std::string ceiling_layer_name) : nh("~"),
+                                   std::string ceiling_layer_name) : nh_(nh),
                                                                      ground_layer(ground_layer_name),
-                                                                     ceiling_layer(ceiling_layer_name)
+                                                                     ceiling_layer(ceiling_layer_name),
+                                                                     filter_chain_("grid_map::GridMap")
 {
-    sub = nh.subscribe(topic_name, 1, &GridMapInterface::callback, this);
-    pub = nh.advertise<grid_map_msgs::GridMap>("grid_map_trav_test", 1, true);
+    sub_ = nh_.subscribe(topic_name, 1, &GridMapInterface::callback, this);
+    pub_ = nh_.advertise<grid_map_msgs::GridMap>("grid_map_trav_test", 1, true);
     map_.setFrameId("map");
     ground_layer_trav = ground_layer + "_trav";
+
+    nh_.param("filter_chain_parameter_name", filterChainParametersName_, std::string("grid_map_filters"));
+
+    // Setup filter chain.
+    if (!filter_chain_.configure(filterChainParametersName_, nh_))
+    {
+        ROS_ERROR("Could not configure the filter chain!");
+    }
+
     update();
 }
 
@@ -29,7 +40,7 @@ void GridMapInterface::callback(const grid_map_msgs::GridMap &msg)
     if (!map_update_lock_)
     {
         grid_map::GridMapRosConverter::fromMessage(msg, map_);
-        // if (!sdf[0])
+        // if (!sdf_[0])
         update();
     }
 }
@@ -45,14 +56,36 @@ void GridMapInterface::update(bool block, double sdf_margin)
     }
     updateSDF(ground_layer, 0, sdf_margin);
     updateTravMap();
+    // if (!filter_chain_.update(map_, map_))
+    // {
+    //     ROS_ERROR("Could not update the grid map filter chain!");
+    // }
     // Visualization
     grid_map_msgs::GridMap message;
     grid_map::GridMapRosConverter::toMessage(map_, message);
-    pub.publish(message);
+    pub_.publish(message);
 
     if (map_.exists(ceiling_layer))
     {
         updateSDF(ceiling_layer, 1, sdf_margin);
+    }
+}
+
+void GridMapInterface::updateTorsoRef(void)
+{
+    // Add this layer by applying grid_map filter to ground layer & increase z value by nominal torso height
+    try
+    {
+        map_.add(torso_ref_layer, map_.get(ground_layer));
+        for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
+        {
+            map_.at(torso_ref_layer, *iterator) += 0.3;
+        }
+        // Filter
+    }
+    catch (const std::exception &e)
+    {
+        ROS_WARN_STREAM("Failed to update torso ref layer!");
     }
 }
 
@@ -84,9 +117,9 @@ void GridMapInterface::updateSDF(const std::string &layer_name, uint index, doub
         const double minValue{elevationData.minCoeffOfFinites() - margin};
         const double maxValue{elevationData.maxCoeffOfFinites() + margin};
         grid_map::SignedDistanceField sdf_temp(map_, layer_name, minValue, maxValue);
-        sdf_range[index] = std::make_pair(Eigen::Vector3d(0, 0, minValue),
-                                          Eigen::Vector3d(map_.getLength().x(), map_.getLength().y(), maxValue));
-        sdf[index] = std::make_unique<grid_map::SignedDistanceField>(sdf_temp);
+        sdf_range_[index] = std::make_pair(Eigen::Vector3d(0, 0, minValue),
+                                           Eigen::Vector3d(map_.getLength().x(), map_.getLength().y(), maxValue));
+        sdf_[index] = std::make_unique<grid_map::SignedDistanceField>(sdf_temp);
     }
     catch (const std::out_of_range &e)
     {
@@ -106,29 +139,29 @@ double GridMapInterface::sdfValue(const grid_map::Position3 &position, const std
 {
     if (mode == "min")
     {
-        if (!sdf[0])
+        if (!sdf_[0])
         {
             ROS_WARN("SDF is not initialized!");
             return 0.0;
         }
-        else if (!sdf[1])
+        else if (!sdf_[1])
         {
             // ROS_WARN("Ceiling SDF is not initialized!");
-            return sdf[0]->value(position);
+            return sdf_[0]->value(position);
         }
         else
         {
-            return std::min(sdf[0]->value(position), -sdf[1]->value(position));
+            return std::min(sdf_[0]->value(position), -sdf_[1]->value(position));
         }
     }
     else if (mode == "ground")
     {
-        if (!sdf[0])
+        if (!sdf_[0])
         {
             ROS_WARN("SDF is not initialized!");
             return 0.0;
         }
-        return sdf[0]->value(position);
+        return sdf_[0]->value(position);
     }
     else
     {
@@ -138,12 +171,12 @@ double GridMapInterface::sdfValue(const grid_map::Position3 &position, const std
 
 Derivative3 GridMapInterface::sdfDerivative(const grid_map::Position3 &position, size_t index)
 {
-    if (!sdf[index])
+    if (!sdf_[index])
     {
         ROS_WARN("SDF is not initialized!");
         return Eigen::Vector3d::Zero();
     }
-    return sdf[index]->derivative(position).transpose();
+    return sdf_[index]->derivative(position).transpose();
 }
 
 grid_map::Length GridMapInterface::getRange() const
@@ -153,5 +186,5 @@ grid_map::Length GridMapInterface::getRange() const
 
 std::pair<Eigen::Vector3d, Eigen::Vector3d> GridMapInterface::getSdfRange(size_t index) const
 {
-    return sdf_range[index];
+    return sdf_range_[index];
 }

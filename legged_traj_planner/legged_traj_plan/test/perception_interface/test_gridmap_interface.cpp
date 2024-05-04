@@ -15,7 +15,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "test_gridmap_interface");
     ros::NodeHandle nh("~");
     ros::Rate rate(1);
-    GridMapInterface interface("/grid_map");
+    GridMapInterface interface(nh, "/grid_map");
     grid_map::Length range = interface.getRange();
     std::cout << "Range: " << range[0] << " " << range[1] << std::endl;
     std::pair<Eigen::Vector3d, Eigen::Vector3d> sdf_range = interface.getSdfRange();

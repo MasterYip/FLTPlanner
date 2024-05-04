@@ -202,14 +202,15 @@ struct LegTraj
     }
 };
 
-class CmdVelExtraplator
+class CmdVelExtrapolator
 {
 private:
     geometry_msgs::Twist cmd_vel_; // cmd vel relative to the BASE frame
     pinocchio::SE3 pose_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
 
 public:
-    CmdVelExtraplator() = default;
+    CmdVelExtrapolator() = default;
     void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel = geometry_msgs::Twist())
     {
         // FIXME: is default cmd_vel 0?
@@ -248,7 +249,7 @@ private:
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
-    CmdVelExtraplator cmd_vel_extraplator_;
+    CmdVelExtrapolator cmd_vel_extraplator_;
     std::vector<std::vector<LegTraj>> leg_traj_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
 
