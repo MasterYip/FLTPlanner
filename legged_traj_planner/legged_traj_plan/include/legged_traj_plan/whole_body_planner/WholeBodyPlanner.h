@@ -310,7 +310,9 @@ public:
 
     void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel);
 
-    bool query(double t, PosList &foot_pos_list, pinocchio::SE3 &pose);
+    bool query(double t, pinocchio::SE3 &pose,
+               PosList &foot_pos_list,
+               std::array<bool, 6> &support_state);
 
     bool toCfgSpace(pinocchio::SE3 pose, Eigen::Vector3d pos, Eigen::Vector3d vel,
                     Eigen::Vector3d &pos_cfg, Eigen::Vector3d &vel_cfg,

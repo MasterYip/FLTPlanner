@@ -82,6 +82,7 @@ private:
     std::shared_ptr<ElSpiderAirInterfaceROS> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     RaibertHeuristicPlanner whole_body_planner_;
+    bool planner_started_ = false;
 
     /// Misc
     // ROS Timer event
@@ -120,6 +121,7 @@ public:
         {
             body_pose_ = pinocchio::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 0.25));
             whole_body_planner_.start(body_pose_);
+            planner_started_ = true;
         }
     }
 
@@ -133,6 +135,14 @@ public:
             {
                 // Use ros::Time(0) to prevent warning of `extrapolate to future`
                 body_state_tf_ = tfBuffer_.lookupTransform("odom", "base", ros::Time(0));
+                body_pose_.translation() = Eigen::Vector3d(body_state_tf_.transform.translation.x,
+                                                           body_state_tf_.transform.translation.y,
+                                                           body_state_tf_.transform.translation.z);
+                body_pose_.rotation() = Eigen::Quaterniond(body_state_tf_.transform.rotation.w,
+                                                           body_state_tf_.transform.rotation.x,
+                                                           body_state_tf_.transform.rotation.y,
+                                                           body_state_tf_.transform.rotation.z)
+                                            .toRotationMatrix();
                 recv_body_state_ = true;
             }
             catch (tf2::TransformException &ex)
@@ -141,28 +151,45 @@ public:
             }
         }
 
-        PosList foot_pos_list;
-        pinocchio::SE3 pose;
-        if (whole_body_planner_.query(ros::Time::now().toSec(), foot_pos_list, pose))
+        if (!planner_started_)
+        {
+            if (recv_foot_state_ && recv_body_state_)
+            {
+                whole_body_planner_.start(body_pose_);
+                planner_started_ = true;
+            }
+            else
+            {
+                ROS_WARN("No feedback received, planner not started");
+                return;
+            }
+        }
+
+        pinocchio::SE3 exp_pose;
+        PosList exp_foot_pos;
+        std::array<bool, 6> contact_state;
+        if (whole_body_planner_.query(ros::Time::now().toSec(), exp_pose, exp_foot_pos, contact_state))
         {
             // Exp foot state
             exp_foot_state_.header.stamp = ros::Time::now();
             exp_foot_state_.header.frame_id = "odom";
             for (int i = 0; i < 6; ++i)
             {
-                foot_pos_list[i] = point_SE3Act(pose, foot_pos_list[i]);
-                exp_foot_state_.position[i].x = foot_pos_list[i](0);
-                exp_foot_state_.position[i].y = foot_pos_list[i](1);
-                exp_foot_state_.position[i].z = foot_pos_list[i](2);
+                exp_foot_pos[i] = point_SE3Act(exp_pose, exp_foot_pos[i]);
+                exp_foot_state_.position[i].x = exp_foot_pos[i](0);
+                exp_foot_state_.position[i].y = exp_foot_pos[i](1);
+                exp_foot_state_.position[i].z = exp_foot_pos[i](2);
+                exp_foot_state_.contact[i] = contact_state[i];
             }
             exp_foot_state_pub_.publish(exp_foot_state_);
+
             // Exp body state
             exp_body_state_.header.stamp = ros::Time::now();
             exp_body_state_.header.frame_id = "odom";
-            exp_body_state_.pose.pose.position.x = pose.translation()(0);
-            exp_body_state_.pose.pose.position.y = pose.translation()(1);
-            exp_body_state_.pose.pose.position.z = pose.translation()(2);
-            Eigen::Quaterniond quat(pose.rotation());
+            exp_body_state_.pose.pose.position.x = exp_pose.translation()(0);
+            exp_body_state_.pose.pose.position.y = exp_pose.translation()(1);
+            exp_body_state_.pose.pose.position.z = exp_pose.translation()(2);
+            Eigen::Quaterniond quat(exp_pose.rotation());
             exp_body_state_.pose.pose.orientation.x = quat.x();
             exp_body_state_.pose.pose.orientation.y = quat.y();
             exp_body_state_.pose.pose.orientation.z = quat.z();
@@ -173,8 +200,8 @@ public:
         if (fake_estimation_)
         {
             // pub pose tf
-            robot_interface_->pub_odom(pose);
-            robot_interface_->pub_joint_state_from_footendpos(foot_pos_list);
+            robot_interface_->pub_odom(exp_pose);
+            robot_interface_->pub_joint_state_from_footendpos(exp_foot_pos);
         }
     }
 
@@ -183,12 +210,26 @@ public:
         ROS_INFO("cmd_vel received");
         cmd_ = msg;
         // Start planning
-        if ((recv_foot_state_ && recv_body_state_) || fake_estimation_)
+        if (planner_started_)
         {
-            PosList foot_pos_list;
-            pinocchio::SE3 pose;
-            whole_body_planner_.query(ros::Time::now().toSec(), foot_pos_list, pose);
-            whole_body_planner_.update(pose, cmd_);
+            // FIXME: update(body_pose) is unstable
+            if (fake_estimation_ || recv_foot_state_ && recv_body_state_)
+            {
+                PosList foot_pos_list;
+                std::array<bool, 6> contact_state;
+                pinocchio::SE3 pose;
+                whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
+                whole_body_planner_.update(pose, cmd_);
+            }
+            else if (recv_foot_state_ && recv_body_state_)
+            {
+                std::cout << "Update planner" << std::endl;
+                whole_body_planner_.update(body_pose_, cmd_);
+            }
+            else
+            {
+                ROS_WARN("No feedback received, skip planning");
+            }
         }
     }
 

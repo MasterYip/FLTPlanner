@@ -84,11 +84,11 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28, -0.28));
 
     PosList pose_sample_pts;
-    for (double x=-0.4; x<=0.4; x+=0.2)
+    for (double x = -0.4; x <= 0.4; x += 0.2)
     {
-        for (double y=-0.4; y<=0.4; y+=0.2)
+        for (double y = -0.4; y <= 0.4; y += 0.2)
         {
-                pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
+            pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
         }
     }
     cmd_vel_extraplator_.init(gridmap_interface, pose_sample_pts);
@@ -148,7 +148,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                 p1.z() = gridmap_interface_->value(grid_map::Position(p1.x(), p1.y()));
                 if (index > 0)
                 {
-                    p0 = leg_traj_[i][index-1].foothold_touch;
+                    p0 = leg_traj_[i][index - 1].foothold_touch;
                 }
                 else
                 {
@@ -186,9 +186,12 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
     }
 }
 
-bool RaibertHeuristicPlanner::query(double t, PosList &foot_pos_list, pinocchio::SE3 &pose)
+bool RaibertHeuristicPlanner::query(double t, pinocchio::SE3 &pose,
+                                    PosList &foot_pos_list,
+                                    std::array<bool, 6> &support_state)
 {
     foot_pos_list.clear();
+    support_state.fill(true);
     pose = cmd_vel_extraplator_.extrapolate(t - update_time_);
     for (int i = 0; i < 6; ++i)
     {
@@ -199,6 +202,7 @@ bool RaibertHeuristicPlanner::query(double t, PosList &foot_pos_list, pinocchio:
             if (leg_traj.isInDuration(t))
             {
                 foot_pos_list.emplace_back(point_SE3Act(pose.inverse(), robot_interface_->FK_foot(leg_traj.evaluate(t), i)));
+                support_state[i] = false;
                 found = true;
                 break;
             }

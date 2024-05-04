@@ -339,6 +339,7 @@ void VMCController::controllLoop()
     {
         ROS_WARN("Not all states are received: ExpPose %d, ExpFootState %d, FdbFootState %d, FdbPose %d",
                  recv_exp_pose_, recv_exp_foot_state_, recv_fdb_foot_state_, recv_fdb_pose_);
+        ros::Duration(1.0).sleep();
         return;
     }
     pinocchio::Motion exp_acc;
