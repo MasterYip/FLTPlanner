@@ -104,7 +104,7 @@ public:
                                                                                           gridmap_interface_(std::make_shared<GridMapInterface>("/grid_map")),
                                                                                           whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
                                                                                           tfListener_(tfBuffer_), visualizer_(nh_),
-                                                                                          rate_(200), fake_estimation_(fake_estimation), simulation_(simulation)
+                                                                                          rate_(50), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirRaibertVMCPlanner::cmd_callback, this);
         foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirRaibertVMCPlanner::foot_state_callback, this);

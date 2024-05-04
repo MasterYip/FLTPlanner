@@ -104,19 +104,20 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
 
     std::vector<std::pair<double, double>> switch_time_pairs;
     pinocchio::SE3 pose_st_mid, pose_touch, pose_lift;
+    double t_now = update_time_;
     for (int i = 0; i < 6; ++i)
     {
         // Remove old traj
-        while (leg_traj_[i].size() > 1 && leg_traj_[i].front().t_touch < update_time_)
+        while (leg_traj_[i].size() > 1 && leg_traj_[i].front().t_touch < t_now - interval_)
         {
             leg_traj_[i].erase(leg_traj_[i].begin());
         }
 
-        if (switch_scheduler_[i].getEventTimes(update_time_, update_time_ + extrapolate_window_,
+        if (switch_scheduler_[i].getEventTimes(t_now, t_now + extrapolate_window_,
                                                switch_time_pairs))
         {
             // Find index in leg_traj_
-            int index = -1;
+            int index = leg_traj_[i].size();
             double t_mid = (switch_time_pairs[0].first + switch_time_pairs[0].second) / 2;
             for (int j = 0; j < leg_traj_[i].size(); ++j)
             {
@@ -126,11 +127,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                     break;
                 }
             }
-            if (index == -1)
-            {
-                leg_traj_.clear(); // FIXME: should not clear
-                index++;
-            }
+
             for (int j = 0; j < switch_time_pairs.size() - 1; j++)
             {
                 auto &pair = switch_time_pairs[j];
@@ -140,15 +137,15 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                 pose_touch = cmd_vel_extraplator_.extrapolate(pair.second - update_time_);
                 Eigen::Vector3d p0;
                 Eigen::Vector3d p1 = point_SE3Act(pose_st_mid.inverse(), nominal_foothold_base_[i]);
-                if (leg_traj_[i].size() == 0)
+                if (index > 0)
                 {
-                    // FIXME: temp solution
-                    ROS_WARN("leg_traj_ is empty");
-                    p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
+                    p0 = leg_traj_[i][index-1].foothold_touch;
                 }
                 else
                 {
-                    p0 = leg_traj_[i].back().foothold_touch;
+                    // FIXME: temp solution
+                    ROS_WARN("leg_traj_ is empty or there are no previous touch down footholds");
+                    p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
                 }
 
                 double vLift = swing_traj_planner_->getConfig().vLift;

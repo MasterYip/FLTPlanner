@@ -7,13 +7,13 @@ from geometry_msgs.msg import Twist
 class JoyTeleop:
     def __init__(self, cmd_topic='cmd_vel', joy_topic='joy'):
         rospy.init_node('joy_teleop')
-        self.pub_rate = 0.5  # Adjust as needed
+        self.pub_rate = 10  # Adjust as needed
         self.timer = rospy.Timer(rospy.Duration(1.0/self.pub_rate), self.timer_callback)
         self.cmd_vel_pub = rospy.Publisher(cmd_topic, Twist, queue_size=10)
         self.joy_sub = rospy.Subscriber(joy_topic, Joy, self.joy_callback)
-        self.max_linear_x = 0.1  # Adjust as needed
-        self.max_linear_y = 0.1  # Adjust as needed
-        self.max_angular_z = 0.1 # Adjust as needed
+        self.max_linear_x = 0.3  # Adjust as needed
+        self.max_linear_y = 0.3  # Adjust as needed
+        self.max_angular_z = 0.2 # Adjust as needed
         self.twist_cmd = Twist()
 
     def joy_callback(self, joy_msg):
