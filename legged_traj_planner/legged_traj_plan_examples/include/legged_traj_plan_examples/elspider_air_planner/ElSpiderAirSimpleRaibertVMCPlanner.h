@@ -248,10 +248,10 @@ public:
                 whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
                 whole_body_planner_.update(pose, cmd_);
             }
-            else if (recv_foot_state_ && recv_body_state_)
-            {
-                whole_body_planner_.update(body_pose_, body_twist_);
-            }
+            // else if (recv_foot_state_ && recv_body_state_)
+            // {
+            //     whole_body_planner_.update(body_pose_, body_twist_);
+            // }
             else
             {
                 ROS_WARN("No feedback received, skip planning");

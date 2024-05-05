@@ -57,16 +57,6 @@ Visualization Manager:
       Enabled: true
       Links:
         All Links Enabled: true
-        BPearl_Lidar:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        BPearl_Lidar_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
@@ -196,49 +186,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        camera_accel_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye2_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_gyro_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_odom_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_pose_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        sensorSupport:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -573,8 +521,6 @@ Visualization Manager:
       Name: GRF_vis
       Namespaces:
         arrow: true
-        cube: true
-        sphere: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -640,7 +586,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 0.9451127648353577
+      Distance: 1.5946884155273438
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -648,17 +594,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.5030199885368347
-        Y: -0.5589026808738708
+        X: 0.221604585647583
+        Y: -0.6841658353805542
         Z: -0.16897384822368622
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.12479791790246964
+      Pitch: 0.3397979736328125
       Target Frame: base
-      Yaw: 4.80637264251709
+      Yaw: 3.6363701820373535
     Saved: ~
 Window Geometry:
   Displays:
