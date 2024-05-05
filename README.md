@@ -111,6 +111,8 @@ interface_type:=gazebo
 roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=true
 #or
 roslaunch legged_traj_plan_examples elspider_air_vmc_planner.launch sim:=true
+#or
+roslaunch legged_traj_plan_examples elspider_air_raibert_vmc_planner.launch sim:=true
 ```
 
 Hardware | Perception & Planning & Control:
