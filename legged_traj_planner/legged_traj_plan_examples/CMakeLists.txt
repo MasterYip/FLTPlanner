@@ -204,6 +204,13 @@ target_link_libraries(elspider_air_raibert_vmc_planner
   ${PROJECT_NAME}
 )
 
+# ElSpiderAirSimpleRaibertVMCPlanner
+add_executable(elspider_air_simple_raibert_vmc_planner src/elspider_air_simple_raibert_vmc_planner.cpp)
+target_link_libraries(elspider_air_simple_raibert_vmc_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
 # Tests
 add_executable(test_force_ctrl test/test_force_ctrl.cpp)
 target_link_libraries(test_force_ctrl
