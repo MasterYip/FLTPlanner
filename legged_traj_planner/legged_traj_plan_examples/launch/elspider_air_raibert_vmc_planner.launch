@@ -105,7 +105,7 @@
         </include>
     </group>
     <group if="$(eval teleop_type == 'PS5')">
-        <node pkg="joy" type="joy_node" name="joy_node" output="screen" clear_params="true" required="true">
+        <node pkg="joy" type="joy_node" name="joy_node" output="screen" clear_params="true" required="true" if="$(eval sim == 1)">
             <param name="dev" value="/dev/input/js0"/>
             <!-- udevadm monitor -->
             <param name="dev_ff" value="/dev/input/event20"/>

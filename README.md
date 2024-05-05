@@ -130,6 +130,8 @@ interface_type:=hardware
 roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=false
 #or
 roslaunch legged_traj_plan_examples elspider_air_vmc_planner.launch sim:=false
+#or
+roslaunch legged_traj_plan_examples elspider_air_raibert_vmc_planner.launch sim:=false
 ```
 
 Settings are listed in `elspider_air_simple_planner.launch`.

@@ -1,5 +1,5 @@
 trajInit:
-  vLift: 0.018 # FIXME: it should be perpendicularly to the ground (avoid collision detection)
+  vLift: 0.03 # FIXME: it should be perpendicularly to the ground (avoid collision detection)
   hLift: 0.15
   trajTime: 10
 

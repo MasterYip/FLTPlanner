@@ -76,12 +76,12 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28-0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34-0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28-0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28+0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34+0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28+0.04, -0.28));
 
     PosList pose_sample_pts;
     for (double x = -0.4; x <= 0.4; x += 0.2)
@@ -96,20 +96,20 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     leg_traj_.resize(6);
 }
 
-void RaibertHeuristicPlanner::start(pinocchio::SE3 pose)
+void RaibertHeuristicPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
 {
     for (auto &leg_sch : switch_scheduler_)
     {
         leg_sch.reset(ros::Time::now().toSec());
     }
-    update(pose, geometry_msgs::Twist());
+    update(pose, geometry_msgs::Twist(), foot_pos_list);
 }
 
 /**
  * @brief
  *
  * @param pose
- * @param cmd_vel
+ * @param cmd_vel Cmd in BASE frame
  * @param foot_pos_list Foot pos now in WORLD frame
  */
 void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
@@ -156,22 +156,20 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                 Eigen::Vector3d p0;
                 Eigen::Vector3d p1 = point_SE3Act(pose_st_mid.inverse(), nominal_foothold_base_[i]);
                 p1.z() = gridmap_interface_->value(grid_map::Position(p1.x(), p1.y()));
-                if (foot_pos_list_valid)
+
+                if (j == 0 && foot_pos_list_valid)
                 {
                     p0 = foot_pos_list[i];
                 }
+                else if (index > 0)
+                {
+                    p0 = leg_traj_[i][index - 1].foothold_touch;
+                }
                 else
                 {
-                    if (index > 0)
-                    {
-                        p0 = leg_traj_[i][index - 1].foothold_touch;
-                    }
-                    else
-                    {
-                        // FIXME: temp solution
-                        ROS_WARN("leg_traj_ is empty or there are no previous touch down footholds");
-                        p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
-                    }
+                    // FIXME: temp solution
+                    ROS_WARN("leg_traj_ is empty or there are no previous touch down footholds");
+                    p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
                 }
 
                 double vLift = swing_traj_planner_->getConfig().vLift;

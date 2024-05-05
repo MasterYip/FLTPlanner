@@ -1,12 +1,12 @@
 # sim: true # Loaded in launch file
 mu: 0.4
-mass: 32.0
+mass: 36.0
 # inertia_diag: [0.4, 2.0, 2.4]
 inertia_diag: [0.3, 0.6, 0.9]
 gravity: 9.81
 loop_rate: 200.0
-Kp: 40.0
-Kd: 14.0 # kd = 2 \zeta \sqrt(kp)
+Kp: 20.0
+Kd: 8.0 # kd = 2 \zeta \sqrt(kp)
 pidgrf_Kp: 100.0 # When this equals loop_rate, pid acts as pass-through 
 pidgrf_lim: 60000.0
 # pidgrf_T: 0.005

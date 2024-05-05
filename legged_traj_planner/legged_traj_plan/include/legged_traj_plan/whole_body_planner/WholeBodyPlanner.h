@@ -297,16 +297,16 @@ private:
     double update_time_ = 0;
     bool use_cfg_space_;
 
-    double interval_ =1;
+    double interval_ = 1;
     double duty_ = 0.6;
-    double extrapolate_window_ = 5;
+    double extrapolate_window_ = 3;
 
 public:
     RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                             std::shared_ptr<GridMapInterface> gridmap_interface,
                             std::shared_ptr<ElSpiderAirInterface> robot_interface);
 
-    void start(pinocchio::SE3 pose);
+    void start(pinocchio::SE3 pose, PosList foot_pos_list = PosList());
 
     void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
                 PosList foot_pos_list = PosList());

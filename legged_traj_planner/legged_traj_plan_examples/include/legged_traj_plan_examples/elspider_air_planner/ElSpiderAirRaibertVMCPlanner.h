@@ -156,7 +156,7 @@ public:
         {
             if (recv_foot_state_ && recv_body_state_)
             {
-                whole_body_planner_.start(body_pose_);
+                whole_body_planner_.start(body_pose_, foot_pos_list_);
                 planner_started_ = true;
             }
             else
@@ -194,6 +194,20 @@ public:
             exp_body_state_.pose.pose.orientation.y = quat.y();
             exp_body_state_.pose.pose.orientation.z = quat.z();
             exp_body_state_.pose.pose.orientation.w = quat.w();
+            geometry_msgs::Twist twist_world;
+            Eigen::Vector3d linear_world;
+            linear_world << cmd_.linear.x, cmd_.linear.y, cmd_.linear.z;
+            linear_world = exp_pose.rotation() * linear_world;
+            Eigen::Vector3d angular_world;
+            angular_world << cmd_.angular.x, cmd_.angular.y, cmd_.angular.z;
+            angular_world = exp_pose.rotation() * angular_world;
+            twist_world.linear.x = linear_world(0);
+            twist_world.linear.y = linear_world(1);
+            twist_world.linear.z = linear_world(2);
+            twist_world.angular.x = angular_world(0);
+            twist_world.angular.y = angular_world(1);
+            twist_world.angular.z = angular_world(2);
+            exp_body_state_.twist.twist = twist_world;
             exp_body_state_pub_.publish(exp_body_state_);
         }
 
@@ -231,8 +245,9 @@ public:
         // Start planning
         if (planner_started_)
         {
+            // BUG
             // FIXME: update(body_pose) is unstable
-            if (fake_estimation_)
+            if (fake_estimation_ || (recv_foot_state_ && recv_body_state_))
             {
                 PosList foot_pos_list;
                 std::array<bool, 6> contact_state;
@@ -242,7 +257,9 @@ public:
             }
             else if (recv_foot_state_ && recv_body_state_)
             {
-                whole_body_planner_.update(body_pose_, cmd_, foot_pos_list_);
+                // PROBLEM: whether to sync foot pos
+                // whole_body_planner_.update(body_pose_, cmd_, foot_pos_list_);
+                whole_body_planner_.update(body_pose_, cmd_);
             }
             else
             {
@@ -262,7 +279,7 @@ public:
         {
             Eigen::Vector3d pos;
             pos << foot_state_.position[k].x, foot_state_.position[k].y, foot_state_.position[k].z;
-            foot_pos_list_.emplace_back(pos);
+            foot_pos_list_.emplace_back(point_SE3Act(body_pose_.inverse(), pos));
         }
     }
 
