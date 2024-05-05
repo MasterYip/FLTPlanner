@@ -5,8 +5,8 @@ mass: 36.0
 inertia_diag: [0.3, 0.6, 0.9]
 gravity: 9.81
 loop_rate: 200.0
-Kp: 20.0
-Kd: 8.0 # kd = 2 \zeta \sqrt(kp)
+Kp: 16.0
+Kd: 10.0 # kd = 2 \zeta \sqrt(kp)
 pidgrf_Kp: 100.0 # When this equals loop_rate, pid acts as pass-through 
 pidgrf_lim: 60000.0
 # pidgrf_T: 0.005

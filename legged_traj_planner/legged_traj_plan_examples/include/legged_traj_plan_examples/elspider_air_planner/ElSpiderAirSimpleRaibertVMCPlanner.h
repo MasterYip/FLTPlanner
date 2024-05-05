@@ -71,6 +71,7 @@ private:
     ros::Subscriber body_state_sub_;
     pinocchio::SE3 body_pose_;
     geometry_msgs::Twist body_twist_;
+    geometry_msgs::Twist body_twist_base_rectify_;
     bool recv_body_state_ = false;
 
     /// Command publish
@@ -147,6 +148,7 @@ public:
             if (recv_foot_state_ && recv_body_state_)
             {
                 whole_body_planner_.start(body_pose_, foot_pos_list_);
+                cmd_extrapolator_.update(body_pose_);
                 planner_started_ = true;
             }
             else
@@ -173,9 +175,10 @@ public:
             }
             exp_foot_state_pub_.publish(exp_foot_state_);
 
+            // FIXME: how to handle ref pose
             // Exp body state
-            cmd_extrapolator_.update(body_pose_, cmd_);
             exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
+            cmd_extrapolator_.update(exp_pose, cmd_);
 
             exp_body_state_.header.stamp = ros::Time::now();
             exp_body_state_.header.frame_id = "odom";
@@ -214,7 +217,7 @@ public:
         {
             // Shadow robot
             robot_interface_->pub_odom(exp_pose, "shadowbase", "odom");
-            // robot_interface_->pub_shadow_joint_state_from_footendpos(exp_foot_pos);
+            robot_interface_->pub_shadow_joint_state_from_footendpos(exp_foot_pos);
             pub_footpos_now();
         }
     }
@@ -238,9 +241,7 @@ public:
         // Start planning
         if (planner_started_)
         {
-            // BUG
-            // FIXME: update(body_pose) is unstable
-            if (fake_estimation_ || (recv_foot_state_ && recv_body_state_))
+            if (fake_estimation_)
             {
                 PosList foot_pos_list;
                 std::array<bool, 6> contact_state;
@@ -248,10 +249,11 @@ public:
                 whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
                 whole_body_planner_.update(pose, cmd_);
             }
-            // else if (recv_foot_state_ && recv_body_state_)
-            // {
-            //     whole_body_planner_.update(body_pose_, body_twist_);
-            // }
+            else if (recv_foot_state_ && recv_body_state_)
+            {
+                // BUG: update(body_pose) is unstable 
+                whole_body_planner_.update(body_pose_, body_twist_base_rectify_);
+            }
             else
             {
                 ROS_WARN("No feedback received, skip planning");
@@ -285,7 +287,27 @@ public:
                                 msg.pose.pose.orientation.y,
                                 msg.pose.pose.orientation.z);
         body_pose_.rotation() = quat.toRotationMatrix();
-        body_twist_ = msg.twist.twist;
+        body_twist_ = msg.twist.twist; // FIXME: seems msg.twist is in base frame
+        body_twist_base_rectify_ = msg.twist.twist;
+        body_twist_base_rectify_.linear.z = 0;
+        body_twist_base_rectify_.angular.x = 0;
+        body_twist_base_rectify_.angular.y = 0;
+
+        // Eigen::Vector3d linear(msg.twist.twist.linear.x,
+        //                        msg.twist.twist.linear.y,
+        //                        msg.twist.twist.linear.z);
+        // linear = body_pose_.rotation().inverse() * linear;
+        // body_twist_base_rectify_.linear.x = linear(0);
+        // body_twist_base_rectify_.linear.y = linear(1);
+        // body_twist_base_rectify_.linear.z = 0;
+        // Eigen::Vector3d angular(msg.twist.twist.angular.x,
+        //                         msg.twist.twist.angular.y,
+        //                         msg.twist.twist.angular.z);
+        // angular = body_pose_.rotation().inverse() * angular;
+        // body_twist_base_rectify_.angular.x = 0;
+        // body_twist_base_rectify_.angular.y = 0;
+        // body_twist_base_rectify_.angular.z = angular(2);
+
     }
 
     void run(void)
