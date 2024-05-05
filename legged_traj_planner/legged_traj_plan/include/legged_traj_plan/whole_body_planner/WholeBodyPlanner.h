@@ -297,7 +297,7 @@ private:
     double update_time_ = 0;
     bool use_cfg_space_;
 
-    double interval_ = 0.8;
+    double interval_ =1;
     double duty_ = 0.6;
     double extrapolate_window_ = 5;
 
@@ -308,7 +308,8 @@ public:
 
     void start(pinocchio::SE3 pose);
 
-    void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel);
+    void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
+                PosList foot_pos_list = PosList());
 
     bool query(double t, pinocchio::SE3 &pose,
                PosList &foot_pos_list,

@@ -105,10 +105,20 @@ void RaibertHeuristicPlanner::start(pinocchio::SE3 pose)
     update(pose, geometry_msgs::Twist());
 }
 
-void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel)
+/**
+ * @brief
+ *
+ * @param pose
+ * @param cmd_vel
+ * @param foot_pos_list Foot pos now in WORLD frame
+ */
+void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
+                                     PosList foot_pos_list)
 {
     cmd_vel_extraplator_.update(pose, cmd_vel);
     update_time_ = ros::Time::now().toSec();
+
+    bool foot_pos_list_valid = foot_pos_list.size() == 6;
 
     std::vector<std::pair<double, double>> switch_time_pairs;
     pinocchio::SE3 pose_st_mid, pose_touch, pose_lift;
@@ -126,7 +136,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
         {
             // Find index in leg_traj_
             int index = leg_traj_[i].size();
-            double t_mid = (switch_time_pairs[0].first + switch_time_pairs[0].second) / 2;
+            double t_mid = (switch_time_pairs[0].first + switch_time_pairs[0].second) / 2; // First time pair
             for (int j = 0; j < leg_traj_[i].size(); ++j)
             {
                 if (leg_traj_[i][j].isApproxTmid(t_mid))
@@ -146,15 +156,22 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                 Eigen::Vector3d p0;
                 Eigen::Vector3d p1 = point_SE3Act(pose_st_mid.inverse(), nominal_foothold_base_[i]);
                 p1.z() = gridmap_interface_->value(grid_map::Position(p1.x(), p1.y()));
-                if (index > 0)
+                if (foot_pos_list_valid)
                 {
-                    p0 = leg_traj_[i][index - 1].foothold_touch;
+                    p0 = foot_pos_list[i];
                 }
                 else
                 {
-                    // FIXME: temp solution
-                    ROS_WARN("leg_traj_ is empty or there are no previous touch down footholds");
-                    p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
+                    if (index > 0)
+                    {
+                        p0 = leg_traj_[i][index - 1].foothold_touch;
+                    }
+                    else
+                    {
+                        // FIXME: temp solution
+                        ROS_WARN("leg_traj_ is empty or there are no previous touch down footholds");
+                        p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
+                    }
                 }
 
                 double vLift = swing_traj_planner_->getConfig().vLift;
@@ -186,6 +203,16 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
     }
 }
 
+/**
+ * @brief
+ *
+ * @param t World time
+ * @param pose Expected body pose in WORLD frame
+ * @param foot_pos_list Expected foot pos in BASE frame
+ * @param support_state Foot support state
+ * @return true
+ * @return false
+ */
 bool RaibertHeuristicPlanner::query(double t, pinocchio::SE3 &pose,
                                     PosList &foot_pos_list,
                                     std::array<bool, 6> &support_state)
@@ -201,14 +228,14 @@ bool RaibertHeuristicPlanner::query(double t, pinocchio::SE3 &pose,
             auto &leg_traj = leg_traj_[i][j];
             if (leg_traj.isInDuration(t))
             {
-                foot_pos_list.emplace_back(point_SE3Act(pose.inverse(), robot_interface_->FK_foot(leg_traj.evaluate(t), i)));
+                foot_pos_list.emplace_back(robot_interface_->FK_foot(leg_traj.evaluate(t), i));
                 support_state[i] = false;
                 found = true;
                 break;
             }
             if (t < leg_traj.t_lift)
             {
-                foot_pos_list.emplace_back(leg_traj.foothold_lift);
+                foot_pos_list.emplace_back(point_SE3Act(pose, leg_traj.foothold_lift));
                 found = true;
                 break;
             }
@@ -216,11 +243,11 @@ bool RaibertHeuristicPlanner::query(double t, pinocchio::SE3 &pose,
         if (!found)
         {
             if (leg_traj_[i].size() > 0)
-                foot_pos_list.emplace_back(leg_traj_[i].back().foothold_touch);
+                foot_pos_list.emplace_back(point_SE3Act(pose, leg_traj_[i].back().foothold_touch));
             else
             {
                 ROS_WARN("No valid leg_traj found for leg %d at time %f", i, t);
-                foot_pos_list.emplace_back(point_SE3Act(pose.inverse(), nominal_foothold_base_[i]));
+                foot_pos_list.emplace_back(nominal_foothold_base_[i]);
             }
         }
     }

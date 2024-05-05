@@ -62,20 +62,21 @@ private:
     // Foot state feedback
     ros::Subscriber foot_state_sub_;
     legged_traj_plan::FootState foot_state_;
+    PosList foot_pos_list_;
     bool recv_foot_state_ = false;
+
+    // Odometry feedback
+    tf2_ros::Buffer tfBuffer_;
+    tf2_ros::TransformListener tfListener_;
+    geometry_msgs::TransformStamped body_state_tf_;
+    pinocchio::SE3 body_pose_;
+    bool recv_body_state_ = false;
 
     /// Command publish
     ros::Publisher exp_foot_state_pub_;
     legged_traj_plan::FootState exp_foot_state_;
     ros::Publisher exp_body_state_pub_;
     nav_msgs::Odometry exp_body_state_;
-
-    // Odometry
-    tf2_ros::Buffer tfBuffer_;
-    tf2_ros::TransformListener tfListener_;
-    geometry_msgs::TransformStamped body_state_tf_;
-    pinocchio::SE3 body_pose_;
-    bool recv_body_state_ = false;
 
     /// Interface
     // Fast legged planner interface
@@ -104,7 +105,7 @@ public:
                                                                                           robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
                                                                                           gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                           whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
-                                                                                          tfListener_(tfBuffer_), visualizer_(nh_),
+                                                                                          tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_marker"),
                                                                                           rate_(50), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirRaibertVMCPlanner::cmd_callback, this);
@@ -175,7 +176,6 @@ public:
             exp_foot_state_.header.frame_id = "odom";
             for (int i = 0; i < 6; ++i)
             {
-                exp_foot_pos[i] = point_SE3Act(exp_pose, exp_foot_pos[i]);
                 exp_foot_state_.position[i].x = exp_foot_pos[i](0);
                 exp_foot_state_.position[i].y = exp_foot_pos[i](1);
                 exp_foot_state_.position[i].z = exp_foot_pos[i](2);
@@ -242,7 +242,7 @@ public:
             }
             else if (recv_foot_state_ && recv_body_state_)
             {
-                whole_body_planner_.update(body_pose_, cmd_);
+                whole_body_planner_.update(body_pose_, cmd_, foot_pos_list_);
             }
             else
             {
@@ -257,6 +257,13 @@ public:
     {
         recv_foot_state_ = true;
         foot_state_ = msg;
+        foot_pos_list_.clear();
+        for (size_t k = 0; k < 6; ++k)
+        {
+            Eigen::Vector3d pos;
+            pos << foot_state_.position[k].x, foot_state_.position[k].y, foot_state_.position[k].z;
+            foot_pos_list_.emplace_back(pos);
+        }
     }
 
     void run(void)
