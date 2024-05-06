@@ -69,7 +69,7 @@ public:
         cfg_.loadConfig(nh_);
         exp_foot_state_pub_ = nh_.advertise<legged_traj_plan::FootState>("/exp_foot_state", 1);
         exp_body_state_pub_ = nh_.advertise<nav_msgs::Odometry>("/exp_odom", 1);
-        fdb_pose_sub_ = nh_.subscribe("/torso_odom", 1, &TestVMCCmdPub::fdbPoseCallback, this);
+        fdb_pose_sub_ = nh_.subscribe("/base_odom", 1, &TestVMCCmdPub::fdbPoseCallback, this);
         joy_sub_ = nh_.subscribe("/joy", 1, &TestVMCCmdPub::joyCallback, this);
 
         exp_foot_state_.position.resize(6);

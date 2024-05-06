@@ -57,6 +57,7 @@ struct VMCConfig
     // Topics
     std::string exp_pose_topic_name;
     std::string fdb_pose_topic_name;
+    std::string fdb_pose_topic_name_sim;
     std::string exp_foot_state_topic_name;
     std::string fdb_foot_state_topic_name;
     std::string footcmd_topic_name;
@@ -97,7 +98,8 @@ struct VMCConfig
 
         // Topics
         nh.param("exp_pose_topic_name", exp_pose_topic_name, std::string("/exp_odom"));
-        nh.param("fdb_pose_topic_name", fdb_pose_topic_name, std::string("/torso_odom"));
+        nh.param("fdb_pose_topic_name", fdb_pose_topic_name, std::string("/base_odom"));
+        nh.param("fdb_pose_topic_name_sim", fdb_pose_topic_name_sim, std::string("/torso_odom"));
         nh.param("exp_foot_state_topic_name", exp_foot_state_topic_name, std::string("/exp_foot_state"));
         nh.param("fdb_foot_state_topic_name", fdb_foot_state_topic_name, std::string("/hexapod/foot_state_fdb"));
         nh.param("footcmd_topic_name", footcmd_topic_name, std::string("/hexapod/hlc/foot_cmd_track"));

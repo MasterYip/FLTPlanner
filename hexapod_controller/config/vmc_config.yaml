@@ -12,7 +12,9 @@ pidgrf_lim: 60000.0
 # pidgrf_T: 0.005
 # pidgrf_tau: 0.0025
 exp_pose_topic_name: /exp_odom
-fdb_pose_topic_name: /torso_odom
+fdb_pose_topic_name: /base_odom # Hardware
+# fdb_pose_topic_name_sim: /torso_odom # gazebo (original data)
+fdb_pose_topic_name_sim: /base_odom # gazebo (sim sensor)
 exp_foot_state_topic_name: /exp_foot_state
 fdb_foot_state_topic_name: /hexapod/foot_state_fdb
 footcmd_topic_name: /hexapod/hlc/foot_cmd_track

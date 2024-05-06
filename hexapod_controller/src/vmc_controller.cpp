@@ -211,7 +211,10 @@ VMCController::VMCController(ros::NodeHandle &nh) : tfListener_(tfBuffer_), rosv
     exp_foot_state_sub_ = nh.subscribe(cfg_.exp_foot_state_topic_name, 1, &VMCController::expFootStateCallback, this);
     fdb_foot_state_sub_ = nh.subscribe(cfg_.fdb_foot_state_topic_name, 1, &VMCController::fdbFootStateCallback, this);
     exp_pose_sub_ = nh.subscribe(cfg_.exp_pose_topic_name, 1, &VMCController::expPoseCallback, this);
-    fdb_pose_sub_ = nh.subscribe(cfg_.fdb_pose_topic_name, 1, &VMCController::fdbPoseCallback, this);
+    if (cfg_.sim)
+        fdb_pose_sub_ = nh.subscribe(cfg_.fdb_pose_topic_name_sim, 1, &VMCController::fdbPoseCallback, this);
+    else
+        fdb_pose_sub_ = nh.subscribe(cfg_.fdb_pose_topic_name, 1, &VMCController::fdbPoseCallback, this);
     foot_cmd_pub_ = nh.advertise<hexapod_controller::FootCmd>(cfg_.footcmd_topic_name, 1);
 
     // GRF filter
@@ -223,7 +226,7 @@ VMCController::VMCController(ros::NodeHandle &nh) : tfListener_(tfBuffer_), rosv
 
 // Callbacks
 // Pose Lookup for hardware robot
-bool VMCController::fdbPoseLookup()
+[[deprecated]] bool VMCController::fdbPoseLookup()
 {
     try
     {
@@ -265,12 +268,12 @@ void VMCController::expFootStateCallback(const hexapod_controller::FootState &ms
 }
 
 /**
- * @brief 
+ * @brief
  * @note all parameters are in the BASE frame
- * @param footendpos 
- * @param footendvel 
- * @param footendeffort 
- * @param contact_flag 
+ * @param footendpos
+ * @param footendvel
+ * @param footendeffort
+ * @param contact_flag
  */
 void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
                                const std::vector<Eigen::Vector3d> &footendvel,
