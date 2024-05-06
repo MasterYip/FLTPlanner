@@ -64,7 +64,7 @@ struct VMCConfig
     std::string body_frame;
     std::string world_frame;
 
-    std::vector<double> joint_kp_st = {3, 0};
+    std::vector<double> joint_kp_st = {3, 0}; // FIXME: this init method is wrone
     std::vector<double> joint_kd_st = {3, 0};
     std::vector<double> joint_kp_sw = {3, 0};
     std::vector<double> joint_kd_sw = {3, 0};

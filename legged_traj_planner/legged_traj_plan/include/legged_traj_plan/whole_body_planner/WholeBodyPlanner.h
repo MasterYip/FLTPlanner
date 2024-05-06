@@ -298,7 +298,7 @@ private:
     bool use_cfg_space_;
 
     double interval_ = 1;
-    double duty_ = 0.6;
+    double duty_ = 0.5;
     double extrapolate_window_ = 3;
 
 public:

@@ -251,8 +251,12 @@ public:
             }
             else if (recv_foot_state_ && recv_body_state_)
             {
-                // BUG: update(body_pose) is unstable 
-                whole_body_planner_.update(body_pose_, body_twist_base_rectify_);
+                // BUG: update(body_pose) is unstable
+                geometry_msgs::Twist twist_mix;
+                twist_mix.linear.x = body_twist_base_rectify_.linear.x * 0.5 + cmd_.linear.x * 0.5;
+                twist_mix.linear.y = body_twist_base_rectify_.linear.y * 0.5 + cmd_.linear.y * 0.5;
+                twist_mix.linear.z = body_twist_base_rectify_.linear.z * 0.5 + cmd_.linear.z * 0.5;
+                whole_body_planner_.update(body_pose_, twist_mix);
             }
             else
             {
@@ -292,6 +296,10 @@ public:
         body_twist_base_rectify_.linear.z = 0;
         body_twist_base_rectify_.angular.x = 0;
         body_twist_base_rectify_.angular.y = 0;
+        double scale = 0.1;
+        body_twist_base_rectify_.linear.x *= scale;
+        body_twist_base_rectify_.linear.y *= scale;
+        body_twist_base_rectify_.angular.z *= scale;
 
         // Eigen::Vector3d linear(msg.twist.twist.linear.x,
         //                        msg.twist.twist.linear.y,
@@ -307,7 +315,6 @@ public:
         // body_twist_base_rectify_.angular.x = 0;
         // body_twist_base_rectify_.angular.y = 0;
         // body_twist_base_rectify_.angular.z = angular(2);
-
     }
 
     void run(void)

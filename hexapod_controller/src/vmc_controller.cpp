@@ -222,7 +222,7 @@ VMCController::VMCController(ros::NodeHandle &nh) : tfListener_(tfBuffer_), rosv
 }
 
 // Callbacks
-
+// Pose Lookup for hardware robot
 bool VMCController::fdbPoseLookup()
 {
     try
@@ -264,6 +264,14 @@ void VMCController::expFootStateCallback(const hexapod_controller::FootState &ms
     recv_exp_foot_state_ = true;
 }
 
+/**
+ * @brief 
+ * @note all parameters are in the BASE frame
+ * @param footendpos 
+ * @param footendvel 
+ * @param footendeffort 
+ * @param contact_flag 
+ */
 void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
                                const std::vector<Eigen::Vector3d> &footendvel,
                                const std::vector<Eigen::Vector3d> &footendeffort,

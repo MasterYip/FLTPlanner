@@ -145,13 +145,6 @@ target_link_libraries(${PROJECT_NAME}
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(test_vmc_controller test/test_vmc_controller.cpp)
-target_link_libraries(test_vmc_controller
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${PINOCCHIO_LIBRARIES}
-)
-
 add_executable(vmc_controller_node src/vmc_controller_node.cpp)
 target_link_libraries(vmc_controller_node
   ${PROJECT_NAME}
@@ -159,6 +152,19 @@ target_link_libraries(vmc_controller_node
   ${PINOCCHIO_LIBRARIES}
 )
 
+add_executable(test_vmc_controller test/test_vmc_controller.cpp)
+target_link_libraries(test_vmc_controller
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${PINOCCHIO_LIBRARIES}
+)
+
+add_executable(test_vmc_stance test/test_vmc_stance.cpp)
+target_link_libraries(test_vmc_stance
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${PINOCCHIO_LIBRARIES}
+)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
