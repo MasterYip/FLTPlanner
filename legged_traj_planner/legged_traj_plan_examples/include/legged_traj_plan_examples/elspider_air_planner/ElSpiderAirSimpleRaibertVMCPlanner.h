@@ -177,8 +177,12 @@ public:
 
             // FIXME: how to handle ref pose
             // Exp body state
+            // 1. direct integration
             exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
             cmd_extrapolator_.update(exp_pose, cmd_);
+            // 2. update with state
+            // cmd_extrapolator_.update(body_pose_, cmd_);
+            // exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
 
             exp_body_state_.header.stamp = ros::Time::now();
             exp_body_state_.header.frame_id = "odom";
@@ -253,9 +257,10 @@ public:
             {
                 // BUG: update(body_pose) is unstable
                 geometry_msgs::Twist twist_mix;
-                twist_mix.linear.x = body_twist_base_rectify_.linear.x * 0.5 + cmd_.linear.x * 0.5;
-                twist_mix.linear.y = body_twist_base_rectify_.linear.y * 0.5 + cmd_.linear.y * 0.5;
-                twist_mix.linear.z = body_twist_base_rectify_.linear.z * 0.5 + cmd_.linear.z * 0.5;
+                double weight = 1.0;
+                twist_mix.linear.x = body_twist_base_rectify_.linear.x * (1.0 - weight) + cmd_.linear.x * weight;
+                twist_mix.linear.y = body_twist_base_rectify_.linear.y * (1.0 - weight) + cmd_.linear.y * weight;
+                twist_mix.linear.z = body_twist_base_rectify_.linear.z * (1.0 - weight) + cmd_.linear.z * weight;
                 whole_body_planner_.update(body_pose_, twist_mix);
             }
             else
@@ -291,30 +296,30 @@ public:
                                 msg.pose.pose.orientation.y,
                                 msg.pose.pose.orientation.z);
         body_pose_.rotation() = quat.toRotationMatrix();
-        body_twist_ = msg.twist.twist; // FIXME: seems msg.twist is in base frame
-        body_twist_base_rectify_ = msg.twist.twist;
+        body_twist_ = msg.twist.twist; // seems msg.twist is in world frame
+        // body_twist_base_rectify_ = msg.twist.twist;
+        // body_twist_base_rectify_.linear.z = 0;
+        // body_twist_base_rectify_.angular.x = 0;
+        // body_twist_base_rectify_.angular.y = 0;
+
+        Eigen::Vector3d linear(msg.twist.twist.linear.x,
+                               msg.twist.twist.linear.y,
+                               msg.twist.twist.linear.z);
+        linear = body_pose_.rotation().inverse() * linear;
+        body_twist_base_rectify_.linear.x = linear(0);
+        body_twist_base_rectify_.linear.y = linear(1);
         body_twist_base_rectify_.linear.z = 0;
+        Eigen::Vector3d angular(msg.twist.twist.angular.x,
+                                msg.twist.twist.angular.y,
+                                msg.twist.twist.angular.z);
+        angular = body_pose_.rotation().inverse() * angular;
         body_twist_base_rectify_.angular.x = 0;
         body_twist_base_rectify_.angular.y = 0;
+        body_twist_base_rectify_.angular.z = angular(2);
         double scale = 0.1;
         body_twist_base_rectify_.linear.x *= scale;
         body_twist_base_rectify_.linear.y *= scale;
         body_twist_base_rectify_.angular.z *= scale;
-
-        // Eigen::Vector3d linear(msg.twist.twist.linear.x,
-        //                        msg.twist.twist.linear.y,
-        //                        msg.twist.twist.linear.z);
-        // linear = body_pose_.rotation().inverse() * linear;
-        // body_twist_base_rectify_.linear.x = linear(0);
-        // body_twist_base_rectify_.linear.y = linear(1);
-        // body_twist_base_rectify_.linear.z = 0;
-        // Eigen::Vector3d angular(msg.twist.twist.angular.x,
-        //                         msg.twist.twist.angular.y,
-        //                         msg.twist.twist.angular.z);
-        // angular = body_pose_.rotation().inverse() * angular;
-        // body_twist_base_rectify_.angular.x = 0;
-        // body_twist_base_rectify_.angular.y = 0;
-        // body_twist_base_rectify_.angular.z = angular(2);
     }
 
     void run(void)

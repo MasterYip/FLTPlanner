@@ -1,13 +1,14 @@
 # sim: true # Loaded in launch file
 mu: 0.4
 mass: 36.0
-inertia_diag: [1.0, 2.0, 2.4]
+# inertia_diag: [1.0, 2.0, 2.4]
+inertia_diag: [0.7, 1.4, 1.8]
 # inertia_diag: [0.3, 0.6, 0.9]
 gravity: 9.81
 loop_rate: 200.0
 Kp: 36.0
-Kd: 12.0 # kd = 2 \zeta \sqrt(kp)
-pidgrf_Kp: 100.0 # When this equals loop_rate, pid acts as pass-through 
+Kd: 14.0 # kd = 2 \zeta \sqrt(kp)
+pidgrf_Kp: 50.0 # When this equals loop_rate, pid acts as pass-through 
 pidgrf_lim: 60000.0
 # pidgrf_T: 0.005
 # pidgrf_tau: 0.0025
@@ -20,7 +21,8 @@ fdb_foot_state_topic_name: /hexapod/foot_state_fdb
 footcmd_topic_name: /hexapod/hlc/foot_cmd_track
 body_frame: base
 world_frame: odom
-joint_kp_st: [0.01, 0.01, 0.01]
+# joint_kp_sw: [0.01, 0.01, 0.01]
+joint_kp_st: [0.005, 0.005, 0.005]
 joint_kd_st: [0.4, 0.4, 0.4]
 joint_kp_sw: [0.01, 0.01, 0.01]
 joint_kd_sw: [0.4, 0.4, 0.4]
