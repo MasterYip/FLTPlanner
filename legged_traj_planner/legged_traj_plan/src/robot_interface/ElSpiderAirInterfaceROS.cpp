@@ -122,6 +122,18 @@ void ElSpiderAirInterfaceROS::pub_joint_state(const std::vector<double> &q)
     joint_state_pub.publish(joint_state);
 }
 
+void ElSpiderAirInterfaceROS::pub_joint_state(const std::vector<Eigen::Vector3d> &q)
+{
+    std::vector<double> q_vec;
+    for (auto pos : q)
+    {
+        q_vec.push_back(pos[0]);
+        q_vec.push_back(pos[1]);
+        q_vec.push_back(pos[2]);
+    }
+    pub_joint_state(q_vec);
+}
+
 void ElSpiderAirInterfaceROS::pub_shadow_joint_state(const std::vector<double> &q)
 {
     sensor_msgs::JointState joint_state;
@@ -129,6 +141,18 @@ void ElSpiderAirInterfaceROS::pub_shadow_joint_state(const std::vector<double> &
     joint_state.name = SHADOW_JOINT_STATE_NAME;
     joint_state.position = q;
     shadow_joint_state_pub.publish(joint_state);
+}
+
+void ElSpiderAirInterfaceROS::pub_shadow_joint_state(const std::vector<Eigen::Vector3d> &q)
+{
+    std::vector<double> q_vec;
+    for (auto pos : q)
+    {
+        q_vec.push_back(pos[0]);
+        q_vec.push_back(pos[1]);
+        q_vec.push_back(pos[2]);
+    }
+    pub_shadow_joint_state(q_vec);
 }
 
 void ElSpiderAirInterfaceROS::pub_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)

@@ -159,12 +159,21 @@ struct LegTraj
     double t_lift;
     double t_touch;
     double t_mid;
-    // World frame
+    // In World frame
     Eigen::Vector3d foothold_lift;
     Eigen::Vector3d foothold_touch;
     // World frame OR cfg space
     std::shared_ptr<MincoTrajectory> swing_traj;
 
+    /**
+     * @brief Construct a new Leg Traj object
+     *
+     * @param t_lift
+     * @param t_touch
+     * @param foothold_lift   In World frame
+     * @param foothold_touch  In World frame
+     * @param swing_traj
+     */
     LegTraj(double t_lift, double t_touch,
             Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
             std::shared_ptr<MincoTrajectory> swing_traj)
@@ -172,10 +181,10 @@ struct LegTraj
           foothold_lift(foothold_lift), foothold_touch(foothold_touch),
           swing_traj(swing_traj){};
 
-    void update(double t_lift, double t_touch,
-                Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
-                Eigen::Vector3d foothold_lift_cfg, Eigen::Vector3d foothold_touch_cfg,
-                Eigen::Vector3d liftvel_cfg, Eigen::Vector3d touchvel_cfg)
+    [[deprecated]] void update(double t_lift, double t_touch,
+                               Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
+                               Eigen::Vector3d foothold_lift_cfg, Eigen::Vector3d foothold_touch_cfg,
+                               Eigen::Vector3d liftvel_cfg, Eigen::Vector3d touchvel_cfg)
     {
         this->t_lift = t_lift;
         this->t_touch = t_touch;
@@ -314,6 +323,10 @@ public:
     bool query(double t, pinocchio::SE3 &pose,
                PosList &foot_pos_list,
                std::array<bool, 6> &support_state);
+
+    bool queryCfg(double t, pinocchio::SE3 &pose,
+                  PosList &foot_pos_list,
+                  std::array<bool, 6> &support_state);
 
     bool toCfgSpace(pinocchio::SE3 pose, Eigen::Vector3d pos, Eigen::Vector3d vel,
                     Eigen::Vector3d &pos_cfg, Eigen::Vector3d &vel_cfg,

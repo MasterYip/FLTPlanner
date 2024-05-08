@@ -209,20 +209,24 @@ public:
             twist_world.angular.z = angular_world(2);
             exp_body_state_.twist.twist = twist_world;
             exp_body_state_pub_.publish(exp_body_state_);
-        }
 
-        if (fake_estimation_)
-        {
-            // pub pose tf
-            robot_interface_->pub_odom(exp_pose);
-            robot_interface_->pub_joint_state_from_footendpos(exp_foot_pos);
-        }
-        else
-        {
-            // Shadow robot
-            robot_interface_->pub_odom(exp_pose, "shadowbase", "odom");
-            robot_interface_->pub_shadow_joint_state_from_footendpos(exp_foot_pos);
-            pub_footpos_now();
+            // Use cfg config
+            whole_body_planner_.queryCfg(ros::Time::now().toSec(), exp_pose, exp_foot_pos, contact_state);
+            if (fake_estimation_)
+            {
+                // pub pose tf
+                robot_interface_->pub_odom(exp_pose);
+                // robot_interface_->pub_joint_state_from_footendpos(exp_foot_pos);
+                robot_interface_->pub_joint_state(exp_foot_pos);
+            }
+            else
+            {
+                // Shadow robot
+                robot_interface_->pub_odom(exp_pose, "shadowbase", "odom");
+                // robot_interface_->pub_shadow_joint_state_from_footendpos(exp_foot_pos);
+                robot_interface_->pub_shadow_joint_state(exp_foot_pos);
+                pub_footpos_now();
+            }
         }
     }
 

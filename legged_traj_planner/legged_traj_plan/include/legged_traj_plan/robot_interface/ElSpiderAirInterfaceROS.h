@@ -61,8 +61,11 @@ public:
                   const std::string &child_frame = "base",
                   const std::string &parent_frame = "odom");
     void pub_joint_state(const std::vector<double> &q);
+    void pub_joint_state(const std::vector<Eigen::Vector3d> &q);
     void pub_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
+    
     void pub_shadow_joint_state(const std::vector<double> &q);
+    void pub_shadow_joint_state(const std::vector<Eigen::Vector3d> &q);
     void pub_shadow_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
 
     // HexapodSoftware

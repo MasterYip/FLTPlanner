@@ -131,6 +131,7 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     }
     if (!poly_traj_search.search(p0, p1, poly_traj))
     {
+        // BUG: if is reachable then it must be able to find a path, this failure should not happen
         if (verbose)
             std::cout << "Warning: poly_traj_search.search failed" << std::endl;
         return false;
@@ -221,6 +222,17 @@ bool SwingTrajPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
     return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param pose0 
+ * @param pose1 
+ * @param p0 In World frame
+ * @param p1 In World frame
+ * @param v_lift 
+ * @param index 
+ * @return std::shared_ptr<MincoTrajectory> 
+ */
 std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                                   Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                                   double v_lift, uint index)
@@ -228,7 +240,7 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3
     std::vector<Point3D> cfg_poly_path;
     if (!getCfgPolyTraj(cfg_poly_path, pose0, pose1, p0, p1, index))
     {
-        return getDefaultCfgTraj(pose0, pose1, p0, p1, v_lift, index);
+        return getDefaultCfgTraj(pose0, pose1, p0, p1, index, v_lift);
     }
 
     // Get start and goal velocity in config space

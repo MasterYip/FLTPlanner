@@ -76,12 +76,12 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28-0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34-0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28-0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28+0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34+0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28+0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28 - 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34 - 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28 - 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28 + 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34 + 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28 + 0.04, -0.28));
 
     PosList pose_sample_pts;
     for (double x = -0.4; x <= 0.4; x += 0.2)
@@ -242,6 +242,57 @@ bool RaibertHeuristicPlanner::query(double t, pinocchio::SE3 &pose,
         {
             if (leg_traj_[i].size() > 0)
                 foot_pos_list.emplace_back(point_SE3Act(pose, leg_traj_[i].back().foothold_touch));
+            else
+            {
+                ROS_WARN("No valid leg_traj found for leg %d at time %f", i, t);
+                foot_pos_list.emplace_back(nominal_foothold_base_[i]);
+            }
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief
+ *
+ * @param t World time
+ * @param pose Expected body pose in WORLD frame
+ * @param foot_pos_list Expected foot pos in Config space
+ * @param support_state Foot support state
+ * @return true
+ * @return false
+ */
+bool RaibertHeuristicPlanner::queryCfg(double t, pinocchio::SE3 &pose,
+                                       PosList &foot_pos_list,
+                                       std::array<bool, 6> &support_state)
+{
+    foot_pos_list.clear();
+    support_state.fill(true);
+    pose = cmd_vel_extraplator_.extrapolate(t - update_time_);
+    for (int i = 0; i < 6; ++i)
+    {
+        bool found = false;
+        for (int j = 0; j < leg_traj_[i].size(); j++)
+        {
+            auto &leg_traj = leg_traj_[i][j];
+            if (leg_traj.isInDuration(t))
+            {
+                foot_pos_list.emplace_back(leg_traj.evaluate(t));
+                support_state[i] = false;
+                found = true;
+                break;
+            }
+            if (t < leg_traj.t_lift)
+            {
+                foot_pos_list.emplace_back(robot_interface_->IKFast_foot(point_SE3Act(pose, leg_traj.foothold_lift), i));
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            if (leg_traj_[i].size() > 0)
+                foot_pos_list.emplace_back(robot_interface_->IKFast_foot(point_SE3Act(pose, leg_traj_[i].back().foothold_touch), i));
             else
             {
                 ROS_WARN("No valid leg_traj found for leg %d at time %f", i, t);
