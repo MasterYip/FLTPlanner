@@ -11,7 +11,7 @@
 
 #include "legged_traj_search/utils/benchmark.hpp"
 
-Benchmark::Benchmark(std::string name) : name_(name)
+Benchmark::Benchmark(std::string name, bool enabled) : name_(name), enabled_(enabled)
 {
 }
 
@@ -21,6 +21,8 @@ Benchmark::~Benchmark()
 
 void Benchmark::reset()
 {
+    if (!enabled_)
+        return;
     timer_.timerReset();
     records_.clear();
     std::cout << "========== " << name_ << " ==========" << std::endl;
@@ -28,12 +30,16 @@ void Benchmark::reset()
 
 void Benchmark::record(std::string name, uint type)
 {
+    if (!enabled_)
+        return;
     records_.emplace_back(Record((double)timer_.timerCheck() / 1e6, name, type));
     timer_.timerReset();
 }
 
 void Benchmark::end()
 {
+    if (!enabled_)
+        return;
     for (auto &record : records_)
     {
         record.print();
@@ -55,12 +61,15 @@ void Benchmark::end()
         {
         case RecordType::NORMAL:
             std::cout << "Normal time:\t" << total_time << " ms" << std::endl;
+            result_.normal_tot_time = total_time;
             break;
         case RecordType::CRITICAL:
             std::cout << "Critical time:\t" << total_time << " ms" << std::endl;
+            result_.critic_tot_time = total_time;
             break;
         case RecordType::MISC:
             std::cout << "Misc time time:\t" << total_time << " ms" << std::endl;
+            result_.misc_tot_time = total_time;
             break;
         }
     }
@@ -70,4 +79,5 @@ void Benchmark::end()
         total_time += record.time_record;
     }
     std::cout << "Total time:\t" << total_time << " ms\033[0m" << std::endl;
+    result_.tot_time = total_time;
 }

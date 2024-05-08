@@ -46,12 +46,18 @@ struct GCS_Example_Config
     // eg_guide_surface_demo
     double polyNum;
 
+    // perf_gcs_rand_corridor_demo
+    std::string data_file_path;
+
     inline void loadParameters(const ros::NodeHandle &nh_priv)
     {
         nh_priv.param<double>("testRate", testRate, 4);
         nh_priv.param<std::string>("mapTopic", mapTopic, "grid_map");
         nh_priv.param<std::string>("exampleName", exampleName, "eg_gcs_barrier_demo");
+
         nh_priv.param<double>("polyNum", polyNum, 3);
+
+        nh_priv.param<std::string>("data_file_path", data_file_path, "~/perf_gcs_rand_corridor.txt");
         return;
     }
 };
@@ -88,11 +94,17 @@ public:
     // Utils
     Eigen::Vector2d getPos(const GridPt &idx);
     bool gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d, bool use_string_straining);
+    int gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d,
+                             BenchmarkResult &result, std::vector<Record> &records,
+                             bool use_string_straining);
 
     // Examples
-    void example_run(std::string name);
+    bool example_run(std::string name);
     void eg_guide_surface();
     void eg_gcs_barrier_demo();
     void eg_gcs_rand_corridor_demo();
     void eg_gcs_rand_map_demo();
+
+    // Benchmarking
+    void perf_gcs_rand_corridor_demo();
 };

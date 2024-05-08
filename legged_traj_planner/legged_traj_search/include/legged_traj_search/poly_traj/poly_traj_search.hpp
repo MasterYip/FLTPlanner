@@ -67,4 +67,8 @@ public:
     VisibilityGraph getVisGraph() const { return vis_graph_; }
     // Objects
     BorderCheck &getBorderCheck() { return border_check_; }
+
+    // Benchmark
+    std::vector<Record> getRecords() { return benchmark_.getRecords(); }
+    BenchmarkResult getResult() { return benchmark_.getResult(); }
 };

@@ -63,17 +63,39 @@ struct Record
     }
 };
 
+struct BenchmarkResult
+{
+    double normal_tot_time;
+    double critic_tot_time;
+    double misc_tot_time;
+    double tot_time;
+
+
+};
+
 class Benchmark
 {
 private:
+    bool enabled_;
     std::string name_;
     Timer timer_;
     std::vector<Record> records_;
+    BenchmarkResult result_;
 
 public:
-    Benchmark(std::string name = "Benchmark");
+    Benchmark(std::string name = "Benchmark", bool enabled = true);
     ~Benchmark();
     void reset();
     void record(std::string name, uint type = RecordType::NORMAL);
     void end();
+
+    BenchmarkResult getResult() const
+    {
+        return result_;
+    }
+
+    std::vector<Record> getRecords() const
+    {
+        return records_;
+    }
 };

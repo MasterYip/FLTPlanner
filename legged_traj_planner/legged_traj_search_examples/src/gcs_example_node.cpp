@@ -27,7 +27,8 @@ int main(int argc, char **argv)
         ros::Rate loop_rate(config.testRate);
         while (ros::ok())
         {
-            gcs.example_run(config.exampleName);
+            if (!gcs.example_run(config.exampleName))
+                break;
             ros::spinOnce();
             loop_rate.sleep();
         }
