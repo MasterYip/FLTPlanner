@@ -70,7 +70,7 @@ struct BenchmarkResult
     double misc_tot_time;
     double tot_time;
 
-
+    std::vector<double> custom_data;
 };
 
 class Benchmark
@@ -88,6 +88,13 @@ public:
     void reset();
     void record(std::string name, uint type = RecordType::NORMAL);
     void end();
+
+    void addCustomData(double data)
+    {
+        if (!enabled_)
+            return;
+        result_.custom_data.emplace_back(data);
+    }
 
     BenchmarkResult getResult() const
     {

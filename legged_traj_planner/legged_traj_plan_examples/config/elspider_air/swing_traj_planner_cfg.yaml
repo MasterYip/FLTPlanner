@@ -1,5 +1,7 @@
 trajInit:
-  vLift: 0.03 # FIXME: it should be perpendicularly to the ground (avoid collision detection)
+  # perpendicular to the ground (avoid collision detection)
+  # vLift: 0.018 # For trajopt
+  vLift: 0.018 # For raibert planner init traj
   hLift: 0.15
   trajTime: 10
 

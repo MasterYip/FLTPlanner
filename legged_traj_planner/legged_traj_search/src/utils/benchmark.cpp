@@ -40,6 +40,7 @@ void Benchmark::end()
 {
     if (!enabled_)
         return;
+    
     for (auto &record : records_)
     {
         record.print();

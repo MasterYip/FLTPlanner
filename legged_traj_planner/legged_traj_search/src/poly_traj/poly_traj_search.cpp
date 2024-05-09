@@ -73,6 +73,7 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
         border_length += sqrt(delta[0] * delta[0] + delta[1] * delta[1]);
     }
     std::string msg = "Intersect Border - Length: " + to_string(border_length);
+    benchmark_.addCustomData(border_length);
     benchmark_.record(msg, RecordType::CRITICAL);
 
     // Concave Points

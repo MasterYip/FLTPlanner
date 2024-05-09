@@ -629,7 +629,7 @@ void GCS_Example::perf_gcs_rand_corridor_demo()
     int success_times = 0;
 
     // Settings
-    int try_num = 1000;
+    int try_num = 10000;
 
     int poly_num = conf_.polyNum;
     int samples = 20;
@@ -677,14 +677,14 @@ void GCS_Example::perf_gcs_rand_corridor_demo()
         std::cout << "Error: Open file failed" << std::endl;
         return;
     }
-    data_file << "normalTime, criticalTime, miscTime, totTime" << std::endl;
+    data_file << "normalTime, criticalTime, miscTime, totTime, borderSize" << std::endl;
     for (int i = 0; i < result_list.size(); i++)
     {
         // for (auto record : records_list.at(i))
         // {
         //     data_file << record.normalTime << ", " << record.criticalTime << ", " << record.miscTime << ", " << record.totTime << std::endl;
         // }
-        data_file << result_list.at(i).normal_tot_time << ", " << result_list.at(i).critic_tot_time << ", " 
-        << result_list.at(i).misc_tot_time << ", " << result_list.at(i).tot_time << std::endl;
+        data_file << result_list.at(i).normal_tot_time << ", " << result_list.at(i).critic_tot_time << ", "
+                  << result_list.at(i).misc_tot_time << ", " << result_list.at(i).tot_time << ", " << result_list.at(i).custom_data[0] << std::endl;
     }
 }
