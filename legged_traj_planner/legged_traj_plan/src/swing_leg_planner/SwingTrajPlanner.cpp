@@ -380,4 +380,5 @@ void SwingTrajPlanner::saveBenchmarkResults()
         file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
              << result.tot_time << ", " << result.custom_data[0] << ", " << result.custom_data[1] << std::endl;
     }
+    std::cout << "Benchmark results saved to: " << config_.benchmarkSavePath << std::endl;
 }
