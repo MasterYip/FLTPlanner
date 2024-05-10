@@ -86,6 +86,12 @@ public:
     Benchmark(std::string name = "Benchmark", bool enabled = true);
     ~Benchmark();
     void reset();
+    void resetTimer()
+    {
+        if (!enabled_)
+            return;
+        timer_.timerReset();
+    };
     void record(std::string name, uint type = RecordType::NORMAL);
     void end();
 

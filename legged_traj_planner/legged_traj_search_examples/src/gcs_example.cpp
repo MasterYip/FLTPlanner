@@ -152,7 +152,7 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     PolyCorridor poly_corridor(polys, start3d, goal3d);
     BorderCheck border_check(poly_corridor, map_, "elevation");
     IntersectBorder intersect_border(poly_corridor, border_check);
-    PolyTrajSearch poly_traj_search(intersect_border);
+    PolyTrajSearch poly_traj_search(intersect_border, true);
     std::vector<Point3D> path;
 
     // Check validity
@@ -298,7 +298,7 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
     PolyCorridor poly_corridor(polys, start3d, goal3d);
     BorderCheck border_check(poly_corridor, map_, "elevation");
     IntersectBorder intersect_border(poly_corridor, border_check);
-    PolyTrajSearch poly_traj_search(intersect_border);
+    PolyTrajSearch poly_traj_search(intersect_border, true);
     std::vector<Point3D> path;
 
     // Check validity

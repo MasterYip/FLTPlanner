@@ -11,12 +11,13 @@
 
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
-PolyTrajSearch::PolyTrajSearch(IntersectBorder &intersect_border)
+PolyTrajSearch::PolyTrajSearch(IntersectBorder &intersect_border,
+                               const bool enable_benchmark)
     : poly_corridor_(intersect_border.getPolyCorridor()),
       map_(intersect_border.getBorderCheck().getMap()),
       border_check_(intersect_border.getBorderCheck()),
       intersect_border_(intersect_border),
-      benchmark_("PolyTrajSearch")
+      benchmark_("PolyTrajSearch", enable_benchmark)
 {
 }
 
@@ -25,11 +26,12 @@ PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
                                const std::string ground_layer,
                                const std::string ceiling_layer,
                                const bool enable_ground,
-                               const bool enable_ceiling) : poly_corridor_(poly_corridor),
-                                                            map_(map),
-                                                            border_check_(poly_corridor, map, ground_layer, ceiling_layer, enable_ground, enable_ceiling),
-                                                            intersect_border_(poly_corridor_, border_check_),
-                                                            benchmark_("PolyTrajSearch")
+                               const bool enable_ceiling,
+                               const bool enable_benchmark) : poly_corridor_(poly_corridor),
+                                                              map_(map),
+                                                              border_check_(poly_corridor, map, ground_layer, ceiling_layer, enable_ground, enable_ceiling),
+                                                              intersect_border_(poly_corridor_, border_check_),
+                                                              benchmark_("PolyTrajSearch", enable_benchmark)
 {
 }
 
@@ -205,4 +207,3 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
     benchmark_.end();
     return true;
 }
-

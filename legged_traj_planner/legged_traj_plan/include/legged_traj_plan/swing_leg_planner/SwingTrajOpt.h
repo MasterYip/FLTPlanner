@@ -32,6 +32,7 @@
 
 #include "legged_traj_search/geo_utils/lbfgs.hpp"
 #include "legged_traj_search/geo_utils/polyhedra.hpp"
+#include "legged_traj_search/utils/benchmark.hpp"
 
 class SwingTrajOpt
 {
@@ -43,11 +44,6 @@ private:
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     SwingTrajPlannerConfig config_;
     minco::MINCO_S2NU minco;
-    // Visualizer
-    ros::NodeHandle nh_;
-    ros::Rate rate_ = ros::Rate(5);
-    std::shared_ptr<GCSVisualizer> visualizer_;
-    bool enable_vis_ = false;
 
     // Conditions
     double rho;
@@ -85,6 +81,15 @@ private:
     Eigen::VectorXd gradByTimes;
     Eigen::MatrixX3d partialGradByCoeffs;
     Eigen::VectorXd partialGradByTimes;
+
+    // Visualizer
+    ros::NodeHandle nh_;
+    ros::Rate rate_ = ros::Rate(5);
+    std::shared_ptr<GCSVisualizer> visualizer_;
+    bool enable_vis_ = false;
+
+    // Benchmarking
+    Benchmark benchmark_;
 
     // Time domain manifold transformation
     /**
@@ -325,7 +330,7 @@ private:
             obj.visualizer_->delGroup(2);
             obj.visualizer_->setIdGroup(2);
             obj.visualizer_->visCurve(visTraj, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
-            obj.visualizer_->visCurve(visTraj2, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.02)); //CFG
+            obj.visualizer_->visCurve(visTraj2, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.02)); // CFG
             obj.visualizer_->visCube(visInPs, Eigen::Vector4d(1, 0, 0, 0), ros_visualizer::VisStyle(0.1, 0.8, 0.1, 1.0, 0.01));
             // Config Pos Constraint
             Eigen::Vector3d cfgCubeCenter;
@@ -338,7 +343,7 @@ private:
                 (obj.config_.joint3PosMax - obj.config_.joint3PosMin);
             obj.visualizer_->visCube(cfgCubeCenter, Eigen::Vector4d(1, 0, 0, 0),
                                      ros_visualizer::VisStyle(0.7, 0.4, 0.1, 0.3,
-                                     cfgCubeSize(0), cfgCubeSize(1), cfgCubeSize(2)));
+                                                              cfgCubeSize(0), cfgCubeSize(1), cfgCubeSize(2)));
             obj.rate_.sleep();
         }
         return;
@@ -438,10 +443,12 @@ private:
 public:
     SwingTrajOpt(std::shared_ptr<ElSpiderAirInterface> robot_interface,
                  std::shared_ptr<GridMapInterface> gridmap_interface,
-                 std::shared_ptr<GCSVisualizer> visualizer = nullptr)
+                 std::shared_ptr<GCSVisualizer> visualizer = nullptr,
+                 bool enable_benchmark = true)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
           visualizer_(visualizer),
-          legCollPena(robot_interface, gridmap_interface), collPena(gridmap_interface_)
+          legCollPena(robot_interface, gridmap_interface), collPena(gridmap_interface_),
+          benchmark_("SwingTrajOpt", enable_benchmark)
     {
         if (visualizer != nullptr)
             enable_vis_ = true;
@@ -489,6 +496,8 @@ public:
         const bool useCfgSpace = false,
         const bool verbose = true)
     {
+        benchmark_.reset();
+
         useCfgSpace_ = useCfgSpace;
         pose0_ = pose0;
         pose1_ = pose1;
@@ -513,13 +522,11 @@ public:
         rho = config_.timeWeight;
         smoothEps = config_.smoothingFactor;
         integralRes = config_.integralResolution;
-        // FIXME: What's this used for?
         allocSpeed = config_.allocSpeed;
 
         // subdivide cfg poly path if exceeds length limit
         const Eigen::Matrix3Xd deltas = polyPath.rightCols(polyPath.cols() - 1) -
                                         polyPath.leftCols(polyPath.cols() - 1);
-        // FIXME: why innerpoint is added here when piece num =2
         pieceIdx = (deltas.colwise().norm() / config_.lengthPerPiece).cast<int>().transpose();
         pieceIdx.array() += 1;
         pieceN = pieceIdx.sum();
@@ -559,13 +566,15 @@ public:
             std::cout << "\tSpatial dim: " << spatialDim << std::endl;
             std::cout << "\tTemporal dim: " << temporalDim << std::endl;
         }
-
+        benchmark_.record("Setup", RecordType::NORMAL);
         return true;
     }
 
     inline bool optimize(Trajectory<3> &traj,
                          const double &relCostTol, const bool verbose = true)
     {
+        benchmark_.resetTimer();
+
         Eigen::VectorXd x(temporalDim + spatialDim);
         Eigen::Map<Eigen::VectorXd> tau(x.data(), temporalDim);
         Eigen::Map<Eigen::VectorXd> xi(x.data() + temporalDim, spatialDim);
@@ -585,6 +594,8 @@ public:
         // FIXME: TEST
         // lbfgs_params.max_linesearch = 128;
 
+        benchmark_.record("OptInit", RecordType::NORMAL);
+
         int ret = lbfgs::lbfgs_optimize(x,
                                         minCostFunctional,
                                         &SwingTrajOpt::costFunctional,
@@ -592,6 +603,9 @@ public:
                                         nullptr,
                                         this,
                                         lbfgs_params);
+
+        benchmark_.record("LBFGSOpt", RecordType::CRITICAL);
+        benchmark_.end();
 
         if (ret >= 0)
         {
@@ -601,7 +615,6 @@ public:
         }
         else
         {
-            // traj.clear();
             minCostFunctional = INFINITY;
             std::cout << "Optimization Failed: "
                       << lbfgs::lbfgs_strerror(ret)

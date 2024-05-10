@@ -45,13 +45,14 @@ private:
     GridPolyLine grid_traj_;
 
 public:
-    PolyTrajSearch(IntersectBorder &intersect_border);
+    PolyTrajSearch(IntersectBorder &intersect_border, const bool enable_benchmark = false);
     PolyTrajSearch(PolyCorridor &poly_corridor,
                    const grid_map::GridMap &map,
                    const std::string ground_layer = "elevation",
                    const std::string ceiling_layer = "ceiling",
                    const bool enable_ground = true,
-                   const bool enable_ceiling = false);
+                   const bool enable_ceiling = false,
+                   const bool enable_benchmark = false);
     ~PolyTrajSearch() = default;
     // Poly Traj Search
     bool endpointValid(const Point3D &start, const Point3D &goal);
