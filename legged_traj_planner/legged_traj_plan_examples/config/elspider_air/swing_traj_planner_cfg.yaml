@@ -7,10 +7,13 @@ trajInit:
 
 misc:
   enableOptVis: false
+  enableBenchmark: true
+  # find package legged_traj_plann_examples
+  benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/optBenchmark.csv
 
 optimizer:
   enableOptimizer: true
-  useCfgSpace: true
+  useCfgSpace: true # Do not change this (this file is for cfg space)
   lengthPerPiece: 0.5 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
   allocSpeed: 0.03 # NOTE: crucial for optimization 
   relCostTol: 1.0e-3

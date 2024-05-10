@@ -390,6 +390,11 @@ public:
 
     void run()
     {
-        ros::spin();
+        // ros::spin();
+        while (ros::ok())
+        {
+            ros::spinOnce();
+        }
+        whole_body_planner_.saveBenchmarkResults();
     }
 };

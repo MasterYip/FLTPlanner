@@ -48,6 +48,10 @@ public:
 
     int get_state_traj_length();
 
+    void saveBenchmarkResults(void)
+    {
+        swing_traj_planner_->saveBenchmarkResults();
+    }
     // std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>> get_foot_traj(double t, int point_num, double delta);
 };
 

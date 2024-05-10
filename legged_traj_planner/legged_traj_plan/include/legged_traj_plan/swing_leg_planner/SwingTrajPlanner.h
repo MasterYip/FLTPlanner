@@ -40,6 +40,8 @@ private:
 
     SwingTrajPlannerConfig config_;
 
+    std::vector<BenchmarkResult> benchmark_results_;
+
 public:
     SwingTrajPlanner(SwingTrajPlannerConfig config,
                      std::shared_ptr<ElSpiderAirInterface> robot_interface,
@@ -102,4 +104,6 @@ public:
     {
         return config_;
     }
+
+    void saveBenchmarkResults();
 };

@@ -25,6 +25,7 @@ void Benchmark::reset()
         return;
     timer_.timerReset();
     records_.clear();
+    result_ = BenchmarkResult();
     std::cout << "========== " << name_ << " ==========" << std::endl;
 }
 

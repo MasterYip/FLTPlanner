@@ -605,7 +605,6 @@ public:
                                         lbfgs_params);
 
         benchmark_.record("LBFGSOpt", RecordType::CRITICAL);
-        benchmark_.end();
 
         if (ret >= 0)
         {
@@ -620,7 +619,17 @@ public:
                       << lbfgs::lbfgs_strerror(ret)
                       << std::endl;
         }
+        benchmark_.addCustomData(minCostFunctional);
+        benchmark_.addCustomData(ret);
+        benchmark_.end();
+
         return ret >= 0;
         // return minCostFunctional;
     }
+
+    inline BenchmarkResult getBenchmarkResult()
+    {
+        return benchmark_.getResult();
+    }
+
 };

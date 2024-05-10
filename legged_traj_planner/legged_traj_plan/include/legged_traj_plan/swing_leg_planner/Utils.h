@@ -101,6 +101,8 @@ struct SwingTrajPlannerConfig
 
     // Misc
     bool enableOptVis;
+    bool enableBenchmark;
+    std::string benchmarkSavePath;
 
     void loadParams(ros::NodeHandle &nh)
     {
@@ -134,5 +136,7 @@ struct SwingTrajPlannerConfig
         nh.param("penalty/CollBall3Weight", CollBall3Weight, 0.05);
         nh.param("penalty/FootCollExcludeBallRad", FootCollExcludeBallRad, 0.05);
         nh.param("misc/enableOptVis", enableOptVis, false);
+        nh.param("misc/enableBenchmark", enableBenchmark, false);
+        nh.param("misc/benchmarkSavePath", benchmarkSavePath, std::string(""));
     }
 };

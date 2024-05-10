@@ -41,7 +41,8 @@ SwingTrajPlanner::SwingTrajPlanner(SwingTrajPlannerConfig config,
                                    std::shared_ptr<ElSpiderAirInterface> robot_interface,
                                    std::shared_ptr<GridMapInterface> gridmap_interface) : robot_interface_(robot_interface),
                                                                                           gridmap_interface_(gridmap_interface),
-                                                                                          swing_traj_opt_(robot_interface_, gridmap_interface_),
+                                                                                          swing_traj_opt_(robot_interface_, gridmap_interface_,
+                                                                                                          nullptr, config.enableBenchmark),
                                                                                           config_(config)
 {
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
@@ -223,15 +224,15 @@ bool SwingTrajPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
 }
 
 /**
- * @brief 
- * 
- * @param pose0 
- * @param pose1 
+ * @brief
+ *
+ * @param pose0
+ * @param pose1
  * @param p0 In World frame
  * @param p1 In World frame
- * @param v_lift 
- * @param index 
- * @return std::shared_ptr<MincoTrajectory> 
+ * @param v_lift
+ * @param index
+ * @return std::shared_ptr<MincoTrajectory>
  */
 std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                                   Eigen::Vector3d p0, Eigen::Vector3d p1,
@@ -298,6 +299,11 @@ bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
                           config_, true, false);
     bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), config_.relCostTol);
 
+    if (config_.enableBenchmark)
+    {
+        benchmark_results_.emplace_back(swing_traj_opt_.getBenchmarkResult());
+    }
+
 #ifdef ENABLE_VISUALIZER
     if (ret)
     {
@@ -355,4 +361,23 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
     }
 #endif
     return true;
+}
+
+void SwingTrajPlanner::saveBenchmarkResults()
+{
+    if (!config_.enableBenchmark)
+        return;
+    std::ofstream file;
+    file.open(config_.benchmarkSavePath);
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open file: " << config_.benchmarkSavePath << std::endl;
+        return;
+    }
+    file << "normalTime, criticalTime, miscTime, totTime, minCostFunctional, optRetType" << std::endl;
+    for (auto result : benchmark_results_)
+    {
+        file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
+             << result.tot_time << ", " << result.custom_data[0] << ", " << result.custom_data[1] << std::endl;
+    }
 }
