@@ -677,14 +677,20 @@ void GCS_Example::perf_gcs_rand_corridor_demo()
         std::cout << "Error: Open file failed" << std::endl;
         return;
     }
-    data_file << "normalTime, criticalTime, miscTime, totTime, borderSize" << std::endl;
+    data_file << "normalTime, criticalTime, miscTime, totTime, borderSize";
+    for (auto record : records_list.at(0))
+    {
+        data_file << ", " << record.name;
+    }
+    data_file << std::endl;
     for (int i = 0; i < result_list.size(); i++)
     {
-        // for (auto record : records_list.at(i))
-        // {
-        //     data_file << record.normalTime << ", " << record.criticalTime << ", " << record.miscTime << ", " << record.totTime << std::endl;
-        // }
         data_file << result_list.at(i).normal_tot_time << ", " << result_list.at(i).critic_tot_time << ", "
-                  << result_list.at(i).misc_tot_time << ", " << result_list.at(i).tot_time << ", " << result_list.at(i).custom_data[0] << std::endl;
+                  << result_list.at(i).misc_tot_time << ", " << result_list.at(i).tot_time << ", " << result_list.at(i).custom_data[0];
+        for (auto record : records_list.at(i))
+        {
+            data_file << ", " << record.time_record;
+        }
+        data_file << std::endl;
     }
 }
