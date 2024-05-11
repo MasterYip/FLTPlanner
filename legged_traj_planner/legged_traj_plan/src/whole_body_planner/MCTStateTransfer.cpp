@@ -134,8 +134,8 @@ PosList MCTStateTransfer::eval_cfg_traj(double t, uint derivative, bool auto_opt
         {
             // Linear interpolation
             if (derivative == 0)
-                cfg_interp.push_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(footpos_list0_[i], i) * (1 - t) +
-                                     swing_traj_planner_->getRobotInterface()->IKFast_foot(footpos_list1_[i], i) * t);
+                cfg_interp.push_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(point_SE3Act(eval_torso_traj(0), footpos_list0_[i]), i) * (1 - t) +
+                                     swing_traj_planner_->getRobotInterface()->IKFast_foot(point_SE3Act(eval_torso_traj(1), footpos_list1_[i]), i) * t);
             else
                 // FIXME: derivative>0 not implemented
                 cfg_interp.push_back(Eigen::Vector3d::Zero());
