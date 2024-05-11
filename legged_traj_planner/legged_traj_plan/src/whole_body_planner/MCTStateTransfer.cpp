@@ -89,22 +89,22 @@ PosList MCTStateTransfer::eval_foot_traj(double t, uint derivative, bool auto_op
             }
             if (!use_cfg_space_)
             {
-                footend_interp.push_back(swingtraj_[i]->evaluate(t, derivative, true));
+                footend_interp.emplace_back(swingtraj_[i]->evaluate(t, derivative, true));
             }
             else
             {
                 Eigen::Vector3d base_pt = swing_traj_planner_->getRobotInterface()->FK_foot(swingtraj_[i]->evaluate(t, derivative, true), i);
-                footend_interp.push_back(point_SE3Act(eval_torso_traj(t).inverse(), base_pt));
+                footend_interp.emplace_back(point_SE3Act(eval_torso_traj(t).inverse(), base_pt));
             }
         }
         else
         {
             // Linear interpolation
             if (derivative == 0)
-                footend_interp.push_back(footpos_list0_[i] * (1 - t) + footpos_list1_[i] * t);
+                footend_interp.emplace_back(footpos_list0_[i] * (1 - t) + footpos_list1_[i] * t);
             else
                 // FIXME: derivative>0 not implemented
-                footend_interp.push_back(Eigen::Vector3d::Zero());
+                footend_interp.emplace_back(Eigen::Vector3d::Zero());
         }
     }
     return footend_interp;
@@ -123,22 +123,38 @@ PosList MCTStateTransfer::eval_cfg_traj(double t, uint derivative, bool auto_opt
             }
             if (!use_cfg_space_)
             {
-                cfg_interp.push_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(swingtraj_[i]->evaluate(t, derivative, true), i));
+                cfg_interp.emplace_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(
+                    point_SE3Act(eval_torso_traj(t), swingtraj_[i]->evaluate(t, derivative, true)), i));
             }
             else
             {
-                cfg_interp.push_back(swingtraj_[i]->evaluate(t, derivative, true));
+                cfg_interp.emplace_back(swingtraj_[i]->evaluate(t, derivative, true));
             }
         }
         else
         {
             // Linear interpolation
+            // if (derivative == 0)
+            //     cfg_interp.push_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(point_SE3Act(eval_torso_traj(0), footpos_list0_[i]), i) * (1 - t) +
+            //                          swing_traj_planner_->getRobotInterface()->IKFast_foot(point_SE3Act(eval_torso_traj(1), footpos_list1_[i]), i) * t);
+            // else
+            //     cfg_interp.push_back(Eigen::Vector3d::Zero());
             if (derivative == 0)
-                cfg_interp.push_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(point_SE3Act(eval_torso_traj(0), footpos_list0_[i]), i) * (1 - t) +
-                                     swing_traj_planner_->getRobotInterface()->IKFast_foot(point_SE3Act(eval_torso_traj(1), footpos_list1_[i]), i) * t);
+                cfg_interp.emplace_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(
+                    point_SE3Act(eval_torso_traj(t), footpos_list0_[i] * (1 - t) + footpos_list1_[i] * t), i));
             else
-                // FIXME: derivative>0 not implemented
-                cfg_interp.push_back(Eigen::Vector3d::Zero());
+            {
+                // Eigen::Vector3d q = swing_traj_planner_->getRobotInterface()->IKFast_foot(
+                //     point_SE3Act(eval_torso_traj(t), footpos_list0_[i] * (1 - t) + footpos_list1_[i] * t), i);
+                //     Eigen::Vector3d v_base = (footpos_list1_[i] - footpos_list0_[i]) / (1 - t);
+                // Eigen::Matrix3Xd J = swing_traj_planner_->getRobotInterface()->getJacobian(q, i);
+                // Eigen::Matrix3Xd Jinv = J.transpose() * (J * J.transpose()).inverse();
+                // footend_interp.push_back(Jinv * );
+
+                cfg_interp.emplace_back(Eigen::Vector3d(nan(""), nan(""), nan("")));
+            }
+            // FIXME: derivative>0 not implemented
+            // BUG: vel depends on t
         }
     }
     return cfg_interp;

@@ -109,7 +109,7 @@ public:
         Eigen::Matrix<double, 3, 2> goal_state;
         goal_state.col(0) = end;
         goal_state.col(1) = end_vel;
-        minco_traj_.setConditions(start_state, goal_state, poly_path_.size() - 1); // PROBLEM: Will Reseting causing failure? 
+        minco_traj_.setConditions(start_state, goal_state, poly_path_.size() - 1); // PROBLEM: Will Reseting causing failure?
         updateTraj();
         return true;
     }
@@ -138,9 +138,13 @@ public:
     {
         if (traj_.getPieceNum() == 0)
             throw std::runtime_error("Trajectory is empty");
-
+        double multiply_factor = 1.0;
         if (normalized)
+        {
             t *= traj_.getTotalDuration();
+            // BUG: derivative depends on total_time_
+            multiply_factor = traj_.getTotalDuration();
+        }
 
         if (t < 0 || t > traj_.getTotalDuration())
             throw std::runtime_error("Invalid time");
