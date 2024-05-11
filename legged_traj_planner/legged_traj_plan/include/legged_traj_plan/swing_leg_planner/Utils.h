@@ -103,6 +103,7 @@ struct SwingTrajPlannerConfig
     bool enableOptVis;
     bool enableBenchmark;
     std::string benchmarkSavePath;
+    std::string robotProfilePath;
 
     void loadParams(ros::NodeHandle &nh)
     {
@@ -138,5 +139,6 @@ struct SwingTrajPlannerConfig
         nh.param("misc/enableOptVis", enableOptVis, false);
         nh.param("misc/enableBenchmark", enableBenchmark, false);
         nh.param("misc/benchmarkSavePath", benchmarkSavePath, std::string(""));
+        nh.param("misc/robotProfilePath", robotProfilePath, std::string(""));
     }
 };

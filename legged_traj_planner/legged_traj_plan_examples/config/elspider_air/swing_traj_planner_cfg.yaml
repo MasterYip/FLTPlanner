@@ -8,8 +8,9 @@ trajInit:
 misc:
   enableOptVis: false
   enableBenchmark: true
-  # find package legged_traj_plann_examples
+  # Benchmark result save path
   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/optBenchmark.csv
+  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/robotProfile.csv
 
 optimizer:
   enableOptimizer: true

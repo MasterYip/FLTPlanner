@@ -76,7 +76,7 @@ pinocchio::SE3 MCTStateTransfer::eval_torso_traj(double t)
     return odom_interp;
 }
 
-PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
+PosList MCTStateTransfer::eval_foot_traj(double t, uint derivative, bool auto_opt)
 {
     PosList footend_interp;
     for (int i = 0; i < 6; ++i)
@@ -89,21 +89,59 @@ PosList MCTStateTransfer::eval_foot_traj(double t, bool auto_opt)
             }
             if (!use_cfg_space_)
             {
-                footend_interp.push_back(swingtraj_[i]->evaluate(t, 0, true));
+                footend_interp.push_back(swingtraj_[i]->evaluate(t, derivative, true));
             }
             else
             {
-                Eigen::Vector3d base_pt = swing_traj_planner_->getRobotInterface()->FK_foot(swingtraj_[i]->evaluate(t, 0, true), i);
+                Eigen::Vector3d base_pt = swing_traj_planner_->getRobotInterface()->FK_foot(swingtraj_[i]->evaluate(t, derivative, true), i);
                 footend_interp.push_back(point_SE3Act(eval_torso_traj(t).inverse(), base_pt));
             }
         }
         else
         {
             // Linear interpolation
-            footend_interp.push_back(footpos_list0_[i] * (1 - t) + footpos_list1_[i] * t);
+            if (derivative == 0)
+                footend_interp.push_back(footpos_list0_[i] * (1 - t) + footpos_list1_[i] * t);
+            else
+                // FIXME: derivative>0 not implemented
+                footend_interp.push_back(Eigen::Vector3d::Zero());
         }
     }
     return footend_interp;
+}
+
+PosList MCTStateTransfer::eval_cfg_traj(double t, uint derivative, bool auto_opt)
+{
+    PosList cfg_interp;
+    for (int i = 0; i < 6; ++i)
+    {
+        if (swingtraj_isneeded_[i])
+        {
+            if (!swingtraj_isopt_[i] && auto_opt)
+            {
+                opt_swing_traj(i);
+            }
+            if (!use_cfg_space_)
+            {
+                cfg_interp.push_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(swingtraj_[i]->evaluate(t, derivative, true), i));
+            }
+            else
+            {
+                cfg_interp.push_back(swingtraj_[i]->evaluate(t, derivative, true));
+            }
+        }
+        else
+        {
+            // Linear interpolation
+            if (derivative == 0)
+                cfg_interp.push_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(footpos_list0_[i], i) * (1 - t) +
+                                     swing_traj_planner_->getRobotInterface()->IKFast_foot(footpos_list1_[i], i) * t);
+            else
+                // FIXME: derivative>0 not implemented
+                cfg_interp.push_back(Eigen::Vector3d::Zero());
+        }
+    }
+    return cfg_interp;
 }
 
 std::array<bool, 6> MCTStateTransfer::eval_support_state(double t, double lift_margin, double touch_margin)

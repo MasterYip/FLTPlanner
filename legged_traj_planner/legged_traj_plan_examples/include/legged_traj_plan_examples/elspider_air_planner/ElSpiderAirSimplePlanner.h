@@ -128,6 +128,19 @@ MDT::RobotState getInitState(MDT::Pose robotPose = {1, 0, USER::norminalTrunkHei
     return initRobotState(robotPose, gaitToNow, moveDir);
 }
 
+// For robot state recording
+struct RobotProfile
+{
+    double time;
+    pinocchio::SE3 pose;
+    PosList foot_pos_list;
+    PosList cfg_pos_list;
+    PosList cfg_vel_list;
+    std::array<double, 6> foot_end_sdf;
+    std::array<bool, 6> support_state;
+    geometry_msgs::Twist cmd_vel;
+};
+
 class ElSpiderAirSimplePlanner
 {
 private:
@@ -166,6 +179,9 @@ private:
     /// Misc
     // ROS Timer event
     ros::Timer timer_;
+    double init_time_ = 0.0;
+    std::vector<RobotProfile> robot_profile_;
+    std::string profile_path_;
 
     // Visualizer
     GCSVisualizer visualizer_;
@@ -180,12 +196,14 @@ public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirSimplePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                              bool fake_estimation = false, bool simulation = false) : nh_("~"),
-                                                          robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
-                                                          gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
-                                                          whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
-                                                          tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
-                                                          rate_(25), fake_estimation_(fake_estimation), simulation_(simulation)
+                                                                                      robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
+                                                                                      gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
+                                                                                      whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
+                                                                                      tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
+                                                                                      rate_(25), fake_estimation_(fake_estimation), simulation_(simulation),
+                                                                                      profile_path_(swing_traj_planner_config.robotProfilePath)
     {
+        init_time_ = ros::Time::now().toSec();
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
         foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirSimplePlanner::foot_state_callback, this);
         // body_state_sub_ = nh_.subscribe("/hexapod/body_state_fdb", 1, &ElSpiderAirSimplePlanner::body_state_callback, this);
@@ -384,8 +402,70 @@ public:
                 if (whole_body_planner_.get_state_traj_length() > 0)
                     state_traj = whole_body_planner_.get_state_traj(0);
             }
+
+            // State recording
+            RobotProfile profile;
+            profile.time = ros::Time::now().toSec() - init_time_;
+            profile.pose = odom_interp;
+            profile.foot_pos_list = state_traj.eval_foot_traj(t);
+            profile.cfg_pos_list = state_traj.eval_cfg_traj(t, 0, false);
+            profile.cfg_vel_list = state_traj.eval_cfg_traj(t, 1, false);
+            profile.support_state = support_state;
+            for (size_t k = 0; k < 6; ++k)
+            {
+                profile.foot_end_sdf[k] = gridmap_interface_->sdfValue(profile.foot_pos_list[k]);
+            }
+            robot_profile_.emplace_back(profile);
+
             rate_.sleep();
         } while (whole_body_planner_.get_state_traj_length() > 0);
+    }
+
+    void saveRobotProfile()
+    {
+        // Save to file
+        std::ofstream file(profile_path_);
+        if (file.is_open())
+        {
+            file << "time,pose_x,pose_y,pose_z,pose_roll,pose_pitch,pose_yaw,";
+            file << "foot0_x,foot0_y,foot0_z,foot1_x,foot1_y,foot1_z,foot2_x,foot2_y,foot2_z,";
+            file << "foot3_x,foot3_y,foot3_z,foot4_x,foot4_y,foot4_z,foot5_x,foot5_y,foot5_z,";
+            file << "cfg0_x,cfg0_y,cfg0_z,cfg1_x,cfg1_y,cfg1_z,cfg2_x,cfg2_y,cfg2_z,";
+            file << "cfg3_x,cfg3_y,cfg3_z,cfg4_x,cfg4_y,cfg4_z,cfg5_x,cfg5_y,cfg5_z,";
+            file << "cfg0_dx,cfg0_dy,cfg0_dz,cfg1_dx,cfg1_dy,cfg1_dz,cfg2_dx,cfg2_dy,cfg2_dz,";
+            file << "cfg3_dx,cfg3_dy,cfg3_dz,cfg4_dx,cfg4_dy,cfg4_dz,cfg5_dx,cfg5_dy,cfg5_dz,";
+            file << "foot0_sdf,foot1_sdf,foot2_sdf,foot3_sdf,foot4_sdf,foot5_sdf,";
+            file << "support0,support1,support2,support3,support4,support5\n";
+            for (const auto &profile : robot_profile_)
+            {
+                file << profile.time << ",";
+                auto pos = profile.pose.translation();
+                file << pos[0] << "," << pos[1] << "," << pos[2] << ",";
+                auto rpy = profile.pose.rotation().eulerAngles(0, 1, 2);
+                file << rpy[0] << "," << rpy[1] << "," << rpy[2] << ",";
+                for (size_t k = 0; k < 6; ++k)
+                {
+                    file << profile.foot_pos_list[k][0] << "," << profile.foot_pos_list[k][1] << "," << profile.foot_pos_list[k][2] << ",";
+                }
+                for (size_t k = 0; k < 6; ++k)
+                {
+                    file << profile.cfg_pos_list[k][0] << "," << profile.cfg_pos_list[k][1] << "," << profile.cfg_pos_list[k][2] << ",";
+                }
+                for (size_t k = 0; k < 6; ++k)
+                {
+                    file << profile.cfg_vel_list[k][0] << "," << profile.cfg_vel_list[k][1] << "," << profile.cfg_vel_list[k][2] << ",";
+                }
+                for (size_t k = 0; k < 6; ++k)
+                {
+                    file << profile.foot_end_sdf[k] << ",";
+                }
+                for (size_t k = 0; k < 5; ++k)
+                {
+                    file << profile.support_state[k] << ",";
+                }
+                file << profile.support_state[5] << "\n";
+            }
+        }
     }
 
     void run()
@@ -396,5 +476,6 @@ public:
             ros::spinOnce();
         }
         whole_body_planner_.saveBenchmarkResults();
+        saveRobotProfile();
     }
 };

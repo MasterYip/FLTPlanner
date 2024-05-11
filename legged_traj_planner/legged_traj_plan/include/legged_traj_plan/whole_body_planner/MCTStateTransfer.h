@@ -46,9 +46,11 @@ public:
     MCTStateTransfer(hexapod_State state0, hexapod_State state1,
                      std::shared_ptr<SwingTrajPlanner> swing_traj_planner, bool use_cfg_space = false);
     pinocchio::SE3 eval_torso_traj(double t);
-    PosList eval_foot_traj(double t, bool auto_opt = true);
-    std::array<bool, 6> eval_support_state(double t, double lift_margin = 0.02, double touch_margin = 0.1);
+    PosList eval_foot_traj(double t, uint derivative = 0, bool auto_opt = true);
+    PosList eval_cfg_traj(double t, uint derivative = 0, bool auto_opt = true);
+    
     // FIXME: margin too small will leads to unstable gait switch in VMC controller
+    std::array<bool, 6> eval_support_state(double t, double lift_margin = 0.02, double touch_margin = 0.1);
     void opt_swing_traj(int index);
     bool opt_check(int index);
 };
