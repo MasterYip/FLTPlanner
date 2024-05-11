@@ -132,6 +132,7 @@ MDT::RobotState getInitState(MDT::Pose robotPose = {1, 0, USER::norminalTrunkHei
 struct RobotProfile
 {
     double time;
+    double t; // param time in traj
     pinocchio::SE3 pose;
     PosList foot_pos_list;
     PosList cfg_pos_list;
@@ -394,18 +395,10 @@ public:
             visualizer_.delAll();
             visualizer_.visPolytope(robot_interface_->getFootPolyhedra());
 
-            t += delta;
-            if (t > 1.0)
-            {
-                t = 0.0;
-                whole_body_planner_.dequeue_MCTsolution();
-                if (whole_body_planner_.get_state_traj_length() > 0)
-                    state_traj = whole_body_planner_.get_state_traj(0);
-            }
-
             // State recording
             RobotProfile profile;
             profile.time = ros::Time::now().toSec() - init_time_;
+            profile.t = t;
             profile.pose = odom_interp;
             profile.foot_pos_list = state_traj.eval_foot_traj(t);
             profile.cfg_pos_list = state_traj.eval_cfg_traj(t, 0, false);
@@ -417,6 +410,15 @@ public:
             }
             robot_profile_.emplace_back(profile);
 
+            // Update param t
+            t += delta;
+            if (t > 1.0)
+            {
+                t = 0.0;
+                whole_body_planner_.dequeue_MCTsolution();
+                if (whole_body_planner_.get_state_traj_length() > 0)
+                    state_traj = whole_body_planner_.get_state_traj(0);
+            }
             rate_.sleep();
         } while (whole_body_planner_.get_state_traj_length() > 0);
     }
@@ -427,7 +429,7 @@ public:
         std::ofstream file(profile_path_);
         if (file.is_open())
         {
-            file << "time,pose_x,pose_y,pose_z,pose_roll,pose_pitch,pose_yaw,";
+            file << "time,t,pose_x,pose_y,pose_z,pose_roll,pose_pitch,pose_yaw,";
             file << "foot0_x,foot0_y,foot0_z,foot1_x,foot1_y,foot1_z,foot2_x,foot2_y,foot2_z,";
             file << "foot3_x,foot3_y,foot3_z,foot4_x,foot4_y,foot4_z,foot5_x,foot5_y,foot5_z,";
             file << "cfg0_x,cfg0_y,cfg0_z,cfg1_x,cfg1_y,cfg1_z,cfg2_x,cfg2_y,cfg2_z,";
@@ -438,7 +440,7 @@ public:
             file << "support0,support1,support2,support3,support4,support5\n";
             for (const auto &profile : robot_profile_)
             {
-                file << profile.time << ",";
+                file << profile.time << "," << profile.t << ",";
                 auto pos = profile.pose.translation();
                 file << pos[0] << "," << pos[1] << "," << pos[2] << ",";
                 auto rpy = profile.pose.rotation().eulerAngles(0, 1, 2);
