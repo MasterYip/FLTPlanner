@@ -26,18 +26,23 @@ class CVSPlot:
     def __init__(self, cfg=defaultConfig):
         rcParams.update(cfg)
 
-    def plot(self, CSV_FILE, index_x, index_y, xlabel, ylabel, title, label):
+    def plot(self, CSV_FILE, index_x, index_y, xlabel, ylabel, title, label, axes=None):
         df = pd.read_csv(CSV_FILE)
         Y = df.iloc[1:, index_y]
         if index_x is not None:
             X = df.iloc[1:, index_x]
         else:
             X = np.arange(len(Y))
-
-        plt.plot(X, Y, label=label)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.title(title)
+        if (axes):
+            axes.plot(X, Y, label=label)
+            axes.set_xlabel(xlabel)
+            axes.set_ylabel(ylabel)
+            axes.set_title(title)
+        else:
+            plt.plot(X, Y, label=label)
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.title(title)
 
     def scatter(self, CSV_FILE, index_x, index_y, marker, xlabel, ylabel, title, label):
         df = pd.read_csv(CSV_FILE)
