@@ -32,9 +32,9 @@ namespace grid_map_demos
      * @param nodeHandle the ROS node handle.
      */
     ImageToGridmapDemo(ros::NodeHandle &nodeHandle,
-                                           std::string elevation_layer,
-                                           std::string ceiling_layer,
-                                           std::string grid_map_topic);
+                       std::string elevation_layer,
+                       std::string ceiling_layer,
+                       std::string grid_map_topic);
 
     /*!
      * Destructor.
@@ -84,6 +84,8 @@ namespace grid_map_demos
     //! Range of the height values.
     double minHeight_;
     double maxHeight_;
+    double minHeightCeiling_;
+    double maxHeightCeiling_;
 
     //! Frame id of the grid map.
     std::string mapFrameId_;

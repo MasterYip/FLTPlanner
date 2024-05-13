@@ -10,8 +10,13 @@
     <arg name="use_cfg_space" default="true" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="false" />
-    <arg name="with_ceiling" value="false" />
+    <!-- GridMap -->
+    <arg name="resolution" value="0.05" />
+    <arg name="min_height" value="0" />
     <arg name="max_height" value="0.35" />
+    <arg name="with_ceiling" value="false" />
+    <arg name="min_height_ceiling" value="0.0" />
+    <arg name="max_height_ceiling" value="0.5" />
     <!-- Only used when fake_feedback=true -->
     <arg name="elevation_layer" value="elevation_inpainted" />
     <arg name="ceiling_layer" value="ceiling" />
@@ -38,10 +43,12 @@
             <param name="with_ceiling" value="$(arg with_ceiling)" />
             <param name="image_topic" value="/image_publisher/image" />
             <param name="image_ceiling_topic" value="/image_ceiling_publisher/image" />
-            <param name="resolution" value="0.05" />
+            <param name="resolution" value="$(arg resolution)" />
             <param name="map_frame_id" value="odom" />
             <param name="min_height" value="0" />
             <param name="max_height" value="$(arg max_height)" />
+            <param name="min_height_ceiling" value="$(arg min_height_ceiling)" />
+            <param name="max_height_ceiling" value="$(arg max_height_ceiling)" />
             <!-- Name -->
             <param name="grid_map_topic" value="$(arg grid_map_topic)" />
             <param name="elevation_layer" value="$(arg elevation_layer)" />

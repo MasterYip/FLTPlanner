@@ -40,6 +40,8 @@ namespace grid_map_demos
     nodeHandle_.param("resolution", resolution_, 0.03);
     nodeHandle_.param("min_height", minHeight_, 0.0);
     nodeHandle_.param("max_height", maxHeight_, 1.0);
+    nodeHandle_.param("min_height_ceiling", minHeightCeiling_, 0.0);
+    nodeHandle_.param("max_height_ceiling", maxHeightCeiling_, 1.0);
     nodeHandle_.param("map_frame_id", mapFrameId_, std::string("odom"));
     return true;
   }
@@ -55,7 +57,7 @@ namespace grid_map_demos
     }
     if (!ceilingImgBuffer_.data.empty() && withCeiling_)
     {
-      grid_map::GridMapRosConverter::addLayerFromImage(ceilingImgBuffer_, ceiling_layer_name_, map_, minHeight_, maxHeight_);
+      grid_map::GridMapRosConverter::addLayerFromImage(ceilingImgBuffer_, ceiling_layer_name_, map_, minHeightCeiling_, maxHeightCeiling_);
       grid_map::GridMapRosConverter::addLayerFromImage(msg, elevation_layer_name_, map_, minHeight_, maxHeight_);
       grid_map::GridMapRosConverter::addColorLayerFromImage(msg, "color", map_);
       map_.setFrameId(mapFrameId_);
