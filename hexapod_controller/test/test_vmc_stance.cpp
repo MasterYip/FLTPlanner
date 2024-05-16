@@ -59,6 +59,7 @@ private:
     ros::Subscriber joy_sub_;
     sensor_msgs::Joy joy_cmd_;
     Eigen::Vector3d rpy_;
+    geometry_msgs::Twist exp_twist_; // Button 4 = 1, twist control
 
     // Config
     TestVMCCmdPubCfg cfg_;
@@ -113,6 +114,7 @@ public:
             recv_fdb_pose_ = odom2SE3_Motion(msg, fdb_pose_, fdb_vel_);
             init_pose_ = fdb_pose_;
             exp_pose_ = init_pose_;
+            exp_twist_ = geometry_msgs::Twist();
         }
         else
         {
@@ -123,13 +125,22 @@ public:
     void joyCallback(const sensor_msgs::Joy &msg)
     {
         joy_cmd_ = msg;
-        rpy_[0] = joy_cmd_.axes[0];
-        rpy_[1] = joy_cmd_.axes[1];
-        rpy_[2] = joy_cmd_.axes[3];
-        //rpy to rotation matrix
-        Eigen::Matrix3d rotation_matrix = pinocchio::rpy::rpyToMatrix(rpy_);
-        // Apply rotation to the initial pose
-        exp_pose_.rotation() = rotation_matrix * init_pose_.rotation();
+        if (joy_cmd_.buttons[4] == 0)
+        {
+            rpy_[0] = joy_cmd_.axes[0];
+            rpy_[1] = joy_cmd_.axes[1];
+            rpy_[2] = joy_cmd_.axes[3];
+            // rpy to rotation matrix
+            Eigen::Matrix3d rotation_matrix = pinocchio::rpy::rpyToMatrix(rpy_);
+            // Apply rotation to the initial pose
+            exp_pose_.rotation() = rotation_matrix * init_pose_.rotation();
+        }
+        else
+        {
+            exp_twist_.linear.x = joy_cmd_.axes[1];
+            exp_twist_.linear.y = joy_cmd_.axes[0];
+            exp_twist_.angular.z = joy_cmd_.axes[3];
+        }
     }
 
     void loop(void)
@@ -152,12 +163,13 @@ public:
             exp_body_state_.pose.pose.orientation.z = quat.z();
             exp_body_state_.pose.pose.orientation.w = quat.w();
             // TODO: Temporarily Set velocity to zero
-            exp_body_state_.twist.twist.linear.x = 0.0;
-            exp_body_state_.twist.twist.linear.y = 0.0;
-            exp_body_state_.twist.twist.linear.z = 0.0;
-            exp_body_state_.twist.twist.angular.x = 0.0;
-            exp_body_state_.twist.twist.angular.y = 0.0;
-            exp_body_state_.twist.twist.angular.z = 0.0;
+            // exp_body_state_.twist.twist.linear.x = 0.0;
+            // exp_body_state_.twist.twist.linear.y = 0.0;
+            // exp_body_state_.twist.twist.linear.z = 0.0;
+            // exp_body_state_.twist.twist.angular.x = 0.0;
+            // exp_body_state_.twist.twist.angular.y = 0.0;
+            // exp_body_state_.twist.twist.angular.z = 0.0;
+            exp_body_state_.twist.twist = exp_twist_;
             exp_body_state_pub_.publish(exp_body_state_);
         }
         else
