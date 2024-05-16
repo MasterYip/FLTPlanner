@@ -21,7 +21,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
-#include "legged_traj_plan/whole_body_planner/WholeBodyPlanner.h"
+#include "legged_traj_plan/whole_body_planner/RaibertHeuristicPlanner.h"
 
 #include "legged_traj_plan/hexapod_State.h"
 #include "legged_traj_plan/FootState.h"

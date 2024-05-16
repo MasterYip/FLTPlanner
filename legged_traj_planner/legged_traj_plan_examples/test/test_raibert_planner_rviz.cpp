@@ -12,7 +12,7 @@
 #include <vector>
 #include <string>
 #include <math.h>
-#include "legged_traj_plan/whole_body_planner/WholeBodyPlanner.h"
+#include "legged_traj_plan/whole_body_planner/RaibertHeuristicPlanner.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>

@@ -21,7 +21,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
-#include "legged_traj_plan/whole_body_planner/WholeBodyPlanner.h"
+#include "legged_traj_plan/whole_body_planner/RaibertHeuristicPlanner.h"
 
 #include "legged_traj_plan/hexapod_State.h"
 #include "legged_traj_plan/FootState.h"
@@ -178,11 +178,11 @@ public:
             // FIXME: how to handle ref pose
             // Exp body state
             // 1. direct integration
-            exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
-            cmd_extrapolator_.update(exp_pose, cmd_);
-            // 2. update with state
-            // cmd_extrapolator_.update(body_pose_, cmd_);
             // exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
+            // cmd_extrapolator_.update(exp_pose, cmd_);
+            // 2. update with state
+            cmd_extrapolator_.update(body_pose_, cmd_);
+            exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
 
             exp_body_state_.header.stamp = ros::Time::now();
             exp_body_state_.header.frame_id = "odom";
