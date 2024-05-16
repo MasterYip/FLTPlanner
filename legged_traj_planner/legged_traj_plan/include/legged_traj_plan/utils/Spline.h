@@ -34,11 +34,18 @@ const Eigen::MatrixXd UNIB_COE_MAT = (Eigen::MatrixXd(4, 4) << 1, 4, 1, 0,
                                          .finished() /
                                      6;
 
+
+const Eigen::MatrixXd HERMITE_COE_MAT = (Eigen::MatrixXd(4, 4) << 1, 0, 0, 0,
+                                         0, 1, 0, 0,
+                                         -3, -2, 3, -1,
+                                         2, 1, -2, 1)
+                                            .finished();
+
 /**
  * @brief Evaluate cubic spline at t
  *
  * @param para_mat parameter matrix of the spline
- * @param knots spline knots (uniform bspline: 4 knots; cubic hermite: [p0, p1, v0, v1])
+ * @param knots spline knots (uniform bspline: 4 knots; cubic hermite: [p0, p1, v0, v1], col)
  * @param t parameter t
  * @param d_order derivative order (0 for position, 1 for velocity, etc.)
  * @return Eigen::VectorXd evaluated value

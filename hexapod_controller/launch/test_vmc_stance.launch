@@ -1,9 +1,10 @@
 <launch>
 
-    <arg name="sim" default="false" />
+    <arg name="sim" default="true" />
 
     <node pkg="hexapod_controller" type="vmc_controller_node" name="vmc_controller_node" output="screen">
-        <rosparam command="load" file="$(find hexapod_controller)/config/vmc_config.yaml" />
+        <rosparam command="load" file="$(find hexapod_controller)/config/vmc_config.yaml" if="$(eval sim==0)" />
+        <rosparam command="load" file="$(find hexapod_controller)/config/vmc_config_sim.yaml" if="$(eval sim==1)" />
         <param name="sim" value="$(arg sim)" />
     </node>
     <node pkg="hexapod_controller" type="test_vmc_stance" name="test_vmc_stance" output="screen">

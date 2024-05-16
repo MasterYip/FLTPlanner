@@ -142,6 +142,7 @@ public:
 
             // Exoected body state
             exp_body_state_.header.stamp = ros::Time::now();
+            exp_body_state_.header.frame_id = "odom";
             exp_body_state_.pose.pose.position.x = exp_pose_.translation()[0];
             exp_body_state_.pose.pose.position.y = exp_pose_.translation()[1];
             exp_body_state_.pose.pose.position.z = exp_pose_.translation()[2];

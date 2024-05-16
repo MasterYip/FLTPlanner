@@ -1,15 +1,63 @@
 /**
  * @file RaibertHeuristicPlanner.cpp
  * @author Master Yip (2205929492@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-05-16
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #include "legged_traj_plan/whole_body_planner/RaibertHeuristicPlanner.h"
+
+SimpleRaibertPlanner::SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+                                           std::shared_ptr<GridMapInterface> gridmap_interface,
+                                           std::shared_ptr<ElSpiderAirInterface> robot_interface)
+    : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface)
+{
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28 - 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34 - 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28 - 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28 + 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34 + 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28 + 0.04, -0.28));
+
+    PosList pose_sample_pts;
+    for (double x = -0.4; x <= 0.4; x += 0.2)
+    {
+        for (double y = -0.4; y <= 0.4; y += 0.2)
+        {
+            pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
+        }
+    }
+    cmd_vel_extraplator_.init(gridmap_interface, pose_sample_pts);
+}
+
+void SimpleRaibertPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
+{
+    for (auto &leg_sch : switch_scheduler_)
+    {
+        leg_sch.reset(ros::Time::now().toSec());
+    }
+    // update(pose, geometry_msgs::Twist(), foot_pos_list);
+}
+
+// void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
+//                                   PosList foot_pos_list)
+// {
+
+// }
+
+// bool SimpleRaibertPlanner::query(double t, pinocchio::SE3 &pose,
+//                                     PosList &foot_pos_list,
+//                                     std::array<bool, 6> &support_state){}
 
 RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                                                  std::shared_ptr<GridMapInterface> gridmap_interface,

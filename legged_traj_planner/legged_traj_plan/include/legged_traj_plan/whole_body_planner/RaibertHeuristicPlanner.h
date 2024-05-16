@@ -1,12 +1,12 @@
 /**
  * @file RaibertHeuristicPlanner.h
  * @author Master Yip (2205929492@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-05-16
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #pragma once
@@ -264,6 +264,33 @@ public:
         pose_new.rotation() = pinocchio::exp6(rot_calib_motion).rotation() * pose_new.rotation();
         return pose_new;
     }
+};
+
+/**
+ * @brief simple raibert planner without trajectory stack
+ *
+ */
+class SimpleRaibertPlanner
+{
+private:
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
+    GridMapCmdVelExtrapolator cmd_vel_extraplator_;
+    std::vector<LegSwitchScheduler> switch_scheduler_;
+
+    PosList nominal_foothold_base_;
+    double update_time_ = 0;
+    double interval_ = 1;
+    double duty_ = 0.5;
+
+    SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+                         std::shared_ptr<GridMapInterface> gridmap_interface,
+                         std::shared_ptr<ElSpiderAirInterface> robot_interface);
+
+    void start(pinocchio::SE3 pose, PosList foot_pos_list = PosList());
+
+    void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
+                PosList foot_pos_list = PosList());
 };
 
 class RaibertHeuristicPlanner
