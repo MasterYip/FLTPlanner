@@ -165,7 +165,7 @@ public:
         pinocchio::SE3 exp_pose;
         PosList exp_foot_pos;
         std::array<bool, 6> contact_state;
-        if (whole_body_planner_.query(ros::Time::now().toSec(), exp_foot_pos, contact_state))
+        if (whole_body_planner_.query(ros::Time::now().toSec(), exp_pose, exp_foot_pos, contact_state))
         {
             // Exp foot state
             exp_foot_state_.header.stamp = ros::Time::now();
@@ -255,9 +255,9 @@ public:
             {
                 PosList foot_pos_list;
                 std::array<bool, 6> contact_state;
-                pinocchio::SE3 pose = cmd_extrapolator_.extrapolate(ros::Time::now().toSec() - cmd_extrapolator_update_time_);
+                pinocchio::SE3 pose;
 
-                // whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
+                whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
                 whole_body_planner_.update(pose, cmd_);
             }
             else if (recv_foot_state_ && recv_body_state_)

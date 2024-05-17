@@ -322,7 +322,7 @@ class SimpleRaibertPlanner
 private:
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    GridMapCmdVelExtrapolator cmd_vel_extraplator_;
+    GridMapCmdVelExtrapolator cmd_vel_extrapolator_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
 
     // Datas
@@ -335,7 +335,7 @@ private:
     PosList nominal_foothold_base_;
     double interval_ = 1;
     double duty_ = 0.5;
-    double vLift_ = 0.15;
+    double vLift_ = 0.05;
 
 public:
     SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
@@ -347,7 +347,7 @@ public:
     void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
                 PosList last_footholds = PosList());
 
-    bool query(double t, PosList &foot_pos_list,
+    bool query(double t, pinocchio::SE3 &pose, PosList &foot_pos_list,
                std::array<bool, 6> &support_state);
 };
 
@@ -357,7 +357,7 @@ private:
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
-    GridMapCmdVelExtrapolator cmd_vel_extraplator_;
+    GridMapCmdVelExtrapolator cmd_vel_extrapolator_;
     std::vector<std::vector<LegTraj>> leg_traj_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
 

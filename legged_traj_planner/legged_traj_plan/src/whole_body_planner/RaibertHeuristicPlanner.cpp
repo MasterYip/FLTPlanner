@@ -37,7 +37,7 @@ SimpleRaibertPlanner::SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_pla
             pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
         }
     }
-    cmd_vel_extraplator_.init(gridmap_interface, pose_sample_pts);
+    cmd_vel_extrapolator_.init(gridmap_interface, pose_sample_pts);
 
     last_footholds_.resize(6);
     next_footholds_.resize(6);
@@ -64,7 +64,7 @@ void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_
                                   PosList last_footholds)
 {
     update_time_ = ros::Time::now().toSec();
-    cmd_vel_extraplator_.update(pose, cmd_vel);
+    cmd_vel_extrapolator_.update(pose, cmd_vel);
     pose_ = pose;
     cmd_vel_ = cmd_vel;
 
@@ -74,7 +74,7 @@ void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_
         {
             double t_next_stmid;
             switch_scheduler_[i].getNextStMidTime(update_time_, t_next_stmid);
-            pinocchio::SE3 pose_st_mid = cmd_vel_extraplator_.extrapolate(t_next_stmid - update_time_);
+            pinocchio::SE3 pose_st_mid = cmd_vel_extrapolator_.extrapolate(t_next_stmid - update_time_);
             next_footholds_[i] = point_SE3Act(pose_st_mid.inverse(), nominal_foothold_base_[i]);
             next_footholds_[i].z() = gridmap_interface_->value(grid_map::Position(next_footholds_[i].x(), next_footholds_[i].y()));
         }
@@ -100,10 +100,11 @@ void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_
  * @return true
  * @return false
  */
-bool SimpleRaibertPlanner::query(double t,
+bool SimpleRaibertPlanner::query(double t, pinocchio::SE3 &pose,
                                  PosList &foot_pos_list,
                                  std::array<bool, 6> &support_state)
 {
+    pose = cmd_vel_extrapolator_.extrapolate(t - update_time_);
     foot_pos_list.clear();
     support_state.fill(true);
     for (int i = 0; i < 6; i++)
@@ -157,7 +158,7 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
             pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
         }
     }
-    cmd_vel_extraplator_.init(gridmap_interface, pose_sample_pts);
+    cmd_vel_extrapolator_.init(gridmap_interface, pose_sample_pts);
 
     leg_traj_.resize(6);
 }
@@ -181,7 +182,7 @@ void RaibertHeuristicPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
 void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
                                      PosList foot_pos_list)
 {
-    cmd_vel_extraplator_.update(pose, cmd_vel);
+    cmd_vel_extrapolator_.update(pose, cmd_vel);
     update_time_ = ros::Time::now().toSec();
 
     bool foot_pos_list_valid = foot_pos_list.size() == 6;
@@ -216,9 +217,9 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
             {
                 auto &pair = switch_time_pairs[j];
                 auto &pair_next = switch_time_pairs[j + 1];
-                pose_lift = cmd_vel_extraplator_.extrapolate(pair.first - update_time_);
-                pose_st_mid = cmd_vel_extraplator_.extrapolate((pair_next.first + pair.second) / 2 - update_time_);
-                pose_touch = cmd_vel_extraplator_.extrapolate(pair.second - update_time_);
+                pose_lift = cmd_vel_extrapolator_.extrapolate(pair.first - update_time_);
+                pose_st_mid = cmd_vel_extrapolator_.extrapolate((pair_next.first + pair.second) / 2 - update_time_);
+                pose_touch = cmd_vel_extrapolator_.extrapolate(pair.second - update_time_);
                 Eigen::Vector3d p0;
                 Eigen::Vector3d p1 = point_SE3Act(pose_st_mid.inverse(), nominal_foothold_base_[i]);
                 p1.z() = gridmap_interface_->value(grid_map::Position(p1.x(), p1.y()));
@@ -283,7 +284,7 @@ bool RaibertHeuristicPlanner::query(double t, pinocchio::SE3 &pose,
 {
     foot_pos_list.clear();
     support_state.fill(true);
-    pose = cmd_vel_extraplator_.extrapolate(t - update_time_);
+    pose = cmd_vel_extrapolator_.extrapolate(t - update_time_);
     for (int i = 0; i < 6; ++i)
     {
         bool found = false;
@@ -334,7 +335,7 @@ bool RaibertHeuristicPlanner::queryCfg(double t, pinocchio::SE3 &pose,
 {
     foot_pos_list.clear();
     support_state.fill(true);
-    pose = cmd_vel_extraplator_.extrapolate(t - update_time_);
+    pose = cmd_vel_extrapolator_.extrapolate(t - update_time_);
     for (int i = 0; i < 6; ++i)
     {
         bool found = false;
