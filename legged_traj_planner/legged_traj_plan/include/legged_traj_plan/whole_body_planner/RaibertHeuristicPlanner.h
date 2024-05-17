@@ -41,7 +41,7 @@ public:
      * @brief Construct a new Leg Switch Scheduler object
      *
      * @param interval Interval of the scheduler (sec)
-     * @param duty Duty (0~1) of stance phase
+     * @param duty Duty (0~1) of STANCE phase
      * @param phase_shift_ Phase shift (0~1) - apply DELAY to the scheduler
      */
     LegSwitchScheduler(double interval, double duty, double phase_shift = 0)
@@ -78,6 +78,53 @@ public:
             return true;
         else
             return false;
+    }
+
+    /**
+     * @brief Query the swing state at time t
+     *
+     * @param[in] t
+     * @param[out] progress Progress of the swing phase
+     * @return true In swing phase
+     * @return false
+     */
+    bool querySwingState(double t, double &progress)
+    {
+        if (!is_running_)
+            return false;
+        double t_local = t - start_time_ - phase_shift_ * interval_;
+        if (t_local < 0)
+            return false;
+
+        double t_local_mod = fmod(t_local, interval_);
+        if (t_local_mod > duty_ * interval_)
+        {
+            progress = (t_local_mod - duty_ * interval_) / (interval_ - duty_ * interval_);
+            return true;
+        }
+        else
+            return false;
+    }
+
+    /**
+     * @brief Get the Next Stand Mid Time
+     *
+     * @param[in] t
+     * @param[out] t_mid
+     * @return true
+     * @return false
+     */
+    bool getNextStMidTime(double t, double &t_mid)
+    {
+        if (!is_running_)
+            return false;
+        double t_local = t - start_time_ - phase_shift_ * interval_;
+        if (t_local < 0)
+            return false;
+
+        double t_local_mod = fmod(t_local, interval_);
+        t_mid = t - t_local_mod + interval_ * (1 + 0.5 * duty_);
+        return true;
     }
 
     /**
@@ -278,11 +325,19 @@ private:
     GridMapCmdVelExtrapolator cmd_vel_extraplator_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
 
-    PosList nominal_foothold_base_;
+    // Datas
     double update_time_ = 0;
+    PosList last_footholds_; // World frame
+    PosList next_footholds_; // World frame
+    pinocchio::SE3 pose_;
+    geometry_msgs::Twist cmd_vel_;
+
+    PosList nominal_foothold_base_;
     double interval_ = 1;
     double duty_ = 0.5;
+    double vLift_ = 0.15;
 
+public:
     SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                          std::shared_ptr<GridMapInterface> gridmap_interface,
                          std::shared_ptr<ElSpiderAirInterface> robot_interface);
@@ -290,7 +345,10 @@ private:
     void start(pinocchio::SE3 pose, PosList foot_pos_list = PosList());
 
     void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
-                PosList foot_pos_list = PosList());
+                PosList last_footholds = PosList());
+
+    bool query(double t, PosList &foot_pos_list,
+               std::array<bool, 6> &support_state);
 };
 
 class RaibertHeuristicPlanner

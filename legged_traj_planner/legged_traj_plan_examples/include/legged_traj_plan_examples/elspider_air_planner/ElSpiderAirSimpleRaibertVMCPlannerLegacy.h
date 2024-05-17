@@ -58,7 +58,6 @@ private:
     ros::Subscriber cmd_sub_;
     geometry_msgs::Twist cmd_;
     GridMapCmdVelExtrapolator cmd_extrapolator_;
-    double cmd_extrapolator_update_time_ = 0;
     double cmd_extrapolate_time_ = 0.5;
 
     /// Feedback subscribe
@@ -85,8 +84,7 @@ private:
     // Fast legged planner interface
     std::shared_ptr<ElSpiderAirInterfaceROS> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    // RaibertHeuristicPlanner whole_body_planner_;
-    SimpleRaibertPlanner whole_body_planner_;
+    RaibertHeuristicPlanner whole_body_planner_;
     bool planner_started_ = false;
 
     /// Misc
@@ -109,7 +107,6 @@ public:
                                                                                                 robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
                                                                                                 gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                                 whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
-                                                                                                // whole_body_planner_(gridmap_interface_, robot_interface_),
                                                                                                 visualizer_(nh_, "base", "visualizer_marker"),
                                                                                                 rate_(50), fake_estimation_(fake_estimation), simulation_(simulation)
     {
@@ -152,7 +149,6 @@ public:
             {
                 whole_body_planner_.start(body_pose_, foot_pos_list_);
                 cmd_extrapolator_.update(body_pose_);
-                cmd_extrapolator_update_time_ = ros::Time::now().toSec();
                 planner_started_ = true;
             }
             else
@@ -165,14 +161,13 @@ public:
         pinocchio::SE3 exp_pose;
         PosList exp_foot_pos;
         std::array<bool, 6> contact_state;
-        if (whole_body_planner_.query(ros::Time::now().toSec(), exp_foot_pos, contact_state))
+        if (whole_body_planner_.query(ros::Time::now().toSec(), exp_pose, exp_foot_pos, contact_state))
         {
             // Exp foot state
             exp_foot_state_.header.stamp = ros::Time::now();
             exp_foot_state_.header.frame_id = "odom";
             for (int i = 0; i < 6; ++i)
             {
-                exp_foot_pos[i] = point_SE3Act(body_pose_, exp_foot_pos[i]); // SimpleRaibertPlanner output is in world frame
                 exp_foot_state_.position[i].x = exp_foot_pos[i](0);
                 exp_foot_state_.position[i].y = exp_foot_pos[i](1);
                 exp_foot_state_.position[i].z = exp_foot_pos[i](2);
@@ -183,12 +178,11 @@ public:
             // FIXME: how to handle ref pose
             // Exp body state
             // 1. direct integration
-            exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
-            cmd_extrapolator_.update(exp_pose, cmd_);
-            cmd_extrapolator_update_time_ = ros::Time::now().toSec();
-            // 2. update with state
-            // cmd_extrapolator_.update(body_pose_, cmd_);
             // exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
+            // cmd_extrapolator_.update(exp_pose, cmd_);
+            // 2. update with state
+            cmd_extrapolator_.update(body_pose_, cmd_);
+            exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
 
             exp_body_state_.header.stamp = ros::Time::now();
             exp_body_state_.header.frame_id = "odom";
@@ -255,9 +249,8 @@ public:
             {
                 PosList foot_pos_list;
                 std::array<bool, 6> contact_state;
-                pinocchio::SE3 pose = cmd_extrapolator_.extrapolate(ros::Time::now().toSec() - cmd_extrapolator_update_time_);
-
-                // whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
+                pinocchio::SE3 pose;
+                whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
                 whole_body_planner_.update(pose, cmd_);
             }
             else if (recv_foot_state_ && recv_body_state_)

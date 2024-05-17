@@ -38,6 +38,9 @@ SimpleRaibertPlanner::SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_pla
         }
     }
     cmd_vel_extraplator_.init(gridmap_interface, pose_sample_pts);
+
+    last_footholds_.resize(6);
+    next_footholds_.resize(6);
 }
 
 void SimpleRaibertPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
@@ -46,18 +49,85 @@ void SimpleRaibertPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
     {
         leg_sch.reset(ros::Time::now().toSec());
     }
-    // update(pose, geometry_msgs::Twist(), foot_pos_list);
+    if (foot_pos_list.size() != 6)
+    {
+        foot_pos_list.clear();
+        for (int i = 0; i < 6; ++i)
+        {
+            foot_pos_list.emplace_back(point_SE3Act(pose.inverse(), nominal_foothold_base_[i]));
+        }
+    }
+    update(pose, geometry_msgs::Twist(), foot_pos_list);
 }
 
-// void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
-//                                   PosList foot_pos_list)
-// {
+void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
+                                  PosList last_footholds)
+{
+    update_time_ = ros::Time::now().toSec();
+    cmd_vel_extraplator_.update(pose, cmd_vel);
+    pose_ = pose;
+    cmd_vel_ = cmd_vel;
 
-// }
+    for (uint i = 0; i < 6; ++i)
+    {
+        if (!switch_scheduler_[i].querySuppotState(update_time_)) // In swing phase
+        {
+            double t_next_stmid;
+            switch_scheduler_[i].getNextStMidTime(update_time_, t_next_stmid);
+            pinocchio::SE3 pose_st_mid = cmd_vel_extraplator_.extrapolate(t_next_stmid - update_time_);
+            next_footholds_[i] = point_SE3Act(pose_st_mid.inverse(), nominal_foothold_base_[i]);
+            next_footholds_[i].z() = gridmap_interface_->value(grid_map::Position(next_footholds_[i].x(), next_footholds_[i].y()));
+        }
+        else
+        {
+            last_footholds_[i] = next_footholds_[i];
+        }
+    }
 
-// bool SimpleRaibertPlanner::query(double t, pinocchio::SE3 &pose,
-//                                     PosList &foot_pos_list,
-//                                     std::array<bool, 6> &support_state){}
+    if (last_footholds.size() == 6) // Not empty
+    {
+        last_footholds_ = last_footholds;
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param t
+ * @param pose in WORLD frame
+ * @param foot_pos_list in WORLD frame
+ * @param support_state
+ * @return true
+ * @return false
+ */
+bool SimpleRaibertPlanner::query(double t,
+                                 PosList &foot_pos_list,
+                                 std::array<bool, 6> &support_state)
+{
+    foot_pos_list.clear();
+    support_state.fill(true);
+    for (int i = 0; i < 6; i++)
+    {
+        double progress;
+        if (switch_scheduler_[i].querySwingState(t, progress))
+        {
+            Eigen::Matrix<double, 3, 4> hermite_knots;
+            hermite_knots.col(0) = last_footholds_[i];
+            hermite_knots.col(1) << 0, 0, vLift_;
+            hermite_knots.col(2) = next_footholds_[i];
+            hermite_knots.col(3) << 0, 0, -vLift_;
+            foot_pos_list.emplace_back(cubic_evaluate(HERMITE_COE_MAT, hermite_knots, progress, 0));
+            support_state[i] = false;
+        }
+        else
+        {
+            foot_pos_list.emplace_back(last_footholds_[i]);
+        }
+    }
+    return true;
+}
+
+// RaibertHeuristicPlanner
 
 RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                                                  std::shared_ptr<GridMapInterface> gridmap_interface,
