@@ -45,7 +45,7 @@ const Eigen::MatrixXd HERMITE_COE_MAT = (Eigen::MatrixXd(4, 4) << 1, 0, 0, 0,
  * @brief Evaluate cubic spline at t
  *
  * @param para_mat parameter matrix of the spline
- * @param knots spline knots (uniform bspline: 4 knots; cubic hermite: [p0, v0, p1, v1], col)
+ * @param knots spline knots (uniform bspline: 4 knots; cubic hermite: [p0, v0, p1, v1], row)  (4 row, x col)
  * @param t parameter t
  * @param d_order derivative order (0 for position, 1 for velocity, etc.)
  * @return Eigen::VectorXd evaluated value

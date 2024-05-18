@@ -210,6 +210,11 @@ target_link_libraries(elspider_air_simple_raibert_vmc_planner
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
 )
+add_executable(elspider_air_dummy_vmc_node src/elspider_air_dummy_vmc_node.cpp)
+target_link_libraries(elspider_air_dummy_vmc_node
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
 
 # Tests
 add_executable(test_force_ctrl test/test_force_ctrl.cpp)

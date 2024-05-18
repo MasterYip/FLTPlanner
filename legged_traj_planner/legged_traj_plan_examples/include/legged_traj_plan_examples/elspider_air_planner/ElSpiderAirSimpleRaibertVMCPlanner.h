@@ -1,9 +1,9 @@
 /**
  * @file ElSpiderAirSimpleRaibertVMCPlanner.h
  * @author Master Yip (2205929492@qq.com)
- * @brief Simple raibert planner for EiSpiderAir (instant trajectory planning)
+ * @brief
  * @version 0.1
- * @date 2024-05-05
+ * @date 2024-05-18
  *
  * @copyright Copyright (c) 2024
  *
@@ -48,6 +48,95 @@ void AVOID_DISPLAY_ERROR(void)
     const auto cvxHull = qh.getConvexHull(vec.data(), vec.cols(), false, false);
 }
 
+class DummyElSpiderAir
+{
+private:
+    ros::NodeHandle &nh_;
+    ros::Publisher foot_state_pub_;
+    ros::Publisher body_state_pub_;
+    ros::Subscriber exp_foot_state_sub_;
+    ros::Subscriber exp_body_state_sub_;
+    ros::Timer timer_;
+
+    legged_traj_plan::FootState foot_state_;
+    nav_msgs::Odometry body_state_;
+
+public:
+    DummyElSpiderAir(ros::NodeHandle &nh) : nh_(nh)
+    {
+        foot_state_pub_ = nh_.advertise<legged_traj_plan::FootState>("/hexapod/foot_state_fdb", 1);
+        body_state_pub_ = nh_.advertise<nav_msgs::Odometry>("/base_odom", 1);
+        exp_foot_state_sub_ = nh_.subscribe("/exp_foot_state", 1, &DummyElSpiderAir::expFootStateCallback, this);
+        exp_body_state_sub_ = nh_.subscribe("/exp_odom", 1, &DummyElSpiderAir::expBodyStateCallback, this);
+        timer_ = nh_.createTimer(ros::Duration(0.01), &DummyElSpiderAir::timerCallback, this);
+
+        // Initialize Body State
+        auto exp_pose = pinocchio::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 0.25));
+        body_state_.header.stamp = ros::Time::now();
+        body_state_.header.frame_id = "odom";
+        body_state_.pose.pose.position.x = exp_pose.translation()(0);
+        body_state_.pose.pose.position.y = exp_pose.translation()(1);
+        body_state_.pose.pose.position.z = exp_pose.translation()(2);
+        Eigen::Quaterniond quat(exp_pose.rotation());
+        body_state_.pose.pose.orientation.x = quat.x();
+        body_state_.pose.pose.orientation.y = quat.y();
+        body_state_.pose.pose.orientation.z = quat.z();
+        body_state_.pose.pose.orientation.w = quat.w();
+
+        // Initialize Foot State
+        foot_state_.header.stamp = ros::Time::now();
+        foot_state_.header.frame_id = "odom";
+        foot_state_.position.resize(6);
+        foot_state_.velocity.resize(6);
+        foot_state_.effort.resize(6);
+        foot_state_.contact.resize(6);
+        PosList nominal_foothold_base_;
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28 - 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34 - 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28 - 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28 + 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34 + 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28 + 0.04, -0.28));
+        for (size_t k = 0; k < 6; ++k)
+        {
+            foot_state_.position[k].x = nominal_foothold_base_[k](0);
+            foot_state_.position[k].y = nominal_foothold_base_[k](1);
+            foot_state_.position[k].z = nominal_foothold_base_[k](2);
+            foot_state_.velocity[k].x = 0;
+            foot_state_.velocity[k].y = 0;
+            foot_state_.velocity[k].z = 0;
+            foot_state_.effort[k].x = 0;
+            foot_state_.effort[k].y = 0;
+            foot_state_.effort[k].z = 0;
+            foot_state_.contact[k] = true;
+        }
+    }
+
+    void expFootStateCallback(const legged_traj_plan::FootState &msg)
+    {
+        foot_state_ = msg;
+    }
+
+    void expBodyStateCallback(const nav_msgs::Odometry &msg)
+    {
+        body_state_ = msg;
+    }
+
+    void timerCallback(const ros::TimerEvent &)
+    {
+        foot_state_pub_.publish(foot_state_);
+        body_state_pub_.publish(body_state_);
+    }
+
+    void run(void)
+    {
+        while (ros::ok())
+        {
+            ros::spinOnce();
+        }
+    }
+};
+
 class ElSpiderAirSimpleRaibertVMCPlanner
 {
 private:
@@ -58,14 +147,14 @@ private:
     ros::Subscriber cmd_sub_;
     geometry_msgs::Twist cmd_;
     GridMapCmdVelExtrapolator cmd_extrapolator_;
-    double cmd_extrapolator_update_time_ = 0;
-    double cmd_extrapolate_time_ = 0.5;
+    // double cmd_extrapolator_update_time_ = 0;
+    // double cmd_extrapolate_time_ = 0.5;
 
     /// Feedback subscribe
     // Foot state feedback
     ros::Subscriber foot_state_sub_;
     legged_traj_plan::FootState foot_state_;
-    PosList foot_pos_list_; // World frame
+    PosList foot_pos_list_;
     bool recv_foot_state_ = false;
 
     // Odometry feedback
@@ -85,7 +174,6 @@ private:
     // Fast legged planner interface
     std::shared_ptr<ElSpiderAirInterfaceROS> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    // RaibertHeuristicPlanner whole_body_planner_;
     SimpleRaibertPlanner whole_body_planner_;
     bool planner_started_ = false;
 
@@ -97,21 +185,21 @@ private:
     GCSVisualizer visualizer_;
 
     // Settings
-    bool fake_estimation_;
-    bool fake_estimation_noisy_ = false;
-    double noise_amp_ = 0.02;
+    int loop_rate_ = 500;
+    int timer_loop_rate_ = 50;
     bool simulation_;
+    bool fake_feedback_ = false;
 
 public:
-    // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirSimpleRaibertVMCPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                                       bool fake_estimation = false, bool simulation = false) : nh_("~"),
-                                                                                                robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
-                                                                                                gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
-                                                                                                whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
-                                                                                                // whole_body_planner_(gridmap_interface_, robot_interface_),
-                                                                                                visualizer_(nh_, "base", "visualizer_marker"),
-                                                                                                rate_(50), fake_estimation_(fake_estimation), simulation_(simulation)
+                                       bool fake_feedback = false,
+                                       bool simulation = false) : nh_("~"),
+                                                                  robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
+                                                                  gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
+                                                                  whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
+                                                                  visualizer_(nh_, "base", "visualizer_marker"),
+                                                                  rate_(loop_rate_), fake_feedback_(fake_feedback),
+                                                                  simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimpleRaibertVMCPlanner::cmd_callback, this);
         foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirSimpleRaibertVMCPlanner::foot_state_callback, this);
@@ -134,13 +222,7 @@ public:
         }
         cmd_extrapolator_.init(gridmap_interface_, pose_sample_pts);
 
-        timer_ = nh_.createTimer(ros::Duration(0.05), &ElSpiderAirSimpleRaibertVMCPlanner::timer_callback, this);
-        if (fake_estimation_)
-        {
-            body_pose_ = pinocchio::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 0.25));
-            whole_body_planner_.start(body_pose_);
-            planner_started_ = true;
-        }
+        timer_ = nh_.createTimer(ros::Duration(1.0 / timer_loop_rate_), &ElSpiderAirSimpleRaibertVMCPlanner::timer_callback, this);
     }
 
     void timer_callback(const ros::TimerEvent &event)
@@ -150,9 +232,10 @@ public:
         {
             if (recv_foot_state_ && recv_body_state_)
             {
+                // Planner Init Value
                 whole_body_planner_.start(body_pose_, foot_pos_list_);
                 cmd_extrapolator_.update(body_pose_);
-                cmd_extrapolator_update_time_ = ros::Time::now().toSec();
+                // cmd_extrapolator_update_time_ = ros::Time::now().toSec();
                 planner_started_ = true;
             }
             else
@@ -162,75 +245,45 @@ public:
             }
         }
 
+        // Exp body state Publish
         pinocchio::SE3 exp_pose;
+        // FIXME: how to handle ref pose
+        // 1. direct integration
+        exp_pose = cmd_extrapolator_.extrapolate(1.0 / timer_loop_rate_);
+        cmd_extrapolator_.update(exp_pose, cmd_);
+        // 2. update with state
+        // cmd_extrapolator_.update(body_pose_, cmd_);
+        // exp_pose = cmd_extrapolator_.extrapolate(1.0 / timer_loop_rate_);
+        pub_exp_pose(exp_pose, cmd_);
+
+        // Exp foot state pub
         PosList exp_foot_pos;
+        pinocchio::SE3 wbp_pose;
         std::array<bool, 6> contact_state;
-        if (whole_body_planner_.query(ros::Time::now().toSec(), exp_pose, exp_foot_pos, contact_state))
+        if (whole_body_planner_.query(ros::Time::now().toSec(), wbp_pose, exp_foot_pos, contact_state))
         {
-            // Exp foot state
             exp_foot_state_.header.stamp = ros::Time::now();
             exp_foot_state_.header.frame_id = "odom";
             for (int i = 0; i < 6; ++i)
             {
-                
-                exp_foot_pos[i] = point_SE3Act(body_pose_, exp_foot_pos[i]); 
+                // SimpleRaibertPlanner output is in world frame, convert to BASE frame
+                exp_foot_pos[i] = point_SE3Act(body_pose_, exp_foot_pos[i]);
                 exp_foot_state_.position[i].x = exp_foot_pos[i](0);
                 exp_foot_state_.position[i].y = exp_foot_pos[i](1);
                 exp_foot_state_.position[i].z = exp_foot_pos[i](2);
                 exp_foot_state_.contact[i] = contact_state[i];
             }
             exp_foot_state_pub_.publish(exp_foot_state_);
-
-            // FIXME: how to handle ref pose
-            // Exp body state
-            // 1. direct integration
-            exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
-            cmd_extrapolator_.update(exp_pose, cmd_);
-            cmd_extrapolator_update_time_ = ros::Time::now().toSec();
-            // 2. update with state
-            // cmd_extrapolator_.update(body_pose_, cmd_);
-            // exp_pose = cmd_extrapolator_.extrapolate(cmd_extrapolate_time_);
-
-            exp_body_state_.header.stamp = ros::Time::now();
-            exp_body_state_.header.frame_id = "odom";
-            exp_body_state_.pose.pose.position.x = exp_pose.translation()(0);
-            exp_body_state_.pose.pose.position.y = exp_pose.translation()(1);
-            exp_body_state_.pose.pose.position.z = exp_pose.translation()(2);
-            Eigen::Quaterniond quat(exp_pose.rotation());
-            exp_body_state_.pose.pose.orientation.x = quat.x();
-            exp_body_state_.pose.pose.orientation.y = quat.y();
-            exp_body_state_.pose.pose.orientation.z = quat.z();
-            exp_body_state_.pose.pose.orientation.w = quat.w();
-            geometry_msgs::Twist twist_world;
-            Eigen::Vector3d linear_world;
-            linear_world << cmd_.linear.x, cmd_.linear.y, cmd_.linear.z;
-            linear_world = exp_pose.rotation() * linear_world;
-            Eigen::Vector3d angular_world;
-            angular_world << cmd_.angular.x, cmd_.angular.y, cmd_.angular.z;
-            angular_world = exp_pose.rotation() * angular_world;
-            twist_world.linear.x = linear_world(0);
-            twist_world.linear.y = linear_world(1);
-            twist_world.linear.z = linear_world(2);
-            twist_world.angular.x = angular_world(0);
-            twist_world.angular.y = angular_world(1);
-            twist_world.angular.z = angular_world(2);
-            exp_body_state_.twist.twist = twist_world;
-            exp_body_state_pub_.publish(exp_body_state_);
         }
 
-        if (fake_estimation_)
-        {
-            // pub pose tf
+        // Visualizer
+        if (fake_feedback_)
             robot_interface_->pub_odom(exp_pose);
-            robot_interface_->pub_joint_state_from_footendpos(exp_foot_pos);
-        }
-        else
-        {
-            // Shadow robot
-            robot_interface_->pub_odom(exp_pose, "shadowbase", "odom");
-            robot_interface_->pub_shadow_joint_state_from_footendpos(exp_foot_pos);
-            pub_footpos_now();
-        }
+        // Shadow robot
+        robot_interface_->pub_odom(exp_pose, "shadowbase", "odom");
+        robot_interface_->pub_shadow_joint_state_from_footendpos(exp_foot_pos);
+        // Real robot
+        pub_footpos_now();
     }
 
     void pub_footpos_now(void)
@@ -245,6 +298,35 @@ public:
         robot_interface_->pub_joint_state_from_footendpos(footend_now);
     }
 
+    void pub_exp_pose(pinocchio::SE3 exp_pose, geometry_msgs::Twist cmd)
+    {
+        exp_body_state_.header.stamp = ros::Time::now();
+        exp_body_state_.header.frame_id = "odom";
+        exp_body_state_.pose.pose.position.x = exp_pose.translation()(0);
+        exp_body_state_.pose.pose.position.y = exp_pose.translation()(1);
+        exp_body_state_.pose.pose.position.z = exp_pose.translation()(2);
+        Eigen::Quaterniond quat(exp_pose.rotation());
+        exp_body_state_.pose.pose.orientation.x = quat.x();
+        exp_body_state_.pose.pose.orientation.y = quat.y();
+        exp_body_state_.pose.pose.orientation.z = quat.z();
+        exp_body_state_.pose.pose.orientation.w = quat.w();
+        geometry_msgs::Twist twist_world;
+        Eigen::Vector3d linear_world;
+        linear_world << cmd.linear.x, cmd.linear.y, cmd.linear.z;
+        linear_world = exp_pose.rotation() * linear_world;
+        Eigen::Vector3d angular_world;
+        angular_world << cmd.angular.x, cmd.angular.y, cmd.angular.z;
+        angular_world = exp_pose.rotation() * angular_world;
+        twist_world.linear.x = linear_world(0);
+        twist_world.linear.y = linear_world(1);
+        twist_world.linear.z = linear_world(2);
+        twist_world.angular.x = angular_world(0);
+        twist_world.angular.y = angular_world(1);
+        twist_world.angular.z = angular_world(2);
+        exp_body_state_.twist.twist = twist_world;
+        exp_body_state_pub_.publish(exp_body_state_);
+    }
+
     void cmd_callback(const geometry_msgs::Twist &msg)
     {
         ROS_INFO("cmd_vel received");
@@ -252,16 +334,7 @@ public:
         // Start planning
         if (planner_started_)
         {
-            if (fake_estimation_)
-            {
-                PosList foot_pos_list;
-                std::array<bool, 6> contact_state;
-                pinocchio::SE3 pose;
-                std::cout<< "wbp updating" << std::endl;
-                whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
-                whole_body_planner_.update(pose, cmd_);
-            }
-            else if (recv_foot_state_ && recv_body_state_)
+            if (recv_foot_state_ && recv_body_state_)
             {
                 // BUG: update(body_pose) is unstable
                 geometry_msgs::Twist twist_mix;

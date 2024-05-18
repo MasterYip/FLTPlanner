@@ -83,6 +83,10 @@
         <rosparam command="load" file="$(find legged_traj_plan)/config/perception_interface.yaml" />
     </node>
 
+    <node pkg="legged_traj_plan_examples" type="elspider_air_dummy_vmc_node" name="elspider_air_dummy_vmc_node" output="screen" if="$(eval fake_feedback == 1)">
+    </node>
+        
+
     <!-- Robot related -->
     <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval fake_feedback == 1)"/>
     <!-- Load robot model if sim is False -->

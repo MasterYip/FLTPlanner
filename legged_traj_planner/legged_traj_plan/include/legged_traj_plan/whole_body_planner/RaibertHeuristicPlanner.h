@@ -329,13 +329,14 @@ private:
     double update_time_ = 0;
     PosList last_footholds_; // World frame
     PosList next_footholds_; // World frame
+    PosList footpos_cache_;  // World frame
     pinocchio::SE3 pose_;
     geometry_msgs::Twist cmd_vel_;
 
     PosList nominal_foothold_base_;
     double interval_ = 1;
     double duty_ = 0.5;
-    double vLift_ = 0.05;
+    double vLift_ = 0.15;
 
 public:
     SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_planner_config,

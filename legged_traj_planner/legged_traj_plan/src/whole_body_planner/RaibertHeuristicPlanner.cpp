@@ -41,6 +41,7 @@ SimpleRaibertPlanner::SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_pla
 
     last_footholds_.resize(6);
     next_footholds_.resize(6);
+    footpos_cache_.resize(6);
 }
 
 void SimpleRaibertPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
@@ -87,6 +88,7 @@ void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_
     if (last_footholds.size() == 6) // Not empty
     {
         last_footholds_ = last_footholds;
+        footpos_cache_ = last_footholds; // Update cache
     }
 }
 
@@ -112,17 +114,18 @@ bool SimpleRaibertPlanner::query(double t, pinocchio::SE3 &pose,
         double progress;
         if (switch_scheduler_[i].querySwingState(t, progress))
         {
-            Eigen::Matrix<double, 3, 4> hermite_knots;
-            hermite_knots.col(0) = last_footholds_[i];
-            hermite_knots.col(1) << 0, 0, vLift_;
-            hermite_knots.col(2) = next_footholds_[i];
-            hermite_knots.col(3) << 0, 0, -vLift_;
+            Eigen::Matrix<double, 4, 3> hermite_knots;
+            hermite_knots.row(0) = last_footholds_[i];
+            hermite_knots.row(1) << 0, 0, vLift_;
+            hermite_knots.row(2) = next_footholds_[i];
+            hermite_knots.row(3) << 0, 0, -vLift_;
             foot_pos_list.emplace_back(cubic_evaluate(HERMITE_COE_MAT, hermite_knots, progress, 0));
             support_state[i] = false;
+            footpos_cache_[i] = foot_pos_list.back();
         }
         else
         {
-            foot_pos_list.emplace_back(last_footholds_[i]);
+            foot_pos_list.emplace_back(footpos_cache_[i]);
         }
     }
     return true;
