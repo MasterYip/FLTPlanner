@@ -256,7 +256,7 @@ public:
                 PosList foot_pos_list;
                 std::array<bool, 6> contact_state;
                 pinocchio::SE3 pose;
-
+                std::cout<< "wbp updating" << std::endl;
                 whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
                 whole_body_planner_.update(pose, cmd_);
             }
@@ -303,7 +303,7 @@ public:
                                 msg.pose.pose.orientation.y,
                                 msg.pose.pose.orientation.z);
         body_pose_.rotation() = quat.toRotationMatrix();
-        body_twist_ = msg.twist.twist; // seems msg.twist is in world frame
+        body_twist_ = msg.twist.twist; // msg.twist is in world frame
         // body_twist_base_rectify_ = msg.twist.twist;
         // body_twist_base_rectify_.linear.z = 0;
         // body_twist_base_rectify_.angular.x = 0;

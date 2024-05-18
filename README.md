@@ -97,6 +97,13 @@ teleop_type:=keyboard
 ```
 
 ```bash
+roslaunch legged_traj_plan_examples elspider_air_raibert_vmc_planner.launch \
+fake_feedback:=true \
+sim:=true \
+teleop_type:=PS5
+```
+
+```bash
 roslaunch legged_traj_plan_examples elspider_air_simple_raibert_vmc_planner.launch \
 fake_feedback:=true \
 sim:=true \
