@@ -267,7 +267,9 @@ public:
             for (int i = 0; i < 6; ++i)
             {
                 // SimpleRaibertPlanner output is in world frame, convert to BASE frame
-                exp_foot_pos[i] = point_SE3Act(body_pose_, exp_foot_pos[i]);
+                // FIXME: which pose to choose?
+                // exp_foot_pos[i] = point_SE3Act(body_pose_, exp_foot_pos[i]);
+                exp_foot_pos[i] = point_SE3Act(exp_pose, exp_foot_pos[i]);
                 exp_foot_state_.position[i].x = exp_foot_pos[i](0);
                 exp_foot_state_.position[i].y = exp_foot_pos[i](1);
                 exp_foot_state_.position[i].z = exp_foot_pos[i](2);
@@ -338,7 +340,7 @@ public:
             {
                 // BUG: update(body_pose) is unstable
                 geometry_msgs::Twist twist_mix;
-                double weight = 1.0;
+                double weight = 0.5;
                 twist_mix.linear.x = body_twist_base_rectify_.linear.x * (1.0 - weight) + cmd_.linear.x * weight;
                 twist_mix.linear.y = body_twist_base_rectify_.linear.y * (1.0 - weight) + cmd_.linear.y * weight;
                 twist_mix.linear.z = body_twist_base_rectify_.linear.z * (1.0 - weight) + cmd_.linear.z * weight;
