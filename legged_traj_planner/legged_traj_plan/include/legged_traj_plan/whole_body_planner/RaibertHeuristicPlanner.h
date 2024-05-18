@@ -336,7 +336,7 @@ private:
     PosList nominal_foothold_base_;
     double interval_ = 1;
     double duty_ = 0.5;
-    double vLift_ = 0.15;
+    double vLift_ = 0.3;
 
 public:
     SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_planner_config,

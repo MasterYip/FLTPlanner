@@ -340,7 +340,7 @@ public:
             {
                 // BUG: update(body_pose) is unstable
                 geometry_msgs::Twist twist_mix;
-                double weight = 0.5;
+                double weight = 0.8;
                 twist_mix.linear.x = body_twist_base_rectify_.linear.x * (1.0 - weight) + cmd_.linear.x * weight;
                 twist_mix.linear.y = body_twist_base_rectify_.linear.y * (1.0 - weight) + cmd_.linear.y * weight;
                 twist_mix.linear.z = body_twist_base_rectify_.linear.z * (1.0 - weight) + cmd_.linear.z * weight;
@@ -399,7 +399,7 @@ public:
         body_twist_base_rectify_.angular.x = 0;
         body_twist_base_rectify_.angular.y = 0;
         body_twist_base_rectify_.angular.z = angular(2);
-        double scale = 0.1;
+        double scale = 0.2;
         body_twist_base_rectify_.linear.x *= scale;
         body_twist_base_rectify_.linear.y *= scale;
         body_twist_base_rectify_.angular.z *= scale;
