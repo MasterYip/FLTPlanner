@@ -330,20 +330,20 @@ private:
             obj.visualizer_->delGroup(2);
             obj.visualizer_->setIdGroup(2);
             obj.visualizer_->visCurve(visTraj, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.005));
-            obj.visualizer_->visCurve(visTraj2, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.02)); // CFG
             obj.visualizer_->visCube(visInPs, Eigen::Vector4d(1, 0, 0, 0), ros_visualizer::VisStyle(0.1, 0.8, 0.1, 1.0, 0.01));
+            // obj.visualizer_->visCurve(visTraj2, ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.8, 0.02)); // CFG
             // Config Pos Constraint
-            Eigen::Vector3d cfgCubeCenter;
-            cfgCubeCenter << (obj.config_.joint1PosMax + obj.config_.joint1PosMin) / 2.0,
-                (obj.config_.joint2PosMax + obj.config_.joint2PosMin) / 2.0,
-                (obj.config_.joint3PosMax + obj.config_.joint3PosMin) / 2.0;
-            Eigen::Vector3d cfgCubeSize;
-            cfgCubeSize << (obj.config_.joint1PosMax - obj.config_.joint1PosMin),
-                (obj.config_.joint2PosMax - obj.config_.joint2PosMin),
-                (obj.config_.joint3PosMax - obj.config_.joint3PosMin);
-            obj.visualizer_->visCube(cfgCubeCenter, Eigen::Vector4d(1, 0, 0, 0),
-                                     ros_visualizer::VisStyle(0.7, 0.4, 0.1, 0.3,
-                                                              cfgCubeSize(0), cfgCubeSize(1), cfgCubeSize(2)));
+            // Eigen::Vector3d cfgCubeCenter;
+            // cfgCubeCenter << (obj.config_.joint1PosMax + obj.config_.joint1PosMin) / 2.0,
+            //     (obj.config_.joint2PosMax + obj.config_.joint2PosMin) / 2.0,
+            //     (obj.config_.joint3PosMax + obj.config_.joint3PosMin) / 2.0;
+            // Eigen::Vector3d cfgCubeSize;
+            // cfgCubeSize << (obj.config_.joint1PosMax - obj.config_.joint1PosMin),
+            //     (obj.config_.joint2PosMax - obj.config_.joint2PosMin),
+            //     (obj.config_.joint3PosMax - obj.config_.joint3PosMin);
+            // obj.visualizer_->visCube(cfgCubeCenter, Eigen::Vector4d(1, 0, 0, 0),
+            //                          ros_visualizer::VisStyle(0.7, 0.4, 0.1, 0.3,
+            //                                                   cfgCubeSize(0), cfgCubeSize(1), cfgCubeSize(2)));
             obj.rate_.sleep();
         }
         return;
