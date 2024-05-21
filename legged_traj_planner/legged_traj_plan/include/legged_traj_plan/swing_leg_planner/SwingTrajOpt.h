@@ -378,7 +378,7 @@ private:
                                 obj.magnitudeBd, obj.penaltyWt,
                                 cost, obj.partialGradByTimes, obj.partialGradByCoeffs);
 
-        // propogate gradient from c,tau to q,t
+        // propogate gradient from partial c, partial t to dq,dt
         obj.minco.propogateGrad(obj.partialGradByCoeffs, obj.partialGradByTimes,
                                 obj.gradByPoints, obj.gradByTimes);
 
