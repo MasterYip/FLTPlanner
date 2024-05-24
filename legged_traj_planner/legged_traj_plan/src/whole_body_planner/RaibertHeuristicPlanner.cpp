@@ -41,7 +41,7 @@ SimpleRaibertPlanner::SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_pla
 
     last_footholds_.resize(6);
     next_footholds_.resize(6);
-    footpos_cache_.resize(6);
+    // footpos_cache_.resize(6);
 }
 
 void SimpleRaibertPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
@@ -88,7 +88,7 @@ void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_
     if (last_footholds.size() == 6) // Not empty
     {
         last_footholds_ = last_footholds;
-        footpos_cache_ = last_footholds; // Update cache
+        // footpos_cache_ = last_footholds; // Update cache
     }
 }
 
@@ -121,11 +121,12 @@ bool SimpleRaibertPlanner::query(double t, pinocchio::SE3 &pose,
             hermite_knots.row(3) << 0, 0, -vLift_;
             foot_pos_list.emplace_back(cubic_evaluate(HERMITE_COE_MAT, hermite_knots, progress, 0));
             support_state[i] = false;
-            footpos_cache_[i] = foot_pos_list.back();
+            // footpos_cache_[i] = foot_pos_list.back();
         }
         else
         {
-            foot_pos_list.emplace_back(footpos_cache_[i]);
+            // foot_pos_list.emplace_back(footpos_cache_[i]);
+            foot_pos_list.emplace_back(next_footholds_[i]);
         }
     }
     return true;
