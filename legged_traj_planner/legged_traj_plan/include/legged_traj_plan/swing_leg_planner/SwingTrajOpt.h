@@ -63,9 +63,6 @@ private:
     // Parameters
     double smoothEps;
     int integralRes;
-    Eigen::VectorXd magnitudeBd;
-    Eigen::VectorXd penaltyWt;
-    Eigen::VectorXd physicalPm;
     double allocSpeed;
 
     // Penalties
@@ -199,8 +196,6 @@ private:
      * @param[in] coeffs Coefficients of trajectory (3, 4 * pieceNum)
      * @param[in] smoothFactor Smooth factor for soft constraint cost function
      * @param[in] integralResolution Integral resolution
-     * @param[in] magnitudeBounds [v_max, a_max]^T
-     * @param[in] penaltyWeights [pos_weight, vel_weight, acc_weight]^T
      * @param[out] cost Cost
      * @param[out] gradT Gradient of time allocation
      * @param[out] gradC Gradient of coefficients
@@ -210,20 +205,11 @@ private:
                                                const Eigen::MatrixX3d &coeffs,
                                                const double &smoothFactor,
                                                const int &integralResolution,
-                                               const Eigen::VectorXd &magnitudeBounds,
-                                               const Eigen::VectorXd &penaltyWeights,
                                                double &cost,
                                                Eigen::VectorXd &gradT,
                                                Eigen::MatrixX3d &gradC,
                                                bool verbose = true)
     {
-        const double velSqrMax = magnitudeBounds(0) * magnitudeBounds(0);
-        const double accSqrMax = magnitudeBounds(1) * magnitudeBounds(1);
-
-        const double weightPos = penaltyWeights(0);
-        const double weightVel = penaltyWeights(1);
-        const double weightAcc = penaltyWeights(2);
-
         Eigen::Vector3d pos, vel, acc, jer;
         Eigen::Vector3d totalGradPos, totalGradVel, totalGradAcc;
         Eigen::Vector3d gradPos, gradVel, gradAcc;
@@ -375,7 +361,6 @@ private:
         // TODO: 2.Penalty cost
         attachPenaltyFunctional(obj, obj.times, obj.minco.getCoeffs(),
                                 obj.smoothEps, obj.integralRes,
-                                obj.magnitudeBd, obj.penaltyWt,
                                 cost, obj.partialGradByTimes, obj.partialGradByCoeffs);
 
         // propogate gradient from partial c, partial t to dq,dt
