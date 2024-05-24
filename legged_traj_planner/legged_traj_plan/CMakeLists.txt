@@ -3,7 +3,7 @@ project(legged_traj_plan)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++14)
-set(CMAKE_BUILD_TYPE "Release")
+# set(CMAKE_BUILD_TYPE "Release")
 # Settings
 # IMPORTANT Disable conda to use gtest, otherwise it will lead to unknown error.
 set(USE_GTEST "ON")

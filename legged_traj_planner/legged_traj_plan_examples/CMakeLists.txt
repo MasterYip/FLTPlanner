@@ -3,7 +3,7 @@ project(legged_traj_plan_examples)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
-set(CMAKE_BUILD_TYPE "Release")
+# set(CMAKE_BUILD_TYPE "Release")
 
 set(GRIDMAP_DEP
   grid_map_core
