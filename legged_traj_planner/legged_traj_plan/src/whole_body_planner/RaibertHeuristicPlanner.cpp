@@ -16,12 +16,21 @@ SimpleRaibertPlanner::SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_pla
                                            std::shared_ptr<ElSpiderAirInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface)
 {
+    // Bigait
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+    // Trible-gait
+    // switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+    // switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.33));
+    // switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.66));
+    // switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.66));
+    // switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.33));
+    // switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28 - 0.04, -0.28));
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34 - 0.04, -0.28));
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28 - 0.04, -0.28));

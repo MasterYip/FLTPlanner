@@ -6,8 +6,10 @@ inertia_diag: [0.7, 1.4, 1.8]
 # inertia_diag: [0.3, 0.6, 0.9]
 gravity: 9.81
 loop_rate: 200.0
-Kp: 36.0
-Kd: 18.0 # kd = 2 \zeta \sqrt(kp)
+# Kp: 36.0
+# Kd: 18.0 # kd = 2 \zeta \sqrt(kp)
+Kp: 9.0
+Kd: 6.0 # kd = 2 \zeta \sqrt(kp)
 pidgrf_Kp: 25.0 # When this equals loop_rate, pid acts as pass-through 
 pidgrf_lim: 60000.0
 # pidgrf_T: 0.005
@@ -21,7 +23,7 @@ fdb_foot_state_topic_name: /hexapod/foot_state_fdb
 footcmd_topic_name: /hexapod/hlc/foot_cmd_track
 body_frame: base
 world_frame: odom
-joint_kp_st: [0.02, 0.02, 0.02]
+joint_kp_st: [0.03, 0.03, 0.03]
 # joint_kp_st: [0.005, 0.005, 0.005]
 joint_kd_st: [0.4, 0.4, 0.4]
 joint_kp_sw: [0.02, 0.02, 0.02]
