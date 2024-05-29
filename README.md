@@ -20,7 +20,7 @@ A simple co-simulation for ElSpider Air.
 
 #### Dependent Repos
 
-- [Qrpucp/HexapodSoftware](https://github.com/Qrpucp/HexapodSoftware): check out branch `feature/co-simulation`
+- [Qrpucp/HexapodSoftware](https://github.com/Qrpucp/HexapodSoftware): check out branch `feature/elspider_air_locomotion`
 
   ```bash
   git clone --recursive git@github.com:Qrpucp/HexapodSoftware.git
