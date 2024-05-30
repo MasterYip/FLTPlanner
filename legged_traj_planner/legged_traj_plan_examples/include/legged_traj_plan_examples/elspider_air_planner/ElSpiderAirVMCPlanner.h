@@ -214,9 +214,10 @@ public:
         }
     }
 
+    //// Callbacks
     void timer_callback(const ros::TimerEvent &event)
     {
-        pub_footpos_now();
+        pub_jointstate();
         // Update body state
         try
         {
@@ -230,6 +231,7 @@ public:
         }
     }
 
+    // Joystick cmd callback
     void cmd_callback(const geometry_msgs::Twist &msg)
     {
         ROS_INFO("cmd_vel received");
@@ -240,15 +242,6 @@ public:
             update_exp_path();
             update_robot_state();
             gridmap_interface_->lockMapUpdate();
-            // BUG: grid_map positioning error
-            // Get map frame translation
-
-            // MDT::RobotState rbd_state_mcts;
-            // rbd_state_mcts = robot_state_;
-            // geometry_msgs::TransformStamped map_tf = tfBuffer_.lookupTransform("odom", "odom", ros::Time(0));
-            // rbd_state_mcts.pose.x -= map_tf.transform.translation.x;
-            // rbd_state_mcts.pose.y -= map_tf.transform.translation.y;
-            // rbd_state_mcts.pose.z -= map_tf.transform.translation.z;
             Eigen::Array2i gpt;
             grid_map::Position pt(robot_state_.pose.x, robot_state_.pose.y);
             gridmap_interface_->getMap().getIndex(pt, gpt);
@@ -258,10 +251,6 @@ public:
             //                                              gridmap_interface_->getMap(), true, 100);
             next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
             bool ret = true;
-            // next_planned_state_.pose.x += map_tf.transform.translation.x;
-            // next_planned_state_.pose.y += map_tf.transform.translation.y;
-            // next_planned_state_.pose.z += map_tf.transform.translation.z;
-
             gridmap_interface_->unlockMapUpdate();
             if (ret)
             {
@@ -278,13 +267,16 @@ public:
         }
     }
 
+    // Foot state feedback callback
     void foot_state_callback(const legged_traj_plan::FootState &msg)
     {
         recv_foot_state_ = true;
         foot_state_ = msg;
     }
 
-    void pub_footpos_now(void)
+    //// Rviz
+    // Pub Real Robot JointState for Rviz
+    void pub_jointstate(void)
     {
         std::vector<Eigen::Vector3d> footend_now;
         if (recv_foot_state_ && recv_body_state_)
@@ -304,13 +296,40 @@ public:
         }
         robot_interface_->pub_joint_state_from_footendpos(footend_now);
     }
-    // Deprecated
-    [[deprecated]] void body_state_callback(const legged_traj_plan::BodyState &msg)
+
+    void state_traj_replay(MCTStateTransfer &state_traj)
     {
-        recv_body_state_ = true;
-        // body_state_ = msg;
+        for (double t = 0.0; t < 1.0; t += 0.05)
+        {
+            // Get Interpolated State
+            auto odom_interp = state_traj.eval_torso_traj(t);
+            auto footend_interp = state_traj.eval_foot_traj(t); // Footend position in world frame
+            auto support_state = state_traj.eval_support_state(t);
+            for (size_t k = 0; k < 6; ++k)
+            {
+                // Convert to BASE
+                footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
+            }
+
+            // Visualization
+            if (fake_estimation_)
+            {
+                robot_interface_->pub_odom(odom_interp);
+                robot_interface_->pub_joint_state_from_footendpos(footend_interp);
+            }
+            else
+            {
+                robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
+                robot_interface_->pub_shadow_joint_state_from_footendpos(footend_interp);
+                ros::spinOnce();  // Fetch feedback
+                pub_jointstate(); // Publish real joint state
+            }
+            rate_.sleep();
+        }
     }
 
+    //// MCTS Interface
+    // Update Robot State for MCTS Interface
     void update_robot_state(void)
     {
         if (fake_estimation_)
@@ -353,6 +372,7 @@ public:
         }
     }
 
+    // Update Exp Path for MCTS Interface
     void update_exp_path(void)
     {
         exp_path_.clear();
@@ -367,73 +387,88 @@ public:
         }
     }
 
+    //// VMC Interface
+    void pub_exp_pose(pinocchio::SE3 exp_pose, geometry_msgs::Twist cmd)
+    {
+        exp_body_state_.header.stamp = ros::Time::now();
+        exp_body_state_.header.frame_id = "odom";
+        exp_body_state_.pose.pose.position.x = exp_pose.translation()(0);
+        exp_body_state_.pose.pose.position.y = exp_pose.translation()(1);
+        exp_body_state_.pose.pose.position.z = exp_pose.translation()(2);
+        Eigen::Quaterniond quat(exp_pose.rotation());
+        exp_body_state_.pose.pose.orientation.x = quat.x();
+        exp_body_state_.pose.pose.orientation.y = quat.y();
+        exp_body_state_.pose.pose.orientation.z = quat.z();
+        exp_body_state_.pose.pose.orientation.w = quat.w();
+        geometry_msgs::Twist twist_world;
+        Eigen::Vector3d linear_world;
+        linear_world << cmd.linear.x, cmd.linear.y, cmd.linear.z;
+        linear_world = exp_pose.rotation() * linear_world;
+        Eigen::Vector3d angular_world;
+        angular_world << cmd.angular.x, cmd.angular.y, cmd.angular.z;
+        angular_world = exp_pose.rotation() * angular_world;
+        twist_world.linear.x = linear_world(0);
+        twist_world.linear.y = linear_world(1);
+        twist_world.linear.z = linear_world(2);
+        twist_world.angular.x = angular_world(0);
+        twist_world.angular.y = angular_world(1);
+        twist_world.angular.z = angular_world(2);
+        exp_body_state_.twist.twist = twist_world;
+        exp_body_state_pub_.publish(exp_body_state_);
+    }
+
+    void pub_exp_footstate(std::vector<Eigen::Vector3d> footend_interp, std::array<bool, 6> support_state)
+    {
+        exp_foot_state_.header.stamp = ros::Time::now();
+        for (size_t k = 0; k < 6; ++k)
+        {
+            geometry_msgs::Point pt;
+            pt.x = footend_interp[k][0];
+            pt.y = footend_interp[k][1];
+            pt.z = footend_interp[k][2];
+            exp_foot_state_.position[k] = pt;
+            exp_foot_state_.contact[k] = support_state[k];
+        }
+        exp_foot_state_pub_.publish(exp_foot_state_);
+    }
+
+    void pub_vmc_exp_state(MCTStateTransfer &state_traj, double t)
+    {
+        // Get Interpolated State
+        auto odom_interp = state_traj.eval_torso_traj(t);
+        auto footend_interp = state_traj.eval_foot_traj(t); // Footend position in world frame
+        auto support_state = state_traj.eval_support_state(t);
+        for (size_t k = 0; k < 6; ++k)
+        {
+            // Convert to BASE
+            footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
+        }
+        // VMC exp state
+        pub_exp_footstate(footend_interp, support_state);
+        pub_exp_pose(odom_interp, geometry_msgs::Twist());
+    }
+
+    //// Planning
     void traj_planner()
     {
         double t = 0.0;
         double delta = 0.05;
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
-        pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
-        std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
-        std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
+        state_traj_replay(state_traj);
+        std::cout << "Press any key to continue...";
+        getchar();
         do
         {
-            // Get Interpolated State
-            odom_interp = state_traj.eval_torso_traj(t);
-            // Footend position in world frame
-            footend_interp = state_traj.eval_foot_traj(t);
-            support_state = state_traj.eval_support_state(t);
-            for (size_t k = 0; k < 6; ++k)
-            {
-                // Convert to BASE
-                footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
-            }
-            // Publish Command
-            // Expected foot state
-            exp_foot_state_.header.stamp = ros::Time::now();
-            for (size_t k = 0; k < 6; ++k)
-            {
-                geometry_msgs::Point pt;
-                pt.x = footend_interp[k][0];
-                pt.y = footend_interp[k][1];
-                pt.z = footend_interp[k][2];
-                exp_foot_state_.position[k] = pt;
-                exp_foot_state_.contact[k] = support_state[k];
-            }
-            exp_foot_state_pub_.publish(exp_foot_state_);
-            // Exoected body state
-            exp_body_state_.header.stamp = ros::Time::now();
-            exp_body_state_.pose.pose.position.x = odom_interp.translation()[0];
-            exp_body_state_.pose.pose.position.y = odom_interp.translation()[1];
-            exp_body_state_.pose.pose.position.z = odom_interp.translation()[2];
-            Eigen::Quaterniond quat(odom_interp.rotation());
-            exp_body_state_.pose.pose.orientation.x = quat.x();
-            exp_body_state_.pose.pose.orientation.y = quat.y();
-            exp_body_state_.pose.pose.orientation.z = quat.z();
-            exp_body_state_.pose.pose.orientation.w = quat.w();
-            // TODO: Temporarily Set velocity to zero
-            exp_body_state_.twist.twist.linear.x = 0.0;
-            exp_body_state_.twist.twist.linear.y = 0.0;
-            exp_body_state_.twist.twist.linear.z = 0.0;
-            exp_body_state_.twist.twist.angular.x = 0.0;
-            exp_body_state_.twist.twist.angular.y = 0.0;
-            exp_body_state_.twist.twist.angular.z = 0.0;
-            exp_body_state_pub_.publish(exp_body_state_);
-
+            pub_vmc_exp_state(state_traj, t);
             // Visualization
-            if (fake_estimation_)
-            {
-                robot_interface_->pub_joint_state_from_footendpos(footend_interp);
-                robot_interface_->pub_odom(odom_interp);
-            }
-            else
-            {
-                robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
-                robot_interface_->pub_shadow_joint_state_from_footendpos(footend_interp);
-                pub_footpos_now(); // Hardware
-            }
+            ros::spinOnce();  // Fetch feedback
+            pub_jointstate(); // Publish real joint state
+            
             t += delta;
             if (t > 1.0)
             {
+                // Publish last state point
+                pub_vmc_exp_state(state_traj, 1);
                 t = 0.0;
                 whole_body_planner_.dequeue_MCTsolution();
                 if (whole_body_planner_.get_state_traj_length() > 0)
@@ -443,11 +478,8 @@ public:
         } while (whole_body_planner_.get_state_traj_length() > 0);
 
         // Set all foot contact to true
-        // FIXME: Should consider error leg
         for (size_t k = 0; k < 6; ++k)
-        {
             exp_foot_state_.contact[k] = true;
-        }
         exp_foot_state_pub_.publish(exp_foot_state_);
     }
 
