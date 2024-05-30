@@ -245,8 +245,6 @@ public:
             Eigen::Array2i gpt;
             grid_map::Position pt(robot_state_.pose.x, robot_state_.pose.y);
             gridmap_interface_->getMap().getIndex(pt, gpt);
-            std::cout << gpt[0] << "," << gpt[1] << std::endl;
-            std::cout << robot_state_.pose.x << "," << robot_state_.pose.y << "," << robot_state_.pose.z << std::endl;
             // bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
             //                                              gridmap_interface_->getMap(), true, 100);
             next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
@@ -448,6 +446,39 @@ public:
         pub_exp_pose(odom_interp, geometry_msgs::Twist());
     }
 
+    //// Contact Handling (Sim only)
+    bool is_contact(int leg_idx)
+    {
+        double eps = 0.1;
+        Eigen::Vector3d foot_force;
+        foot_force << foot_state_.effort[leg_idx].x, foot_state_.effort[leg_idx].y, foot_state_.effort[leg_idx].z;
+        return foot_force.norm() > eps;
+    }
+
+    void stance_contact_handle(void)
+    {
+        bool flag = false;
+        double adj_height = 0.01;
+        // double interval = 0.05;
+        ROS_INFO("Stance contact handling...");
+        while (!flag)
+        {
+            flag = true;
+            for (size_t k = 0; k < 6; ++k)
+            {
+                if (is_contact(k) == false)
+                {
+                    flag = false;
+                    exp_foot_state_.position[k].z -= adj_height;
+                }
+            }
+            exp_foot_state_pub_.publish(exp_foot_state_);
+            ros::spinOnce(); // Fetch feedback
+            rate_.sleep();
+        }
+        ROS_INFO("Stance contact handling done.");
+    }
+
     //// Planning
     void traj_planner()
     {
@@ -463,7 +494,7 @@ public:
             // Visualization
             ros::spinOnce();  // Fetch feedback
             pub_jointstate(); // Publish real joint state
-            
+
             t += delta;
             if (t > 1.0)
             {
@@ -481,6 +512,8 @@ public:
         for (size_t k = 0; k < 6; ++k)
             exp_foot_state_.contact[k] = true;
         exp_foot_state_pub_.publish(exp_foot_state_);
+        // Stance contact handling
+        stance_contact_handle();
     }
 
     void run()

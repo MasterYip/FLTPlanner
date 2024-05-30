@@ -293,7 +293,6 @@ bool SwingTrajPlanner::optCfgTraj(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::Matrix3Xd poly_path_mat(3, poly_path.size());
     for (size_t i = 0; i < poly_path.size(); i++)
         poly_path_mat.col(i) = poly_path[i];
-    std::cout << "Index: " << index << ", Poly path size: " << poly_path.size() << std::endl;
 
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
                           config_, true, false);
@@ -342,7 +341,6 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::Matrix3Xd poly_path_mat(3, poly_path.size());
     for (size_t i = 0; i < poly_path.size(); i++)
         poly_path_mat.col(i) = poly_path[i];
-    std::cout << "Index: " << index << ", Poly path size: " << poly_path.size() << std::endl;
 
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
                           config_, false);
