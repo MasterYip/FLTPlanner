@@ -415,17 +415,20 @@ public:
         exp_body_state_pub_.publish(exp_body_state_);
     }
 
-    void pub_exp_footstate(std::vector<Eigen::Vector3d> footend_interp, std::array<bool, 6> support_state)
+    void pub_exp_footstate(std::vector<Eigen::Vector3d> footend_interp, std::array<bool, 6> support_state, bool check_contact = false)
     {
         exp_foot_state_.header.stamp = ros::Time::now();
         for (size_t k = 0; k < 6; ++k)
         {
-            geometry_msgs::Point pt;
-            pt.x = footend_interp[k][0];
-            pt.y = footend_interp[k][1];
-            pt.z = footend_interp[k][2];
-            exp_foot_state_.position[k] = pt;
-            exp_foot_state_.contact[k] = support_state[k];
+            if (!is_contact(k) || !check_contact) // for swing leg, if already in contact, the skip
+            {
+                geometry_msgs::Point pt;
+                pt.x = footend_interp[k][0];
+                pt.y = footend_interp[k][1];
+                pt.z = footend_interp[k][2];
+                exp_foot_state_.position[k] = pt;
+                exp_foot_state_.contact[k] = support_state[k];
+            }
         }
         exp_foot_state_pub_.publish(exp_foot_state_);
     }
@@ -442,14 +445,14 @@ public:
             footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
         }
         // VMC exp state
-        pub_exp_footstate(footend_interp, support_state);
+        pub_exp_footstate(footend_interp, support_state, t > 0.5);
         pub_exp_pose(odom_interp, geometry_msgs::Twist());
     }
 
     //// Contact Handling (Sim only)
     bool is_contact(int leg_idx)
     {
-        double eps = 0.1;
+        double eps = 0.05;
         Eigen::Vector3d foot_force;
         foot_force << foot_state_.effort[leg_idx].x, foot_state_.effort[leg_idx].y, foot_state_.effort[leg_idx].z;
         return foot_force.norm() > eps;
@@ -458,7 +461,7 @@ public:
     void stance_contact_handle(void)
     {
         bool flag = false;
-        double adj_height = 0.01;
+        double adj_height = 0.005;
         // double interval = 0.05;
         ROS_INFO("Stance contact handling...");
         while (!flag)
