@@ -445,14 +445,17 @@ public:
             footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
         }
         // VMC exp state
-        pub_exp_footstate(footend_interp, support_state, t > 0.5);
+        // FIXME: add coll detection will lead to traj interupt
+        // pub_exp_footstate(footend_interp, support_state, t > 0.5);
+        pub_exp_footstate(footend_interp, support_state, false);
         pub_exp_pose(odom_interp, geometry_msgs::Twist());
     }
 
     //// Contact Handling (Sim only)
     bool is_contact(int leg_idx)
     {
-        double eps = 0.05;
+        // FIXME: avoid error detection
+        double eps = 0.1;
         Eigen::Vector3d foot_force;
         foot_force << foot_state_.effort[leg_idx].x, foot_state_.effort[leg_idx].y, foot_state_.effort[leg_idx].z;
         return foot_force.norm() > eps;
@@ -499,6 +502,7 @@ public:
             pub_jointstate(); // Publish real joint state
 
             t += delta;
+            rate_.sleep();
             if (t > 1.0)
             {
                 // Publish last state point
@@ -508,13 +512,17 @@ public:
                 if (whole_body_planner_.get_state_traj_length() > 0)
                     state_traj = whole_body_planner_.get_state_traj(0);
             }
-            rate_.sleep();
         } while (whole_body_planner_.get_state_traj_length() > 0);
 
         // Set all foot contact to true
         for (size_t k = 0; k < 6; ++k)
             exp_foot_state_.contact[k] = true;
         exp_foot_state_pub_.publish(exp_foot_state_);
+
+        rate_.sleep();
+        ros::spinOnce();  // Fetch feedback
+        pub_jointstate(); // Publish real joint state
+        ros::Duration(1.0).sleep();
         // Stance contact handling
         stance_contact_handle();
     }
