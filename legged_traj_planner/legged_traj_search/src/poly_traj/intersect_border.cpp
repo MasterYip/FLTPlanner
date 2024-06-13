@@ -67,8 +67,6 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
     // Find the intersect border
     // FIXME: Sometimes it stucks (loop)
     int cnt = 0;
-    // int idx_incorridor_idx1 = border_check_.inBorder(idx);
-    // int idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
     int tmp_incorridor_idx = -1;
     do
     {
@@ -90,17 +88,11 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
             tmp_idx = grid_ptr.getNextCandidateState();
             tmp_incorridor_idx = border_check_.inBorder(tmp_idx);
             // flag: pointer out of border
-            // if (!out_corridor_flag && (tmp_incorridor_idx == -1 ||
-            //                            (tmp_incorridor_idx != idx_incorridor_idx1 &&
-            //                             tmp_incorridor_idx != idx_incorridor_idx2)))
             if (!out_corridor_flag && tmp_incorridor_idx == -1)
             {
                 out_corridor_flag = true;
             }
             // flag: pointer back from border
-            // if (out_corridor_flag && tmp_incorridor_idx != -1 &&
-            //     (tmp_incorridor_idx == idx_incorridor_idx1 ||
-            //      tmp_incorridor_idx == idx_incorridor_idx2))
             if (out_corridor_flag && tmp_incorridor_idx != -1)
             {
                 nosol_flag = false;
@@ -117,8 +109,6 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
                     else
                         tmp_border.emplace_back(tmp_idx);
                     grid_ptr.updateState(tmp_idx);
-                    // idx_incorridor_idx1 = tmp_incorridor_idx;
-                    // idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
                     break;
                 }
             }
@@ -129,13 +119,11 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
             turning_points.emplace_back(grid_ptr.getState());
             tmp_border.emplace_back(revisit_idx);
             grid_ptr.updateState(revisit_idx);
-            // idx_incorridor_idx1 = tmp_incorridor_idx;
-            // idx_incorridor_idx2 = border_check_.inCorridor(idx, idx_incorridor_idx1 + 1);
         }
 
         if (nosol_flag)
         {
-            std::cerr << "Warning: No next border point found!" << std::endl;
+            std::cerr << "Warning: No next border point found at cnt=" << cnt << std::endl;
             return false;
         }
     } while (!grid_ptr.getState().isApprox(start_border_idx));

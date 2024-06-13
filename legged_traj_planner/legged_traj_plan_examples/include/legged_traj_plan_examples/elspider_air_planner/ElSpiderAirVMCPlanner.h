@@ -27,6 +27,7 @@
 #include "legged_traj_plan/BodyState.h"
 // MCTS
 #include "contactPlannerInterface.h"
+#include "planning.h"
 #include "myDataType.h"
 #include "HexapodParameter.h"
 #include "user.h"
@@ -189,7 +190,7 @@ public:
                                                                                    robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
                                                                                    gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                    whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
-                                                                                   tfListener_(tfBuffer_), visualizer_(nh_),
+                                                                                   tfListener_(tfBuffer_), visualizer_(nh_, "odom", "vmc_planner_marker"),
                                                                                    rate_(20), fake_estimation_(fake_estimation), simulation_(simulation)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirVMCPlanner::cmd_callback, this);
@@ -242,12 +243,37 @@ public:
             update_exp_path();
             update_robot_state();
             gridmap_interface_->lockMapUpdate();
-            Eigen::Array2i gpt;
-            grid_map::Position pt(robot_state_.pose.x, robot_state_.pose.y);
-            gridmap_interface_->getMap().getIndex(pt, gpt);
+            // 1.MCTS
             // bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
             //                                              gridmap_interface_->getMap(), true, 100);
+            // 2. Triple gait
             next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
+
+            // SwingTraj Vis Clear
+            whole_body_planner_.visClear();
+
+            // Vis getAvailableFootholds
+            MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
+            std::vector<Eigen::Vector3d> pts;
+            for (int i = 0; i < 6; i++)
+            {
+                for (auto pt : available_points.position.leg[i])
+                {
+                    pts.emplace_back(pt);
+                }
+            }
+            visualizer_.delAll();
+            visualizer_.visSphere(pts, 0.01);
+
+            // Vis next foothold
+            // visualizer_.delAll();
+            auto hexapod_state = transRobotState(next_planned_state_);
+            for (int i=0; i<6; i++)
+            {
+                Eigen::Vector3d pt = {hexapod_state.feetPositionNow.foot[i].x, hexapod_state.feetPositionNow.foot[i].y, hexapod_state.feetPositionNow.foot[i].z};
+                visualizer_.visSphere(pt, 0.02);
+            }
+
             bool ret = true;
             gridmap_interface_->unlockMapUpdate();
             if (ret)

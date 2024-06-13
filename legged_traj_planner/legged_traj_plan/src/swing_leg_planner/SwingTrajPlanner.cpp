@@ -117,6 +117,12 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     PolyTrajSearch poly_traj_search(corridor, gridmap_interface_->getMap(),
                                     gridmap_interface_->getGroundLayerName(),
                                     gridmap_interface_->getCeilingLayerName(), true, false);
+    if (verbose && index == 0 || 1)
+    {
+        // Polytope
+        visualizer_->setIdGroup(1);
+        visualizer_->visPolytope(corridor.getCorridor());
+    }
 
     if (!poly_traj_search.endpointValid(p0, p1))
     {
@@ -139,12 +145,11 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     }
 
 #ifdef ENABLE_VISUALIZER
-    if (verbose && index == 0)
+    if (verbose && index == 0 || 1)
     {
-        visualizer_->delAll();
         visualizer_->setIdGroup(1);
         // Polytope
-        visualizer_->visPolytope(corridor.getCorridor());
+        // visualizer_->visPolytope(corridor.getCorridor());
         // Start Goal
         visualizer_->visSphere(p0, 0.02);
         visualizer_->visSphere(p1, 0.02);

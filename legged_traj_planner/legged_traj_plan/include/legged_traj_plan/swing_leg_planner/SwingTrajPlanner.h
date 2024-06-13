@@ -105,5 +105,10 @@ public:
         return config_;
     }
 
+    void visClear()
+    {
+        visualizer_->delAll();
+    }
+
     void saveBenchmarkResults();
 };

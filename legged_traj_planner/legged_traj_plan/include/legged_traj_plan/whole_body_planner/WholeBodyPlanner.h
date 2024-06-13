@@ -53,5 +53,10 @@ public:
         swing_traj_planner_->saveBenchmarkResults();
     }
     // std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>> get_foot_traj(double t, int point_num, double delta);
+    void visClear()
+    {
+        swing_traj_planner_->visClear();
+    }
+
 };
 

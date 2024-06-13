@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /World1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -501,7 +500,7 @@ Visualization Manager:
       Color: 245; 121; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -516,13 +515,13 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /visualizer_markers
+      Marker Topic: /elspider_air_vmc_planner/vmc_planner_marker
       Name: ROSVis
       Namespaces:
-        {}
+        sphere: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -538,7 +537,10 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: SwingTrajPlanVis
       Namespaces:
-        {}
+        curve: true
+        facet: true
+        mesh: true
+        sphere: true
       Queue Size: 1
       Value: true
     - Alpha: 0.5
@@ -593,7 +595,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 5.1451873779296875
+      Distance: 1.3882026672363281
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -601,17 +603,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.24716734886169434
-        Y: -1.3121837377548218
-        Z: -0.16897381842136383
+        X: 0.18456289172172546
+        Y: -0.3484731912612915
+        Z: -0.16897399723529816
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5097973942756653
+      Pitch: 0.5247973799705505
       Target Frame: base
-      Yaw: 5.816379070281982
+      Yaw: 4.606379508972168
     Saved: ~
 Window Geometry:
   Displays:
