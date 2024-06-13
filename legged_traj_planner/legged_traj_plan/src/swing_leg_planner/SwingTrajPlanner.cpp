@@ -109,6 +109,7 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
                                       uint index, bool verbose)
 {
     poly_traj.clear();
+    gridmap_interface_->lockMapUpdate();
     Eigen::Matrix3Xd hull = robot_interface_->getFootPolyhedra(index).getVRep();
     std::vector<Polyhedra> hulls;
     hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0.inverse(), hull))));
@@ -134,15 +135,16 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     {
         if (verbose)
             std::cout << "Warning: poly_traj_search.reachable failed" << std::endl;
-        return false;
+        // return false;
     }
     if (!poly_traj_search.search(p0, p1, poly_traj))
     {
         // BUG: if is reachable then it must be able to find a path, this failure should not happen
         if (verbose)
             std::cout << "Warning: poly_traj_search.search failed" << std::endl;
-        return false;
+        // return false;
     }
+    gridmap_interface_->unlockMapUpdate();
 
 #ifdef ENABLE_VISUALIZER
     if (verbose && index == 0 || 1)
