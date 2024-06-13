@@ -420,7 +420,7 @@ public:
         exp_foot_state_.header.stamp = ros::Time::now();
         for (size_t k = 0; k < 6; ++k)
         {
-            if (!is_contact(k) || !check_contact) // for swing leg, if already in contact, the skip
+            if (!is_contact(k, 10.0) || !check_contact) // for swing leg, if already in contact, the skip
             {
                 geometry_msgs::Point pt;
                 pt.x = footend_interp[k][0];
@@ -452,10 +452,9 @@ public:
     }
 
     //// Contact Handling (Sim only)
-    bool is_contact(int leg_idx)
+    // FIXME: avoid error detection
+    bool is_contact(int leg_idx, double eps = 0.1)
     {
-        // FIXME: avoid error detection
-        double eps = 0.1;
         Eigen::Vector3d foot_force;
         foot_force << foot_state_.effort[leg_idx].x, foot_state_.effort[leg_idx].y, foot_state_.effort[leg_idx].z;
         return foot_force.norm() > eps;
@@ -464,10 +463,11 @@ public:
     void stance_contact_handle(void)
     {
         bool flag = false;
+        int max_cnt = 100;
         double adj_height = 0.005;
         // double interval = 0.05;
         ROS_INFO("Stance contact handling...");
-        while (!flag)
+        while (!flag && max_cnt-- > 0)
         {
             flag = true;
             for (size_t k = 0; k < 6; ++k)
@@ -482,7 +482,10 @@ public:
             ros::spinOnce(); // Fetch feedback
             rate_.sleep();
         }
-        ROS_INFO("Stance contact handling done.");
+        if (max_cnt <= 0)
+            ROS_WARN("Stance contact handling failed.");
+        else
+            ROS_INFO("Stance contact handling done.");
     }
 
     //// Planning
