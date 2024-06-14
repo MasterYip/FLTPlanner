@@ -25,6 +25,11 @@
 #include "legged_traj_search/geo_utils/guide_surf.hpp"
 using namespace geo_utils_2d;
 
+inline int general_mod(int a, int b)
+{
+    return (a % b + b) % b;
+}
+
 class IndexRemap
 {
 private:
@@ -32,6 +37,7 @@ private:
     grid_map::Size map_size_;
     grid_map::Position map_position_;
     double resolution_;
+    Eigen::Array2i map_shift_;
 
 public:
     IndexRemap(const grid_map::GridMap &map)
@@ -40,6 +46,8 @@ public:
           map_position_(map.getPosition()),
           resolution_(map.getResolution())
     {
+        map_shift_[0] = (int) (map_position_[0] / resolution_);
+        map_shift_[1] = (int) (map_position_[1] / resolution_);
     }
 
     GridPt pos2Grid(const Eigen::Vector2d &pos) const
@@ -58,24 +66,18 @@ public:
 
     GridPt grid2Index(const GridPt &pt) const
     {
-        Eigen::Vector2d pos;
-        double map_len_x = (map_size_[0] - 1) * resolution_;
-        double map_len_y = (map_size_[1] - 1) * resolution_;
-        pos[0] = map_position_[0] + 0.5 * map_len_x - pt[0] * resolution_;
-        pos[1] = map_position_[1] + 0.5 * map_len_y - pt[1] * resolution_;
-        GridPt index;
-        map_.getIndex(pos, index);
-        return index;
+        std::cout << "pt: " << pt.transpose() << std::endl;
+        std::cout << "index: " << general_mod(pt[0] - map_shift_[0], map_size_[0]) << ", " << general_mod(pt[1] - map_shift_[1], map_size_[1]) << std::endl;
+        return {general_mod(pt[0] - map_shift_[0], map_size_[0]),
+                general_mod(pt[1] - map_shift_[1], map_size_[1])};
     }
 
     GridPt index2grid(const GridPt &index) const
     {
-        Eigen::Vector2d pos;
-        map_.getPosition(index, pos);
-        GridPt grid;
-        grid[0] = (map_position_[0] + 0.5 * (map_size_[0] - 1) * resolution_ - pos[0]) / resolution_;
-        grid[1] = (map_position_[1] + 0.5 * (map_size_[1] - 1) * resolution_ - pos[1]) / resolution_;
-        return grid;
+        std::cout << "index: " << index[0] << ", " << index[1] << std::endl;
+        std::cout << "grid: " << general_mod(index[0] + map_shift_[0], map_size_[0]) << ", " << general_mod(index[1] + map_shift_[1], map_size_[1]) << std::endl;
+        return {general_mod(index[0] + map_shift_[0], map_size_[0]),
+                general_mod(index[1] + map_shift_[1], map_size_[1])};
     }
 };
 
