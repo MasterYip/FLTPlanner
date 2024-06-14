@@ -161,9 +161,8 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         for (uint i = 0; i < border.size(); i++)
         {
             Point3D pos;
-            Eigen::Vector2d posxy;
+            Eigen::Vector2d posxy =poly_traj_search.getBorderCheck().getIndexRemap().grid2Pos(border.at(i));
             pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
-            gridmap_interface_->getMap().getPosition(border.at(i), posxy);
             pos[0] = posxy.x();
             pos[1] = posxy.y();
             border_pos.emplace_back(pos);

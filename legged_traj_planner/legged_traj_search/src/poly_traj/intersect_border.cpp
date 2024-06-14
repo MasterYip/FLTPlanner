@@ -18,8 +18,7 @@ IntersectBorder::IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &borde
 
 bool IntersectBorder::checkPointProjectInPoly(const Point &pt, int poly_idx)
 {
-    GridPt grid_pt;
-    border_check_.getMap().getIndex(pt, grid_pt);
+    GridPt grid_pt = border_check_.getIndexRemap().pos2Grid(pt);
     return border_check_.inPoly(grid_pt, poly_idx);
 }
 
@@ -31,10 +30,10 @@ bool IntersectBorder::checkPointProjectInPoly(const GridPt &pt, int poly_idx)
 bool IntersectBorder::getIntersectBorder(const Point &start, const Point &goal,
                                          GridPolyLine &border, int max_iter)
 {
-    GridPt start_idx, goal_idx;
-    border_check_.getMap().getIndex(start, start_idx);
-    border_check_.getMap().getIndex(goal, goal_idx);
-    return getIntersectBorder(start_idx, goal_idx, border, max_iter);
+    GridPt start_grid = border_check_.getIndexRemap().pos2Grid(start);
+    GridPt goal_grid = border_check_.getIndexRemap().pos2Grid(goal);
+
+    return getIntersectBorder(start_grid, goal_grid, border, max_iter);
 }
 
 bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal,

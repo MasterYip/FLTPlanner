@@ -83,9 +83,10 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
     benchmark_.record("Find Concave Points", RecordType::CRITICAL);
 
     // Visiblity Graph Init
-    GridPt start_grid, goal_grid; // FIXME: is this appropriate?
-    map_.getIndex(start.head(2), start_grid);
-    map_.getIndex(goal.head(2), goal_grid);
+    // FIXME: is this appropriate?
+    GridPt start_grid = border_check_.getIndexRemap().pos2Grid(start.head(2));
+    GridPt goal_grid = border_check_.getIndexRemap().pos2Grid(goal.head(2));
+
     // FIXME: needs to improve the performance
     vis_graph_ = VisibilityGraph(border_, concave_pts_, start_grid, goal_grid);
     benchmark_.record("Visibility Graph Init", RecordType::CRITICAL);
@@ -129,9 +130,8 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     for (uint i = 0; i < grid_traj_.size(); i++)
     {
         Eigen::Vector3d pos;
-        Eigen::Vector2d posxy;
+        Eigen::Vector2d posxy = border_check_.getIndexRemap().grid2Pos(grid_traj_.at(i));
         pos[2] = border_check_.queryHeight(grid_traj_.at(i));
-        map_.getPosition(grid_traj_.at(i), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();
         path.emplace_back(pos);
@@ -178,9 +178,9 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
     benchmark_.record(msg, RecordType::CRITICAL);
 
     // String Straining
-    GridPt start_grid, goal_grid; // FIXME: is this appropriate?
-    map_.getIndex(start.head(2), start_grid);
-    map_.getIndex(goal.head(2), goal_grid);
+    GridPt start_grid = border_check_.getIndexRemap().pos2Grid(start.head(2));
+    GridPt goal_grid = border_check_.getIndexRemap().pos2Grid(goal.head(2));
+
     StringStrainingSearch sss(border_, start_grid, goal_grid);
     bool ret = sss.search(grid_traj_, 4);
     benchmark_.record("String Straining Search", RecordType::CRITICAL);
@@ -193,9 +193,8 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
     for (uint i = 0; i < grid_traj_.size(); i++)
     {
         Eigen::Vector3d pos;
-        Eigen::Vector2d posxy;
+        Eigen::Vector2d posxy = border_check_.getIndexRemap().grid2Pos(grid_traj_.at(i));
         pos[2] = border_check_.queryHeight(grid_traj_.at(i));
-        map_.getPosition(grid_traj_.at(i), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();
         path.emplace_back(pos);
