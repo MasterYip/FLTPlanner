@@ -153,8 +153,8 @@ include_directories(
   )
   
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-file(GLOB_RECURSE TESTS "test/test_*.cpp")
-file(GLOB_RECURSE GTESTS "test/gtest_*.cpp")
+file(GLOB_RECURSE TESTS "test/**/test_*.cpp")
+file(GLOB_RECURSE GTESTS "test/**/gtest_*.cpp")
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 # FIXME: this project depend on catkin, but it is not a catkin package
