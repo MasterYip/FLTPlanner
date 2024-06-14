@@ -66,16 +66,12 @@ public:
 
     GridPt grid2Index(const GridPt &pt) const
     {
-        std::cout << "pt: " << pt.transpose() << std::endl;
-        std::cout << "index: " << general_mod(pt[0] - map_shift_[0], map_size_[0]) << ", " << general_mod(pt[1] - map_shift_[1], map_size_[1]) << std::endl;
         return {general_mod(pt[0] - map_shift_[0], map_size_[0]),
                 general_mod(pt[1] - map_shift_[1], map_size_[1])};
     }
 
     GridPt index2grid(const GridPt &index) const
     {
-        std::cout << "index: " << index[0] << ", " << index[1] << std::endl;
-        std::cout << "grid: " << general_mod(index[0] + map_shift_[0], map_size_[0]) << ", " << general_mod(index[1] + map_shift_[1], map_size_[1]) << std::endl;
         return {general_mod(index[0] + map_shift_[0], map_size_[0]),
                 general_mod(index[1] + map_shift_[1], map_size_[1])};
     }

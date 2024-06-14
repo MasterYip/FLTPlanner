@@ -253,26 +253,26 @@ public:
             whole_body_planner_.visClear();
 
             // Vis getAvailableFootholds
-            MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
-            std::vector<Eigen::Vector3d> pts;
-            for (int i = 0; i < 6; i++)
-            {
-                for (auto pt : available_points.position.leg[i])
-                {
-                    pts.emplace_back(pt);
-                }
-            }
-            visualizer_.delAll();
-            visualizer_.visSphere(pts, 0.01);
+            // MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
+            // std::vector<Eigen::Vector3d> pts;
+            // for (int i = 0; i < 6; i++)
+            // {
+            //     for (auto pt : available_points.position.leg[i])
+            //     {
+            //         pts.emplace_back(pt);
+            //     }
+            // }
+            // visualizer_.delAll();
+            // visualizer_.visSphere(pts, 0.01);
 
             // Vis next foothold
             // visualizer_.delAll();
-            auto hexapod_state = transRobotState(next_planned_state_);
-            for (int i=0; i<6; i++)
-            {
-                Eigen::Vector3d pt = {hexapod_state.feetPositionNow.foot[i].x, hexapod_state.feetPositionNow.foot[i].y, hexapod_state.feetPositionNow.foot[i].z};
-                visualizer_.visSphere(pt, 0.02);
-            }
+            // auto hexapod_state = transRobotState(next_planned_state_);
+            // for (int i=0; i<6; i++)
+            // {
+            //     Eigen::Vector3d pt = {hexapod_state.feetPositionNow.foot[i].x, hexapod_state.feetPositionNow.foot[i].y, hexapod_state.feetPositionNow.foot[i].z};
+            //     visualizer_.visSphere(pt, 0.02);
+            // }
 
             bool ret = true;
             gridmap_interface_->unlockMapUpdate();

@@ -135,14 +135,14 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     {
         if (verbose)
             std::cout << "Warning: poly_traj_search.reachable failed" << std::endl;
-        // return false;
+        return false;
     }
     if (!poly_traj_search.search(p0, p1, poly_traj))
     {
         // BUG: if is reachable then it must be able to find a path, this failure should not happen
         if (verbose)
             std::cout << "Warning: poly_traj_search.search failed" << std::endl;
-        // return false;
+        return false;
     }
     gridmap_interface_->unlockMapUpdate();
 
