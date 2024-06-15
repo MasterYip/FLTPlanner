@@ -244,10 +244,11 @@ public:
             update_robot_state();
             gridmap_interface_->lockMapUpdate();
             // 1.MCTS
-            // bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-            //                                              gridmap_interface_->getMap(), true, 100);
+            bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
+                                                         gridmap_interface_->getMap(), true, 100);
             // 2. Triple gait
-            next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
+            // bool ret = true;
+            // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
 
             // SwingTraj Vis Clear
             whole_body_planner_.visClear();
@@ -274,7 +275,7 @@ public:
             //     visualizer_.visSphere(pt, 0.02);
             // }
 
-            bool ret = true;
+            
             gridmap_interface_->unlockMapUpdate();
             if (ret)
             {
@@ -521,7 +522,7 @@ public:
         double delta = 0.05;
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
         state_traj_replay(state_traj);
-        std::cout << "Press any key to continue...";
+        std::cout << "Press space to execute trajectory...";
         getchar();
         do
         {
@@ -551,7 +552,7 @@ public:
         rate_.sleep();
         ros::spinOnce();  // Fetch feedback
         pub_jointstate(); // Publish real joint state
-        ros::Duration(1.0).sleep();
+        ros::Duration(0.4).sleep();
         // Stance contact handling
         stance_contact_handle();
     }
