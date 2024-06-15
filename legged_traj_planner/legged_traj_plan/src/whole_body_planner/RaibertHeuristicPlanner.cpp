@@ -253,6 +253,9 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                 }
 
                 double vLift = swing_traj_planner_->getConfig().vLift;
+                
+                // Vis Clear
+                swing_traj_planner_->visClear();
                 if (index < leg_traj_[i].size())
                 {
                     // FIXME: temp solution

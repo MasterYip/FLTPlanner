@@ -235,7 +235,7 @@ Visualization Manager:
       Name: Marker
       Namespaces:
         {}
-      Queue Size: 100
+      Queue Size: 1
       Value: false
     - Class: rviz/Marker
       Enabled: false
@@ -243,7 +243,7 @@ Visualization Manager:
       Name: Marker
       Namespaces:
         {}
-      Queue Size: 100
+      Queue Size: 1
       Value: false
     - Alpha: 0.30000001192092896
       Autocompute Intensity Bounds: true
@@ -351,7 +351,7 @@ Visualization Manager:
       Name: FootTraj
       Namespaces:
         {}
-      Queue Size: 100
+      Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
       Enabled: false
@@ -367,7 +367,7 @@ Visualization Manager:
       Name: swing_traj_planner_vis
       Namespaces:
         {}
-      Queue Size: 100
+      Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
@@ -375,7 +375,7 @@ Visualization Manager:
       Name: MarkerArray
       Namespaces:
         {}
-      Queue Size: 100
+      Queue Size: 1
       Value: true
   Enabled: true
   Global Options:
