@@ -40,7 +40,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
                                          GridPolyLine &border, int max_iter)
 {
     border.clear();
-    // TODO: whether to remove revisited path? (it can alsh be handled in VisGraph)
+    // TODO: whether to remove revisited path? (it can also be handled in VisGraph)
     GridPolyLine &tmp_border = border;
     std::vector<GridPt> turning_points;
 

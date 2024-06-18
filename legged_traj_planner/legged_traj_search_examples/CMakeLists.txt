@@ -151,15 +151,16 @@ include_directories(
 
 # Executables
 
-# Trajectory optimizer
-add_executable(cvx_trajopt_node
-  src/cvx_trajopt_node.cpp
-  src/cvx_trajopt.cpp)
+# DEPRECATED
+# # Trajectory optimizer
+# add_executable(cvx_trajopt_node
+#   src/cvx_trajopt_node.cpp
+#   src/cvx_trajopt.cpp)
 
-add_dependencies(cvx_trajopt_node ${PROJECT_NAME}_gencfg)
-target_link_libraries(cvx_trajopt_node
-  ${catkin_LIBRARIES}
-  ${CGAL_LIBRARIES})
+# add_dependencies(cvx_trajopt_node ${PROJECT_NAME}_gencfg)
+# target_link_libraries(cvx_trajopt_node
+#   ${catkin_LIBRARIES}
+#   ${CGAL_LIBRARIES})
 
 # GCS Examples
 add_executable(gcs_example_node

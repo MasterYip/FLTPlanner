@@ -164,12 +164,16 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     Point start = start3d.head(2);
     Point goal = goal3d.head(2);
     GridPt start_idx, goal_idx;
-    map_.getIndex(start, start_idx);
-    map_.getIndex(goal, goal_idx);
+    start_idx = border_check.getIndexRemap().pos2Grid(start);
+    goal_idx = border_check.getIndexRemap().pos2Grid(goal);
+    // map_.getIndex(start, start_idx);
+    // map_.getIndex(goal, goal_idx);
     Point3D start3d_grid, goal3d_grid;
-    start3d_grid.head(2) = getPos(start_idx);
+    // start3d_grid.head(2) = getPos(start_idx);
+    start3d_grid.head(2) = border_check.getIndexRemap().grid2Pos(start_idx);
     start3d_grid[2] = border_check.queryHeight(start_idx);
-    goal3d_grid.head(2) = getPos(goal_idx);
+    // goal3d_grid.head(2) = getPos(goal_idx);
+    goal3d_grid.head(2) = border_check.getIndexRemap().grid2Pos(goal_idx);
     goal3d_grid[2] = border_check.queryHeight(goal_idx);
     gcs_visualizer_.visSphere(start3d_grid, 0.01);
     gcs_visualizer_.visSphere(goal3d_grid, 0.01);
@@ -204,7 +208,8 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     for (auto pt : poly_traj_search.getConcavePts())
     {
         Point3D pos;
-        pos.head(2) = getPos(pt);
+        // pos.head(2) = getPos(pt);
+        pos.head(2) = border_check.getIndexRemap().grid2Pos(pt);
         pos[2] = border_check.queryHeight(pt);
         concave_pts.push_back(pos);
     }
@@ -244,8 +249,10 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
                     {
                         if (vis_graph.isVisibile(i, j))
                         {
-                            pos1.head(2) = getPos(vis_graph.getPt(i));
-                            pos2.head(2) = getPos(vis_graph.getPt(j));
+                            // pos1.head(2) = getPos(vis_graph.getPt(i));
+                            // pos2.head(2) = getPos(vis_graph.getPt(j));
+                            pos1.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(i));
+                            pos2.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(j));
                             pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
                             pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
                             mesh.push_back(pos1);
@@ -310,12 +317,16 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
     Point start = start3d.head(2);
     Point goal = goal3d.head(2);
     GridPt start_idx, goal_idx;
-    map_.getIndex(start, start_idx);
-    map_.getIndex(goal, goal_idx);
+    start_idx = border_check.getIndexRemap().pos2Grid(start);
+    goal_idx = border_check.getIndexRemap().pos2Grid(goal);
+    // map_.getIndex(start, start_idx);
+    // map_.getIndex(goal, goal_idx);
     Point3D start3d_grid, goal3d_grid;
-    start3d_grid.head(2) = getPos(start_idx);
+    // start3d_grid.head(2) = getPos(start_idx);
+    start3d_grid.head(2) = border_check.getIndexRemap().grid2Pos(start_idx);
     start3d_grid[2] = border_check.queryHeight(start_idx);
-    goal3d_grid.head(2) = getPos(goal_idx);
+    // goal3d_grid.head(2) = getPos(goal_idx);
+    goal3d_grid.head(2) = border_check.getIndexRemap().grid2Pos(goal_idx);
     goal3d_grid[2] = border_check.queryHeight(goal_idx);
     gcs_visualizer_.visSphere(start3d_grid, 0.01);
     gcs_visualizer_.visSphere(goal3d_grid, 0.01);
@@ -350,7 +361,8 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
     for (auto pt : poly_traj_search.getConcavePts())
     {
         Point3D pos;
-        pos.head(2) = getPos(pt);
+        // pos.head(2) = getPos(pt);
+        pos.head(2) = border_check.getIndexRemap().grid2Pos(pt);
         pos[2] = border_check.queryHeight(pt);
         concave_pts.push_back(pos);
     }
@@ -390,8 +402,10 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
                     {
                         if (vis_graph.isVisibile(i, j))
                         {
-                            pos1.head(2) = getPos(vis_graph.getPt(i));
-                            pos2.head(2) = getPos(vis_graph.getPt(j));
+                            // pos1.head(2) = getPos(vis_graph.getPt(i));
+                            // pos2.head(2) = getPos(vis_graph.getPt(j));
+                            pos1.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(i));
+                            pos2.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(j));
                             pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
                             pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
                             mesh.push_back(pos1);
