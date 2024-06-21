@@ -199,10 +199,11 @@ public:
         Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
         Eigen::Vector3d pos, vel, acc, kappa, veldir, sdfGrad, gradPcoll; // WORLD frame
         double f, df, velnorm, sdf;
+        std::string sdf_mode = "ground"; // or min if celing exists
 
         // Foot Collision
         pos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
-        sdf = gridmap_interface_->sdfValue(pos, "min");
+        sdf = gridmap_interface_->sdfValue(pos, sdf_mode);
         if ((pos - startExcludeBall_).norm() > endCollExcludeRadius_ &&
             (pos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
             smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
@@ -230,7 +231,7 @@ public:
 
         // Joint2 Collision
         pos = point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 2));
-        sdf = gridmap_interface_->sdfValue(pos, "min");
+        sdf = gridmap_interface_->sdfValue(pos, sdf_mode);
         if (smoothedL1(collBallRadius_(1) - sdf, mu_, f, df))
         {
             J = robot_interface_->getJacobian_CollBall(posCfg, index, 2);
