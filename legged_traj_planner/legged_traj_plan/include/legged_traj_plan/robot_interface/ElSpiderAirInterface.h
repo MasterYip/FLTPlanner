@@ -121,13 +121,13 @@ public:
         for (int i = 0; i < 6; i++)
         {
             // TOOD: Transform
-            Eigen::Matrix3Xd hull = FootHull;
-            hull.row(0) *= mirror(0, i);
-            hull.row(1) *= mirror(1, i);
-            hull.row(2) *= mirror(2, i);
-            foot_polyhedra_.emplace_back(Polyhedra((hull.colwise() + pos_shift.col(i)).eval()));
+            // Eigen::Matrix3Xd hull = FootHull;
+            // hull.row(0) *= mirror(0, i);
+            // hull.row(1) *= mirror(1, i);
+            // hull.row(2) *= mirror(2, i);
+            // foot_polyhedra_.emplace_back(Polyhedra((hull.colwise() + pos_shift.col(i)).eval()));
             // BUG: This one may cuase unreachable output
-            // foot_polyhedra_.emplace_back(genLegPolyRegion(i));
+            foot_polyhedra_.emplace_back(genLegPolyRegion(i));
         }
     }
 
