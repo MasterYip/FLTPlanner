@@ -199,7 +199,7 @@ public:
         Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
         Eigen::Vector3d pos, vel, acc, kappa, veldir, sdfGrad, gradPcoll; // WORLD frame
         double f, df, velnorm, sdf;
-        std::string sdf_mode = "ground"; // or min if celing exists
+        std::string sdf_mode = "min"; // or min if celing exists
 
         // Foot Collision
         pos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));

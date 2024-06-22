@@ -31,7 +31,6 @@ GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
     {
         ROS_ERROR("Could not configure the filter chain!");
     }
-
     update();
 }
 
@@ -40,7 +39,6 @@ void GridMapInterface::callback(const grid_map_msgs::GridMap &msg)
     if (!map_update_lock_)
     {
         grid_map::GridMapRosConverter::fromMessage(msg, map_);
-        // if (!sdf_[0])
         update();
     }
 }
@@ -54,14 +52,24 @@ void GridMapInterface::update(bool block, double sdf_margin)
         ros::spinOnce();
         ros::Duration(0.5).sleep();
     }
+    if (!map_recv_flag_)
+    {
+        map_recv_flag_ = true;
+        if (map_.exists(ground_layer))
+            ROS_INFO("GridMap_Interface - Ground Layer Initializing...");
+        if (map_.exists(ceiling_layer))
+            ROS_INFO("GridMap_Interface - Ceiling Layer Initializing...");
+    }
     updateSDF(ground_layer, 0, sdf_margin);
     updateTravMap();
+
     // FIXME: disabled for performance reasons
     // if (!filter_chain_.update(map_, map_))
     // {
     //     ROS_ERROR("Could not update the grid map filter chain!");
     // }
-    // Visualization
+
+    // TravMap Visualization
     grid_map_msgs::GridMap message;
     grid_map::GridMapRosConverter::toMessage(map_, message);
     pub_.publish(message);
@@ -147,7 +155,6 @@ double GridMapInterface::sdfValue(const grid_map::Position3 &position, const std
         }
         else if (!sdf_[1])
         {
-            // ROS_WARN("Ceiling SDF is not initialized!");
             return sdf_[0]->value(position);
         }
         else

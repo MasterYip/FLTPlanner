@@ -51,6 +51,7 @@ private:
     std::string ceiling_layer;
     std::string torso_ref_layer = {"torso_ref"};
     std::atomic<bool> map_update_lock_{false};
+    bool map_recv_flag_ = false;
 
     ros::Publisher pub_;
 
@@ -61,7 +62,7 @@ public:
                      std::string ceiling_layer_name = "ceiling");
 
     void callback(const grid_map_msgs::GridMap &msg);
-    void update(bool block = true, double sdf_margin = 0.2); // FIXME: this should larger than robot height?
+    void update(bool block = true, double sdf_margin = 0.8); // FIXME: this should larger than robot height?
     void updateTorsoRef(void);
     void updateTravMap(void);
     void updateSDF(const std::string &layer_name, uint index = 0, double margin = 0.2);
