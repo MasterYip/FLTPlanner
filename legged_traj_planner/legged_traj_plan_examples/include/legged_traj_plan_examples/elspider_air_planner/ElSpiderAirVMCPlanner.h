@@ -519,7 +519,7 @@ public:
     void traj_planner()
     {
         double t = 0.0;
-        double delta = 0.05;
+        double delta = 0.025;
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
         state_traj_replay(state_traj);
         std::cout << "Press space to execute trajectory...";
