@@ -50,6 +50,27 @@ SwingTrajPlanner::SwingTrajPlanner(SwingTrajPlannerConfig config,
         swing_traj_opt_.setVisualizer(visualizer_);
 }
 
+void SwingTrajPlanner::visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1, int index,
+                                       std::vector<Point3D> cfg_poly_traj,
+                                       Eigen::Vector3d start_vel, Eigen::Vector3d goal_vel, double trajTime,
+                                       int groupId)
+{
+    MincoTrajectory minco_traj(cfg_poly_traj, start_vel, goal_vel, trajTime);
+    std::vector<Point3D> cfg_path_opt;
+    std::vector<Point3D> path_opt;
+    double ts = 0.01;
+    double t = 0;
+    minco_traj.getTrajSamples(cfg_path_opt, ts);
+    for (auto pt : cfg_path_opt)
+    {
+        Point3D base_pt = robot_interface_->FK_foot(pt, index);
+        path_opt.emplace_back(point_SE3Act(poseLinearInterp(pose0, pose1, t).inverse(), base_pt));
+        t += ts;
+    }
+    visualizer_->setIdGroup(groupId);
+    visualizer_->visCurve(path_opt);
+}
+
 std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getDefaultTraj(const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
                                                                   double v_lift, double h_lift)
 {
@@ -100,6 +121,11 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getDefaultCfgTraj(const pinoc
     J = robot_interface_->getJacobian(cfg_poly_traj.back(), index);
     J_inv = J.transpose() * (J * J.transpose()).inverse();
     goal_vel = J_inv * goal_vel;
+
+#ifdef ENABLE_VISUALIZER
+    visCfgMincoTraj(pose0, pose1, index, cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
+#endif
+
     return std::make_shared<MincoTrajectory>(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
 }
 
@@ -161,7 +187,7 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         for (uint i = 0; i < border.size(); i++)
         {
             Point3D pos;
-            Eigen::Vector2d posxy =poly_traj_search.getBorderCheck().getIndexRemap().grid2Pos(border.at(i));
+            Eigen::Vector2d posxy = poly_traj_search.getBorderCheck().getIndexRemap().grid2Pos(border.at(i));
             pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
             pos[0] = posxy.x();
             pos[1] = posxy.y();
@@ -244,8 +270,8 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3
                                                                   Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                                   double v_lift, uint index)
 {
-    std::vector<Point3D> cfg_poly_path;
-    if (!getCfgPolyTraj(cfg_poly_path, pose0, pose1, p0, p1, index))
+    std::vector<Point3D> cfg_poly_traj;
+    if (!getCfgPolyTraj(cfg_poly_traj, pose0, pose1, p0, p1, index))
     {
         return getDefaultCfgTraj(pose0, pose1, p0, p1, index, v_lift);
     }
@@ -258,28 +284,15 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getCfgInitTraj(pinocchio::SE3
     normal = gridmap_interface_->sdfDerivative(p1, 0);
     normal.normalize();
     Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * v_lift); // Base frame
-    Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_path.front(), index);
+    Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_traj.front(), index);
     Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
     start_vel = J_inv * start_vel;
-    J = robot_interface_->getJacobian(cfg_poly_path.back(), index);
+    J = robot_interface_->getJacobian(cfg_poly_traj.back(), index);
     J_inv = J.transpose() * (J * J.transpose()).inverse();
     goal_vel = J_inv * goal_vel;
-    MincoTrajectory minco_traj(cfg_poly_path, start_vel, goal_vel, config_.trajTime);
+    MincoTrajectory minco_traj(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
 #ifdef ENABLE_VISUALIZER
-    // Minco
-    std::vector<Point3D> cfg_path_opt;
-    std::vector<Point3D> path_opt;
-    double ts = 0.01;
-    double t = 0;
-    minco_traj.getTrajSamples(cfg_path_opt, ts);
-    for (auto pt : cfg_path_opt)
-    {
-        Point3D base_pt = robot_interface_->FK_foot(pt, index);
-        path_opt.emplace_back(point_SE3Act(poseLinearInterp(pose0, pose1, t).inverse(), base_pt));
-        t += ts;
-    }
-    visualizer_->setIdGroup(1);
-    visualizer_->visCurve(path_opt);
+    visCfgMincoTraj(pose0, pose1, index, cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
 #endif
     return std::make_shared<MincoTrajectory>(minco_traj);
 }

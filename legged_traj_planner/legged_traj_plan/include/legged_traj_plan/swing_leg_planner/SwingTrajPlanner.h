@@ -48,6 +48,11 @@ public:
                      std::shared_ptr<GridMapInterface> gridmap_interface);
     ~SwingTrajPlanner() = default;
 
+    void visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1, int index,
+                         std::vector<Point3D> cfg_poly_traj,
+                         Eigen::Vector3d start_vel, Eigen::Vector3d goal_vel, double trajTime,
+                         int groupId = 1);
+
     /**
      * @brief Search for a poly feasible trajectory
      *
@@ -100,7 +105,7 @@ public:
         return robot_interface_;
     }
 
-    const SwingTrajPlannerConfig& getConfig() const
+    const SwingTrajPlannerConfig &getConfig() const
     {
         return config_;
     }
