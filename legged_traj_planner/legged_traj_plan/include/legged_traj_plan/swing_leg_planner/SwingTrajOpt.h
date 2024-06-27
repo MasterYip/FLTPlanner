@@ -81,7 +81,7 @@ private:
 
     // Visualizer
     ros::NodeHandle nh_;
-    ros::Rate rate_ = ros::Rate(20);
+    ros::Rate rate_ = ros::Rate(5);
     std::shared_ptr<GCSVisualizer> visualizer_;
     bool enable_vis_ = false;
 

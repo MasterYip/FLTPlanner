@@ -33,10 +33,10 @@ world_frame: odom
 # VMC
 gravity: 9.81
 loop_rate: 200.0
-Kp: 9.0
-Kd: 6.0 # kd = 2 \zeta \sqrt(kp)
+Kp: 36.0
+Kd: 12.0 # kd = 2 \zeta \sqrt(kp)
 # joint_kp_st: [0.06, 0.06, 0.06]
-joint_kp_st: [0.03, 0.03, 0.03]
+joint_kp_st: [0.04, 0.04, 0.04]
 # joint_kp_st: [0.005, 0.005, 0.005]
 joint_kd_st: [0.4, 0.4, 0.4]
 joint_kp_sw: [0.02, 0.02, 0.02]

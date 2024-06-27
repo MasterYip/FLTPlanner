@@ -1,0 +1,13 @@
+
+kp: [0.01, 0.01, 0.01]
+kd: [0.4, 0.4, 0.4]
+
+y_shift: 0.25
+z_shift: -0.28
+
+interval: 2 #sec
+swing_amp: [0.05, 0.05, 0.0] #meter
+swing_phase: [0, 1.57, 0] # rad
+
+# force: [0.0, 0.0, -60]
+force: [0.0, 0.0, 0]

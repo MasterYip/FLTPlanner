@@ -223,6 +223,12 @@ target_link_libraries(test_force_ctrl
   ${PROJECT_NAME}
 )
 
+add_executable(test_hlc_ctrl test/test_hlc_ctrl.cpp)
+target_link_libraries(test_hlc_ctrl
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
 add_executable(test_robot_interface_rviz test/test_robot_interface_rviz.cpp)
 target_link_libraries(test_robot_interface_rviz
   ${catkin_LIBRARIES}
