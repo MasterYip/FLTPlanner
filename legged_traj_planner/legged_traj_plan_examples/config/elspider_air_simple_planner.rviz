@@ -57,16 +57,6 @@ Visualization Manager:
       Enabled: true
       Links:
         All Links Enabled: true
-        BPearl_Lidar:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        BPearl_Lidar_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
@@ -196,49 +186,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        camera_accel_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye2_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_gyro_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_odom_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_pose_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        sensorSupport:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -627,7 +575,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 2.0182857513427734
+      Distance: 2.47446346282959
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -635,17 +583,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.4712878465652466
-        Y: -0.45226722955703735
-        Z: -0.1689760833978653
+        X: -1.5077937841415405
+        Y: -0.345926433801651
+        Z: 0.031005337834358215
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.40979716181755066
-      Target Frame: base
-      Yaw: 4.30136251449585
+      Pitch: 0.2047971934080124
+      Target Frame: <Fixed Frame>
+      Yaw: 4.496362209320068
     Saved: ~
 Window Geometry:
   Displays:

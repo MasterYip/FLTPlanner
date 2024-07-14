@@ -554,7 +554,7 @@ public:
         pub_jointstate(); // Publish real joint state
         ros::Duration(0.4).sleep();
         // Stance contact handling
-        stance_contact_handle();
+        // stance_contact_handle();
     }
 
     void run()

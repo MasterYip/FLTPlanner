@@ -361,7 +361,7 @@ public:
     void traj_planner()
     {
         double t = 0.0;
-        double delta = 0.05;
+        double delta = 0.02;
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
