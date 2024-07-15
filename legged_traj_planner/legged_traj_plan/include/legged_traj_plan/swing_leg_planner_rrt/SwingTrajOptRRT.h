@@ -33,6 +33,7 @@
 #include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
+#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
 namespace ob = ompl::base;
@@ -57,7 +58,7 @@ private:
     ros::Rate rate_ = ros::Rate(5);
     std::shared_ptr<GCSVisualizer> visualizer_;
     bool enable_vis_ = false;
-    
+
     // Benchmarking
     Benchmark benchmark_;
 

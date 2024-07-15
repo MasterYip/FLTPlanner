@@ -43,8 +43,7 @@ public:
                                                 uint index);
 
     bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
-                         const pinocchio::SE3 &pose0,
-                         const pinocchio::SE3 &pose1,
-                         int index);
-
+                 const pinocchio::SE3 &pose0,
+                 const pinocchio::SE3 &pose1,
+                 int index);
 };
