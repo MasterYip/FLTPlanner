@@ -92,6 +92,8 @@ public:
                          int index) = 0;
 };
 
+
+
 class SwingTrajPlanner : public SwingTrajPlannerBase
 {
 private:
