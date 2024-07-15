@@ -184,7 +184,7 @@ struct LegTraj
     Eigen::Vector3d foothold_lift;
     Eigen::Vector3d foothold_touch;
     // World frame OR cfg space
-    std::shared_ptr<MincoTrajectory> swing_traj;
+    std::shared_ptr<TrajectoryBase> swing_traj;
 
     /**
      * @brief Construct a new Leg Traj object
@@ -197,23 +197,23 @@ struct LegTraj
      */
     LegTraj(double t_lift, double t_touch,
             Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
-            std::shared_ptr<MincoTrajectory> swing_traj)
+            std::shared_ptr<TrajectoryBase> swing_traj)
         : t_lift(t_lift), t_touch(t_touch), t_mid((t_lift + t_touch) / 2),
           foothold_lift(foothold_lift), foothold_touch(foothold_touch),
           swing_traj(swing_traj){};
 
-    [[deprecated]] void update(double t_lift, double t_touch,
-                               Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
-                               Eigen::Vector3d foothold_lift_cfg, Eigen::Vector3d foothold_touch_cfg,
-                               Eigen::Vector3d liftvel_cfg, Eigen::Vector3d touchvel_cfg)
-    {
-        this->t_lift = t_lift;
-        this->t_touch = t_touch;
-        this->t_mid = (t_lift + t_touch) / 2;
-        this->foothold_lift = foothold_lift;
-        this->foothold_touch = foothold_touch;
-        swing_traj->setConditions(foothold_lift_cfg, foothold_touch_cfg, liftvel_cfg, touchvel_cfg);
-    }
+    // [[deprecated]] void update(double t_lift, double t_touch,
+    //                            Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
+    //                            Eigen::Vector3d foothold_lift_cfg, Eigen::Vector3d foothold_touch_cfg,
+    //                            Eigen::Vector3d liftvel_cfg, Eigen::Vector3d touchvel_cfg)
+    // {
+    //     this->t_lift = t_lift;
+    //     this->t_touch = t_touch;
+    //     this->t_mid = (t_lift + t_touch) / 2;
+    //     this->foothold_lift = foothold_lift;
+    //     this->foothold_touch = foothold_touch;
+    //     swing_traj->setConditions(foothold_lift_cfg, foothold_touch_cfg, liftvel_cfg, touchvel_cfg);
+    // }
 
     bool isApproxTmid(double t)
     {

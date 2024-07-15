@@ -39,8 +39,6 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
     }
 
     // Default swing trajectory
-    double v_lift = swing_traj_planner_->getConfig().vLift;
-    double h_lift = swing_traj_planner_->getConfig().hLift;
     for (int i = 0; i < 6; ++i)
     {
         if (swingtraj_isneeded_[i])
@@ -50,16 +48,17 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
                 // Default Swing Trajectory
                 // swingtraj_[i] = swing_traj_planner_->getDefaultTraj(
                 //     footpos_list0_[i], footpos_list1_[i], v_lift, h_lift);
+                
                 // GCS Search Traj
                 swingtraj_[i] = swing_traj_planner_->getInitTraj(
                     XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
-                    footpos_list0_[i], footpos_list1_[i], v_lift, h_lift, i);
+                    footpos_list0_[i], footpos_list1_[i], i);
             }
             else
             {
                 swingtraj_[i] = swing_traj_planner_->getCfgInitTraj(
                     XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
-                    footpos_list0_[i], footpos_list1_[i], v_lift, i);
+                    footpos_list0_[i], footpos_list1_[i], i);
             }
         }
     }

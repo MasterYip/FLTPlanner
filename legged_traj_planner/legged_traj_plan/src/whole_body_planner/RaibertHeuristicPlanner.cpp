@@ -252,7 +252,6 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                     p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
                 }
 
-                double vLift = swing_traj_planner_->getConfig().vLift;
                 
                 // Vis Clear
                 swing_traj_planner_->visClear();
@@ -270,13 +269,13 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                     // toCfgSpace(pose, p1, v1, touch_pos_cfg, touch_vel_cfg, i);
                     // leg_traj_[i].at(index).update(pair.first, pair.second, p0, p1, lift_pos_cfg, touch_pos_cfg, lift_vel_cfg, touch_vel_cfg);
                     leg_traj_[i].at(index) = LegTraj(pair.first, pair.second, p0, p1,
-                                                     swing_traj_planner_->getCfgInitTraj(pose_lift, pose_touch, p0, p1, vLift, i));
+                                                     swing_traj_planner_->getCfgInitTraj(pose_lift, pose_touch, p0, p1, i));
                     index++;
                 }
                 else
                 {
                     leg_traj_[i].emplace_back(LegTraj(pair.first, pair.second, p0, p1,
-                                                      swing_traj_planner_->getCfgInitTraj(pose_lift, pose_touch, p0, p1, vLift, i)));
+                                                      swing_traj_planner_->getCfgInitTraj(pose_lift, pose_touch, p0, p1, i)));
                     index++;
                 }
             }
