@@ -23,6 +23,7 @@
 #include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
+#include "legged_traj_plan/swing_leg_planner_rrt/SwingTrajOptRRT.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
 class SwingTrajPlannerRRT : public SwingTrajPlannerBase

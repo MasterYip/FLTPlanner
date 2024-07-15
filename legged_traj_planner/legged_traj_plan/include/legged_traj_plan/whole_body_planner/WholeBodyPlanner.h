@@ -20,6 +20,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/utils/CircleQueue.h"
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
+#include "legged_traj_plan/swing_leg_planner_rrt/SwingTrajPlannerRRT.h"
 #include "legged_traj_plan/whole_body_planner/MCTStateTransfer.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 

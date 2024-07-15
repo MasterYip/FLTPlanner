@@ -1,0 +1,42 @@
+trajInit:
+  vLift: 0.08
+  hLift: 0.15
+  trajTime: 3 # Only affect init trajectory
+
+plannerID: 1
+
+misc:
+  enableOptVis: true
+
+RRTPlanner:
+  maxTime: 0.1
+
+optimizer:
+  enableOptimizer: true
+  useCfgSpace: false
+  lengthPerPiece: 0.1 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+  allocSpeed: 0.05
+  relCostTol: 1.0e-3
+  smoothingFactor: 1.0e-2
+  integralResolution: 16
+
+penalty:
+  timeWeight: 0.001 # PROBLEM: too large or too small will leads to max-try error
+  joint1PosMin: -0.785
+  joint1PosMax: 0.785
+  joint2PosMin: -0.5233
+  joint2PosMax: 3.14
+  joint3PosMin: -0.6978
+  joint3PosMax: 3.925
+  jointMaxVel: 5.0
+  jointMaxAcc: 10.0
+  jointPosWeight: 0.4
+  jointVelWeight: 0.1
+  jointAccWeight: 0.1
+  CollBall1Rad: 0.12
+  CollBall2Rad: 0.12
+  CollBall3Rad: 0.03
+  CollBall1Weight: 0.0
+  CollBall2Weight: 0.0
+  CollBall3Weight: 1
+  FootCollExcludeBallRad: 0.03

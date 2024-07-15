@@ -11,14 +11,20 @@ MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(SwingTrajPlannerConfig swing_traj_pla
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       use_cfg_space_(swing_traj_planner_config.useCfgSpace)
 {
-    
-    if (use_cfg_space_)
+    if (swing_traj_planner_config.plannerID == 0)
     {
-        swing_traj_planner_ = std::make_shared<SwingCfgTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
+        if (use_cfg_space_)
+        {
+            swing_traj_planner_ = std::make_shared<SwingCfgTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
+        }
+        else
+        {
+            swing_traj_planner_ = std::make_shared<SwingTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
+        }
     }
-    else
+    else if (swing_traj_planner_config.plannerID == 1)
     {
-        swing_traj_planner_ = std::make_shared<SwingTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
+        swing_traj_planner_ = std::make_shared<SwingTrajPlannerRRT>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
     }
 }
 

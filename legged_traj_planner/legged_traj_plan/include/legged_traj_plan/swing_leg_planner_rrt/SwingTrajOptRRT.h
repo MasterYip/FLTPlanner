@@ -57,6 +57,9 @@ private:
     ros::Rate rate_ = ros::Rate(5);
     std::shared_ptr<GCSVisualizer> visualizer_;
     bool enable_vis_ = false;
+    
+    // Benchmarking
+    Benchmark benchmark_;
 
 public:
     SwingTrajOptRRT(std::shared_ptr<ElSpiderAirInterface> robot_interface,
@@ -65,7 +68,6 @@ public:
                     bool enable_benchmark = true)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
           visualizer_(visualizer),
-          legCollPena(robot_interface, gridmap_interface), collPena(gridmap_interface_),
           benchmark_("SwingTrajOptRRT", enable_benchmark)
     {
         if (visualizer != nullptr)
@@ -160,7 +162,6 @@ public:
                 new_knots.row(i) << pos->values[0], pos->values[1], pos->values[2];
             }
             traj.set(new_knots);
-            
         }
         else
         {
@@ -168,3 +169,4 @@ public:
         }
         return solved;
     }
+};

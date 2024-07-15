@@ -16,9 +16,9 @@
 /* c system header files */
 
 /* c++ standard library header files */
-
+#include <iostream>
 /* external project header files */
-
+#include <ros/ros.h>
 /* internal project header files */
 
 
@@ -64,7 +64,14 @@ struct SwingTrajPlannerConfig
     double vLift;
     double hLift;
     double trajTime;
-    //// Optimizer
+
+    // Planner Select
+    int plannerID; 
+    // 0: LFTPlanner (TaskSpace & CfgSpace)
+    // 1: RRTPlanner (TaskSpace)
+
+    //// ID[0] LFTPlannerSettings
+    //// GCS TrajSearch & MINCO optimization
     // Enable
     bool enableOptimizer;
     // Minco Init
@@ -99,6 +106,10 @@ struct SwingTrajPlannerConfig
     double CollBall3Weight;
     double FootCollExcludeBallRad;
 
+    //// ID[1] RRTPlannerSettings
+    double maxTime;
+
+
     // Misc
     bool enableOptVis;
     bool enableBenchmark;
@@ -110,6 +121,9 @@ struct SwingTrajPlannerConfig
         nh.param("trajInit/vLift", vLift, 0.2);
         nh.param("trajInit/hLift", hLift, 0.1);
         nh.param("trajInit/trajTime", trajTime, 1.0);
+
+        nh.param("plannerID", plannerID, 0);
+        //// ID[0] LFTPlannerSettings
         nh.param("optimizer/enableOptimizer", enableOptimizer, true);
         nh.param("optimizer/useCfgSpace", useCfgSpace, true);
         nh.param("optimizer/lengthPerPiece", lengthPerPiece, 0.6);
@@ -136,6 +150,9 @@ struct SwingTrajPlannerConfig
         nh.param("penalty/CollBall2Weight", CollBall2Weight, 0.0);
         nh.param("penalty/CollBall3Weight", CollBall3Weight, 0.05);
         nh.param("penalty/FootCollExcludeBallRad", FootCollExcludeBallRad, 0.05);
+        //// ID[1] RRTPlannerSettings
+        nh.param("RRTPlanner/maxTime", maxTime, 0.1);
+
         nh.param("misc/enableOptVis", enableOptVis, false);
         nh.param("misc/enableBenchmark", enableBenchmark, false);
         nh.param("misc/benchmarkSavePath", benchmarkSavePath, std::string(""));
