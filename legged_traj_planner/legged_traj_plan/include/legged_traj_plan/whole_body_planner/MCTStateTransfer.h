@@ -34,7 +34,7 @@ class MCTStateTransfer
 private:
     hexapod_State state0_;
     hexapod_State state1_;
-    std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
+    std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
     PosList footpos_list0_;
     PosList footpos_list1_;
     std::shared_ptr<TrajectoryBase> swingtraj_[6];
@@ -44,7 +44,7 @@ private:
 
 public:
     MCTStateTransfer(hexapod_State state0, hexapod_State state1,
-                     std::shared_ptr<SwingTrajPlanner> swing_traj_planner, bool use_cfg_space = false);
+                     std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner, bool use_cfg_space = false);
     pinocchio::SE3 eval_torso_traj(double t);
     PosList eval_foot_traj(double t, uint derivative = 0, bool auto_opt = true);
     PosList eval_cfg_traj(double t, uint derivative = 0, bool auto_opt = true);

@@ -381,25 +381,7 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
     return true;
 }
 
-void SwingTrajPlanner::saveBenchmarkResults()
-{
-    if (!config_.enableBenchmark)
-        return;
-    std::ofstream file;
-    file.open(config_.benchmarkSavePath);
-    if (!file.is_open())
-    {
-        std::cerr << "Failed to open file: " << config_.benchmarkSavePath << std::endl;
-        return;
-    }
-    file << "normalTime, criticalTime, miscTime, totTime, minCostFunctional, optRetType" << std::endl;
-    for (auto result : benchmark_results_)
-    {
-        file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
-             << result.tot_time << ", " << result.custom_data[0] << ", " << result.custom_data[1] << std::endl;
-    }
-    std::cout << "Benchmark results saved to: " << config_.benchmarkSavePath << std::endl;
-}
+
 
 
 ////////////////////
@@ -665,24 +647,3 @@ bool SwingCfgTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
 #endif
     return true;
 }
-
-void SwingCfgTrajPlanner::saveBenchmarkResults()
-{
-    if (!config_.enableBenchmark)
-        return;
-    std::ofstream file;
-    file.open(config_.benchmarkSavePath);
-    if (!file.is_open())
-    {
-        std::cerr << "Failed to open file: " << config_.benchmarkSavePath << std::endl;
-        return;
-    }
-    file << "normalTime, criticalTime, miscTime, totTime, minCostFunctional, optRetType" << std::endl;
-    for (auto result : benchmark_results_)
-    {
-        file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
-             << result.tot_time << ", " << result.custom_data[0] << ", " << result.custom_data[1] << std::endl;
-    }
-    std::cout << "Benchmark results saved to: " << config_.benchmarkSavePath << std::endl;
-}
-

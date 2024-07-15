@@ -23,7 +23,7 @@ PosList FeetPos2PosList(legged_traj_plan::FeetPosition feet_pos)
 }
 
 MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
-                                   std::shared_ptr<SwingTrajPlanner> swing_traj_planner,
+                                   std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner,
                                    bool use_cfg_space) : swing_traj_planner_(swing_traj_planner),
                                                          state0_(state0),
                                                          state1_(state1),
@@ -43,23 +43,27 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
     {
         if (swingtraj_isneeded_[i])
         {
-            if (!use_cfg_space_)
-            {
-                // Default Swing Trajectory
-                // swingtraj_[i] = swing_traj_planner_->getDefaultTraj(
-                //     footpos_list0_[i], footpos_list1_[i], v_lift, h_lift);
-                
-                // GCS Search Traj
-                swingtraj_[i] = swing_traj_planner_->getInitTraj(
-                    XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
-                    footpos_list0_[i], footpos_list1_[i], i);
-            }
-            else
-            {
-                swingtraj_[i] = swing_traj_planner_->getCfgInitTraj(
-                    XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
-                    footpos_list0_[i], footpos_list1_[i], i);
-            }
+            swingtraj_[i] = swing_traj_planner_->getInitTraj(
+                XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
+                footpos_list0_[i], footpos_list1_[i], i);
+
+            // if (!use_cfg_space_)
+            // {
+            //     // Default Swing Trajectory
+            //     // swingtraj_[i] = swing_traj_planner_->getDefaultTraj(
+            //     //     footpos_list0_[i], footpos_list1_[i], v_lift, h_lift);
+
+            //     // GCS Search Traj
+            //     swingtraj_[i] = swing_traj_planner_->getInitTraj(
+            //         XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
+            //         footpos_list0_[i], footpos_list1_[i], i);
+            // }
+            // else
+            // {
+            //     swingtraj_[i] = swing_traj_planner_->getCfgInitTraj(
+            //         XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
+            //         footpos_list0_[i], footpos_list1_[i], i);
+            // }
         }
     }
 }
@@ -183,16 +187,19 @@ void MCTStateTransfer::opt_swing_traj(int index)
     {
         pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
         pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
-        if (use_cfg_space_)
-        {
-            swingtraj_isopt_[index] = swing_traj_planner_->optCfgTraj(
-                swingtraj_[index], pose0, pose1, index);
-        }
-        else
-        {
-            swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
-                swingtraj_[index], pose0, pose1, index);
-        }
+
+        swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
+            swingtraj_[index], pose0, pose1, index);
+        // if (use_cfg_space_)
+        // {
+        //     swingtraj_isopt_[index] = swing_traj_planner_->optCfgTraj(
+        //         swingtraj_[index], pose0, pose1, index);
+        // }
+        // else
+        // {
+        //     swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
+        //         swingtraj_[index], pose0, pose1, index);
+        // }
     }
 }
 

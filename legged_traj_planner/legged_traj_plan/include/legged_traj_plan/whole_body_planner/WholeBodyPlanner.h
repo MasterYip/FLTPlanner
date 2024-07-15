@@ -32,7 +32,7 @@ private:
     std::vector<MCTStateTransfer> state_trajs;
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
+    std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
     bool use_cfg_space_;
 
 public:
