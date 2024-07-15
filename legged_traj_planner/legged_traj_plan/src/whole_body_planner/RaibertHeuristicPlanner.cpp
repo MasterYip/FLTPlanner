@@ -147,7 +147,7 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
                                                  std::shared_ptr<GridMapInterface> gridmap_interface,
                                                  std::shared_ptr<ElSpiderAirInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
-      swing_traj_planner_(std::make_shared<SwingTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_)),
+      swing_traj_planner_(std::make_shared<SwingCfgTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_)),
       use_cfg_space_(swing_traj_planner_config.useCfgSpace)
 {
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
@@ -269,13 +269,13 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                     // toCfgSpace(pose, p1, v1, touch_pos_cfg, touch_vel_cfg, i);
                     // leg_traj_[i].at(index).update(pair.first, pair.second, p0, p1, lift_pos_cfg, touch_pos_cfg, lift_vel_cfg, touch_vel_cfg);
                     leg_traj_[i].at(index) = LegTraj(pair.first, pair.second, p0, p1,
-                                                     swing_traj_planner_->getCfgInitTraj(pose_lift, pose_touch, p0, p1, i));
+                                                     swing_traj_planner_->getInitTraj(pose_lift, pose_touch, p0, p1, i));
                     index++;
                 }
                 else
                 {
                     leg_traj_[i].emplace_back(LegTraj(pair.first, pair.second, p0, p1,
-                                                      swing_traj_planner_->getCfgInitTraj(pose_lift, pose_touch, p0, p1, i)));
+                                                      swing_traj_planner_->getInitTraj(pose_lift, pose_touch, p0, p1, i)));
                     index++;
                 }
             }

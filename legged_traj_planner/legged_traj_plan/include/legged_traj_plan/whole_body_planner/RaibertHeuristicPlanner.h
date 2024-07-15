@@ -357,14 +357,14 @@ class RaibertHeuristicPlanner
 private:
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    std::shared_ptr<SwingTrajPlanner> swing_traj_planner_;
+    std::shared_ptr<SwingCfgTrajPlanner> swing_traj_planner_;
     GridMapCmdVelExtrapolator cmd_vel_extrapolator_;
     std::vector<std::vector<LegTraj>> leg_traj_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
 
     PosList nominal_foothold_base_;
     double update_time_ = 0;
-    bool use_cfg_space_;
+    bool use_cfg_space_; // TOOD: not used temporarily
 
     double interval_ = 1;
     double duty_ = 0.5;
