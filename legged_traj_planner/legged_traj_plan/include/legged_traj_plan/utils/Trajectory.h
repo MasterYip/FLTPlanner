@@ -45,6 +45,10 @@ public:
     }
 };
 
+
+
+
+
 class MincoTrajectory : public TrajectoryBase
 {
 private:

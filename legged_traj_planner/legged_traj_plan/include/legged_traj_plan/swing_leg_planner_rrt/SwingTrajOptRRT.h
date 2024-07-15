@@ -66,7 +66,7 @@ public:
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
           visualizer_(visualizer),
           legCollPena(robot_interface, gridmap_interface), collPena(gridmap_interface_),
-          benchmark_("SwingTrajOpt", enable_benchmark)
+          benchmark_("SwingTrajOptRRT", enable_benchmark)
     {
         if (visualizer != nullptr)
             enable_vis_ = true;
@@ -91,26 +91,80 @@ public:
         return true;
     }
 
-    /**
-     * @brief Setup MINCO optimization problem
-     *
-     * @param TrajPolyPath Config space poly path
-     * @param initialVel Initial position, velocity
-     * @param terminalVel Terminal position, velocity
-     * @return true
-     * @return false
-     */
-    inline bool setup(
-        // Conditions
-        const pinocchio::SE3 &pose0,
-        const pinocchio::SE3 &pose1,
-        const int &index,
-        // Init waypoints
-        // const Eigen::Matrix3Xd &TrajPolyPath,
-        const Eigen::Vector3d &initialVel,
-        const Eigen::Vector3d &terminalVel,
-        // Params
-        SwingTrajPlannerConfig &config,
-        // Settings
-        const bool verbose = true) {
-    };
+    // /**
+    //  * @brief Setup RRTStar optimization problem
+    //  *
+    //  * @return true
+    //  * @return false
+    //  */
+    // inline bool setup(
+    //     // Conditions
+    //     const int &index,
+    //     // Params
+    //     SwingTrajPlannerConfig &config,
+    //     // Settings
+    //     const bool verbose = true) {
+    //     ob::RealVectorBounds bounds(3);
+    //     // bounds[0].setLow(-1);
+    // };
+
+    inline bool optimize(UniBSpline &traj, SwingTrajPlannerConfig &config, double max_time = 0.1)
+    {
+        // Set Bounds
+        ob::RealVectorBounds bounds(3);
+        Eigen::MatrixXd knots = traj.get();
+        double margin = 0.6; // Margin of the bounding box
+        for (int i = 0; i < 3; i++)
+        {
+            bounds.setLow(i, knots.col(i).minCoeff() - margin);
+            bounds.setHigh(i, knots.col(i).maxCoeff() + margin);
+        }
+        space_->setBounds(bounds);
+
+        // Create a SimpleSetup object
+        og::SimpleSetup ss(space_);
+
+        // Set state validity checking for this space
+        ss.setStateValidityChecker(std::bind(&SwingTrajOptRRT::isStateValid, this, std::placeholders::_1));
+
+        // Define start and goal states
+        ob::ScopedState<> start(space_);
+        start[0] = knots(0, 0);
+        start[1] = knots(0, 1);
+        start[2] = knots(0, 2);
+
+        ob::ScopedState<> goal(space_);
+        goal[0] = knots(knots.rows() - 1, 0);
+        goal[1] = knots(knots.rows() - 1, 1);
+        goal[2] = knots(knots.rows() - 1, 2);
+
+        // Set the start and goal states
+        ss.setStartAndGoalStates(start, goal);
+
+        // Create an RRT* planner
+        auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
+        ss.setPlanner(planner);
+
+        // Attempt to solve the problem within a given time (seconds)
+        ob::PlannerStatus solved = ss.solve(max_time);
+
+        if (solved)
+        {
+            std::cout << "Found solution:" << std::endl;
+            ss.simplifySolution();
+            ss.getSolutionPath().printAsMatrix(std::cout);
+            Eigen::MatrixXd new_knots(ss.getSolutionPath().getStateCount(), 3);
+            for (std::size_t i = 0; i < ss.getSolutionPath().getStateCount(); ++i)
+            {
+                const auto *pos = ss.getSolutionPath().getState(i)->as<ob::RealVectorStateSpace::StateType>();
+                new_knots.row(i) << pos->values[0], pos->values[1], pos->values[2];
+            }
+            traj.set(new_knots);
+            
+        }
+        else
+        {
+            std::cout << "No solution found" << std::endl;
+        }
+        return solved;
+    }
