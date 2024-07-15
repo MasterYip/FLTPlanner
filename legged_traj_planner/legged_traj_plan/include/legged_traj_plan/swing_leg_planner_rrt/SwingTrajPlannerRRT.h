@@ -42,6 +42,9 @@ public:
                                                 Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                 uint index);
 
-    bool optTraj(std::shared_ptr<TrajectoryBase> &traj);
+    bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
+                         const pinocchio::SE3 &pose0,
+                         const pinocchio::SE3 &pose1,
+                         int index);
 
 };
