@@ -151,6 +151,7 @@ include_directories(
   include
   ${EIGEN3_INCLUDE_DIRS}
   ${PINOCCHIO_INCLUDE_DIRS}
+  # ${OMPL_INCLUDE_DIRS}
   )
   
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -160,7 +161,7 @@ file(GLOB_RECURSE GTESTS "test/**/gtest_*.cpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 # FIXME: this project depend on catkin, but it is not a catkin package
 target_include_directories(${PROJECT_NAME} PUBLIC include ${catkin_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${catkin_LIBRARIES} LeggedKinModule)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${OMPL_LIBRARIES} ${catkin_LIBRARIES} LeggedKinModule)
 
 
 # GTest
