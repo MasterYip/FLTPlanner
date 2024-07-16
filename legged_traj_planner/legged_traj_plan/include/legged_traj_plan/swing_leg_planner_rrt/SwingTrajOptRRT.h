@@ -80,18 +80,7 @@ public:
     {
         const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
         // Define some simple obstacles (e.g., circular obstacles)
-        std::vector<std::pair<double, double>> obstacles = {
-            {1.0, 1.0},
-            {2.0, 2.0}};
-        double radius = 0.5;
-
-        for (const auto &obstacle : obstacles)
-        {
-            double dist = std::sqrt(std::pow(pos->values[0] - obstacle.first, 2) +
-                                    std::pow(pos->values[1] - obstacle.second, 2));
-            if (dist <= radius)
-                return false;
-        }
+        
         return true;
     }
 
