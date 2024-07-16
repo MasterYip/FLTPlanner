@@ -68,6 +68,7 @@ public:
                     std::shared_ptr<GCSVisualizer> visualizer = nullptr,
                     bool enable_benchmark = true)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
+          space_(std::make_shared<ob::RealVectorStateSpace>(3)),
           visualizer_(visualizer),
           benchmark_("SwingTrajOptRRT", enable_benchmark)
     {
@@ -163,11 +164,12 @@ public:
                 new_knots.row(i) << pos->values[0], pos->values[1], pos->values[2];
             }
             traj.set(new_knots);
+            return true;
         }
         else
         {
             std::cout << "No solution found" << std::endl;
+            return false;
         }
-        return solved;
     }
 };

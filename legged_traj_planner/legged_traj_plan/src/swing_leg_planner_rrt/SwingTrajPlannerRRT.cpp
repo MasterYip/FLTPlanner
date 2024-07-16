@@ -44,5 +44,7 @@ bool SwingTrajPlannerRRT::optTraj(std::shared_ptr<TrajectoryBase> &traj,
     if (!config_.enableOptimizer)
         return true;
     std::shared_ptr<UniBSpline> unib_traj = std::dynamic_pointer_cast<UniBSpline>(traj);
-    swing_traj_opt_.optimize(*unib_traj, config_, 0.1);
+    bool ret = swing_traj_opt_.optimize(*unib_traj, config_, 0.1);
+
+    return ret;
 }

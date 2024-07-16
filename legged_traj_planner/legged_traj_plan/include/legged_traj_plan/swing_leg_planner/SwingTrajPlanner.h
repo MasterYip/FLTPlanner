@@ -59,7 +59,8 @@ public:
 
     void visClear()
     {
-        visualizer_->delAll();
+        if (visualizer_)
+            visualizer_->delAll();
     }
 
     void saveBenchmarkResults()
