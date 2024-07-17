@@ -1,0 +1,11 @@
+frame_id: "odom"
+topic_name: "ros_visualizer_markers"
+# [R, G, B, A, Width]
+STYLE_CURVE: [1.0, 0.6, 0.002, 1.0, 0.01]
+STYLE_MESH: [0.357, 0.458, 0.710, 0.3, 0.005]
+STYLE_FACET: [0.15, 0.6, 0.8, 0.1, 1.0]
+STYLE_SCATTER: [1.0, 0.45, 0.0, 1.0, 0.02]
+STYLE_SPHERE: [1.0, 0.45, 0.0, 1.0, 0.02]
+STYLE_CUBE: [1.0, 0.45, 0.0, 1.0, 0.02]
+STYLE_ARROW: [1.0, 0.45, 0.0, 1.0, 0.02]
+STYLE_ARROW2: [0.8, 0.45, 0.8, 1.0, 0.04]

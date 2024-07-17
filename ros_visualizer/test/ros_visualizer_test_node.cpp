@@ -14,9 +14,9 @@
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "ros_visualizer_test_node");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("~");
     ros::Rate rate(1);
-    ros_visualizer::ROSVisualizer rv(nh, "world", "test_topic");
+    ros_visualizer::ROSVisualizer rv(nh);
     std::vector<Eigen::Vector3d> curve;
     curve.emplace_back(Eigen::Vector3d(0.0, 0.0, 0.0));
     curve.emplace_back(Eigen::Vector3d(1.0, 1.0, 1.0));

@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /MarkerArray1
-        - /MarkerArray1/Status1
       Splitter Ratio: 0.5
     Tree Height: 549
   - Class: rviz/Selection
@@ -55,7 +54,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /test_topic
+      Marker Topic: /ros_visualizer_test_node/test_topic
       Name: MarkerArray
       Namespaces:
         {}
@@ -63,7 +62,7 @@ Visualization Manager:
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
+    Background Color: 255; 255; 255
     Default Light: true
     Fixed Frame: world
     Frame Rate: 30
@@ -89,7 +88,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 13.257354736328125
+      Distance: 10.266495704650879
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -97,17 +96,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 0.41859301924705505
+        Y: 1.173514485359192
+        Z: 1.3590375185012817
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4753979742527008
+      Pitch: 0.42039817571640015
       Target Frame: <Fixed Frame>
-      Yaw: 0.600397527217865
+      Yaw: 5.993578910827637
     Saved: ~
 Window Geometry:
   Displays:

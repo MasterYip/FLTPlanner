@@ -39,21 +39,14 @@ namespace ros_visualizer
         double r, g, b, a;
         double x, y, z;
         VisStyle()
-            : r(1.0), g(0.0), b(0.0), a(1.0), x(0.05), y(0.05), z(0.05){};
+            : r(1.0), g(0.0), b(0.0), a(1.0), x(0.05), y(0.05), z(0.05) {};
         VisStyle(double r_, double g_, double b_, double a_, double width_)
-            : r(r_), g(g_), b(b_), a(a_), x(width_), y(width_), z(width_){};
+            : r(r_), g(g_), b(b_), a(a_), x(width_), y(width_), z(width_) {};
         VisStyle(double r_, double g_, double b_, double a_, double x_, double y_, double z_)
-            : r(r_), g(g_), b(b_), a(a_), x(x_), y(y_), z(z_){};
+            : r(r_), g(g_), b(b_), a(a_), x(x_), y(y_), z(z_) {};
     };
 
-    // const VisStyle STYLE_CURVE = VisStyle(1.0, 0.0, 0.0, 1.0, 0.004);
-    // const VisStyle STYLE_MESH = VisStyle(1.0, 0.0, 0.0, 1.0, 0.002);
-    // const VisStyle STYLE_FACET = VisStyle(0.0, 0.0, 1.0, 0.4, 1.0);
-    // const VisStyle STYLE_SCATTER = VisStyle(0.0, 1.0, 0.0, 1.0, 0.01);
-    // const VisStyle STYLE_SPHERE = VisStyle(0.0, 1.0, 0.0, 1.0, 0.01);
-    // const VisStyle STYLE_CUBE = VisStyle(0.0, 1.0, 0.0, 1.0, 0.01);
-    // const VisStyle STYLE_ARROW = VisStyle(0.0, 1.0, 0.0, 1.0, 0.01);
-
+    // Default Styles
     const VisStyle STYLE_CURVE = VisStyle(1.0, 0.6, 0.002, 1.0, 0.01);
     const VisStyle STYLE_MESH = VisStyle(0.357, 0.458, 0.710, 0.3, 0.005);
     const VisStyle STYLE_FACET = VisStyle(0.15, 0.6, 0.8, 0.1, 1.0);
@@ -70,24 +63,52 @@ namespace ros_visualizer
         VisStyle style;
     };
 
-    // Geometry Objects
-    const VisType TYPE_CURVE = {"curve", visualization_msgs::Marker::LINE_STRIP, STYLE_CURVE};
-    const VisType TYPE_FACET = {"facet", visualization_msgs::Marker::TRIANGLE_LIST, STYLE_FACET};
-    const VisType TYPE_MESH = {"mesh", visualization_msgs::Marker::LINE_LIST, STYLE_MESH};
+    struct ROSVisualizerConfig
+    {
+        std::string frame_id;
+        std::string topic_name;
+        // Geometry Objects
+        VisType TYPE_CURVE = {"curve", visualization_msgs::Marker::LINE_STRIP, STYLE_CURVE};
+        VisType TYPE_FACET = {"facet", visualization_msgs::Marker::TRIANGLE_LIST, STYLE_FACET};
+        VisType TYPE_MESH =  {"mesh", visualization_msgs::Marker::LINE_LIST, STYLE_MESH};
+        // Scatters
+        VisType TYPE_SCATTER = {"scatter", visualization_msgs::Marker::SPHERE_LIST, STYLE_SCATTER}; // SPHERE_LIST, POINTS, CUBE_LIST
+        VisType TYPE_SPHERE = {"sphere", visualization_msgs::Marker::SPHERE_LIST, STYLE_SPHERE};
+        VisType TYPE_CUBE = {"cube", visualization_msgs::Marker::CUBE_LIST, STYLE_CUBE};
+        // Arrows
+        VisType TYPE_ARROW = {"arrow", visualization_msgs::Marker::ARROW, STYLE_ARROW};
+        VisType TYPE_ARROW2 = {"arrow", visualization_msgs::Marker::ARROW, STYLE_ARROW2};
 
-    // Scatters
-    const VisType TYPE_SCATTER = {"scatter", visualization_msgs::Marker::SPHERE_LIST, STYLE_SCATTER}; // SPHERE_LIST, POINTS, CUBE_LIST
-    const VisType TYPE_SPHERE = {"sphere", visualization_msgs::Marker::SPHERE_LIST, STYLE_SPHERE};
-    const VisType TYPE_CUBE = {"cube", visualization_msgs::Marker::CUBE_LIST, STYLE_CUBE};
-
-    // Arrows
-    const VisType TYPE_ARROW = {"arrow", visualization_msgs::Marker::ARROW, STYLE_ARROW};
+        void loadParams(ros::NodeHandle &nh)
+        {
+            std::vector<double> style;
+            nh.param<std::string>("frame_id", frame_id, "odom");
+            nh.param<std::string>("topic_name", topic_name, "visualizer_markers");
+            nh.param("STYLE_CURVE", style, {1.0, 0.6, 0.002, 1.0, 0.01});
+            TYPE_CURVE.style = VisStyle(style[0], style[1], style[2], style[3], style[4]);
+            nh.param("STYLE_MESH", style, {0.357, 0.458, 0.710, 0.3, 0.005});
+            TYPE_MESH.style = VisStyle(style[0], style[1], style[2], style[3], style[4]);
+            nh.param("STYLE_FACET", style, {0.15, 0.6, 0.8, 0.1, 1.0});
+            TYPE_FACET.style = VisStyle(style[0], style[1], style[2], style[3], style[4]);
+            nh.param("STYLE_SCATTER", style, {1.0, 0.45, 0.0, 1.0, 0.02});
+            TYPE_SCATTER.style = VisStyle(style[0], style[1], style[2], style[3], style[4]);
+            nh.param("STYLE_SPHERE", style, {1.0, 0.45, 0.0, 1.0, 0.02});
+            TYPE_SPHERE.style = VisStyle(style[0], style[1], style[2], style[3], style[4]);
+            nh.param("STYLE_CUBE", style, {1.0, 0.45, 0.0, 1.0, 0.02});
+            TYPE_CUBE.style = VisStyle(style[0], style[1], style[2], style[3], style[4]);
+            nh.param("STYLE_ARROW", style, {1.0, 0.45, 0.0, 1.0, 0.02});
+            TYPE_ARROW.style = VisStyle(style[0], style[1], style[2], style[3], style[4]);
+            nh.param("STYLE_ARROW2", style, {0.8, 0.45, 0.8, 1.0, 0.04});
+            TYPE_ARROW2.style = VisStyle(style[0], style[1], style[2], style[3], style[4]);
+        };
+    };
 
     class ROSVisualizer
     {
     private:
         std::string frame_id_ = "odom";
         std::string topic_name_ = "visualizer_markers";
+        ROSVisualizerConfig config_;
 
         ros::NodeHandle nh_;
         ros::Publisher marker_pub_;
@@ -152,25 +173,72 @@ namespace ros_visualizer
         void delType(const VisType &type);
         void delAll(void);
 
-        void visArrow(const Eigen::Vector3d &start, const Eigen::Vector3d &end, const VisStyle &style = TYPE_ARROW.style);
+        void visArrow(const Eigen::Vector3d &start, const Eigen::Vector3d &end, const VisStyle &style);
+        void visArrow(const Eigen::Vector3d &start, const Eigen::Vector3d &end)
+        {
+            visArrow(start, end, config_.TYPE_ARROW.style);
+        }
         void delArrow(void);
-        void visCurve(const std::vector<Eigen::Vector3d> &curve, const VisStyle &style = TYPE_CURVE.style);
+
+        void visCurve(const std::vector<Eigen::Vector3d> &curve, const VisStyle &style);
+        void visCurve(const std::vector<Eigen::Vector3d> &curve)
+        {
+            visCurve(curve, config_.TYPE_CURVE.style);
+        }
         void delCurve(void);
-        void visSphere(const Eigen::Vector3d &sphere, double radius = TYPE_SPHERE.style.x, const VisStyle &style = TYPE_SPHERE.style);
-        void visSphere(const std::vector<Eigen::Vector3d> &shperes, const VisStyle &style = TYPE_SPHERE.style);
-        void visSphere(const std::vector<Eigen::Vector3d> &shperes, double radius, const VisStyle &style = TYPE_SPHERE.style);
+
+        void visSphere(const Eigen::Vector3d &sphere, double radius, const VisStyle &style);
+        void visSphere(const Eigen::Vector3d &sphere, double radius)
+        {
+            visSphere(sphere, radius, config_.TYPE_SPHERE.style);
+        }
+        void visSphere(const Eigen::Vector3d &sphere)
+        {
+            visSphere(sphere, config_.TYPE_SPHERE.style.x);
+        }
+        void visSphere(const std::vector<Eigen::Vector3d> &shperes, double radius, const VisStyle &style);
+        void visSphere(const std::vector<Eigen::Vector3d> &shperes, double radius)
+        {
+            visSphere(shperes, radius, config_.TYPE_SPHERE.style);
+        }
+        void visSphere(const std::vector<Eigen::Vector3d> &spheres, const VisStyle &style)
+        {
+            visSphere(spheres, style.x, style);
+        }
+        void visSphere(const std::vector<Eigen::Vector3d> &shperes)
+        {
+            visSphere(shperes, config_.TYPE_SPHERE.style.x);
+        }
         void delSphere(void);
-        void visCube(const std::vector<Eigen::Vector3d> &cubes, const Eigen::Vector4d &quat = Eigen::Vector4d(1, 0, 0, 0), const VisStyle &style = TYPE_CUBE.style);
-        void visCube(const Eigen::Vector3d &cube, const Eigen::Vector4d &quat = Eigen::Vector4d(1, 0, 0, 0), const VisStyle &style = TYPE_CUBE.style);
+
+        void visCube(const std::vector<Eigen::Vector3d> &cubes, const Eigen::Vector4d &quat, const VisStyle &style);
+        void visCube(const std::vector<Eigen::Vector3d> &cubes, const Eigen::Vector4d &quat = Eigen::Vector4d(1, 0, 0, 0))
+        {
+            visCube(cubes, quat, config_.TYPE_CUBE.style);
+        }
+        void visCube(const Eigen::Vector3d &cube, const Eigen::Vector4d &quat, const VisStyle &style);
+        void visCube(const Eigen::Vector3d &cube, const Eigen::Vector4d &quat = Eigen::Vector4d(1, 0, 0, 0))
+        {
+            visCube(cube, quat, config_.TYPE_CUBE.style);
+        }
         void delCube(void);
+
         /**
          * @brief Visualize facets
          *
          * @param facet 3 points to form a facet
          * @param style
          */
-        void visFacet(const std::vector<Eigen::Vector3d> &facet, const VisStyle &style = TYPE_FACET.style);
-        void visFacet(const Eigen::MatrixX3d &facet, const VisStyle &style = TYPE_FACET.style);
+        void visFacet(const std::vector<Eigen::Vector3d> &facet, const VisStyle &style);
+        void visFacet(const std::vector<Eigen::Vector3d> &facet)
+        {
+            visFacet(facet, config_.TYPE_FACET.style);
+        }
+        void visFacet(const Eigen::MatrixX3d &facet, const VisStyle &style);
+        void visFacet(const Eigen::MatrixX3d &facet)
+        {
+            visFacet(facet, config_.TYPE_FACET.style);
+        }
         void delFacet(void);
 
         /**
@@ -179,13 +247,24 @@ namespace ros_visualizer
          * @param mesh 2 points to form a segment
          * @param style
          */
-        void visMesh(const std::vector<Eigen::Vector3d> &mesh, const VisStyle &style = TYPE_MESH.style);
-        void visMesh(const Eigen::MatrixX3d &mesh, const VisStyle &style = TYPE_MESH.style);
+        void visMesh(const std::vector<Eigen::Vector3d> &mesh, const VisStyle &style);
+        void visMesh(const std::vector<Eigen::Vector3d> &mesh)
+        {
+            visMesh(mesh, config_.TYPE_MESH.style);
+        }
+        void visMesh(const Eigen::MatrixX3d &mesh, const VisStyle &style);
+        void visMesh(const Eigen::MatrixX3d &mesh)
+        {
+            visMesh(mesh, config_.TYPE_MESH.style);
+        }
         void delMesh(void);
 
         void visTwist(const Eigen::Vector3d &pos, const Eigen::Vector3d &linear, const Eigen::Vector3d &angular,
-                      const VisStyle &linear_style = TYPE_ARROW.style,
-                      const VisStyle &angular_style = STYLE_ARROW);
+                      const VisStyle &linear_style, const VisStyle &angular_style);
+        void visTwist(const Eigen::Vector3d &pos, const Eigen::Vector3d &linear, const Eigen::Vector3d &angular)
+        {
+            visTwist(pos, linear, angular, config_.TYPE_ARROW.style, config_.TYPE_ARROW2.style);
+        }
     };
 
 } // namespace ros_visualizer

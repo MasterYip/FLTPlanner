@@ -16,11 +16,15 @@ namespace ros_visualizer
 
     ROSVisualizer::ROSVisualizer(ros::NodeHandle &nh) : nh_(nh)
     {
+        config_.loadParams(nh);
+        frame_id_ = config_.frame_id;
+        topic_name_ = config_.topic_name;
         marker_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(topic_name_, 10);
     }
 
     ROSVisualizer::ROSVisualizer(ros::NodeHandle &nh, std::string frame_id, std::string topic_name) : nh_(nh), frame_id_(frame_id), topic_name_(topic_name)
     {
+        config_.loadParams(nh);
         marker_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(topic_name_, 10);
     }
 
@@ -90,9 +94,9 @@ namespace ros_visualizer
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = TYPE_ARROW.name_space;
+        marker.ns = config_.TYPE_ARROW.name_space;
         marker.id = idUpdate(marker_group_);
-        marker.type = TYPE_ARROW.marker_type;
+        marker.type = config_.TYPE_ARROW.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
         marker.scale.x = style.x;
@@ -122,7 +126,7 @@ namespace ros_visualizer
 
     void ROSVisualizer::delArrow()
     {
-        delType(TYPE_ARROW);
+        delType(config_.TYPE_ARROW);
     }
 
     void ROSVisualizer::visCurve(const std::vector<Eigen::Vector3d> &curve, const VisStyle &style)
@@ -131,9 +135,9 @@ namespace ros_visualizer
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = TYPE_CURVE.name_space;
+        marker.ns = config_.TYPE_CURVE.name_space;
         marker.id = idUpdate(marker_group_);
-        marker.type = TYPE_CURVE.marker_type;
+        marker.type = config_.TYPE_CURVE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
         marker.scale.x = style.x;
@@ -158,7 +162,7 @@ namespace ros_visualizer
 
     void ROSVisualizer::delCurve()
     {
-        delType(TYPE_CURVE);
+        delType(config_.TYPE_CURVE);
     }
 
     void ROSVisualizer::visSphere(const Eigen::Vector3d &sphere, double radius, const VisStyle &style)
@@ -168,20 +172,15 @@ namespace ros_visualizer
         visSphere(spheres, radius, style);
     }
 
-    void ROSVisualizer::visSphere(const std::vector<Eigen::Vector3d> &spheres, const VisStyle &style)
-    {
-        visSphere(spheres, style.x, style);
-    }
-
     void ROSVisualizer::visSphere(const std::vector<Eigen::Vector3d> &spheres, double radius, const VisStyle &style)
     {
         visualization_msgs::Marker marker;
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = TYPE_SPHERE.name_space;
+        marker.ns = config_.TYPE_SPHERE.name_space;
         marker.id = idUpdate(marker_group_);
-        marker.type = TYPE_SPHERE.marker_type;
+        marker.type = config_.TYPE_SPHERE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
         marker.scale.x = radius;
@@ -208,7 +207,7 @@ namespace ros_visualizer
 
     void ROSVisualizer::delSphere()
     {
-        delType(TYPE_SPHERE);
+        delType(config_.TYPE_SPHERE);
     }
 
     // NOTE: for multiple cubes it might rotate the frame first and then draw cubes in the rotated frame
@@ -218,9 +217,9 @@ namespace ros_visualizer
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = TYPE_CUBE.name_space;
+        marker.ns = config_.TYPE_CUBE.name_space;
         marker.id = idUpdate(marker_group_);
-        marker.type = TYPE_CUBE.marker_type;
+        marker.type = config_.TYPE_CUBE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = quat(0);
         marker.pose.orientation.x = quat(1);
@@ -254,9 +253,9 @@ namespace ros_visualizer
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = TYPE_CUBE.name_space;
+        marker.ns = config_.TYPE_CUBE.name_space;
         marker.id = idUpdate(marker_group_);
-        marker.type = TYPE_CUBE.marker_type;
+        marker.type = config_.TYPE_CUBE.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.position.x = cube.x();
         marker.pose.position.y = cube.y();
@@ -281,7 +280,7 @@ namespace ros_visualizer
 
     void ROSVisualizer::delCube()
     {
-        delType(TYPE_CUBE);
+        delType(config_.TYPE_CUBE);
     }
 
     void ROSVisualizer::visFacet(const std::vector<Eigen::Vector3d> &facet, const VisStyle &style)
@@ -290,9 +289,9 @@ namespace ros_visualizer
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = TYPE_FACET.name_space;
+        marker.ns = config_.TYPE_FACET.name_space;
         marker.id = idUpdate(marker_group_);
-        marker.type = TYPE_FACET.marker_type;
+        marker.type = config_.TYPE_FACET.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
         marker.scale.x = style.x;
@@ -323,9 +322,9 @@ namespace ros_visualizer
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = TYPE_FACET.name_space;
+        marker.ns = config_.TYPE_FACET.name_space;
         marker.id = idUpdate(marker_group_);
-        marker.type = TYPE_FACET.marker_type;
+        marker.type = config_.TYPE_FACET.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
         marker.scale.x = style.x;
@@ -352,7 +351,7 @@ namespace ros_visualizer
 
     void ROSVisualizer::delFacet()
     {
-        delType(TYPE_FACET);
+        delType(config_.TYPE_FACET);
     }
 
     void ROSVisualizer::visMesh(const std::vector<Eigen::Vector3d> &mesh, const VisStyle &style)
@@ -361,9 +360,9 @@ namespace ros_visualizer
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = TYPE_MESH.name_space;
+        marker.ns = config_.TYPE_MESH.name_space;
         marker.id = idUpdate(marker_group_);
-        marker.type = TYPE_MESH.marker_type;
+        marker.type = config_.TYPE_MESH.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
         marker.scale.x = style.x;
@@ -392,9 +391,9 @@ namespace ros_visualizer
         // Populate marker fields
         marker.header.frame_id = frame_id_;
         marker.header.stamp = ros::Time::now();
-        marker.ns = TYPE_MESH.name_space;
+        marker.ns = config_.TYPE_MESH.name_space;
         marker.id = idUpdate(marker_group_);
-        marker.type = TYPE_MESH.marker_type;
+        marker.type = config_.TYPE_MESH.marker_type;
         marker.action = visualization_msgs::Marker::ADD;
         marker.pose.orientation.w = 1.0;
         marker.scale.x = style.x;
@@ -419,7 +418,7 @@ namespace ros_visualizer
 
     void ROSVisualizer::delMesh()
     {
-        delType(TYPE_MESH);
+        delType(config_.TYPE_MESH);
     }
 
     void ROSVisualizer::visTwist(const Eigen::Vector3d &pos,

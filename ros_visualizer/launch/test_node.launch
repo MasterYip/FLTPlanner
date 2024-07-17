@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <launch>
-    <node pkg="ros_visualizer" type="ros_visualizer_test_node" name="ros_visualizer_test_node" output="screen"/>
+    <node pkg="ros_visualizer" type="ros_visualizer_test_node" name="ros_visualizer_test_node" output="screen">
+        <rosparam command="load" file="$(find ros_visualizer)/config/config_theme_default.yaml"/>
+        <!-- <rosparam command="load" file="$(find ros_visualizer)/config/config_theme_blue.yaml"/> -->
+    </node>
     <node pkg="rviz" type="rviz" name="rviz_ros_visualizer" output="screen" args="-d $(find ros_visualizer)/config/rviz_config.rviz"/>
 </launch>

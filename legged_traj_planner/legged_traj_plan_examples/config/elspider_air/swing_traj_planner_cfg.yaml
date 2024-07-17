@@ -5,6 +5,8 @@ trajInit:
   hLift: 0.3
   trajTime: 20
 
+plannerID: 0
+
 misc:
   enableOptVis: true
   enableBenchmark: false
