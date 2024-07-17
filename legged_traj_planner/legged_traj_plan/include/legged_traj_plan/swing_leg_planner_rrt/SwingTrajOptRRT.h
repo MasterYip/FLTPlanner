@@ -98,7 +98,7 @@ public:
         double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
         if ((pos_vec - start_exclude_ball_).norm() > exclude_radius_ &&
             (pos_vec - end_exclude_ball_).norm() > exclude_radius_ &&
-            collball_radius_ - sdf > coll_margin_)
+            collball_radius_ > sdf - coll_margin_)
             return false;
         return true;
     }

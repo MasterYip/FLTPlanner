@@ -9,10 +9,10 @@ misc:
   enableOptVis: true
 
 RRTPlanner:
-  maxTime: 0.1
+  maxTime: 0.3
   collBallRadius: 0.03
-  excludeRadius: 0.08
-  collMargin: 0.06
+  excludeRadius: 0.08 # TODO: use exclude cylinder radius?
+  collMargin: 0.04
 
 
 optimizer:
