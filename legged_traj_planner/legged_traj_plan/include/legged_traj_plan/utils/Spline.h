@@ -208,4 +208,20 @@ public:
     {
         return params_.row(n - 1);
     }
+
+    template <typename T>
+    bool getTrajSamples(std::vector<T> &samples, int sample_num)
+    {
+        if (sample_num < 2)
+        {
+            std::cerr << "Sample number should be at least 2" << std::endl;
+            return false;
+        }
+        samples.clear();
+        for (int i = 0; i < sample_num; i++)
+        {
+            samples.emplace_back(evaluate(i * (t_range_.second - t_range_.first) / (sample_num - 1) + t_range_.first));
+        }
+        return true;
+    }
 };

@@ -51,6 +51,12 @@ private:
     SwingTrajPlannerConfig config_;
 
     // RRT
+    double collball_radius_;
+    double exclude_radius_;
+    double coll_margin_;
+
+    Eigen::Vector3d start_exclude_ball_;
+    Eigen::Vector3d end_exclude_ball_;
     std::shared_ptr<ob::RealVectorStateSpace> space_;
 
     // Visualizer
@@ -63,46 +69,46 @@ private:
     Benchmark benchmark_;
 
 public:
-    SwingTrajOptRRT(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+    SwingTrajOptRRT(SwingTrajPlannerConfig config,
+                    std::shared_ptr<ElSpiderAirInterface> robot_interface,
                     std::shared_ptr<GridMapInterface> gridmap_interface,
                     std::shared_ptr<GCSVisualizer> visualizer = nullptr,
                     bool enable_benchmark = true)
-        : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
+        : config_(config), robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
           space_(std::make_shared<ob::RealVectorStateSpace>(3)),
           visualizer_(visualizer),
           benchmark_("SwingTrajOptRRT", enable_benchmark)
     {
         if (visualizer != nullptr)
             enable_vis_ = true;
+        setupParams(config);
     };
+
+    void setupParams(SwingTrajPlannerConfig &config)
+    {
+        collball_radius_ = config.collBallRadius;
+        exclude_radius_ = config.excludeRadius;
+        coll_margin_ = config.collMargin;
+    }
 
     bool isStateValid(const ob::State *state)
     {
         const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
-        // Define some simple obstacles (e.g., circular obstacles)
-        
+        Eigen::Vector3d pos_vec(pos->values[0], pos->values[1], pos->values[2]);
+        double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
+        if ((pos_vec - start_exclude_ball_).norm() > exclude_radius_ &&
+            (pos_vec - end_exclude_ball_).norm() > exclude_radius_ &&
+            collball_radius_ - sdf > coll_margin_)
+            return false;
         return true;
     }
 
-    // /**
-    //  * @brief Setup RRTStar optimization problem
-    //  *
-    //  * @return true
-    //  * @return false
-    //  */
-    // inline bool setup(
-    //     // Conditions
-    //     const int &index,
-    //     // Params
-    //     SwingTrajPlannerConfig &config,
-    //     // Settings
-    //     const bool verbose = true) {
-    //     ob::RealVectorBounds bounds(3);
-    //     // bounds[0].setLow(-1);
-    // };
-
     inline bool optimize(UniBSpline &traj, SwingTrajPlannerConfig &config, double max_time = 0.1)
     {
+        // Setup Params
+        start_exclude_ball_ = traj.evaluate(0, 0, true);
+        end_exclude_ball_ = traj.evaluate(1, 0, true);
+
         // Set Bounds
         ob::RealVectorBounds bounds(3);
         Eigen::MatrixXd knots = traj.get();

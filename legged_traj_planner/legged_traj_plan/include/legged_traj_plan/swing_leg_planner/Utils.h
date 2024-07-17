@@ -108,7 +108,9 @@ struct SwingTrajPlannerConfig
 
     //// ID[1] RRTPlannerSettings
     double maxTime;
-
+    double collBallRadius;
+    double excludeRadius;
+    double collMargin;
 
     // Misc
     bool enableOptVis;
@@ -152,6 +154,9 @@ struct SwingTrajPlannerConfig
         nh.param("penalty/FootCollExcludeBallRad", FootCollExcludeBallRad, 0.05);
         //// ID[1] RRTPlannerSettings
         nh.param("RRTPlanner/maxTime", maxTime, 0.1);
+        nh.param("RRTPlanner/collBallRadius", collBallRadius, 0.1);
+        nh.param("RRTPlanner/excludeRadius", excludeRadius, 0.2);
+        nh.param("RRTPlanner/collMargin", collMargin, 0.1);
 
         nh.param("misc/enableOptVis", enableOptVis, false);
         nh.param("misc/enableBenchmark", enableBenchmark, false);

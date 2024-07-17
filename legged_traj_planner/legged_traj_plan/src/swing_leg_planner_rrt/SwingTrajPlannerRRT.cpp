@@ -16,12 +16,10 @@
 SwingTrajPlannerRRT::SwingTrajPlannerRRT(SwingTrajPlannerConfig config,
                                          std::shared_ptr<ElSpiderAirInterface> robot_interface,
                                          std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
-                                                                                                swing_traj_opt_(robot_interface_, gridmap_interface_,
+                                                                                                swing_traj_opt_(config, robot_interface_, gridmap_interface_,
                                                                                                                 nullptr, config.enableBenchmark)
 {
-    // visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_rrt_vis");
-    // if (config_.enableOptVis)
-    //     swing_traj_opt_.setVisualizer(visualizer_);
+    visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_rrt_vis");
 }
 
 std::shared_ptr<TrajectoryBase> SwingTrajPlannerRRT::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
@@ -45,6 +43,11 @@ bool SwingTrajPlannerRRT::optTraj(std::shared_ptr<TrajectoryBase> &traj,
         return true;
     std::shared_ptr<UniBSpline> unib_traj = std::dynamic_pointer_cast<UniBSpline>(traj);
     bool ret = swing_traj_opt_.optimize(*unib_traj, config_, 0.1);
-
+    if (config_.enableOptVis)
+    {
+        std::vector<Eigen::Vector3d> traj_points;
+        unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
+        visualizer_->visCurve(traj_points);
+    }
     return ret;
 }

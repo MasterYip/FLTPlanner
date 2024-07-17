@@ -43,6 +43,7 @@ public:
         throw std::runtime_error("Not implemented");
         return Eigen::VectorXd::Zero(3);
     }
+    
 };
 
 

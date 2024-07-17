@@ -10,6 +10,10 @@ misc:
 
 RRTPlanner:
   maxTime: 0.1
+  collBallRadius: 0.03
+  excludeRadius: 0.08
+  collMargin: 0.06
+
 
 optimizer:
   enableOptimizer: true
