@@ -8,3 +8,7 @@
 [submodule "legged_traj_planner/third_party/LeggedKinModule"]
 	path = legged_traj_planner/third_party/LeggedKinModule
 	url = https://github.com/MasterYip/LeggedKinModule
+[submodule "ros_visualizer"]
+	path = ros_visualizer
+	url = https://github.com/MasterYip/ros_visualizer
+	branch = master
