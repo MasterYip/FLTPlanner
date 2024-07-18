@@ -40,7 +40,7 @@ private:
     std::unique_ptr<grid_map::SignedDistanceField> sdf_[2];
     std::pair<Eigen::Vector3d, Eigen::Vector3d> sdf_range_[2];
 
-    std::string filterChainParametersName_; 
+    std::string filterChainParametersName_;
     filters::FilterChain<grid_map::GridMap> filter_chain_;
 
     std::string ground_layer;
@@ -53,7 +53,15 @@ private:
     std::atomic<bool> map_update_lock_{false};
     bool map_recv_flag_ = false;
 
+    //// Debug
+    // TravMap publisher
     ros::Publisher pub_;
+    // Pointcloud publisher.
+    ros::Publisher pointcloudPublisher_;
+    // Free space publisher.
+    ros::Publisher freespacePublisher_;
+    // Occupied space publisher.
+    ros::Publisher occupiedPublisher_;
 
 public:
     GridMapInterface(ros::NodeHandle &nh,

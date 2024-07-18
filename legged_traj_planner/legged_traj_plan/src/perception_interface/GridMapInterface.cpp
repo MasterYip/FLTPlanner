@@ -11,6 +11,10 @@
 
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 
+#include <sensor_msgs/PointCloud2.h>
+#include <grid_map_ros/GridMapRosConverter.hpp>
+#include <grid_map_sdf/SignedDistanceField.hpp>
+
 GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
                                    std::string topic_name,
                                    std::string ground_layer_name,
@@ -21,6 +25,9 @@ GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
 {
     sub_ = nh_.subscribe(topic_name, 1, &GridMapInterface::callback, this);
     pub_ = nh_.advertise<grid_map_msgs::GridMap>("grid_map_trav_test", 1, true);
+    pointcloudPublisher_ = nh_.advertise<sensor_msgs::PointCloud2>("sdf/full_sdf", 1);
+    freespacePublisher_ = nh_.advertise<sensor_msgs::PointCloud2>("sdf/free_space", 1);
+    occupiedPublisher_ = nh_.advertise<sensor_msgs::PointCloud2>("sdf/occupied_space", 1);
     map_.setFrameId("map");
     ground_layer_trav = ground_layer + "_trav";
 
@@ -62,22 +69,28 @@ void GridMapInterface::update(bool block, double sdf_margin)
     }
     updateSDF(ground_layer, 0, sdf_margin);
     updateTravMap();
+    if (map_.exists(ceiling_layer))
+    {
+        updateSDF(ceiling_layer, 1, sdf_margin);
+    }
 
-    // FIXME: disabled for performance reasons
-    // if (!filter_chain_.update(map_, map_))
-    // {
-    //     ROS_ERROR("Could not update the grid map filter chain!");
-    // }
-
+    //// Debug
     // TravMap Visualization
     grid_map_msgs::GridMap message;
     grid_map::GridMapRosConverter::toMessage(map_, message);
     pub_.publish(message);
 
-    if (map_.exists(ceiling_layer))
-    {
-        updateSDF(ceiling_layer, 1, sdf_margin);
-    }
+    // SDF
+    sensor_msgs::PointCloud2 pointCloud2Msg;
+    grid_map::GridMapRosConverter::toPointCloud(*sdf_[0], pointCloud2Msg);
+    pointcloudPublisher_.publish(pointCloud2Msg);
+    grid_map::GridMapRosConverter::toPointCloud(*sdf_[0], pointCloud2Msg, 1, [](float sdfValue)
+                                                { return sdfValue > 0.0; });
+    freespacePublisher_.publish(pointCloud2Msg);
+    grid_map::GridMapRosConverter::toPointCloud(*sdf_[0], pointCloud2Msg, 1, [](float sdfValue)
+                                                { return sdfValue <= 0.0; });
+    occupiedPublisher_.publish(pointCloud2Msg);
+
 }
 
 void GridMapInterface::updateTorsoRef(void)
