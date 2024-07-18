@@ -31,7 +31,14 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlannerRRT::getInitTraj(pinocchio::SE3 
     knots.row(0) = p0;
     knots.row(1) = (p0 + p1) / 2 + Eigen::Vector3d(0, 0, h_lift);
     knots.row(2) = p1;
-    return std::make_shared<UniBSpline>(knots);
+    std::shared_ptr<UniBSpline> unib_traj = std::make_shared<UniBSpline>(knots);
+    if (config_.enableOptVis)
+    {
+        std::vector<Eigen::Vector3d> traj_points;
+        unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
+        visualizer_->visCurve(traj_points);
+    }
+    return unib_traj;
 }
 
 bool SwingTrajPlannerRRT::optTraj(std::shared_ptr<TrajectoryBase> &traj,
@@ -43,11 +50,11 @@ bool SwingTrajPlannerRRT::optTraj(std::shared_ptr<TrajectoryBase> &traj,
         return true;
     std::shared_ptr<UniBSpline> unib_traj = std::dynamic_pointer_cast<UniBSpline>(traj);
     bool ret = swing_traj_opt_.optimize(*unib_traj, config_, 0.1);
-    if (config_.enableOptVis)
+    if (config_.enableOptVis && ret)
     {
         std::vector<Eigen::Vector3d> traj_points;
         unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
-        visualizer_->visCurve(traj_points);
+        visualizer_->visCurve(traj_points, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
     }
     return ret;
 }

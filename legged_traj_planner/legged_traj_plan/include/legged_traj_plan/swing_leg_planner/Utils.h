@@ -120,40 +120,47 @@ struct SwingTrajPlannerConfig
     void loadParams(ros::NodeHandle &nh)
     {
         bool check_digit = true;
+        check_digit *= nh.getParam("plannerID", plannerID);
+
         check_digit *= nh.getParam("trajInit/vLift", vLift);
         check_digit *= nh.getParam("trajInit/hLift", hLift);
         check_digit *= nh.getParam("trajInit/trajTime", trajTime);
 
-        check_digit *= nh.getParam("plannerID", plannerID);
+        check_digit *= nh.getParam("misc/enableOptimizer", enableOptimizer);
+        check_digit *= nh.getParam("misc/useCfgSpace", useCfgSpace);
+        check_digit *= nh.getParam("misc/enableOptVis", enableOptVis);
+        check_digit *= nh.getParam("misc/enableBenchmark", enableBenchmark);
+        check_digit *= nh.getParam("misc/benchmarkSavePath", benchmarkSavePath);
+        check_digit *= nh.getParam("misc/robotProfilePath", robotProfilePath);
+
+
         //// ID[0] LFTPlannerSettings
         if (plannerID == 0)
         {
-            check_digit *= nh.getParam("optimizer/enableOptimizer", enableOptimizer);
-            check_digit *= nh.getParam("optimizer/useCfgSpace", useCfgSpace);
-            check_digit *= nh.getParam("optimizer/lengthPerPiece", lengthPerPiece);
-            check_digit *= nh.getParam("optimizer/allocSpeed", allocSpeed);
-            check_digit *= nh.getParam("optimizer/relCostTol", relCostTol);
-            check_digit *= nh.getParam("optimizer/smoothingFactor", smoothingFactor);
-            check_digit *= nh.getParam("optimizer/integralResolution", integralResolution);
-            check_digit *= nh.getParam("penalty/timeWeight", timeWeight);
-            check_digit *= nh.getParam("penalty/joint1PosMin", joint1PosMin);
-            check_digit *= nh.getParam("penalty/joint1PosMax", joint1PosMax);
-            check_digit *= nh.getParam("penalty/joint2PosMin", joint2PosMin);
-            check_digit *= nh.getParam("penalty/joint2PosMax", joint2PosMax);
-            check_digit *= nh.getParam("penalty/joint3PosMin", joint3PosMin);
-            check_digit *= nh.getParam("penalty/joint3PosMax", joint3PosMax);
-            check_digit *= nh.getParam("penalty/jointMaxVel", jointMaxVel);
-            check_digit *= nh.getParam("penalty/jointMaxAcc", jointMaxAcc);
-            check_digit *= nh.getParam("penalty/jointPosWeight", jointPosWeight);
-            check_digit *= nh.getParam("penalty/jointVelWeight", jointVelWeight);
-            check_digit *= nh.getParam("penalty/jointAccWeight", jointAccWeight);
-            check_digit *= nh.getParam("penalty/CollBall1Rad", CollBall1Rad);
-            check_digit *= nh.getParam("penalty/CollBall2Rad", CollBall2Rad);
-            check_digit *= nh.getParam("penalty/CollBall3Rad", CollBall3Rad);
-            check_digit *= nh.getParam("penalty/CollBall1Weight", CollBall1Weight);
-            check_digit *= nh.getParam("penalty/CollBall2Weight", CollBall2Weight);
-            check_digit *= nh.getParam("penalty/CollBall3Weight", CollBall3Weight);
-            check_digit *= nh.getParam("penalty/FootCollExcludeBallRad", FootCollExcludeBallRad);
+            check_digit *= nh.getParam("LFTPlanner/optimizer/lengthPerPiece", lengthPerPiece);
+            check_digit *= nh.getParam("LFTPlanner/optimizer/allocSpeed", allocSpeed);
+            check_digit *= nh.getParam("LFTPlanner/optimizer/relCostTol", relCostTol);
+            check_digit *= nh.getParam("LFTPlanner/optimizer/smoothingFactor", smoothingFactor);
+            check_digit *= nh.getParam("LFTPlanner/optimizer/integralResolution", integralResolution);
+            check_digit *= nh.getParam("LFTPlanner/penalty/timeWeight", timeWeight);
+            check_digit *= nh.getParam("LFTPlanner/penalty/joint1PosMin", joint1PosMin);
+            check_digit *= nh.getParam("LFTPlanner/penalty/joint1PosMax", joint1PosMax);
+            check_digit *= nh.getParam("LFTPlanner/penalty/joint2PosMin", joint2PosMin);
+            check_digit *= nh.getParam("LFTPlanner/penalty/joint2PosMax", joint2PosMax);
+            check_digit *= nh.getParam("LFTPlanner/penalty/joint3PosMin", joint3PosMin);
+            check_digit *= nh.getParam("LFTPlanner/penalty/joint3PosMax", joint3PosMax);
+            check_digit *= nh.getParam("LFTPlanner/penalty/jointMaxVel", jointMaxVel);
+            check_digit *= nh.getParam("LFTPlanner/penalty/jointMaxAcc", jointMaxAcc);
+            check_digit *= nh.getParam("LFTPlanner/penalty/jointPosWeight", jointPosWeight);
+            check_digit *= nh.getParam("LFTPlanner/penalty/jointVelWeight", jointVelWeight);
+            check_digit *= nh.getParam("LFTPlanner/penalty/jointAccWeight", jointAccWeight);
+            check_digit *= nh.getParam("LFTPlanner/penalty/CollBall1Rad", CollBall1Rad);
+            check_digit *= nh.getParam("LFTPlanner/penalty/CollBall2Rad", CollBall2Rad);
+            check_digit *= nh.getParam("LFTPlanner/penalty/CollBall3Rad", CollBall3Rad);
+            check_digit *= nh.getParam("LFTPlanner/penalty/CollBall1Weight", CollBall1Weight);
+            check_digit *= nh.getParam("LFTPlanner/penalty/CollBall2Weight", CollBall2Weight);
+            check_digit *= nh.getParam("LFTPlanner/penalty/CollBall3Weight", CollBall3Weight);
+            check_digit *= nh.getParam("LFTPlanner/penalty/FootCollExcludeBallRad", FootCollExcludeBallRad);
         }
         //// ID[1] RRTPlannerSettings
         else if (plannerID == 1)
@@ -163,11 +170,6 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("RRTPlanner/excludeRadius", excludeRadius);
             check_digit *= nh.getParam("RRTPlanner/collMargin", collMargin);
         }
-
-        check_digit *= nh.getParam("misc/enableOptVis", enableOptVis);
-        check_digit *= nh.getParam("misc/enableBenchmark", enableBenchmark);
-        check_digit *= nh.getParam("misc/benchmarkSavePath", benchmarkSavePath);
-        check_digit *= nh.getParam("misc/robotProfilePath", robotProfilePath);
 
         if (!check_digit)
         {
