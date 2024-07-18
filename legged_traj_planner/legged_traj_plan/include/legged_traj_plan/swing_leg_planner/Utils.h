@@ -21,10 +21,9 @@
 #include <ros/ros.h>
 /* internal project header files */
 
-
 /**
  * @brief Smoothed approximation of max(x, 0)
- * 
+ *
  * @param[in] x input value
  * @param[in] mu polishment factor
  * @param[out] f output value
@@ -66,7 +65,7 @@ struct SwingTrajPlannerConfig
     double trajTime;
 
     // Planner Select
-    int plannerID; 
+    int plannerID;
     // 0: LFTPlanner (TaskSpace & CfgSpace)
     // 1: RRTPlanner (TaskSpace)
 
@@ -120,47 +119,60 @@ struct SwingTrajPlannerConfig
 
     void loadParams(ros::NodeHandle &nh)
     {
-        nh.param("trajInit/vLift", vLift, 0.2);
-        nh.param("trajInit/hLift", hLift, 0.1);
-        nh.param("trajInit/trajTime", trajTime, 1.0);
+        bool check_digit = true;
+        check_digit *= nh.getParam("trajInit/vLift", vLift);
+        check_digit *= nh.getParam("trajInit/hLift", hLift);
+        check_digit *= nh.getParam("trajInit/trajTime", trajTime);
 
-        nh.param("plannerID", plannerID, 0);
+        check_digit *= nh.getParam("plannerID", plannerID);
         //// ID[0] LFTPlannerSettings
-        nh.param("optimizer/enableOptimizer", enableOptimizer, true);
-        nh.param("optimizer/useCfgSpace", useCfgSpace, true);
-        nh.param("optimizer/lengthPerPiece", lengthPerPiece, 0.6);
-        nh.param("optimizer/allocSpeed", allocSpeed, 1.0);
-        nh.param("optimizer/relCostTol", relCostTol, 1.0e-2);
-        nh.param("optimizer/smoothingFactor", smoothingFactor, 1.0e-2);
-        nh.param("optimizer/integralResolution", integralResolution, 16);
-        nh.param("penalty/timeWeight", timeWeight, 0.00005);
-        nh.param("penalty/joint1PosMin", joint1PosMin, -0.785);
-        nh.param("penalty/joint1PosMax", joint1PosMax, 0.785);
-        nh.param("penalty/joint2PosMin", joint2PosMin, -0.5233);
-        nh.param("penalty/joint2PosMax", joint2PosMax, 3.14);
-        nh.param("penalty/joint3PosMin", joint3PosMin, -0.6978);
-        nh.param("penalty/joint3PosMax", joint3PosMax, 3.925);
-        nh.param("penalty/jointMaxVel", jointMaxVel, 5.0);
-        nh.param("penalty/jointMaxAcc", jointMaxAcc, 10.0);
-        nh.param("penalty/jointPosWeight", jointPosWeight, 0.4);
-        nh.param("penalty/jointVelWeight", jointVelWeight, 0.1);
-        nh.param("penalty/jointAccWeight", jointAccWeight, 0.1);
-        nh.param("penalty/CollBall1Rad", CollBall1Rad, 0.12);
-        nh.param("penalty/CollBall2Rad", CollBall2Rad, 0.12);
-        nh.param("penalty/CollBall3Rad", CollBall3Rad, 0.03);
-        nh.param("penalty/CollBall1Weight", CollBall1Weight, 0.0);
-        nh.param("penalty/CollBall2Weight", CollBall2Weight, 0.0);
-        nh.param("penalty/CollBall3Weight", CollBall3Weight, 0.05);
-        nh.param("penalty/FootCollExcludeBallRad", FootCollExcludeBallRad, 0.05);
+        if (plannerID == 0)
+        {
+            check_digit *= nh.getParam("optimizer/enableOptimizer", enableOptimizer);
+            check_digit *= nh.getParam("optimizer/useCfgSpace", useCfgSpace);
+            check_digit *= nh.getParam("optimizer/lengthPerPiece", lengthPerPiece);
+            check_digit *= nh.getParam("optimizer/allocSpeed", allocSpeed);
+            check_digit *= nh.getParam("optimizer/relCostTol", relCostTol);
+            check_digit *= nh.getParam("optimizer/smoothingFactor", smoothingFactor);
+            check_digit *= nh.getParam("optimizer/integralResolution", integralResolution);
+            check_digit *= nh.getParam("penalty/timeWeight", timeWeight);
+            check_digit *= nh.getParam("penalty/joint1PosMin", joint1PosMin);
+            check_digit *= nh.getParam("penalty/joint1PosMax", joint1PosMax);
+            check_digit *= nh.getParam("penalty/joint2PosMin", joint2PosMin);
+            check_digit *= nh.getParam("penalty/joint2PosMax", joint2PosMax);
+            check_digit *= nh.getParam("penalty/joint3PosMin", joint3PosMin);
+            check_digit *= nh.getParam("penalty/joint3PosMax", joint3PosMax);
+            check_digit *= nh.getParam("penalty/jointMaxVel", jointMaxVel);
+            check_digit *= nh.getParam("penalty/jointMaxAcc", jointMaxAcc);
+            check_digit *= nh.getParam("penalty/jointPosWeight", jointPosWeight);
+            check_digit *= nh.getParam("penalty/jointVelWeight", jointVelWeight);
+            check_digit *= nh.getParam("penalty/jointAccWeight", jointAccWeight);
+            check_digit *= nh.getParam("penalty/CollBall1Rad", CollBall1Rad);
+            check_digit *= nh.getParam("penalty/CollBall2Rad", CollBall2Rad);
+            check_digit *= nh.getParam("penalty/CollBall3Rad", CollBall3Rad);
+            check_digit *= nh.getParam("penalty/CollBall1Weight", CollBall1Weight);
+            check_digit *= nh.getParam("penalty/CollBall2Weight", CollBall2Weight);
+            check_digit *= nh.getParam("penalty/CollBall3Weight", CollBall3Weight);
+            check_digit *= nh.getParam("penalty/FootCollExcludeBallRad", FootCollExcludeBallRad);
+        }
         //// ID[1] RRTPlannerSettings
-        nh.param("RRTPlanner/maxTime", maxTime, 0.1);
-        nh.param("RRTPlanner/collBallRadius", collBallRadius, 0.1);
-        nh.param("RRTPlanner/excludeRadius", excludeRadius, 0.2);
-        nh.param("RRTPlanner/collMargin", collMargin, 0.1);
+        else if (plannerID == 1)
+        {
+            check_digit *= nh.getParam("RRTPlanner/maxTime", maxTime);
+            check_digit *= nh.getParam("RRTPlanner/collBallRadius", collBallRadius);
+            check_digit *= nh.getParam("RRTPlanner/excludeRadius", excludeRadius);
+            check_digit *= nh.getParam("RRTPlanner/collMargin", collMargin);
+        }
 
-        nh.param("misc/enableOptVis", enableOptVis, false);
-        nh.param("misc/enableBenchmark", enableBenchmark, false);
-        nh.param("misc/benchmarkSavePath", benchmarkSavePath, std::string(""));
-        nh.param("misc/robotProfilePath", robotProfilePath, std::string(""));
+        check_digit *= nh.getParam("misc/enableOptVis", enableOptVis);
+        check_digit *= nh.getParam("misc/enableBenchmark", enableBenchmark);
+        check_digit *= nh.getParam("misc/benchmarkSavePath", benchmarkSavePath);
+        check_digit *= nh.getParam("misc/robotProfilePath", robotProfilePath);
+
+        if (!check_digit)
+        {
+            ROS_ERROR("Not all parameters loaded successfully!");
+            throw std::exception();
+        }
     }
 };

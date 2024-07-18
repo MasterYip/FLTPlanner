@@ -3,8 +3,14 @@ trajInit:
   hLift: 0.15
   trajTime: 3 # Only affect init trajectory
 
+plannerID: 0
+
 misc:
   enableOptVis: true
+  enableBenchmark: false
+  # Benchmark result save path
+  benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/optBenchmark2.csv
+  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 optimizer:
   enableOptimizer: true
