@@ -39,9 +39,21 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-// class RRT_SearchSpace
-// {
-// };
+/**
+ * @brief Check if a point is in the exclude cylinder
+ *
+ * @note The exclude cylinder is defined by a center and a radius,
+ * the top height is infinite, the bottom height is at the center height minus the radius
+ * @param pos
+ * @param center
+ * @param radius
+ * @return true
+ * @return false
+ */
+inline bool inExcludeCylinder(const Eigen::Vector3d &pos, const Eigen::Vector3d &center, double radius)
+{
+    return (pos.head(2) - center.head(2)).norm() < radius && pos(2) > center(2) - radius;
+}
 
 class SwingTrajOptRRT
 {
@@ -55,8 +67,8 @@ private:
     double exclude_radius_;
     double coll_margin_;
 
-    Eigen::Vector3d start_exclude_ball_;
-    Eigen::Vector3d end_exclude_ball_;
+    Eigen::Vector3d start_exclude_cylinder_;
+    Eigen::Vector3d end_exclude_cylinder_;
     std::shared_ptr<ob::RealVectorStateSpace> space_;
 
     // Visualizer
@@ -96,8 +108,8 @@ public:
         const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
         Eigen::Vector3d pos_vec(pos->values[0], pos->values[1], pos->values[2]);
         double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
-        if ((pos_vec - start_exclude_ball_).norm() > exclude_radius_ &&
-            (pos_vec - end_exclude_ball_).norm() > exclude_radius_ &&
+        if (!inExcludeCylinder(pos_vec, start_exclude_cylinder_, exclude_radius_) &&
+            !inExcludeCylinder(pos_vec, end_exclude_cylinder_, exclude_radius_) &&
             collball_radius_ > sdf - coll_margin_)
             return false;
         return true;
@@ -106,8 +118,8 @@ public:
     inline bool optimize(UniBSpline &traj, SwingTrajPlannerConfig &config, double max_time = 0.1)
     {
         // Setup Params
-        start_exclude_ball_ = traj.evaluate(0, 0, true);
-        end_exclude_ball_ = traj.evaluate(1, 0, true);
+        start_exclude_cylinder_ = traj.evaluate(0, 0, true);
+        end_exclude_cylinder_ = traj.evaluate(1, 0, true);
 
         // Set Bounds
         ob::RealVectorBounds bounds(3);
