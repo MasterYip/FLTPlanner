@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /swing_traj_planner_vis1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -491,7 +492,7 @@ Visualization Manager:
       Color: 245; 121; 0
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -506,7 +507,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /visualizer_markers
@@ -520,8 +521,13 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: swing_traj_planner_vis
       Namespaces:
-        {}
-      Queue Size: 100
+        arrow: true
+        cube: true
+        curve: true
+        facet: true
+        mesh: true
+        sphere: true
+      Queue Size: 1
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -575,7 +581,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 2.47446346282959
+      Distance: 1.0843759775161743
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -583,17 +589,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -1.5077937841415405
-        Y: -0.345926433801651
+        X: 1.4232696294784546
+        Y: -0.5496060252189636
         Z: 0.031005337834358215
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2047971934080124
+      Pitch: 0.2197972536087036
       Target Frame: <Fixed Frame>
-      Yaw: 4.496362209320068
+      Yaw: 5.206363201141357
     Saved: ~
 Window Geometry:
   Displays:

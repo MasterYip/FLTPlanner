@@ -145,9 +145,9 @@ joystick_type:=PS5 \
 gazebo_hang_up:=on_ground \
 interface_type:=hardware
 # Terminal2: start Planner & elevation mapping
-roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=false
+roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=false use_optitrack:=true
 #or
-roslaunch legged_traj_plan_examples elspider_air_vmc_planner.launch sim:=false
+roslaunch legged_traj_plan_examples elspider_air_vmc_planner.launch sim:=false use_optitrack:=true
 #or
 roslaunch legged_traj_plan_examples elspider_air_raibert_vmc_planner.launch sim:=false
 #or

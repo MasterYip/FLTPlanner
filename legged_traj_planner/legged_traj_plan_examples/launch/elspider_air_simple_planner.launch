@@ -8,6 +8,8 @@
     <arg name="teleop_type" default="keyboard" />
     <!-- TrajRepresentation -->
     <arg name="use_cfg_space" default="true" />
+    <!-- Optitrack -->
+    <arg name="use_optitrack" default="true" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="false" />
     <!-- GridMap -->
@@ -69,9 +71,12 @@
             <arg name="robot_name" value="elspider_air" />
             <arg name="controller_type" value="hlc" />
         </include> -->
+        <!-- Vrpn Client ROS -->
+        <include file="$(find vrpn_client_ros)/launch/sample.launch" if="$(eval use_optitrack == 1)"/>
         <!-- HexapodElevationMapping -->
         <include file="$(find hexapod_elevation_mapping)/launch/elspider_air_mapping.launch">
-            <arg name="module_name" value="HexPercept3" />
+            <arg name="module_name" value="HexPercept3_optitrack" if="$(eval use_optitrack == 1)"/>
+            <arg name="module_name" value="HexPercept3" if="$(eval use_optitrack == 0)"/>
             <arg name="sim" value="$(arg sim)" />
             <arg name="elevation_map_raw_topic_name" value="$(arg grid_map_topic)" />
             <arg name="rviz_gui" value="false" />
