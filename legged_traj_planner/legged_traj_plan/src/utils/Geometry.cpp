@@ -1,5 +1,13 @@
 #include "legged_traj_plan/utils/Geometry.h"
 
+/**
+ * @brief Pose linear interpolation
+ * 
+ * @param pose0 
+ * @param pose1 
+ * @param t [0, 1]
+ * @return pinocchio::SE3 
+ */
 pinocchio::SE3 poseLinearInterp(pinocchio::SE3 pose0, pinocchio::SE3 pose1, double t)
 {
     pinocchio::Motion err = pinocchio::log6(pose0.actInv(pose1));

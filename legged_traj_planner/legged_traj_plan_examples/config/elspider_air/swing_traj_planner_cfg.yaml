@@ -4,7 +4,7 @@ trajInit:
   # perpendicular to the ground (avoid collision detection)
   vLift: 0.018 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
-  hLift: 0.3
+  hLift: 0.1
   trajTime: 20
 
 misc:
@@ -20,7 +20,7 @@ misc:
 
 LFTPlanner:
   optimizer:
-    lengthPerPiece: 0.4 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+    lengthPerPiece: 0.6 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.02 # NOTE: crucial for optimization 
     relCostTol: 1.0e-4
     smoothingFactor: 1.0e-2
