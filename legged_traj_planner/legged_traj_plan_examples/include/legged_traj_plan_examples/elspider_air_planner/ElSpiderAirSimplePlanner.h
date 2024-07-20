@@ -245,6 +245,9 @@ public:
         // Start planning
         if ((recv_foot_state_ && recv_body_state_) || fake_estimation_)
         {
+            // SwingTraj Vis Clear
+            whole_body_planner_.visClear();
+
             update_exp_path();
             update_robot_state();
             gridmap_interface_->lockMapUpdate();

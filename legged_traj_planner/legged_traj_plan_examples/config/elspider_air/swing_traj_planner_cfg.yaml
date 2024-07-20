@@ -20,7 +20,7 @@ misc:
 
 LFTPlanner:
   optimizer:
-    lengthPerPiece: 0.6 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+    lengthPerPiece: 0.4 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.02 # NOTE: crucial for optimization 
     relCostTol: 1.0e-4
     smoothingFactor: 1.0e-2
@@ -44,4 +44,4 @@ LFTPlanner:
     CollBall1Weight: 0.0
     CollBall2Weight: 2.0
     CollBall3Weight: 2.0
-    FootCollExcludeBallRad: 0.06
+    FootCollExcludeBallRad: 0.08

@@ -70,7 +70,7 @@ public:
                      std::string ceiling_layer_name = "ceiling");
 
     void callback(const grid_map_msgs::GridMap &msg);
-    void update(bool block = true, double sdf_margin = 0.8); // FIXME: this should larger than robot height?
+    void update(bool block = true, double sdf_margin = 0.3); // FIXME: this should larger than robot height?
     void updateTorsoRef(void);
     void updateTravMap(void);
     void updateSDF(const std::string &layer_name, uint index = 0, double margin = 0.2);

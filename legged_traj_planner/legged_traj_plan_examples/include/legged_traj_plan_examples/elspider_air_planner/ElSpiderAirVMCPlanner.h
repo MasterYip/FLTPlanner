@@ -524,7 +524,7 @@ public:
     void traj_planner()
     {
         double t = 0.0;
-        double delta = 0.025;
+        double delta = 0.02;
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
         state_traj_replay(state_traj);
         std::cout << "Press space to execute trajectory...";
@@ -540,8 +540,8 @@ public:
             rate_.sleep();
             if (t > 1.0)
             {
-                // Publish last state point
-                pub_vmc_exp_state(state_traj, 1);
+                // Publish last state point (commented out due to foot contact detection)
+                // pub_vmc_exp_state(state_traj, 1);
                 t = 0.0;
                 whole_body_planner_.dequeue_MCTsolution();
                 if (whole_body_planner_.get_state_traj_length() > 0)
