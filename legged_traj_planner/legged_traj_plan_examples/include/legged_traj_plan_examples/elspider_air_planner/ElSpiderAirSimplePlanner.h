@@ -120,7 +120,7 @@ void randomizeRobotState(MDT::RobotState &state_, double noise_amp = 0.1)
     state_.moveDirection += (rand() % 200 - 100) / 100.0 * noise_amp;
 }
 
-MDT::RobotState getInitState(MDT::Pose robotPose = {1, 0, USER::norminalTrunkHeight, 0, 0, 0 * _PI_ / 6},
+MDT::RobotState getInitState(MDT::Pose robotPose = {0, 0, USER::norminalTrunkHeight, 0, 0, 0 * _PI_ / 6},
                              float moveDir = 0)
 {
     MDT::Vector6b gaitToNow;

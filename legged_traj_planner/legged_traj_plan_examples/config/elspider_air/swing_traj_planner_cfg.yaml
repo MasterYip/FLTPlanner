@@ -2,7 +2,7 @@ plannerID: 0
 
 trajInit:
   # perpendicular to the ground (avoid collision detection)
-  vLift: 0.018 # For trajopt
+  vLift: 0.020 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
   hLift: 0.1
   trajTime: 20
@@ -40,8 +40,8 @@ LFTPlanner:
     jointAccWeight: 0.1
     CollBall1Rad: 0.06
     CollBall2Rad: 0.06
-    CollBall3Rad: 0.07
+    CollBall3Rad: 0.05
     CollBall1Weight: 0.0
     CollBall2Weight: 2.0
     CollBall3Weight: 2.0
-    FootCollExcludeBallRad: 0.07
+    FootCollExcludeBallRad: 0.06
