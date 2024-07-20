@@ -267,15 +267,14 @@ public:
             // visualizer_.visSphere(pts, 0.01);
 
             // Vis next foothold
-            // visualizer_.delAll();
-            // auto hexapod_state = transRobotState(next_planned_state_);
-            // for (int i=0; i<6; i++)
-            // {
-            //     Eigen::Vector3d pt = {hexapod_state.feetPositionNow.foot[i].x, hexapod_state.feetPositionNow.foot[i].y, hexapod_state.feetPositionNow.foot[i].z};
-            //     visualizer_.visSphere(pt, 0.02);
-            // }
+            visualizer_.delAll();
+            auto hexapod_state = transRobotState(next_planned_state_);
+            for (int i = 0; i < 6; i++)
+            {
+                Eigen::Vector3d pt = {hexapod_state.feetPositionNow.foot[i].x, hexapod_state.feetPositionNow.foot[i].y, hexapod_state.feetPositionNow.foot[i].z};
+                visualizer_.visSphere(pt, 0.02);
+            }
 
-            
             gridmap_interface_->unlockMapUpdate();
             if (ret)
             {
@@ -447,7 +446,7 @@ public:
         exp_foot_state_.header.stamp = ros::Time::now();
         for (size_t k = 0; k < 6; ++k)
         {
-            if (!is_contact(k, 10.0) || !check_contact) // for swing leg, if already in contact, the skip
+            if (!(check_contact && is_contact(k, 0.2) && !support_state[k])) // for swing leg, if already in contact, then skip
             {
                 geometry_msgs::Point pt;
                 pt.x = footend_interp[k][0];
@@ -472,9 +471,8 @@ public:
             footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
         }
         // VMC exp state
-        // FIXME: add coll detection will lead to traj interupt
-        // pub_exp_footstate(footend_interp, support_state, t > 0.5);
-        pub_exp_footstate(footend_interp, support_state, false);
+        pub_exp_footstate(footend_interp, support_state, t > 0.5);
+        // pub_exp_footstate(footend_interp, support_state, false);
         pub_exp_pose(odom_interp, geometry_msgs::Twist());
     }
 
