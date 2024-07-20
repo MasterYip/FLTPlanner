@@ -135,12 +135,24 @@ void GridMapInterface::updateSDF(const std::string &layer_name, uint index, doub
 {
     try
     {
-        auto &elevationData = map_.get(layer_name);
+        // Whole map (SDF seems not accurate)
+        // auto &elevationData = map_.get(layer_name);
+        // const double minValue{elevationData.minCoeffOfFinites() - margin};
+        // const double maxValue{elevationData.maxCoeffOfFinites() + margin};
+        // grid_map::SignedDistanceField sdf_temp(map_, layer_name, minValue, maxValue);
+        // sdf_range_[index] = std::make_pair(Eigen::Vector3d(0, 0, minValue),
+        //                                    Eigen::Vector3d(map_.getLength().x(), map_.getLength().y(), maxValue));
+        // sdf_[index] = std::make_unique<grid_map::SignedDistanceField>(sdf_temp);
+
+        // Sub map
+        bool ret = false;
+        grid_map::GridMap submap = map_.getSubmap(map_.getPosition(), map_.getLength() * 0.8, ret);
+        auto &elevationData = submap.get(layer_name);
         const double minValue{elevationData.minCoeffOfFinites() - margin};
         const double maxValue{elevationData.maxCoeffOfFinites() + margin};
-        grid_map::SignedDistanceField sdf_temp(map_, layer_name, minValue, maxValue);
+        grid_map::SignedDistanceField sdf_temp(submap, layer_name, minValue, maxValue);
         sdf_range_[index] = std::make_pair(Eigen::Vector3d(0, 0, minValue),
-                                           Eigen::Vector3d(map_.getLength().x(), map_.getLength().y(), maxValue));
+                                           Eigen::Vector3d(submap.getLength().x(), submap.getLength().y(), maxValue));
         sdf_[index] = std::make_unique<grid_map::SignedDistanceField>(sdf_temp);
     }
     catch (const std::out_of_range &e)
