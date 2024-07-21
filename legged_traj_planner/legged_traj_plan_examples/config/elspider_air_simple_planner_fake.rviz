@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /TravMap1/Status1
       Splitter Ratio: 0.49772727489471436
     Tree Height: 651
   - Class: rviz/Selection
@@ -25,7 +26,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: SDF
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -299,7 +300,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /sdf_pointcloud/occupied_space
+      Topic: /elspider_air_simple_planner/sdf/occupied_space
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -317,12 +318,38 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
       Namespaces:
+        arrow: true
+        cube: true
         curve: true
         facet: true
         mesh: true
         sphere: true
       Queue Size: 1
       Value: true
+    - Alpha: 0.4000000059604645
+      Autocompute Intensity Bounds: true
+      Class: grid_map_rviz_plugin/GridMap
+      Color: 200; 200; 200
+      Color Layer: elevation_inpainted_trav
+      Color Transformer: GridMapLayer
+      ColorMap: default
+      Enabled: false
+      Grid Cell Decimation: 1
+      Grid Line Thickness: 0.10000000149011612
+      Height Layer: elevation_inpainted_trav
+      Height Transformer: GridMapLayer
+      History Length: 1
+      Invert ColorMap: false
+      Max Color: 255; 255; 255
+      Max Intensity: 10
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: TravMap
+      Show Grid Lines: true
+      Topic: /elspider_air_simple_planner/grid_map_trav_test
+      Unreliable: false
+      Use ColorMap: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -351,7 +378,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.14948570728302
+      Distance: 1.945124864578247
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -359,17 +386,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.5264220237731934
-        Y: -0.33252424001693726
-        Z: 0.001301049254834652
+        X: 0.1766156703233719
+        Y: -0.20741209387779236
+        Z: 0.06484274566173553
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.38979771733283997
+      Pitch: 0.21479639410972595
       Target Frame: base
-      Yaw: 5.266379356384277
+      Yaw: 1.3545359373092651
     Saved: ~
 Window Geometry:
   Displays:

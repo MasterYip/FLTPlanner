@@ -146,6 +146,7 @@ void GridMapInterface::updateSDF(const std::string &layer_name, uint index, doub
 
         // Sub map
         bool ret = false;
+        // TODO: use robot center position?
         grid_map::GridMap submap = map_.getSubmap(map_.getPosition(), map_.getLength() * 0.8, ret);
         auto &elevationData = submap.get(layer_name);
         const double minValue{elevationData.minCoeffOfFinites() - margin};

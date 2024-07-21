@@ -13,12 +13,15 @@
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="false" />
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="resolution" value="0.05" />
+    <arg name="resolution" value="0.025" />
     <!-- Ground -->
     <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain2-HalfSideSlope-ground.png" /> -->
-    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ground.png" />
+    <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ground.png" />
     <arg name="min_height" value="0" />
-    <arg name="max_height" value="0.35" />
+    <arg name="max_height" value="0.35" /> -->
+    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain3-Stairs-ground.png" />
+    <arg name="min_height" value="0" />
+    <arg name="max_height" value="0.48" />
     <!-- Ceiling -->
     <arg name="with_ceiling" value="false" />
     <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ceiling.png" />
@@ -58,15 +61,14 @@
             <param name="elevation_layer" value="$(arg elevation_layer)" />
             <param name="ceiling_layer" value="$(arg ceiling_layer)" />
         </node>
-
         <!-- sdf_pub for SDF visualization (pointcloud) -->
-        <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen">
+        <!-- <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen">
             <param name="elevation_layer" value="$(arg elevation_layer)" />
             <param name="grid_map_topic" value="$(arg grid_map_topic)" />
             <param name="pointcloud_topic" value="/sdf_pointcloud" />
-        </node>
-
+        </node> -->
     </group>
+
     <group if="$(eval fake_feedback == 0)">
         <!-- HexapodSoftware -->
         <!-- <include file="$(find user)/launch/main.launch">
