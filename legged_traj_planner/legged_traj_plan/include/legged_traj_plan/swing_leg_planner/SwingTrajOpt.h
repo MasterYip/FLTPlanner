@@ -81,7 +81,7 @@ private:
 
     // Visualizer
     ros::NodeHandle nh_;
-    ros::Rate rate_ = ros::Rate(5);
+    ros::Rate rate_;
     std::shared_ptr<GCSVisualizer> visualizer_;
     bool enable_vis_ = false;
 
@@ -433,7 +433,7 @@ public:
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
           visualizer_(visualizer),
           legCollPena(robot_interface, gridmap_interface), collPena(gridmap_interface_),
-          benchmark_("SwingTrajOpt", enable_benchmark)
+          benchmark_("SwingTrajOpt", enable_benchmark), rate_(5)
     {
         if (visualizer != nullptr)
             enable_vis_ = true;
@@ -482,6 +482,7 @@ public:
         const bool verbose = true)
     {
         benchmark_.reset();
+        rate_ = ros::Rate(config_.optVisRate);
 
         useCfgSpace_ = useCfgSpace;
         pose0_ = pose0;

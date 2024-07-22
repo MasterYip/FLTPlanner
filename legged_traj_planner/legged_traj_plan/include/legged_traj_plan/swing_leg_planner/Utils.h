@@ -64,6 +64,15 @@ struct SwingTrajPlannerConfig
     double hLift;
     double trajTime;
 
+    // Misc
+    bool enableOptimizer;
+    bool useCfgSpace;
+    bool enableOptVis;
+    double optVisRate;
+    bool enableBenchmark;
+    std::string benchmarkSavePath;
+    std::string robotProfilePath;
+
     // Planner Select
     int plannerID;
     // 0: LFTPlanner (TaskSpace & CfgSpace)
@@ -72,9 +81,7 @@ struct SwingTrajPlannerConfig
     //// ID[0] LFTPlannerSettings
     //// GCS TrajSearch & MINCO optimization
     // Enable
-    bool enableOptimizer;
     // Minco Init
-    bool useCfgSpace;
     double lengthPerPiece;
     double allocSpeed;
     // Optimizer Settings
@@ -111,12 +118,6 @@ struct SwingTrajPlannerConfig
     double excludeRadius;
     double collMargin;
 
-    // Misc
-    bool enableOptVis;
-    bool enableBenchmark;
-    std::string benchmarkSavePath;
-    std::string robotProfilePath;
-
     void loadParams(ros::NodeHandle &nh)
     {
         bool check_digit = true;
@@ -129,10 +130,10 @@ struct SwingTrajPlannerConfig
         check_digit *= nh.getParam("misc/enableOptimizer", enableOptimizer);
         check_digit *= nh.getParam("misc/useCfgSpace", useCfgSpace);
         check_digit *= nh.getParam("misc/enableOptVis", enableOptVis);
+        check_digit *= nh.getParam("misc/optVisRate", optVisRate);
         check_digit *= nh.getParam("misc/enableBenchmark", enableBenchmark);
         check_digit *= nh.getParam("misc/benchmarkSavePath", benchmarkSavePath);
         check_digit *= nh.getParam("misc/robotProfilePath", robotProfilePath);
-
 
         //// ID[0] LFTPlannerSettings
         if (plannerID == 0)

@@ -9,6 +9,7 @@ misc:
   enableOptimizer: true
   useCfgSpace: false
   enableOptVis: true
+  optVisRate: 10
   enableBenchmark: false
   # Benchmark result save path
   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/optBenchmark2.csv

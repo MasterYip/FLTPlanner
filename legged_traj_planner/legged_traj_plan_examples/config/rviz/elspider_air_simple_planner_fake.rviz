@@ -317,10 +317,15 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
       Namespaces:
-        {}
+        arrow: true
+        cube: true
+        curve: true
+        facet: true
+        mesh: true
+        sphere: true
       Queue Size: 1
       Value: true
-    - Alpha: 0.4000000059604645
+    - Alpha: 0.30000001192092896
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
@@ -372,7 +377,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.945124864578247
+      Distance: 1.7830013036727905
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -380,17 +385,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.1766156703233719
-        Y: -0.20741209387779236
-        Z: 0.06484274566173553
+        X: 0.4419897794723511
+        Y: -0.028540857136249542
+        Z: -0.053041011095047
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.21479639410972595
+      Pitch: 0.30479612946510315
       Target Frame: base
-      Yaw: 1.3545359373092651
+      Yaw: 1.5895452499389648
     Saved: ~
 Window Geometry:
   Displays:

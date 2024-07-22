@@ -11,6 +11,7 @@ misc:
   enableOptimizer: true
   useCfgSpace: true # Do not change this (this file is for cfg space)
   enableOptVis: true
+  optVisRate: 10
   enableBenchmark: false
   # Benchmark result save path
   # benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/optBenchmark.csv
@@ -20,13 +21,13 @@ misc:
 
 LFTPlanner:
   optimizer:
-    lengthPerPiece: 0.4 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+    lengthPerPiece: 0.3 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.02 # NOTE: crucial for optimization 
     relCostTol: 1.0e-4
     smoothingFactor: 1.0e-2
     integralResolution: 16
   penalty:
-    timeWeight: 0.0003 # PROBLEM: too large or too small will leads to max-try error
+    timeWeight: 0.0002 # PROBLEM: too large or too small will leads to max-try error
     joint1PosMin: -0.785
     joint1PosMax: 0.785
     joint2PosMin: -0.5233
@@ -40,8 +41,8 @@ LFTPlanner:
     jointAccWeight: 0.1
     CollBall1Rad: 0.06
     CollBall2Rad: 0.06
-    CollBall3Rad: 0.05
+    CollBall3Rad: 0.03
     CollBall1Weight: 0.0
     CollBall2Weight: 2.0
     CollBall3Weight: 2.0
-    FootCollExcludeBallRad: 0.08
+    FootCollExcludeBallRad: 0.05
