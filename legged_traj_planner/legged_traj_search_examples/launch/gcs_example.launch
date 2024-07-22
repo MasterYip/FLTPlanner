@@ -1,7 +1,7 @@
 <launch>
     <!-- eg_guide_surface_demo / eg_gcs_barrier_demo / eg_gcs_rand_corridor_demo / eg_gcs_rand_map_demo-->
     <!-- perf_gcs_rand_corridor_demo -->
-    <arg name="example_name" default="eg_gcs_rand_corridor_demo"/>
+    <arg name="example_name" default="eg_gcs_barrier_demo"/>
     <!-- Gloabl Default Settings -->
     <arg name="with_robot" default="false" />
     <arg name="with_ceiling" default="false" />

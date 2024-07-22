@@ -71,6 +71,6 @@
     <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider2/xacro/robot.xacro" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
     <!-- Rviz -->
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find legged_traj_plan_examples)/config/walking_rviz.rviz" output="screen" />
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find legged_traj_plan_examples)/config/rviz/walking_rviz.rviz" output="screen" />
 
 </launch>

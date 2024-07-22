@@ -102,8 +102,8 @@
     </group>
 
     <!-- Rviz -->
-    <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/elspider_air_vmc_planner.rviz" output="screen" if="$(eval fake_feedback == 0)"/>
-    <node pkg="rviz" type="rviz" name="rviz_elspider_air_fake" args="-d $(find legged_traj_plan_examples)/config/walking_rviz.rviz" output="screen" if="$(eval fake_feedback == 1)"/>
+    <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_vmc_planner.rviz" output="screen" if="$(eval fake_feedback == 0)"/>
+    <node pkg="rviz" type="rviz" name="rviz_elspider_air_fake" args="-d $(find legged_traj_plan_examples)/config/rviz/walking_rviz.rviz" output="screen" if="$(eval fake_feedback == 1)"/>
 
     <!-- Teleop -->
     <group if="$(eval teleop_type == 'keyboard')">
