@@ -14,7 +14,7 @@
 #include <sensor_msgs/Image.h>
 
 #include <grid_map_ros/grid_map_ros.hpp>
-
+#include <filters/filter_chain.hpp>
 #include <string>
 
 namespace grid_map_demos
@@ -60,6 +60,10 @@ namespace grid_map_demos
 
     //! Grid map data.
     grid_map::GridMap map_;
+
+    //! Filter chain.
+    filters::FilterChain<grid_map::GridMap> filterChain_;
+    std::string filterChainParametersName_;
 
     //! Image subscriber
     ros::Subscriber imageSubscriber_;

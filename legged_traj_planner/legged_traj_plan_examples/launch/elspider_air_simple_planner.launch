@@ -60,6 +60,7 @@
             <param name="grid_map_topic" value="$(arg grid_map_topic)" />
             <param name="elevation_layer" value="$(arg elevation_layer)" />
             <param name="ceiling_layer" value="$(arg ceiling_layer)" />
+            <rosparam command="load" file="$(find legged_traj_plan_examples)/config/image_to_gridmap.yaml" />
         </node>
         <!-- sdf_pub for SDF visualization (pointcloud) -->
         <!-- <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen">

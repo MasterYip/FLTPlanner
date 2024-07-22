@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /TravMap1/Status1
       Splitter Ratio: 0.49772727489471436
     Tree Height: 651
   - Class: rviz/Selection
@@ -26,7 +25,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: SDF
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -318,12 +317,7 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
       Namespaces:
-        arrow: true
-        cube: true
-        curve: true
-        facet: true
-        mesh: true
-        sphere: true
+        {}
       Queue Size: 1
       Value: true
     - Alpha: 0.4000000059604645
@@ -333,7 +327,7 @@ Visualization Manager:
       Color Layer: elevation_inpainted_trav
       Color Transformer: GridMapLayer
       ColorMap: default
-      Enabled: false
+      Enabled: true
       Grid Cell Decimation: 1
       Grid Line Thickness: 0.10000000149011612
       Height Layer: elevation_inpainted_trav
@@ -349,7 +343,7 @@ Visualization Manager:
       Topic: /elspider_air_simple_planner/grid_map_trav_test
       Unreliable: false
       Use ColorMap: true
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255

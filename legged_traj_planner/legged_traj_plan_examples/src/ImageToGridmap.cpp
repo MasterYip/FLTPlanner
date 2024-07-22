@@ -16,6 +16,7 @@ namespace grid_map_demos
                                          std::string ceiling_layer = "ceiling",
                                          std::string grid_map_topic = "/grid_map")
       : nodeHandle_(nodeHandle),
+        filterChain_("grid_map::GridMap"),
         elevation_layer_name_(elevation_layer),
         ceiling_layer_name_(ceiling_layer),
         map_(grid_map::GridMap({elevation_layer})),
@@ -43,6 +44,11 @@ namespace grid_map_demos
     nodeHandle_.param("min_height_ceiling", minHeightCeiling_, 0.0);
     nodeHandle_.param("max_height_ceiling", maxHeightCeiling_, 1.0);
     nodeHandle_.param("map_frame_id", mapFrameId_, std::string("odom"));
+    nodeHandle_.param("filter_chain_parameter_name", filterChainParametersName_, std::string("grid_map_filters"));
+    if (!filterChain_.configure(filterChainParametersName_, nodeHandle_))
+    {
+      ROS_ERROR("Could not configure the filter chain!");
+    }
     return true;
   }
 
@@ -55,29 +61,41 @@ namespace grid_map_demos
                map_.getLength().y(), map_.getSize()(0), map_.getSize()(1));
       mapInitialized_ = true;
     }
-    if (!ceilingImgBuffer_.data.empty() && withCeiling_)
+    if (!ceilingImgBuffer_.data.empty() && withCeiling_) // Ceiling enabled
     {
       grid_map::GridMapRosConverter::addLayerFromImage(ceilingImgBuffer_, ceiling_layer_name_, map_, minHeightCeiling_, maxHeightCeiling_);
       grid_map::GridMapRosConverter::addLayerFromImage(msg, elevation_layer_name_, map_, minHeight_, maxHeight_);
       grid_map::GridMapRosConverter::addColorLayerFromImage(msg, "color", map_);
       map_.setFrameId(mapFrameId_);
-      map_.add("normal_x");
-      map_.add("normal_y");
-      map_.add("normal_z");
+      // map_.add("normal_x");
+      // map_.add("normal_y");
+      // map_.add("normal_z");
+
+      // Computation of normals using filterChain_.update function.
+      if (!filterChain_.update(map_, map_))
+      {
+        ROS_ERROR("Could not update the grid map filter chain!");
+      }
 
       // Publish as grid map.
       grid_map_msgs::GridMap mapMessage;
       grid_map::GridMapRosConverter::toMessage(map_, mapMessage);
       gridMapPublisher_.publish(mapMessage);
     }
-    else if (!withCeiling_)
+    else if (!withCeiling_) // Ceiling disabled
     {
       grid_map::GridMapRosConverter::addLayerFromImage(msg, elevation_layer_name_, map_, minHeight_, maxHeight_);
       grid_map::GridMapRosConverter::addColorLayerFromImage(msg, "color", map_);
       map_.setFrameId(mapFrameId_);
-      map_.add("normal_x");
-      map_.add("normal_y");
-      map_.add("normal_z");
+      // map_.add("normal_x");
+      // map_.add("normal_y");
+      // map_.add("normal_z");
+
+      // Computation of normals using filterChain_.update function.
+      if (!filterChain_.update(map_, map_))
+      {
+        ROS_ERROR("Could not update the grid map filter chain!");
+      }
 
       // Publish as grid map.
       grid_map_msgs::GridMap mapMessage;

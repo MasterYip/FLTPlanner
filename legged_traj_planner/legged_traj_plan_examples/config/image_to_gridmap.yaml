@@ -1,5 +1,31 @@
-image_topic: "/image_publisher/image"
-resolution: 0.05
-map_frame_id: "odom"
-min_height: 0
-max_height: 0.3
+# image_topic: "/image_publisher/image"
+# resolution: 0.05
+# map_frame_id: "odom"
+# min_height: 0
+# max_height: 0.3 
+
+grid_map_filters:
+  # Compute surface normals.
+  - 
+    name: surface_normals_area
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      input_layer: elevation_inpainted
+      algorithm: area
+      output_layers_prefix: normal_
+      radius: 0.05
+      normal_vector_positive_axis: z
+      parallelization_enabled: true
+      thread_number: 4
+      # thread_number: -1 doesn't limit the number of threads to be used
+
+  # - 
+  #   name: surface_normals_raster
+  #   type: gridMapFilters/NormalVectorsFilter
+  #   params:
+  #     input_layer: elevation_filtered
+  #     algorithm: raster
+  #     output_layers_prefix: normal_raster_
+  #     normal_vector_positive_axis: z
+  #     parallelization_enabled: true
+  #     thread_number: 4
