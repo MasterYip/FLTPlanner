@@ -20,8 +20,7 @@ GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
                                    std::string ground_layer_name,
                                    std::string ceiling_layer_name) : nh_(nh),
                                                                      ground_layer(ground_layer_name),
-                                                                     ceiling_layer(ceiling_layer_name),
-                                                                     filter_chain_("grid_map::GridMap")
+                                                                     ceiling_layer(ceiling_layer_name)
 {
     sub_ = nh_.subscribe(topic_name, 1, &GridMapInterface::callback, this);
     pub_ = nh_.advertise<grid_map_msgs::GridMap>("grid_map_trav_test", 1, true);
@@ -31,13 +30,6 @@ GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
     map_.setFrameId("map");
     ground_layer_trav = ground_layer + "_trav";
 
-    nh_.param("filter_chain_parameter_name", filterChainParametersName_, std::string("grid_map_filters"));
-
-    // Setup filter chain.
-    if (!filter_chain_.configure(filterChainParametersName_, nh_))
-    {
-        ROS_ERROR("Could not configure the filter chain!");
-    }
     update();
 }
 

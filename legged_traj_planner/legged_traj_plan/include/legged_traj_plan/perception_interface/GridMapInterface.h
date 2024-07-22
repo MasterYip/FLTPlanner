@@ -40,9 +40,6 @@ private:
     std::unique_ptr<grid_map::SignedDistanceField> sdf_[2];
     std::pair<Eigen::Vector3d, Eigen::Vector3d> sdf_range_[2];
 
-    // std::string filterChainParametersName_;
-    // filters::FilterChain<grid_map::GridMap> filter_chain_;
-
     std::string ground_layer;
     std::string ground_norm_x_layer = {"normal_x"};
     std::string ground_norm_y_layer = {"normal_y"};
