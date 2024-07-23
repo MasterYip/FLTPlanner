@@ -178,11 +178,11 @@ private:
     int point_num_ = 3;
 
     /// Misc
+    SwingTrajPlannerConfig config_;
     // ROS Timer event
     ros::Timer timer_;
     double init_time_ = 0.0;
     std::vector<RobotProfile> robot_profile_;
-    std::string profile_path_;
 
     // Visualizer
     GCSVisualizer visualizer_;
@@ -202,7 +202,7 @@ public:
                                                                                       whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
                                                                                       tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
                                                                                       rate_(25), fake_estimation_(fake_estimation), simulation_(simulation),
-                                                                                      profile_path_(swing_traj_planner_config.robotProfilePath)
+                                                                                      config_(swing_traj_planner_config)
     {
         init_time_ = ros::Time::now().toSec();
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
@@ -429,7 +429,7 @@ public:
     void saveRobotProfile()
     {
         // Save to file
-        std::ofstream file(profile_path_);
+        std::ofstream file(config_.robotProfilePath);
         if (file.is_open())
         {
             file << "time,t,pose_x,pose_y,pose_z,pose_roll,pose_pitch,pose_yaw,";
@@ -480,7 +480,10 @@ public:
         {
             ros::spinOnce();
         }
-        whole_body_planner_.saveBenchmarkResults();
-        saveRobotProfile();
+        if (config_.enableBenchmark)
+        {
+            whole_body_planner_.saveBenchmarkResults();
+            saveRobotProfile();
+        }
     }
 };

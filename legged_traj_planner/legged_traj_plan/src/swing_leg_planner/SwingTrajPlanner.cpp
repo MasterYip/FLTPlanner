@@ -192,7 +192,7 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
         poly_path_mat.col(i) = poly_path[i];
 
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
-                          config_, false);
+                          config_, false, false);
     bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), config_.relCostTol);
 
 #ifdef ENABLE_VISUALIZER

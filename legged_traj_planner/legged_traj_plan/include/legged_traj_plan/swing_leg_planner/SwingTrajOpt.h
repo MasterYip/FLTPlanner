@@ -479,7 +479,7 @@ public:
         SwingTrajPlannerConfig &config,
         // Settings
         const bool useCfgSpace = false,
-        const bool verbose = true)
+        const bool verbose = false)
     {
         benchmark_.reset();
         rate_ = ros::Rate(config_.optVisRate);
@@ -523,12 +523,17 @@ public:
         // Setup for minco
         minco.setConditions(headPV, tailPV, pieceN);
         // Costs setup
-        legCollPena.setupParams(config_);
-        legCollPena.setExcludeBall(point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(headPV.col(0), index)),
-                                   point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(tailPV.col(0), index)));
-        collPena.setupParams(config_);
-        collPena.setExcludeBall(point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(headPV.col(0), index)),
-                                point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(tailPV.col(0), index)));
+        if (useCfgSpace_)
+        {
+            legCollPena.setupParams(config_);
+            legCollPena.setExcludeBall(point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(headPV.col(0), index)),
+                                       point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(tailPV.col(0), index)));
+        }
+        else
+        {
+            collPena.setupParams(config_);
+            collPena.setExcludeBall(headPV.col(0), tailPV.col(0));
+        }
 
         // Allocate temp variables
         points.resize(3, pieceN - 1);
@@ -617,5 +622,4 @@ public:
     {
         return benchmark_.getResult();
     }
-
 };

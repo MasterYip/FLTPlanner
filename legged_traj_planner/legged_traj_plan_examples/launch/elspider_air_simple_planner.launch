@@ -6,8 +6,8 @@
     <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
-    <!-- TrajRepresentation -->
-    <arg name="use_cfg_space" default="true" />
+    <!-- Planner Config: swing_traj_planner / swing_traj_planner_cfg / swing_traj_planner_rrt -->
+    <arg name="planner_cfg" default="swing_traj_planner" />
     <!-- Optitrack -->
     <arg name="use_optitrack" default="true" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
@@ -95,8 +95,7 @@
     <node pkg="legged_traj_plan_examples" type="elspider_air_simple_planner" name="elspider_air_simple_planner" output="screen">
         <param name="fake_feedback" value="$(arg fake_feedback)" />
         <param name="sim" value="$(arg sim)" />
-        <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air/swing_traj_planner.yaml" if="$(eval use_cfg_space == 0)"/>
-        <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air/swing_traj_planner_cfg.yaml" if="$(eval use_cfg_space == 1)"/>
+        <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air/$(arg planner_cfg).yaml"/>
     </node>
 
     <!-- Robot related -->

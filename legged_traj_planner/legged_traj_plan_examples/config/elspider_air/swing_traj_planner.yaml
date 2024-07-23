@@ -1,7 +1,7 @@
 plannerID: 0
 
 trajInit:
-  vLift: 0.08
+  vLift: 0.02
   hLift: 0.15
   trajTime: 3 # Only affect init trajectory
 
@@ -18,8 +18,8 @@ misc:
 LFTPlanner:
   optimizer:
     lengthPerPiece: 0.1 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
-    allocSpeed: 0.05
-    relCostTol: 1.0e-3
+    allocSpeed: 0.02
+    relCostTol: 1.0e-4
     smoothingFactor: 1.0e-2
     integralResolution: 16
   penalty:
@@ -41,4 +41,4 @@ LFTPlanner:
     CollBall1Weight: 0.0
     CollBall2Weight: 0.0
     CollBall3Weight: 1
-    FootCollExcludeBallRad: 0.03
+    FootCollExcludeBallRad: 0.05

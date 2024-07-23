@@ -10,75 +10,29 @@
     <arg name="use_cfg_space" default="true" />
     <!-- Optitrack -->
     <arg name="use_optitrack" default="false" />
-    <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
-    <arg name="fake_feedback" default="false" />
+    <!-- TODO: add ceiling gridmap -->
     <arg name="with_ceiling" value="false" />
-    <arg name="max_height" value="0.4" />
-    <!-- Only used when fake_feedback=true -->
-    <arg name="elevation_layer" value="elevation_inpainted" />
-    <arg name="ceiling_layer" value="ceiling" />
-    <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
+    <!-- GridMap -->
     <arg name="grid_map_topic" value="/grid_map" />
-    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ground.png" />
-    <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ceiling.png" />
 
     <!-- Launch -->
-    <!-- GridMap -->
-    <group if="$(eval fake_feedback == 1)">
-        <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="screen">
-            <param name="image_path" value="$(arg grid_map_file)" />
-            <param name="topic" value="~image" />
-        </node>
-        <group if="$(arg with_ceiling)">
-            <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
-                <param name="image_path" value="$(arg grid_map_file_ceiling)" />
-                <param name="topic" value="~image" />
-            </node>
-        </group>
-        <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="screen">
-            <param name="with_ceiling" value="$(arg with_ceiling)" />
-            <param name="image_topic" value="/image_publisher/image" />
-            <param name="image_ceiling_topic" value="/image_ceiling_publisher/image" />
-            <param name="resolution" value="0.05" />
-            <param name="map_frame_id" value="odom" />
-            <param name="min_height" value="0" />
-            <param name="max_height" value="$(arg max_height)" />
-            <!-- Name -->
-            <param name="grid_map_topic" value="$(arg grid_map_topic)" />
-            <param name="elevation_layer" value="$(arg elevation_layer)" />
-            <param name="ceiling_layer" value="$(arg ceiling_layer)" />
-        </node>
-
-        <!-- sdf_pub for SDF visualization (pointcloud) -->
-        <!-- <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen"/>
-        <node pkg="grid_map_visualization" type="grid_map_visualization" name="grid_map_visualization" output="screen">
-            <rosparam command="load" file="$(find legged_traj_plan_examples)/config/mapVisual.yaml" />
-        </node> -->
-    </group>
-    <group if="$(eval fake_feedback == 0)">
-        <!-- HexapodSoftware -->
-        <!-- <include file="$(find user)/launch/main.launch">
-            <arg name="robot_name" value="elspider_air" />
-            <arg name="controller_type" value="hlc" />
-        </include> -->
-        <!-- Vrpn Client ROS -->
-        <include file="$(find vrpn_client_ros)/launch/sample.launch" if="$(eval use_optitrack == 1)"/>
-        <!-- HexapodElevationMapping -->
-        <include file="$(find hexapod_elevation_mapping)/launch/elspider_air_mapping.launch">
-            <arg name="module_name" value="HexPercept3_optitrack" if="$(eval use_optitrack == 1)"/>
-            <arg name="module_name" value="HexPercept3" if="$(eval use_optitrack == 0)"/>
-            <arg name="sim" value="$(arg sim)" />
-            <arg name="elevation_map_raw_topic_name" value="$(arg grid_map_topic)" />
-            <arg name="rviz_gui" value="false" />
-            <!-- FIXME: base name conflict with HexapodSoftware -->
-            <arg name="world_frame_name" value="odom"/>
-            <arg name="base_frame_name" value="base"/>
-        </include>
-    </group>
+    <!-- Vrpn Client ROS -->
+    <include file="$(find vrpn_client_ros)/launch/sample.launch" if="$(eval use_optitrack == 1)"/>
+    <!-- HexapodElevationMapping -->
+    <include file="$(find hexapod_elevation_mapping)/launch/elspider_air_mapping.launch">
+        <arg name="module_name" value="HexPercept3_optitrack" if="$(eval use_optitrack == 1)"/>
+        <arg name="module_name" value="HexPercept3" if="$(eval use_optitrack == 0)"/>
+        <arg name="sim" value="$(arg sim)" />
+        <arg name="elevation_map_raw_topic_name" value="$(arg grid_map_topic)" />
+        <arg name="rviz_gui" value="false" />
+        <!-- FIXME: base name conflict with HexapodSoftware -->
+        <arg name="world_frame_name" value="odom"/>
+        <arg name="base_frame_name" value="base"/>
+    </include>
 
     <!-- VMC Planner -->
     <node pkg="legged_traj_plan_examples" type="elspider_air_vmc_planner" name="elspider_air_vmc_planner" output="screen">
-        <param name="fake_feedback" value="$(arg fake_feedback)" />
+        <param name="fake_feedback" value="false" />
         <param name="sim" value="$(arg sim)" />
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air/swing_traj_planner.yaml" if="$(eval use_cfg_space == 0)"/>
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air/swing_traj_planner_cfg.yaml" if="$(eval use_cfg_space == 1)"/>
@@ -91,7 +45,6 @@
     </node>
 
     <!-- Robot related -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval fake_feedback == 1)"/>
     <!-- Load robot model if sim is False -->
     <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval sim == 0)"/>
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
@@ -102,8 +55,7 @@
     </group>
 
     <!-- Rviz -->
-    <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_vmc_planner.rviz" output="screen" if="$(eval fake_feedback == 0)"/>
-    <node pkg="rviz" type="rviz" name="rviz_elspider_air_fake" args="-d $(find legged_traj_plan_examples)/config/rviz/walking_rviz.rviz" output="screen" if="$(eval fake_feedback == 1)"/>
+    <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_vmc_planner.rviz" output="screen"/>
 
     <!-- Teleop -->
     <group if="$(eval teleop_type == 'keyboard')">

@@ -88,7 +88,7 @@ public:
 
     /**
      * @brief Attach penalty to position, velocity and acceleration
-     *
+     * FIXME: This gradient is not correct
      * @param pos Position in world frame
      * @param gradPos Gradient of position in world frame
      * @param pena Penalty
