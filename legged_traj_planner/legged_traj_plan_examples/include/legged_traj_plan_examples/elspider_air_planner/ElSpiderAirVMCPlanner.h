@@ -246,7 +246,7 @@ public:
             gridmap_interface_->lockMapUpdate();
             // 1.MCTS
             bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                         gridmap_interface_->getMap(), true, 100);
+                                                         gridmap_interface_->getMap(), true, 400);
             // 2. Triple gait
             // bool ret = true;
             // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
