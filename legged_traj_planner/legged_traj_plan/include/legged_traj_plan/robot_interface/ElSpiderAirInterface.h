@@ -44,7 +44,7 @@ const std::vector<std::string> SHADOW_JOINT_STATE_NAME = {"shadowRF_HAA", "shado
 
 const std::vector<std::string> SHADOW_FOOT_LINK_NAME = {"shadowRF_FOOT", "shadowRM_FOOT", "shadowRB_FOOT",
                                                         "shadowLF_FOOT", "shadowLM_FOOT", "shadowLB_FOOT"};
-// BUG: Smaller convex hull will cause unreachable output
+
 inline Polyhedra genLegPolyRegion(int index)
 {
     Eigen::Matrix3Xd hull;
@@ -92,6 +92,17 @@ inline Polyhedra genLegPolyRegion(int index)
     return Polyhedra(hull);
 }
 
+// Lowest foot position for contact handling (BASE frame)
+const double nominal_y_shift = 0.05;
+const double lowest_z_height = -0.32;
+const std::vector<Eigen::Vector3d> LOWEST_FOOT_POS = {
+    Eigen::Vector3d(0.35, -0.23 - nominal_y_shift, lowest_z_height),
+    Eigen::Vector3d(0.05, -0.29 - nominal_y_shift, lowest_z_height),
+    Eigen::Vector3d(-0.35, -0.23 - nominal_y_shift, lowest_z_height),
+    Eigen::Vector3d(0.35, 0.23 + nominal_y_shift, lowest_z_height),
+    Eigen::Vector3d(0.05, 0.29 + nominal_y_shift, lowest_z_height),
+    Eigen::Vector3d(-0.35, 0.23 + nominal_y_shift, lowest_z_height)};
+
 class ElSpiderAirInterface : public BaseRobotInterface
 {
 
@@ -102,31 +113,8 @@ public:
         : BaseRobotInterface(urdf, package_dirs)
     {
         // Foot convex hull
-        Eigen::Matrix3Xd FootHull(3, 10);
-        FootHull << 0.2412, -0.07939, -0.0809, 0.2556, -0.3199, -0.2209, 0.3721, 0.3527, 0.05979, 0.06059,
-            -0.154, -0.1551, -0.1567, -0.1674, -0.3958, -0.2967, -0.2772, -0.2589, -0.4186, -0.472,
-            -0.1303, -0.1464, -0.3889, -0.3545, 0.006312, -0.3344, 0.02371, -0.2644, -0.2857, 0.1195;
-        Eigen::Matrix3Xd pos_shift(3, 6);
-        // FIXME: Installation shift
-        // pos_shift << 0.3, 0.0, -0.3, 0.3, 0.0, -0.3,
-        //     0.06, 0.0, 0.06, -0.06, 0.0, -0.06,
-        //     0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-        pos_shift << 0.3, 0.0, -0.3, 0.3, 0.0, -0.3,
-            -0.04, -0.1, -0.04, 0.04, 0.1, 0.04,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-        Eigen::Matrix3Xd mirror(3, 6);
-        mirror << 1, 1, -1, 1, 1, -1,
-            1, 1, 1, -1, -1, -1,
-            1, 1, 1, 1, 1, 1;
         for (int i = 0; i < 6; i++)
         {
-            // TOOD: Transform
-            // Eigen::Matrix3Xd hull = FootHull;
-            // hull.row(0) *= mirror(0, i);
-            // hull.row(1) *= mirror(1, i);
-            // hull.row(2) *= mirror(2, i);
-            // foot_polyhedra_.emplace_back(Polyhedra((hull.colwise() + pos_shift.col(i)).eval()));
-            // BUG: This one may cuase unreachable output
             foot_polyhedra_.emplace_back(genLegPolyRegion(i));
         }
     }

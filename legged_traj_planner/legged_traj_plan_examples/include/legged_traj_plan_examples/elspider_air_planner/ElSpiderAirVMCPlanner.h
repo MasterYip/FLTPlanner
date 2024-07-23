@@ -129,7 +129,6 @@ MDT::RobotState getInitState(MDT::Pose robotPose = {1, 0, USER::norminalTrunkHei
     return initRobotState(robotPose, gaitToNow, moveDir);
 }
 
-
 class ElSpiderAirVMCPlanner // Force compensation planner
 {
 private:
@@ -490,8 +489,8 @@ public:
     {
         bool flag = false;
         int max_cnt = 50;
-        double adj_height = 0.005;
-        // double interval = 0.05;
+        // double adj_height = 0.005;
+        double alpha = 0.01;
         ROS_INFO("Stance contact handling...");
         while (!flag && max_cnt-- > 0)
         {
@@ -501,7 +500,10 @@ public:
                 if (is_contact(k) == false)
                 {
                     flag = false;
-                    exp_foot_state_.position[k].z -= adj_height;
+                    // exp_foot_state_.position[k].z -= adj_height;
+                    exp_foot_state_.position[k].x = LOWEST_FOOT_POS[k](0) * alpha + exp_foot_state_.position[k].x * (1-alpha);
+                    exp_foot_state_.position[k].y = LOWEST_FOOT_POS[k](1) * alpha + exp_foot_state_.position[k].y * (1-alpha);
+                    exp_foot_state_.position[k].z = LOWEST_FOOT_POS[k](2) * alpha + exp_foot_state_.position[k].z * (1-alpha);
                 }
             }
             exp_foot_state_pub_.publish(exp_foot_state_);
@@ -518,7 +520,7 @@ public:
     // for lift & touch smoothing
     double sine_remap(double t)
     {
-        return 0.5*(1 + std::sin(M_PI * (t - 0.5)));
+        return 0.5 * (1 + std::sin(M_PI * (t - 0.5)));
     }
 
     void traj_planner()
