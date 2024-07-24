@@ -79,6 +79,7 @@ add_message_files(
   hexapod_State.msg
   # HexapodSoftware
   FootCmd.msg
+  JointCmd.msg
   FootState.msg
   Euler.msg
   BodyState.msg

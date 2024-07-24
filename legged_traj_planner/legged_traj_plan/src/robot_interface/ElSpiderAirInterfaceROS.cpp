@@ -17,6 +17,7 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     shadow_joint_state_pub = nh.advertise<sensor_msgs::JointState>("shadow/joint_states", 10);
     footcmd_pub = nh.advertise<legged_traj_plan::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
+    jointcmd_pub = nh.advertise<legged_traj_plan::FootCmd>("/hexapod/hlc/joint_cmd", 1);
     feedforward_type = 0;
     if (!sim_) // Hardware
     {
@@ -92,6 +93,38 @@ void ElSpiderAirInterfaceROS::pub_footcmd_from_footendcmd(const std::vector<Eige
         footcmd.joint_kd.push_back(vec3);
     }
     footcmd_pub.publish(footcmd);
+}
+
+void ElSpiderAirInterfaceROS::pub_jointcmd_from_jointpos(const std::vector<double> &q)
+{
+    legged_traj_plan::JointCmd jointcmd;
+    jointcmd.header.stamp = ros::Time::now();
+    jointcmd.position = q;
+    jointcmd.velocity = std::vector<double>(18, 0);
+    jointcmd.torque = std::vector<double>(18, 0);
+
+    for (int i = 0; i < 6; ++i)
+    {
+        jointcmd.kp.emplace_back(joint_kp[0]);
+        jointcmd.kd.emplace_back(joint_kd[0]);
+        jointcmd.kp.emplace_back(joint_kp[1]);
+        jointcmd.kd.emplace_back(joint_kd[1]);
+        jointcmd.kp.emplace_back(joint_kp[2]);
+        jointcmd.kd.emplace_back(joint_kd[2]);
+    }
+    jointcmd_pub.publish(jointcmd);
+}
+
+void ElSpiderAirInterfaceROS::pub_jointcmd_from_jointpos(const std::vector<Eigen::Vector3d> &q)
+{
+    std::vector<double> q_vec;
+    for (auto pos : q)
+    {
+        q_vec.push_back(pos[0]);
+        q_vec.push_back(pos[1]);
+        q_vec.push_back(pos[2]);
+    }
+    pub_jointcmd_from_jointpos(q_vec);
 }
 
 void ElSpiderAirInterfaceROS::pub_odom(const pinocchio::SE3 &odom,

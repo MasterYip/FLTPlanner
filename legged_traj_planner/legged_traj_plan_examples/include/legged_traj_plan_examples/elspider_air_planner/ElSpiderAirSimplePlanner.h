@@ -322,8 +322,11 @@ public:
             // Visualization
             robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
             robot_interface_->pub_shadow_joint_state_from_footendpos(footend_interp);
-            ros::spinOnce();  // Fetch feedback
-            pub_jointstate(); // Publish real joint state
+            if (!fake_estimation_)
+            {
+                ros::spinOnce();  // Fetch feedback
+                pub_jointstate(); // Publish real joint state
+            }
 
             rate_.sleep();
         }
@@ -449,29 +452,53 @@ public:
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
 
         state_traj_replay(state_traj);
-        ros::Duration(0.4).sleep();
+        if (fake_estimation_)
+            ros::Duration(0.4).sleep();
+        else
+        {
+            std::cout << "Press space to execute trajectory...";
+            getchar();
+        }
+
         do
         {
             // Get Interpolated State
             odom_interp = state_traj.eval_torso_traj(sine_remap(t));
-            // Footend position in world frame
-            footend_interp = state_traj.eval_foot_traj(sine_remap(t));
             support_state = state_traj.eval_support_state(sine_remap(t));
-            for (size_t k = 0; k < 6; ++k)
-            {
-                // Convert to BASE
-                footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
-            }
 
-            if (fake_estimation_)
+            if (config_.useCfgSpace)
             {
-                robot_interface_->pub_joint_state_from_footendpos(footend_interp);
-                robot_interface_->pub_odom(odom_interp);
+                footend_interp = state_traj.eval_cfg_traj(sine_remap(t));
+                if (fake_estimation_)
+                {
+                    robot_interface_->pub_joint_state(footend_interp);
+                    robot_interface_->pub_odom(odom_interp);
+                }
+                else
+                {
+                    robot_interface_->pub_jointcmd_from_jointpos(footend_interp);
+                    pub_jointstate();
+                }
             }
             else
             {
-                robot_interface_->pub_footcmd_from_footendpos(footend_interp);
-                pub_jointstate();
+                // Footend position in world frame
+                footend_interp = state_traj.eval_foot_traj(sine_remap(t));
+                for (size_t k = 0; k < 6; ++k)
+                {
+                    // Convert to BASE
+                    footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
+                }
+                if (fake_estimation_)
+                {
+                    robot_interface_->pub_joint_state_from_footendpos(footend_interp);
+                    robot_interface_->pub_odom(odom_interp);
+                }
+                else
+                {
+                    robot_interface_->pub_footcmd_from_footendpos(footend_interp);
+                    pub_jointstate();
+                }
             }
 
             // Visualization
