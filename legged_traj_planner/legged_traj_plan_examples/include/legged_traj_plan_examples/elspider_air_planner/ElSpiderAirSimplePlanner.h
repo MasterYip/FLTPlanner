@@ -403,8 +403,8 @@ public:
     void stance_contact_handle(void)
     {
         bool flag = false;
-        int max_cnt = 500;
-        double alpha = 0.001;
+        int max_cnt = 200;
+        double alpha = 0.005;
         std::vector<Eigen::Vector3d> footend_interp(6, Eigen::Vector3d::Zero());
         for (size_t k = 0; k < 6; ++k)
         {
@@ -429,6 +429,7 @@ public:
                 robot_interface_->pub_jointcmd_from_jointpos(robot_interface_->IKFast_foots(footend_interp));
             else
                 robot_interface_->pub_footcmd_from_footendpos(footend_interp);
+            // FIXME: cmd should not pub at this time
             ros::spinOnce(); // Fetch feedback
             rate_.sleep();
         }
