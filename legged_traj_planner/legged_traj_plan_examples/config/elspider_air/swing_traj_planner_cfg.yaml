@@ -11,7 +11,8 @@ trajInit:
 misc:
   enableOptimizer: true
   useCfgSpace: true # Do not change this (this file is for cfg space)
-  enableOptVis: true
+  useCfgCommand: true
+  enableOptVis: false
   optVisRate: 10
   enableBenchmark: false
   # Benchmark result save path

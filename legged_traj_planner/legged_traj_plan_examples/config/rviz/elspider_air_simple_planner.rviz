@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /swing_traj_planner_vis1
+        - /TravMap1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -26,7 +27,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -396,7 +397,7 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: false
-    - Alpha: 0.5
+    - Alpha: 0.20000000298023224
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
@@ -529,7 +530,7 @@ Visualization Manager:
         sphere: true
       Queue Size: 1
       Value: true
-    - Alpha: 1
+    - Alpha: 0.4000000059604645
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
@@ -537,9 +538,9 @@ Visualization Manager:
       Color Transformer: GridMapLayer
       ColorMap: default
       Enabled: true
-      Grid Cell Decimation: 1
+      Grid Cell Decimation: 10
       Grid Line Thickness: 0.10000000149011612
-      Height Layer: elevation
+      Height Layer: elevation_inpainted_trav
       Height Transformer: GridMapLayer
       History Length: 1
       Invert ColorMap: false
@@ -549,7 +550,7 @@ Visualization Manager:
       Min Intensity: 0
       Name: TravMap
       Show Grid Lines: true
-      Topic: /traversability_estimation/traversability_map
+      Topic: /elspider_air_simple_planner/grid_map_trav_test
       Unreliable: false
       Use ColorMap: true
       Value: true
@@ -581,7 +582,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 1.0843759775161743
+      Distance: 1.8835221529006958
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -589,17 +590,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.4232696294784546
-        Y: -0.5496060252189636
+        X: 1.420287013053894
+        Y: -0.06115990877151489
         Z: 0.031005337834358215
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2197972536087036
+      Pitch: 0.3697971999645233
       Target Frame: <Fixed Frame>
-      Yaw: 5.206363201141357
+      Yaw: 4.861361980438232
     Saved: ~
 Window Geometry:
   Displays:

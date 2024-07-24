@@ -202,7 +202,7 @@ public:
                                                                                       gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                       whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
                                                                                       tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
-                                                                                      rate_(25), fake_estimation_(fake_estimation), simulation_(simulation),
+                                                                                      rate_(100), fake_estimation_(fake_estimation), simulation_(simulation),
                                                                                       config_(swing_traj_planner_config)
     {
         init_time_ = ros::Time::now().toSec();
@@ -307,7 +307,7 @@ public:
 
     void state_traj_replay(MCTStateTransfer &state_traj)
     {
-        for (double t = 0.0; t < 1.01; t += 0.05)
+        for (double t = 0.0; t < 1.01; t += 0.01)
         {
             // Get Interpolated State
             auto odom_interp = state_traj.eval_torso_traj(t);
@@ -403,8 +403,8 @@ public:
     void stance_contact_handle(void)
     {
         bool flag = false;
-        int max_cnt = 50;
-        double alpha = 0.01;
+        int max_cnt = 500;
+        double alpha = 0.001;
         std::vector<Eigen::Vector3d> footend_interp(6, Eigen::Vector3d::Zero());
         for (size_t k = 0; k < 6; ++k)
         {
@@ -425,7 +425,10 @@ public:
                     footend_interp.at(k) = LOWEST_FOOT_POS[k] * alpha + footend_interp.at(k) * (1 - alpha);
                 }
             }
-            robot_interface_->pub_footcmd_from_footendpos(footend_interp);
+            if (config_.useCfgCommand)
+                robot_interface_->pub_jointcmd_from_jointpos(robot_interface_->IKFast_foots(footend_interp));
+            else
+                robot_interface_->pub_footcmd_from_footendpos(footend_interp);
             ros::spinOnce(); // Fetch feedback
             rate_.sleep();
         }
@@ -445,7 +448,7 @@ public:
     void traj_planner()
     {
         double t = 0.0;
-        double delta = 0.02;
+        double delta = 0.005;
         MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
@@ -466,7 +469,7 @@ public:
             odom_interp = state_traj.eval_torso_traj(sine_remap(t));
             support_state = state_traj.eval_support_state(sine_remap(t));
 
-            if (config_.useCfgSpace)
+            if (config_.useCfgCommand)
             {
                 footend_interp = state_traj.eval_cfg_traj(sine_remap(t));
                 if (fake_estimation_)
@@ -499,6 +502,11 @@ public:
                     robot_interface_->pub_footcmd_from_footendpos(footend_interp);
                     pub_jointstate();
                 }
+            }
+
+            if (!fake_estimation_)
+            {
+                ros::spinOnce();
             }
 
             // Visualization
