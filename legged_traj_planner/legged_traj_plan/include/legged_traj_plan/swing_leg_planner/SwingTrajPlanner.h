@@ -47,7 +47,7 @@ public:
                                                                                 config_(config) {};
     ~SwingTrajPlannerBase() = default;
 
-    const SwingTrajPlannerConfig &getConfig() const
+    SwingTrajPlannerConfig &getConfig()
     {
         return config_;
     }

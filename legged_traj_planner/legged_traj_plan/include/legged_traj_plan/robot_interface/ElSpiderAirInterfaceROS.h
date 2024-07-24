@@ -32,13 +32,16 @@ class ElSpiderAirInterfaceROS : public ElSpiderAirInterface
 {
 private:
     ros::NodeHandle nh;
+    // Rviz
     ros::Publisher joint_state_pub;
     ros::Publisher shadow_joint_state_pub;
     tf2_ros::TransformBroadcaster odom_pub;
-    ros::Publisher foot_pos_pub;
+    // Command
+    ros::Publisher footcmd_pub;
     int feedforward_type;
     std::vector<double> joint_kp;
     std::vector<double> joint_kd;
+    // Misc
     bool sim_;
 
 public:

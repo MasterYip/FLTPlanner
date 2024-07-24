@@ -2,6 +2,7 @@ plannerID: 0
 
 trajInit:
   vLift: 0.02
+  vLiftNormalRandomize: 0.5
   hLift: 0.15
   trajTime: 3 # Only affect init trajectory
 

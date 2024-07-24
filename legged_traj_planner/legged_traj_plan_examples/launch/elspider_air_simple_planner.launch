@@ -7,7 +7,7 @@
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
     <!-- Planner Config: swing_traj_planner / swing_traj_planner_cfg / swing_traj_planner_rrt -->
-    <arg name="planner_cfg" default="swing_traj_planner" />
+    <arg name="planner_cfg" default="swing_traj_planner_cfg" />
     <!-- Optitrack -->
     <arg name="use_optitrack" default="true" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->

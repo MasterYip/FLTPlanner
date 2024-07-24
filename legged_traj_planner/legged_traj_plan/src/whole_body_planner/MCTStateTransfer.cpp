@@ -38,7 +38,7 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
         swingtraj_isneeded_[i] = (state1.support_State_Now[i] == 0);
     }
 
-    // Default swing trajectory
+    // Init swing trajectory
     for (int i = 0; i < 6; ++i)
     {
         if (swingtraj_isneeded_[i])
@@ -46,24 +46,6 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
             swingtraj_[i] = swing_traj_planner_->getInitTraj(
                 XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
                 footpos_list0_[i], footpos_list1_[i], i);
-
-            // if (!use_cfg_space_)
-            // {
-            //     // Default Swing Trajectory
-            //     // swingtraj_[i] = swing_traj_planner_->getDefaultTraj(
-            //     //     footpos_list0_[i], footpos_list1_[i], v_lift, h_lift);
-
-            //     // GCS Search Traj
-            //     swingtraj_[i] = swing_traj_planner_->getInitTraj(
-            //         XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
-            //         footpos_list0_[i], footpos_list1_[i], i);
-            // }
-            // else
-            // {
-            //     swingtraj_[i] = swing_traj_planner_->getCfgInitTraj(
-            //         XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
-            //         footpos_list0_[i], footpos_list1_[i], i);
-            // }
         }
     }
 }
@@ -124,6 +106,7 @@ PosList MCTStateTransfer::eval_cfg_traj(double t, uint derivative, bool auto_opt
             {
                 opt_swing_traj(i);
             }
+
             if (!use_cfg_space_)
             {
                 cfg_interp.emplace_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(
@@ -190,16 +173,18 @@ void MCTStateTransfer::opt_swing_traj(int index)
 
         swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
             swingtraj_[index], pose0, pose1, index);
-        // if (use_cfg_space_)
-        // {
-        //     swingtraj_isopt_[index] = swing_traj_planner_->optCfgTraj(
-        //         swingtraj_[index], pose0, pose1, index);
-        // }
-        // else
-        // {
-        //     swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
-        //         swingtraj_[index], pose0, pose1, index);
-        // }
+
+        // Normal randomization for replanning
+        swing_traj_planner_->getConfig().enableLiftRandomize = true;
+        while (!opt_check(index))
+        {
+            swingtraj_[index] = swing_traj_planner_->getInitTraj(
+                XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
+                footpos_list0_[index], footpos_list1_[index], index);
+            swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
+                swingtraj_[index], pose0, pose1, index);
+        }
+        swing_traj_planner_->getConfig().enableLiftRandomize = false;
     }
 }
 

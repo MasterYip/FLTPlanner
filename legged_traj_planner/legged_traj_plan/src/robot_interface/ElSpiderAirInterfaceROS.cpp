@@ -16,7 +16,7 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
 {
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     shadow_joint_state_pub = nh.advertise<sensor_msgs::JointState>("shadow/joint_states", 10);
-    foot_pos_pub = nh.advertise<legged_traj_plan::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
+    footcmd_pub = nh.advertise<legged_traj_plan::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
     feedforward_type = 0;
     if (!sim_) // Hardware
     {
@@ -55,7 +55,7 @@ void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eige
         vec3.z = joint_kd[2];
         footcmd.joint_kd.push_back(vec3);
     }
-    foot_pos_pub.publish(footcmd);
+    footcmd_pub.publish(footcmd);
 }
 
 void ElSpiderAirInterfaceROS::pub_footcmd_from_footendcmd(const std::vector<Eigen::Vector3d> &footendpos,
@@ -91,7 +91,7 @@ void ElSpiderAirInterfaceROS::pub_footcmd_from_footendcmd(const std::vector<Eige
         vec3.z = joint_kd[2];
         footcmd.joint_kd.push_back(vec3);
     }
-    foot_pos_pub.publish(footcmd);
+    footcmd_pub.publish(footcmd);
 }
 
 void ElSpiderAirInterfaceROS::pub_odom(const pinocchio::SE3 &odom,
