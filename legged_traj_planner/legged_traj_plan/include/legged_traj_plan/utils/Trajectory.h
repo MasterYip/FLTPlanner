@@ -43,12 +43,7 @@ public:
         throw std::runtime_error("Not implemented");
         return Eigen::VectorXd::Zero(3);
     }
-    
 };
-
-
-
-
 
 class MincoTrajectory : public TrajectoryBase
 {
@@ -151,8 +146,11 @@ public:
             multiply_factor = traj_.getTotalDuration();
         }
 
-        if (t < 0 || t > traj_.getTotalDuration())
-            throw std::runtime_error("Invalid time");
+        // Limit
+        if (t < 0)
+            t = 0;
+        else if (t > traj_.getTotalDuration())
+            t = traj_.getTotalDuration();
 
         if (d_order == 0)
             return traj_.getPos(t);

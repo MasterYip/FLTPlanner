@@ -179,6 +179,7 @@ private:
 
     /// Misc
     SwingTrajPlannerConfig config_;
+
     // ROS Timer event
     ros::Timer timer_;
     double init_time_ = 0.0;
@@ -222,9 +223,10 @@ public:
         }
     }
 
+    //// Callbacks
     void timer_callback(const ros::TimerEvent &event)
     {
-        pub_footpos_now();
+        pub_jointstate();
         // Update body state
         try
         {
@@ -238,6 +240,7 @@ public:
         }
     }
 
+    // Joystick cmd callback
     void cmd_callback(const geometry_msgs::Twist &msg)
     {
         ROS_INFO("cmd_vel received");
@@ -272,13 +275,16 @@ public:
         }
     }
 
+    // Foot state feedback callback
     void foot_state_callback(const legged_traj_plan::FootState &msg)
     {
         recv_foot_state_ = true;
         foot_state_ = msg;
     }
 
-    void pub_footpos_now(void)
+    //// Rviz
+    // Pub Real Robot JointState for Rviz
+    void pub_jointstate(void)
     {
         std::vector<Eigen::Vector3d> footend_now;
         if (recv_foot_state_ && recv_body_state_)
@@ -298,13 +304,33 @@ public:
         }
         robot_interface_->pub_joint_state_from_footendpos(footend_now);
     }
-    // Deprecated
-    [[deprecated]] void body_state_callback(const legged_traj_plan::BodyState &msg)
+
+    void state_traj_replay(MCTStateTransfer &state_traj)
     {
-        recv_body_state_ = true;
-        // body_state_ = msg;
+        for (double t = 0.0; t < 1.01; t += 0.05)
+        {
+            // Get Interpolated State
+            auto odom_interp = state_traj.eval_torso_traj(t);
+            auto footend_interp = state_traj.eval_foot_traj(t); // Footend position in world frame
+            auto support_state = state_traj.eval_support_state(t);
+            for (size_t k = 0; k < 6; ++k)
+            {
+                // Convert to BASE
+                footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
+            }
+
+            // Visualization
+            robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
+            robot_interface_->pub_shadow_joint_state_from_footendpos(footend_interp);
+            ros::spinOnce();  // Fetch feedback
+            pub_jointstate(); // Publish real joint state
+
+            rate_.sleep();
+        }
     }
 
+    //// MCTS Interface
+    // Update Robot State for MCTS Interface
     void update_robot_state(void)
     {
         if (fake_estimation_)
@@ -347,6 +373,7 @@ public:
         }
     }
 
+    // Update Exp Path for MCTS Interface
     void update_exp_path(void)
     {
         exp_path_.clear();
@@ -361,6 +388,57 @@ public:
         }
     }
 
+    //// Contact Handling (Sim only)
+    // FIXME: avoid error detection
+    bool is_contact(int leg_idx, double eps = 0.1)
+    {
+        Eigen::Vector3d foot_force;
+        foot_force << foot_state_.effort[leg_idx].x, foot_state_.effort[leg_idx].y, foot_state_.effort[leg_idx].z;
+        return foot_force.norm() > eps;
+    }
+
+    void stance_contact_handle(void)
+    {
+        bool flag = false;
+        int max_cnt = 50;
+        double alpha = 0.01;
+        std::vector<Eigen::Vector3d> footend_interp(6, Eigen::Vector3d::Zero());
+        for (size_t k = 0; k < 6; ++k)
+        {
+            footend_interp.at(k)[0] = foot_state_.position[k].x;
+            footend_interp.at(k)[1] = foot_state_.position[k].y;
+            footend_interp.at(k)[2] = foot_state_.position[k].z;
+        }
+
+        ROS_INFO("Stance contact handling...");
+        while (!flag && max_cnt-- > 0)
+        {
+            flag = true;
+            for (size_t k = 0; k < 6; ++k)
+            {
+                if (is_contact(k) == false)
+                {
+                    flag = false;
+                    footend_interp.at(k) = LOWEST_FOOT_POS[k] * alpha + footend_interp.at(k) * (1 - alpha);
+                }
+            }
+            robot_interface_->pub_footcmd_from_footendpos(footend_interp);
+            ros::spinOnce(); // Fetch feedback
+            rate_.sleep();
+        }
+        if (max_cnt <= 0)
+            ROS_WARN("Stance contact handling failed.");
+        else
+            ROS_INFO("Stance contact handling done.");
+    }
+
+    //// Planning
+    // for lift & touch smoothing
+    double sine_remap(double t)
+    {
+        return 0.5 * (1 + std::sin(M_PI * (t - 0.5)));
+    }
+
     void traj_planner()
     {
         double t = 0.0;
@@ -369,19 +447,22 @@ public:
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
+
+        state_traj_replay(state_traj);
+        ros::Duration(0.4).sleep();
         do
         {
             // Get Interpolated State
-            odom_interp = state_traj.eval_torso_traj(t);
+            odom_interp = state_traj.eval_torso_traj(sine_remap(t));
             // Footend position in world frame
-            footend_interp = state_traj.eval_foot_traj(t);
-            support_state = state_traj.eval_support_state(t);
+            footend_interp = state_traj.eval_foot_traj(sine_remap(t));
+            support_state = state_traj.eval_support_state(sine_remap(t));
             for (size_t k = 0; k < 6; ++k)
             {
                 // Convert to BASE
                 footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
             }
-            robot_interface_->pub_footcmd_from_footendpos(footend_interp);
+
             if (fake_estimation_)
             {
                 robot_interface_->pub_joint_state_from_footendpos(footend_interp);
@@ -389,9 +470,8 @@ public:
             }
             else
             {
-                robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
-                robot_interface_->pub_shadow_joint_state_from_footendpos(footend_interp);
-                pub_footpos_now();
+                robot_interface_->pub_footcmd_from_footendpos(footend_interp);
+                pub_jointstate();
             }
 
             // Visualization
@@ -424,6 +504,15 @@ public:
             }
             rate_.sleep();
         } while (whole_body_planner_.get_state_traj_length() > 0);
+
+        if (!fake_estimation_)
+        {
+            ros::spinOnce();  // Fetch feedback
+            pub_jointstate(); // Publish real joint state
+            ros::Duration(0.4).sleep();
+            // Stance contact handling
+            stance_contact_handle();
+        }
     }
 
     void saveRobotProfile()

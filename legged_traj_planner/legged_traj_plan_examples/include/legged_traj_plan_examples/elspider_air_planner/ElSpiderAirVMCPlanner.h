@@ -323,7 +323,7 @@ public:
 
     void state_traj_replay(MCTStateTransfer &state_traj)
     {
-        for (double t = 0.0; t < 1.0; t += 0.05)
+        for (double t = 0.0; t < 1.01; t += 0.05)
         {
             // Get Interpolated State
             auto odom_interp = state_traj.eval_torso_traj(t);
@@ -336,18 +336,11 @@ public:
             }
 
             // Visualization
-            if (fake_estimation_)
-            {
-                robot_interface_->pub_odom(odom_interp);
-                robot_interface_->pub_joint_state_from_footendpos(footend_interp);
-            }
-            else
-            {
-                robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
-                robot_interface_->pub_shadow_joint_state_from_footendpos(footend_interp);
-                ros::spinOnce();  // Fetch feedback
-                pub_jointstate(); // Publish real joint state
-            }
+            robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
+            robot_interface_->pub_shadow_joint_state_from_footendpos(footend_interp);
+            ros::spinOnce();  // Fetch feedback
+            pub_jointstate(); // Publish real joint state
+
             rate_.sleep();
         }
     }
@@ -501,9 +494,9 @@ public:
                 {
                     flag = false;
                     // exp_foot_state_.position[k].z -= adj_height;
-                    exp_foot_state_.position[k].x = LOWEST_FOOT_POS[k](0) * alpha + exp_foot_state_.position[k].x * (1-alpha);
-                    exp_foot_state_.position[k].y = LOWEST_FOOT_POS[k](1) * alpha + exp_foot_state_.position[k].y * (1-alpha);
-                    exp_foot_state_.position[k].z = LOWEST_FOOT_POS[k](2) * alpha + exp_foot_state_.position[k].z * (1-alpha);
+                    exp_foot_state_.position[k].x = LOWEST_FOOT_POS[k](0) * alpha + exp_foot_state_.position[k].x * (1 - alpha);
+                    exp_foot_state_.position[k].y = LOWEST_FOOT_POS[k](1) * alpha + exp_foot_state_.position[k].y * (1 - alpha);
+                    exp_foot_state_.position[k].z = LOWEST_FOOT_POS[k](2) * alpha + exp_foot_state_.position[k].z * (1 - alpha);
                 }
             }
             exp_foot_state_pub_.publish(exp_foot_state_);
@@ -533,9 +526,10 @@ public:
         getchar();
         do
         {
+            ros::spinOnce(); // Fetch feedback
             pub_vmc_exp_state(state_traj, sine_remap(t));
+
             // Visualization
-            ros::spinOnce();  // Fetch feedback
             pub_jointstate(); // Publish real joint state
 
             t += delta;
@@ -556,7 +550,6 @@ public:
             exp_foot_state_.contact[k] = true;
         exp_foot_state_pub_.publish(exp_foot_state_);
 
-        rate_.sleep();
         ros::spinOnce();  // Fetch feedback
         pub_jointstate(); // Publish real joint state
         ros::Duration(0.4).sleep();
