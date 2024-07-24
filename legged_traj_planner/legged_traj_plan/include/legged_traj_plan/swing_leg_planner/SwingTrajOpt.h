@@ -481,6 +481,7 @@ public:
         const bool useCfgSpace = false,
         const bool verbose = false)
     {
+        config_ = config;
         benchmark_.reset();
         rate_ = ros::Rate(config_.optVisRate);
 
@@ -502,8 +503,6 @@ public:
         headPV.col(1) = initialVel;
         tailPV.col(0) = polyPath.rightCols(1);
         tailPV.col(1) = terminalVel;
-
-        config_ = config;
 
         rho = config_.timeWeight;
         smoothEps = config_.smoothingFactor;
