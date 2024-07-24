@@ -9,7 +9,7 @@
     <!-- Planner Config: swing_traj_planner / swing_traj_planner_cfg / swing_traj_planner_rrt -->
     <arg name="planner_cfg" default="swing_traj_planner_cfg" />
     <!-- Optitrack -->
-    <arg name="use_optitrack" default="true" />
+    <arg name="use_optitrack" default="false" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="false" />
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->

@@ -17,7 +17,7 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     shadow_joint_state_pub = nh.advertise<sensor_msgs::JointState>("shadow/joint_states", 10);
     footcmd_pub = nh.advertise<legged_traj_plan::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
-    jointcmd_pub = nh.advertise<legged_traj_plan::FootCmd>("/hexapod/hlc/joint_cmd", 1);
+    jointcmd_pub = nh.advertise<legged_traj_plan::JointCmd>("/hexapod/hlc/joint_cmd", 1);
     feedforward_type = 0;
     if (!sim_) // Hardware
     {
@@ -111,6 +111,8 @@ void ElSpiderAirInterfaceROS::pub_jointcmd_from_jointpos(const std::vector<doubl
         jointcmd.kd.emplace_back(joint_kd[1]);
         jointcmd.kp.emplace_back(joint_kp[2]);
         jointcmd.kd.emplace_back(joint_kd[2]);
+        jointcmd.position[i * 3 + 1] = -jointcmd.position[i * 3 + 1] + 0.5 * M_PI;
+        jointcmd.position[i * 3 + 2] -= M_PI;
     }
     jointcmd_pub.publish(jointcmd);
 }

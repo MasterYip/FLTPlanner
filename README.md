@@ -119,7 +119,7 @@ roslaunch user main.launch \
 controller_type:=hlc \
 robot_name:=elspider_air \
 joystick_type:=keyboard_sim \
-gazebo_hang_up:=on_ground \
+gazebo_hang_up:=false \
 interface_type:=gazebo
 # Terminal2: start Planner & elevation mapping
 roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=true
@@ -142,7 +142,7 @@ roslaunch user main.launch \
 controller_type:=hlc \
 robot_name:=elspider_air \
 joystick_type:=PS5 \
-gazebo_hang_up:=on_ground \
+gazebo_hang_up:=false \
 interface_type:=hardware
 # Terminal2: start Planner & elevation mapping
 roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=false use_optitrack:=true
