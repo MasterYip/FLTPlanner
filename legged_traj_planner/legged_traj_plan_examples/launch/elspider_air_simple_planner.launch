@@ -145,7 +145,7 @@
             /elspider_air_simple_planner/grid_map_trav_test 
             /swing_traj_planner_vis 
             /hexapod/foot_state_fdb 
-            -o elspider_air_planner" output="screen" />
+            -o elspider_air_simple_planner" output="screen" />
     </group>
 
 </launch>

@@ -14,6 +14,8 @@
     <arg name="with_ceiling" value="false" />
     <!-- GridMap -->
     <arg name="grid_map_topic" value="/grid_map" />
+    <!-- ROS bag record (under ~/.ros) -->
+    <arg name="rosbag_record" value="true" />
 
     <!-- Launch -->
     <!-- Vrpn Client ROS -->
@@ -77,5 +79,16 @@
             <param name="cmd_topic" value="/cmd_vel" />
             <param name="joy_topic" value="/joy" />
         </node>
+    </group>
+
+    <!-- ROS bag record -->
+    <group if="$(eval rosbag_record == 1)">
+        <node pkg="rosbag" type="record" name="rosbag_record" args="
+            /tf /tf_static 
+            /grid_map 
+            /elspider_air_simple_planner/grid_map_trav_test 
+            /swing_traj_planner_vis 
+            /hexapod/foot_state_fdb 
+            -o elspider_air_vmc_planner" output="screen" />
     </group>
 </launch>

@@ -9,7 +9,7 @@ Panels:
         - /swing_traj_planner_vis1
         - /TravMap1
       Splitter Ratio: 0.5
-    Tree Height: 651
+    Tree Height: 363
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -522,7 +522,10 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: swing_traj_planner_vis
       Namespaces:
-        {}
+        curve: true
+        facet: true
+        mesh: true
+        sphere: true
       Queue Size: 1
       Value: true
     - Alpha: 0.4000000059604645
@@ -577,7 +580,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 1.8835221529006958
+      Distance: 2.1095447540283203
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -585,17 +588,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.5776035785675049
-        Y: 0.4130362272262573
-        Z: 0.031005457043647766
+        X: 0.1806461215019226
+        Y: 0.22196552157402039
+        Z: -0.2816425561904907
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7097970247268677
-      Target Frame: <Fixed Frame>
-      Yaw: 0.9231784343719482
+      Pitch: 0.6597970724105835
+      Target Frame: base
+      Yaw: 1.0581783056259155
     Saved: ~
 Window Geometry:
   Displays:
