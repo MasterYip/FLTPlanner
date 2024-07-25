@@ -93,8 +93,8 @@ inline Polyhedra genLegPolyRegion(int index)
 }
 
 // Lowest foot position for contact handling (BASE frame)
-const double nominal_y_shift = 0.05;
-const double lowest_z_height = -0.32;
+const double nominal_y_shift = 0.035;
+const double lowest_z_height = -0.38;
 const std::vector<Eigen::Vector3d> LOWEST_FOOT_POS = {
     Eigen::Vector3d(0.35, -0.23 - nominal_y_shift, lowest_z_height),
     Eigen::Vector3d(0.05, -0.29 - nominal_y_shift, lowest_z_height),

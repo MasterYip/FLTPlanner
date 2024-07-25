@@ -1,0 +1,8 @@
+<launch>
+    <group ns="shadow">
+        <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro ns:=shadow"/>
+    </group>
+    <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro"/>
+
+    <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_simple_planner.rviz" output="screen"/>
+</launch>

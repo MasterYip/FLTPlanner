@@ -156,6 +156,28 @@ roslaunch legged_traj_plan_examples elspider_air_simple_raibert_vmc_planner.laun
 
 Settings are listed in `elspider_air_simple_planner.launch`.
 
+ROS bag recording:
+
+```bash
+rosbag record \
+/tf \
+/tf_static \
+/grid_map \
+/elspider_air_simple_planner/grid_map_trav_test \
+/swing_traj_planner_vis \
+/hexapod/foot_state_fdb \
+-o elspider_air_planner.bag
+```
+
+Or you can set the `rosbag_record:=true` in the launch file.
+
+ROS bag playback:
+
+```bash
+roslaunch legged_traj_plan_examples rosbag_playback.launch 
+```
+
+
 ##### Usage
 
 Robot initialization using keyboard (Terminal1):
