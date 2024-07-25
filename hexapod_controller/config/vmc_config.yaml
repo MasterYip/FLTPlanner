@@ -5,7 +5,7 @@ mass: 45.0
 inertia_diag: [0.7, 1.4, 1.8]
 # inertia_diag: [0.3, 0.6, 0.9]
 
-pidgrf_Kp: 25.0 # When this equals loop_rate, pid acts as pass-through 
+pidgrf_Kp: 10.0 # When this equals loop_rate(200), pid acts as pass-through 
 pidgrf_lim: 60000.0
 # pidgrf_T: 0.005
 # pidgrf_tau: 0.0025
@@ -20,15 +20,15 @@ body_frame: base
 world_frame: odom
 
 
-# Position Ctrl
-gravity: 0
-loop_rate: 200.0
-Kp: 0.0
-Kd: 0.0 # kd = 2 \zeta \sqrt(kp)
-joint_kp_st: [0.1, 0.1, 0.1]
-joint_kd_st: [0.8, 0.8, 0.8]
-joint_kp_sw: [0.06, 0.06, 0.06]
-joint_kd_sw: [0.4, 0.4, 0.4]
+# # Position Ctrl
+# gravity: 0
+# loop_rate: 200.0
+# Kp: 0.0
+# Kd: 0.0 # kd = 2 \zeta \sqrt(kp)
+# joint_kp_st: [0.1, 0.1, 0.1]
+# joint_kd_st: [0.8, 0.8, 0.8]
+# joint_kp_sw: [0.06, 0.06, 0.06]
+# joint_kd_sw: [0.4, 0.4, 0.4]
 
 # # Position Ctrl (Simple Planner)
 # gravity: 0
@@ -40,14 +40,14 @@ joint_kd_sw: [0.4, 0.4, 0.4]
 # joint_kp_sw: [0.1, 0.15, 0.15]
 # joint_kd_sw: [2, 2, 2]
 
-# # VMC with PD
-# gravity: 9.81
-# loop_rate: 200.0
-# Kp: 25.0
-# Kd: 10.0 # kd = 2 \zeta \sqrt(kp)
-# joint_kp_st: [0.06, 0.06, 0.06]
-# # joint_kp_st: [0.02, 0.03, 0.03]
-# # joint_kp_st: [0.005, 0.005, 0.005]
-# joint_kd_st: [0.4, 0.4, 0.4]
-# joint_kp_sw: [0.02, 0.02, 0.02]
-# joint_kd_sw: [0.4, 0.4, 0.4]
+# VMC with PD
+gravity: 9.81
+loop_rate: 200.0
+Kp: 25.0
+Kd: 10.0 # kd = 2 \zeta \sqrt(kp)
+joint_kp_st: [0.06, 0.06, 0.06]
+# joint_kp_st: [0.02, 0.03, 0.03]
+# joint_kp_st: [0.005, 0.005, 0.005]
+joint_kd_st: [0.4, 0.4, 0.4]
+joint_kp_sw: [0.02, 0.02, 0.02]
+joint_kd_sw: [0.4, 0.4, 0.4]
