@@ -255,7 +255,7 @@ public:
             update_robot_state();
             gridmap_interface_->lockMapUpdate();
             bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                         gridmap_interface_->getMap(), true, 400);
+                                                         gridmap_interface_->getMap(), true, 1000);
             // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
             // bool ret = true;
 
