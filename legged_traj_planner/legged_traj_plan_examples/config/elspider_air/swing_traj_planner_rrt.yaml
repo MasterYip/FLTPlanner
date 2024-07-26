@@ -19,9 +19,9 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 RRTPlanner:
-  maxTime: 1.3
+  maxTime: 10.0
   collBallRadius: 0.02
-  excludeRadius: 0.06 # TODO: use exclude cylinder radius?
-  collMargin: 0.04
+  excludeRadius: 0.04 # exclude cylinder radius
+  collMargin: 0.05
 
 

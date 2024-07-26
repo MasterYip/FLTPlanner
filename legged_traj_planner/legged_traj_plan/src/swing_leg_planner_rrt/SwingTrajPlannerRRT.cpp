@@ -19,7 +19,7 @@ SwingTrajPlannerRRT::SwingTrajPlannerRRT(SwingTrajPlannerConfig config,
                                                                                                 swing_traj_opt_(config, robot_interface_, gridmap_interface_,
                                                                                                                 nullptr, config.enableBenchmark)
 {
-    visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_rrt_vis");
+    visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
 }
 
 std::shared_ptr<TrajectoryBase> SwingTrajPlannerRRT::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
@@ -32,12 +32,12 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlannerRRT::getInitTraj(pinocchio::SE3 
     knots.row(1) = (p0 + p1) / 2 + Eigen::Vector3d(0, 0, h_lift);
     knots.row(2) = p1;
     std::shared_ptr<UniBSpline> unib_traj = std::make_shared<UniBSpline>(knots);
-    if (config_.enableOptVis)
-    {
-        std::vector<Eigen::Vector3d> traj_points;
-        unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
-        visualizer_->visCurve(traj_points);
-    }
+    // if (config_.enableVis)
+    // {
+    //     std::vector<Eigen::Vector3d> traj_points;
+    //     unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
+    //     visualizer_->visCurve(traj_points);
+    // }
     return unib_traj;
 }
 
@@ -50,11 +50,20 @@ bool SwingTrajPlannerRRT::optTraj(std::shared_ptr<TrajectoryBase> &traj,
         return true;
     std::shared_ptr<UniBSpline> unib_traj = std::dynamic_pointer_cast<UniBSpline>(traj);
     bool ret = swing_traj_opt_.optimize(*unib_traj, config_, 0.1);
-    if (config_.enableOptVis && ret)
+    if (config_.enableVis && ret)
     {
+        // Discrete
+        std::vector<Eigen::Vector3d> rrt_poly_traj;
+        Eigen::MatrixXd knots = unib_traj->get();
+        for (int i = 0; i < knots.rows(); i++)
+        {
+            rrt_poly_traj.push_back(knots.row(i));
+        }
+        visualizer_->visCurve(rrt_poly_traj, ros_visualizer::VisStyle(0.3, 0.7, 0.3, 0.7, 0.01));
+        // UniBSpline
         std::vector<Eigen::Vector3d> traj_points;
         unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
-        visualizer_->visCurve(traj_points, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
+        visualizer_->visCurve(traj_points, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 1, 0.01));
     }
     return ret;
 }

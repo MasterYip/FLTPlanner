@@ -25,8 +25,12 @@
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/ProblemDefinition.h>
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
+#include <ompl/base/objectives/StateCostIntegralObjective.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/config.h>
 
 /* internal project header files */
@@ -54,6 +58,19 @@ inline bool inExcludeCylinder(const Eigen::Vector3d &pos, const Eigen::Vector3d 
 {
     return (pos.head(2) - center.head(2)).norm() < radius && pos(2) > center(2) - radius;
 }
+
+class ClearanceObjective : public ob::StateCostIntegralObjective
+{
+public:
+    ClearanceObjective(const ob::SpaceInformationPtr &si) : ob::StateCostIntegralObjective(si, true)
+    {
+    }
+
+    ob::Cost stateCost(const ob::State *s) const
+    {
+        return ob::Cost(1 / si_->getStateValidityChecker()->clearance(s));
+    }
+};
 
 class SwingTrajOptRRT
 {
@@ -115,6 +132,14 @@ public:
         return true;
     }
 
+    ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr &si)
+    {
+        ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
+        ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
+
+        return 10.0 * lengthObj + 0.1 * clearObj;
+    }
+
     inline bool optimize(UniBSpline &traj, SwingTrajPlannerConfig &config, double max_time = 0.1)
     {
         // Setup Params
@@ -152,8 +177,13 @@ public:
         // Set the start and goal states
         ss.setStartAndGoalStates(start, goal);
 
+        // Optimization objective
+        ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
+
         // Create an RRT* planner
-        auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
+        // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
+        // auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
+        auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
         ss.setPlanner(planner);
 
         // Attempt to solve the problem within a given time (seconds)
