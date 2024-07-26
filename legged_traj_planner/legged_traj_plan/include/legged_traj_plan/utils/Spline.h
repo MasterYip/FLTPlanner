@@ -165,7 +165,7 @@ public:
 
         if (t < t_range_.first || t > t_range_.second)
         {
-            std::cerr << "Parameter t out of range" << std::endl;
+            std::cerr << "Warning: Parameter t out of range" << std::endl;
             // Saturation
             if (t < t_range_.first)
                 t = t_range_.first;

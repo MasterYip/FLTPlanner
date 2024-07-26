@@ -14,8 +14,6 @@
 #include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
-#define ENABLE_VISUALIZER
-
 Eigen::VectorXd getTrajTimeVec(const std::vector<Point3D> &path, double total_time)
 {
     if (path.size() > 2)
@@ -86,7 +84,7 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     PolyTrajSearch poly_traj_search(corridor, gridmap_interface_->getMap(),
                                     gridmap_interface_->getGroundLayerName(),
                                     gridmap_interface_->getCeilingLayerName(), true, false);
-    if (verbose && index == 0 || 1)
+    if (config_.enableVis)
     {
         // Polytope
         visualizer_->setIdGroup(1);
@@ -114,8 +112,7 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     }
     gridmap_interface_->unlockMapUpdate();
 
-#ifdef ENABLE_VISUALIZER
-    if (verbose && index == 0 || 1)
+    if (config_.enableVis)
     {
         visualizer_->setIdGroup(1);
         // Polytope
@@ -140,7 +137,6 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         // Poly Path
         visualizer_->visCurve(poly_traj, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.02));
     }
-#endif
 
     return true;
 }
@@ -164,13 +160,14 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pos
     normal.normalize();
     Eigen::Vector3d goal_vel = -normal * v_lift;
     MincoTrajectory minco_traj(poly_path, start_vel, goal_vel, config_.trajTime);
-#ifdef ENABLE_VISUALIZER
-    // Minco
-    visualizer_->setIdGroup(1);
-    std::vector<Point3D> poly_path_opt;
-    minco_traj.getTrajSamples(poly_path_opt);
-    visualizer_->visCurve(poly_path_opt);
-#endif
+    if (config_.enableVis)
+    {
+        // Minco
+        visualizer_->setIdGroup(1);
+        std::vector<Point3D> poly_path_opt;
+        minco_traj.getTrajSamples(poly_path_opt);
+        visualizer_->visCurve(poly_path_opt);
+    }
 
     return std::make_shared<MincoTrajectory>(minco_traj);
 }
@@ -195,8 +192,7 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
                           config_, false, false);
     bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), config_.relCostTol);
 
-#ifdef ENABLE_VISUALIZER
-    if (ret)
+    if (config_.enableVis && ret)
     {
         // Minco
         std::vector<Point3D> path_opt;
@@ -206,7 +202,6 @@ bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
         visualizer_->setIdGroup(1);
         visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
     }
-#endif
     return ret;
 }
 
@@ -277,9 +272,10 @@ std::shared_ptr<MincoTrajectory> SwingCfgTrajPlanner::getDefaultCfgTraj(const pi
     J_inv = J.transpose() * (J * J.transpose()).inverse();
     goal_vel = J_inv * goal_vel;
 
-#ifdef ENABLE_VISUALIZER
-    visCfgMincoTraj(pose0, pose1, index, cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
-#endif
+    if (config_.enableVis)
+    {
+        visCfgMincoTraj(pose0, pose1, index, cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
+    }
 
     return std::make_shared<MincoTrajectory>(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
 }
@@ -299,7 +295,7 @@ bool SwingCfgTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     PolyTrajSearch poly_traj_search(corridor, gridmap_interface_->getMap(),
                                     gridmap_interface_->getGroundLayerName(),
                                     gridmap_interface_->getCeilingLayerName(), true, false);
-    if (verbose && index == 0 || 1)
+    if (config_.enableVis)
     {
         // Polytope
         visualizer_->setIdGroup(1);
@@ -327,8 +323,7 @@ bool SwingCfgTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     }
     gridmap_interface_->unlockMapUpdate();
 
-#ifdef ENABLE_VISUALIZER
-    if (verbose && index == 0 || 1)
+    if (config_.enableVis)
     {
         visualizer_->setIdGroup(1);
         // Polytope
@@ -353,7 +348,6 @@ bool SwingCfgTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         // Poly Path
         visualizer_->visCurve(poly_traj, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.02));
     }
-#endif
 
     return true;
 }
@@ -422,9 +416,10 @@ std::shared_ptr<TrajectoryBase> SwingCfgTrajPlanner::getInitTraj(pinocchio::SE3 
     J_inv = J.transpose() * (J * J.transpose()).inverse();
     goal_vel = J_inv * goal_vel;
     MincoTrajectory minco_traj(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
-#ifdef ENABLE_VISUALIZER
-    visCfgMincoTraj(pose0, pose1, index, cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
-#endif
+    if (config_.enableVis)
+    {
+        visCfgMincoTraj(pose0, pose1, index, cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
+    }
     return std::make_shared<MincoTrajectory>(minco_traj);
 }
 
@@ -453,8 +448,7 @@ bool SwingCfgTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
         benchmark_results_.emplace_back(swing_traj_opt_.getBenchmarkResult());
     }
 
-#ifdef ENABLE_VISUALIZER
-    if (ret)
+    if (config_.enableVis && ret)
     {
         // Minco
         std::vector<Point3D> cfg_path_opt;
@@ -472,6 +466,5 @@ bool SwingCfgTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
         visualizer_->setIdGroup(1);
         visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
     }
-#endif
     return ret;
 }

@@ -12,7 +12,8 @@ misc:
   enableOptimizer: true
   useCfgSpace: true # Do not change this (this file is for cfg space)
   useCfgCommand: true
-  enableOptVis: false
+  enableVis: true
+  enableOptVis: false # Visualize the optimization process
   optVisRate: 10
   enableBenchmark: false
   # Benchmark result save path

@@ -70,6 +70,7 @@ struct SwingTrajPlannerConfig
     bool enableOptimizer;
     bool useCfgSpace;
     bool useCfgCommand;
+    bool enableVis;
     bool enableOptVis;
     double optVisRate;
     bool enableBenchmark;
@@ -133,7 +134,8 @@ struct SwingTrajPlannerConfig
 
         check_digit *= nh.getParam("misc/enableOptimizer", enableOptimizer);
         check_digit *= nh.getParam("misc/useCfgSpace", useCfgSpace);
-        check_digit *= nh.getParam("misc/useCfgCommand", useCfgCommand); 
+        check_digit *= nh.getParam("misc/useCfgCommand", useCfgCommand);
+        check_digit *= nh.getParam("misc/enableVis", enableVis);
         check_digit *= nh.getParam("misc/enableOptVis", enableOptVis);
         check_digit *= nh.getParam("misc/optVisRate", optVisRate);
         check_digit *= nh.getParam("misc/enableBenchmark", enableBenchmark);
