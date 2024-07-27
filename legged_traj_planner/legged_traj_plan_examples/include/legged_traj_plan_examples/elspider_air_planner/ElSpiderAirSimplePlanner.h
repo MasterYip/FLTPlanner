@@ -175,10 +175,13 @@ private:
     MDT::RobotState next_planned_state_;
     std::vector<Eigen::Vector3f> exp_path_;
     float multiply_factor_ = 0.03;
-    int point_num_ = 3;
+    int point_num_ = 50;
 
-    /// Misc
+    // Misc
     SwingTrajPlannerConfig config_;
+
+    // Status
+    bool motion_lock_ = false;
 
     // ROS Timer event
     ros::Timer timer_;
@@ -243,23 +246,30 @@ public:
     // Joystick cmd callback
     void cmd_callback(const geometry_msgs::Twist &msg)
     {
-        ROS_INFO("cmd_vel received");
-        cmd_ = msg;
-        // Start planning
-        if ((recv_foot_state_ && recv_body_state_) || fake_estimation_)
+        if (motion_lock_)
+            ROS_WARN("Robot is in motion, ignore new command.");
+        else if ((recv_foot_state_ && recv_body_state_) || fake_estimation_)
         {
-            // SwingTraj Vis Clear
+            motion_lock_ = true;
+            cmd_ = msg;
             whole_body_planner_.visClear();
 
-            update_exp_path();
-            update_robot_state();
-            gridmap_interface_->lockMapUpdate();
-            bool ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                         gridmap_interface_->getMap(), true, 1000);
-            // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
-            // bool ret = true;
+            bool ret = false;
+            while (!ret)
+            {
+                // Fetch feedback
+                ros::spinOnce();
+                // update robot state
+                update_exp_path();
+                update_robot_state();
+                // MCTS planning
+                gridmap_interface_->lockMapUpdate();
+                ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
+                                                        gridmap_interface_->getMap(), true, 400);
+                // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
+                gridmap_interface_->unlockMapUpdate();
+            }
 
-            gridmap_interface_->unlockMapUpdate();
             if (ret)
             {
                 whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
@@ -271,7 +281,13 @@ public:
                 whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
                                                         transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
             }
+
             traj_planner();
+            motion_lock_ = false;
+        }
+        else
+        {
+            ROS_WARN("No foot state feedback, ignore command.");
         }
     }
 
