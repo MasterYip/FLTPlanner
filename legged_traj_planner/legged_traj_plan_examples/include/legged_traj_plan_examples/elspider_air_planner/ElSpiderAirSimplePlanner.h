@@ -27,6 +27,7 @@
 #include "legged_traj_plan/BodyState.h"
 // MCTS
 #include "contactPlannerInterface.h"
+#include "planning.h"
 #include "myDataType.h"
 #include "HexapodParameter.h"
 #include "user.h"
@@ -204,7 +205,7 @@ public:
                                                                                       robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
                                                                                       gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                       whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
-                                                                                      tfListener_(tfBuffer_), visualizer_(nh_, "base", "visualizer_markers"),
+                                                                                      tfListener_(tfBuffer_), visualizer_(nh_, "odom", "visualizer_markers"),
                                                                                       rate_(100), fake_estimation_(fake_estimation), simulation_(simulation),
                                                                                       config_(swing_traj_planner_config)
     {
@@ -269,6 +270,35 @@ public:
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
                 gridmap_interface_->unlockMapUpdate();
             }
+
+            // Visualization
+            visualizer_.delAll();
+            // visualizer_.visPolytope(robot_interface_->getFootPolyhedra());
+
+            // Vis expected path
+            if (config_.enableVis)
+            {
+                std::vector<Point3D> exp_path_vis;
+                for (const auto &pt : exp_path_)
+                {
+                    exp_path_vis.emplace_back(Point3D(pt[0], pt[1], pt[2]));
+                }
+                visualizer_.visCurve(exp_path_vis);
+            }
+
+            // Vis getAvailableFootholds
+            MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
+            std::vector<Eigen::Vector3d> pts;
+            for (int i = 0; i < 6; i++)
+            {
+                if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
+                    continue;
+                for (auto pt : available_points.position.leg[i])
+                {
+                    pts.emplace_back(pt);
+                }
+            }
+            visualizer_.visSphere(pts, 0.01);
 
             if (ret)
             {
@@ -525,10 +555,6 @@ public:
             {
                 ros::spinOnce();
             }
-
-            // Visualization
-            visualizer_.delAll();
-            visualizer_.visPolytope(robot_interface_->getFootPolyhedra());
 
             // State recording
             RobotProfile profile;
