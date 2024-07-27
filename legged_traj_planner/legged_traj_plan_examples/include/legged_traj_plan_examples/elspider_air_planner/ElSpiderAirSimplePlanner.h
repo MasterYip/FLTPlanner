@@ -255,7 +255,7 @@ public:
             whole_body_planner_.visClear();
 
             bool ret = false;
-            while (!ret)
+            while (!ret && ros::ok())
             {
                 // Fetch feedback
                 ros::spinOnce();
@@ -371,11 +371,11 @@ public:
             tf2::fromMsg(body_state_tf_.transform.rotation, q);
             tf2::Matrix3x3(q).getRPY(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw);
 
-            // FIXME: gaitToNow? default 0
             std::vector<Eigen::Vector3d> footend_vis;
             for (int i = 0; i < 6; ++i)
             {
-                robot_state_.gaitToNow[i] = MDT::SUPPORT_FLAG; // use FootState.contact?
+                // Last planned state gait (MDT::SUPPORT if not planned)
+                robot_state_.gaitToNow[i] = next_planned_state_.gaitToNow[i];
                 robot_state_.faultStateToNow[i] = MDT::NORMAL_LEG_FLAG;
                 // Absolute foot position
                 robot_state_.feetPosition[i] = tf2::transformToEigen(body_state_tf_.transform) *
