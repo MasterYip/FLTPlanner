@@ -63,7 +63,7 @@ struct SwingTrajPlannerConfig
     double vLift;
     double hLift;
     double trajTime;
-    bool enableLiftRandomize; // Enabled when replanning
+    bool enableLiftRandomize{false}; // Enabled when replanning
     double vLiftNormalRandomize;
 
     // Misc
