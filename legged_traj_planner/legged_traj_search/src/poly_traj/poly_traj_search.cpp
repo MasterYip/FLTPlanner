@@ -104,10 +104,53 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
     return false;
 }
 
-// bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path)
-// {
+bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path, const int samples)
+{
+    double key_point_criteria = 0.001; // FIXME: magic number
+    int size = path.size();
 
-// }
+    for (int i = size - 2; i >= 0; i--)
+    {
+        Point3D start = path[i];
+        Point3D goal = path[i + 1];
+        std::vector<Point3D> key_points;
+        std::vector<Point3D> sample_points;
+
+        for (int j = 0; j < samples; j++)
+        {
+            double t = (double)j / (samples - 1);
+            Point3D pos = start + t * (goal - start);
+            sample_points.emplace_back(pos);
+        }
+        for (int j = 1; j < samples - 1; j++)
+        {
+            double diffs[3];
+            diffs[0] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j - 1].head(2))) - sample_points[j - 1][2];
+            diffs[1] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j].head(2))) - sample_points[j][2];
+            diffs[2] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j + 1].head(2))) - sample_points[j + 1][2];
+            if (diffs[1] > key_point_criteria &&
+                diffs[1] - diffs[0] > key_point_criteria &&
+                diffs[1] - diffs[2] > key_point_criteria)
+            {
+                key_points.emplace_back(Eigen::Vector3d(sample_points[j][0], sample_points[j][1], sample_points[j][2] + diffs[1]));
+            }
+        }
+        // Remove the key points that are local minimum
+        for (int j = key_points.size() - 1; j > 0; j--)
+        {
+            if (key_points[j][2] < key_points[j - 1][2] && key_points[j][2] < key_points[j + 1][2])
+            {
+                key_points.erase(key_points.begin() + j);
+            }
+        }
+
+        if (key_points.size() > 0)
+        {
+            path.insert(path.begin() + i + 1, key_points.begin(), key_points.end());
+        }
+    }
+    return true;
+}
 
 bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path)
 {
@@ -139,6 +182,9 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     // Replace the start and goal with the original start and goal
     path.front() = start;
     path.back() = goal;
+
+    benchmark_.record("Insert Vertical Key Point", RecordType::CRITICAL);
+    insertVerticalKeyPoint(path, 20);
 
     benchmark_.end();
     return true;

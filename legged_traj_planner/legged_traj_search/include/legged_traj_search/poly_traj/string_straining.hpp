@@ -45,6 +45,8 @@ bool inline isInward(const GridPt &b1, const GridPt &b2, const GridPt &b3,
 {
     return isConcavePoint(b2, b1, b3, true) ? (isInward(b1, b2, p1, p2) || isInward(b2, b3, p1, p2)) : (isInward(b1, b2, p1, p2) && isInward(b2, b3, p1, p2));
 }
+
+// TODO: Try fix this
 class StringStrainingSearch
 {
 private:
