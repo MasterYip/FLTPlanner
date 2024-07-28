@@ -377,6 +377,22 @@ bool SwingCfgTrajPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
 }
 
 /**
+ * @brief Orthogonal disk randomize
+ * @note Return a randomized vector \bar{r} given a normal vector \bar{n}, the \bar{r} is orthogonal to \bar{n}
+ * @param normal 
+ * @param radius 
+ * @return Eigen::Vector3d 
+ */
+Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double radius)
+{
+    Eigen::Vector3d random = Eigen::Vector3d::Random();
+    random.normalize();
+    Eigen::Vector3d tangent = random - random.dot(normal) * normal;
+    return radius * tangent;
+}
+
+
+/**
  * @brief
  *
  * @param pose0
@@ -401,12 +417,12 @@ std::shared_ptr<TrajectoryBase> SwingCfgTrajPlanner::getInitTraj(pinocchio::SE3 
     // NOTE: the vel is in BASE frame
     Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
     if (config_.enableLiftRandomize)
-        normal += Eigen::Vector3d::Random() * config_.vLiftNormalRandomize;
+        normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     normal.normalize();
     Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * config_.vLift); // Base frame
     normal = gridmap_interface_->sdfDerivative(p1, 0);
     if (config_.enableLiftRandomize)
-        normal += Eigen::Vector3d::Random() * config_.vLiftNormalRandomize;
+        normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     normal.normalize();
     Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * config_.vLift); // Base frame
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_traj.front(), index);
