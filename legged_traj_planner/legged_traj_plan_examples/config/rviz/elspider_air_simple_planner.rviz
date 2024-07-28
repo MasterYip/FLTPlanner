@@ -6,9 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /ROSVis1
-        - /swing_traj_planner_vis1
-        - /TravMap1
+        - /PlannerVisBase1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -513,9 +511,17 @@ Visualization Manager:
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /elspider_air_simple_planner/visualizer_markers
-      Name: ROSVis
+      Name: PlannerVis
       Namespaces:
-        curve: true
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /elspider_air_simple_planner/visualizer_markers_base
+      Name: PlannerVisBase
+      Namespaces:
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -523,10 +529,7 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: swing_traj_planner_vis
       Namespaces:
-        curve: true
-        facet: true
-        mesh: true
-        sphere: true
+        {}
       Queue Size: 1
       Value: true
     - Alpha: 0.4000000059604645

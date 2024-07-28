@@ -4,7 +4,7 @@ trajInit:
   # perpendicular to the ground (avoid collision detection)
   vLift: 0.018 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
-  vLiftNormalRandomize: 0.5 # Rand normal for RE-PLANNING
+  vLiftNormalRandomize: 0.8 # Rand normal for RE-PLANNING
   hLift: 0.1
   trajTime: 20
 

@@ -121,7 +121,7 @@ void randomizeRobotState(MDT::RobotState &state_, double noise_amp = 0.1)
     state_.moveDirection += (rand() % 200 - 100) / 100.0 * noise_amp;
 }
 
-MDT::RobotState getInitState(MDT::Pose robotPose = {0, 0, USER::norminalTrunkHeight, 0, 0, 0 * _PI_ / 6},
+MDT::RobotState getInitState(MDT::Pose robotPose = {-2, 0, USER::norminalTrunkHeight, 0, 0, 0 * _PI_ / 6},
                              float moveDir = 0)
 {
     MDT::Vector6b gaitToNow;
@@ -191,6 +191,7 @@ private:
 
     // Visualizer
     GCSVisualizer visualizer_;
+    GCSVisualizer visualizer_base_;
 
     // Settings
     bool fake_estimation_;
@@ -206,6 +207,7 @@ public:
                                                                                       gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                       whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
                                                                                       tfListener_(tfBuffer_), visualizer_(nh_, "odom", "visualizer_markers"),
+                                                                                      visualizer_base_(nh_, "base", "visualizer_markers_base"),
                                                                                       rate_(100), fake_estimation_(fake_estimation), simulation_(simulation),
                                                                                       config_(swing_traj_planner_config)
     {
@@ -256,7 +258,7 @@ public:
             whole_body_planner_.visClear();
 
             bool ret = false;
-            while (!ret && ros::ok())
+            // while (!ret && ros::ok())
             {
                 // Fetch feedback
                 ros::spinOnce();
@@ -266,14 +268,15 @@ public:
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        gridmap_interface_->getMap(), true, 400);
+                                                        gridmap_interface_->getMap(), true, 600);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
                 gridmap_interface_->unlockMapUpdate();
             }
 
             // Visualization
             visualizer_.delAll();
-            // visualizer_.visPolytope(robot_interface_->getFootPolyhedra());
+            visualizer_base_.delAll();
+            
 
             // Vis expected path
             if (config_.enableVis)
@@ -308,6 +311,7 @@ public:
             else
             {
                 ROS_INFO("MCTS failed to plan, reset to nominal state.");
+                visualizer_base_.visPolytope(robot_interface_->getFootPolyhedra());
                 whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
                                                         transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
             }
