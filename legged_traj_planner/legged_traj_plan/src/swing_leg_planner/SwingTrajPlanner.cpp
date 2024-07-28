@@ -416,14 +416,14 @@ std::shared_ptr<TrajectoryBase> SwingCfgTrajPlanner::getInitTraj(pinocchio::SE3 
     // Get start and goal velocity in config space
     // NOTE: the vel is in BASE frame
     Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
+    normal.normalize();
     if (config_.enableLiftRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
-    normal.normalize();
     Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * config_.vLift); // Base frame
     normal = gridmap_interface_->sdfDerivative(p1, 0);
+    normal.normalize();
     if (config_.enableLiftRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
-    normal.normalize();
     Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * config_.vLift); // Base frame
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_traj.front(), index);
     Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
