@@ -25,6 +25,7 @@
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/ProblemDefinition.h>
+#include <ompl/base/Path.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/StateCostIntegralObjective.h>
 #include <ompl/geometric/SimpleSetup.h>
@@ -157,12 +158,6 @@ public:
         }
         space_->setBounds(bounds);
 
-        // Create a SimpleSetup object
-        og::SimpleSetup ss(space_);
-
-        // Set state validity checking for this space
-        ss.setStateValidityChecker(std::bind(&SwingTrajOptRRT::isStateValid, this, std::placeholders::_1));
-
         // Define start and goal states
         ob::ScopedState<> start(space_);
         start[0] = knots(0, 0);
@@ -174,39 +169,86 @@ public:
         goal[1] = knots(knots.rows() - 1, 1);
         goal[2] = knots(knots.rows() - 1, 2);
 
-        // Set the start and goal states
-        ss.setStartAndGoalStates(start, goal);
-
-        // Optimization objective
-        ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
-
-        // Create an RRT* planner
-        // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
-        // auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
-        auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
-        ss.setPlanner(planner);
-
-        // Attempt to solve the problem within a given time (seconds)
-        ob::PlannerStatus solved = ss.solve(max_time);
-
-        if (solved)
+        if (1)
         {
-            std::cout << "Found solution:" << std::endl;
-            ss.simplifySolution();
-            ss.getSolutionPath().printAsMatrix(std::cout);
-            Eigen::MatrixXd new_knots(ss.getSolutionPath().getStateCount(), 3);
-            for (std::size_t i = 0; i < ss.getSolutionPath().getStateCount(); ++i)
+            auto si(std::make_shared<ob::SpaceInformation>(space_));
+            si->setStateValidityChecker(std::bind(&SwingTrajOptRRT::isStateValid, this, std::placeholders::_1));
+            auto pdef(std::make_shared<ob::ProblemDefinition>(si));
+            pdef->setStartAndGoalStates(start, goal);
+            // pdef->setOptimizationObjective(getBalancedObjective(si));
+            std::cout << "00" << std::endl;
+            auto planner(std::make_shared<og::InformedRRTstar>(si));
+            std::cout << "01" << std::endl;
+            planner->setProblemDefinition(pdef);
+            std::cout << "02" << std::endl;
+            planner->setup();
+            std::cout << "03" << std::endl;
+            ob::PlannerStatus solved = planner->ob::Planner::solve(max_time);
+            std::cout << "04" << std::endl;
+
+            if (solved)
             {
-                const auto *pos = ss.getSolutionPath().getState(i)->as<ob::RealVectorStateSpace::StateType>();
-                new_knots.row(i) << pos->values[0], pos->values[1], pos->values[2];
+                std::cout << "Found solution:" << std::endl;
+                ob::PathPtr path = pdef->getSolutionPath();
+                path->print(std::cout);
+                auto path_geom = path->as<og::PathGeometric>();
+                Eigen::MatrixXd new_knots(path_geom->getStateCount(), 3);
+                for (std::size_t i = 0; i < path_geom->getStateCount(); ++i)
+                {
+                    const auto *pos = path_geom->getState(i)->as<ob::RealVectorStateSpace::StateType>();
+                    new_knots.row(i) << pos->values[0], pos->values[1], pos->values[2];
+                }
+                traj.set(new_knots);
             }
-            traj.set(new_knots);
-            return true;
+            else
+            {
+                std::cout << "No solution found" << std::endl;
+                return false;
+            }
         }
-        else
+        else // Simple setup
         {
-            std::cout << "No solution found" << std::endl;
-            return false;
+
+            // Create a SimpleSetup object
+            og::SimpleSetup ss(space_);
+
+            // Set state validity checking for this space
+            ss.setStateValidityChecker(std::bind(&SwingTrajOptRRT::isStateValid, this, std::placeholders::_1));
+
+            // Set the start and goal states
+            ss.setStartAndGoalStates(start, goal);
+
+            // Optimization objective
+            ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
+
+            // Create an RRT* planner
+            // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
+            // auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
+            auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
+            ss.setPlanner(planner);
+
+            // Attempt to solve the problem within a given time (seconds)
+            ob::PlannerStatus solved = ss.solve(max_time);
+
+            if (solved)
+            {
+                std::cout << "Found solution:" << std::endl;
+                ss.simplifySolution();
+                ss.getSolutionPath().printAsMatrix(std::cout);
+                Eigen::MatrixXd new_knots(ss.getSolutionPath().getStateCount(), 3);
+                for (std::size_t i = 0; i < ss.getSolutionPath().getStateCount(); ++i)
+                {
+                    const auto *pos = ss.getSolutionPath().getState(i)->as<ob::RealVectorStateSpace::StateType>();
+                    new_knots.row(i) << pos->values[0], pos->values[1], pos->values[2];
+                }
+                traj.set(new_knots);
+                return true;
+            }
+            else
+            {
+                std::cout << "No solution found" << std::endl;
+                return false;
+            }
         }
     }
 };
