@@ -137,9 +137,11 @@ public:
     ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr &si)
     {
         ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
-        ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
+        // ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
 
-        return 10.0 * lengthObj + 0.1 * clearObj;
+        // return 10.0 * lengthObj + 0.1 * clearObj;
+        lengthObj->setCostThreshold(ob::Cost(10.0));
+        return lengthObj;
     }
 
     inline bool optimize(UniBSpline &traj, SwingTrajPlannerConfig &config)
@@ -220,8 +222,18 @@ public:
             // Set the start and goal states
             ss.setStartAndGoalStates(start, goal);
 
+            // ss.getProblemDefinition()->setIntermediateSolutionCallback(
+            //     [&](const ob::Planner *planner, const ob::Path &path)
+            //     {
+            //         // stop the optimization if a exact solution is found
+            //         if (planner->getProblemDefinition()->hasExactSolution())
+            //         {
+            //             planner->terminate();
+            //         }
+            //     });
+
             // Optimization objective
-            // ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
+            ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
 
             // Create an RRT* planner
             // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
@@ -231,9 +243,9 @@ public:
             ss.setPlanner(planner);
 
             // Attempt to solve the problem within a given time (seconds)
-            auto terminateCondition = ob::exactSolnPlannerTerminationCondition(ss.getProblemDefinition());
+            // auto terminateCondition = ob::exactSolnPlannerTerminationCondition(ss.getProblemDefinition());
             // auto terminateCondition = ob::timedPlannerTerminationCondition(max_time);
-            ob::PlannerStatus solved = ss.solve(terminateCondition);
+            ob::PlannerStatus solved = ss.solve(max_time);
 
             if (solved)
             {
