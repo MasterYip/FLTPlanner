@@ -85,6 +85,7 @@ private:
     double collball_radius_;
     double exclude_radius_;
     double coll_margin_;
+    int index_;
 
     Eigen::Vector3d start_exclude_cylinder_;
     Eigen::Vector3d end_exclude_cylinder_;
@@ -131,8 +132,8 @@ public:
             !inExcludeCylinder(pos_vec, end_exclude_cylinder_, exclude_radius_) &&
             collball_radius_ > sdf - coll_margin_)
             return false;
-        if ()
-            return true;
+        // if (robot_interface_->getFootPolyhedra(index).)
+        return true;
     }
 
     ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr &si)
@@ -145,12 +146,13 @@ public:
         return lengthObj;
     }
 
-    inline bool optimize(UniBSpline &traj, SwingTrajPlannerConfig &config)
+    inline bool optimize(UniBSpline &traj, int index)
     {
         // Setup Params
-        double max_time = config.maxTime;
+        index_ = index;
         start_exclude_cylinder_ = traj.evaluate(0, 0, true);
         end_exclude_cylinder_ = traj.evaluate(1, 0, true);
+        double max_time = config_.maxTime;
 
         // Set Bounds
         ob::RealVectorBounds bounds(3);
