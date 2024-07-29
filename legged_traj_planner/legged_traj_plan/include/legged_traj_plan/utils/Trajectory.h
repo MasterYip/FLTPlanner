@@ -60,6 +60,38 @@ public:
     MincoTrajectory() = default;
 
     MincoTrajectory(const std::vector<Point3D> &poly_path,
+                    const Eigen::VectorXd &ts,
+                    Eigen::Vector3d start_vel = {0, 0, 0.3},
+                    Eigen::Vector3d goal_vel = {0, 0, -0.3},
+                    double total_time = 1.0) : poly_path_(poly_path),
+                                               start_vel_(start_vel),
+                                               goal_vel_(goal_vel),
+                                               total_time_(total_time)
+    {
+        Eigen::Matrix<double, 3, 2> start_state;
+        start_state.col(0) = poly_path_.front();
+        start_state.col(1) = start_vel_;
+        Eigen::Matrix<double, 3, 2> goal_state;
+        goal_state.col(0) = poly_path_.back();
+        goal_state.col(1) = goal_vel_;
+        minco_traj_.setConditions(start_state, goal_state, poly_path_.size() - 1);
+        if (poly_path_.size() > 2)
+        {
+            Eigen::Matrix3Xd inPs(3, poly_path_.size() - 2);
+            for (size_t i = 1; i < poly_path_.size() - 1; i++)
+            {
+                inPs.col(i - 1) = poly_path_[i];
+            }
+            minco_traj_.setParameters(inPs, ts);
+        }
+        else
+        {
+            minco_traj_.setParameters(Eigen::Matrix3Xd::Zero(3, 0), ts);
+        }
+        updateTraj();
+    }
+
+    MincoTrajectory(const std::vector<Point3D> &poly_path,
                     Eigen::Vector3d start_vel = {0, 0, 0.3},
                     Eigen::Vector3d goal_vel = {0, 0, -0.3},
                     double total_time = 1.0) : poly_path_(poly_path),

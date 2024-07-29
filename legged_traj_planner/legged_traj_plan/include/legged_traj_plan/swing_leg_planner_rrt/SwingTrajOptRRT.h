@@ -239,6 +239,7 @@ private:
     // Benchmarking
     Benchmark benchmark_;
 
+public:
     SwingCfgTrajOptRRT(SwingTrajPlannerConfig config,
                        std::shared_ptr<ElSpiderAirInterface> robot_interface,
                        std::shared_ptr<GridMapInterface> gridmap_interface,
@@ -284,7 +285,7 @@ private:
         return lengthObj;
     }
 
-    inline bool optimize(UniBSpline &traj, int index)
+    inline bool optimize(TrajectoryBase &traj, int index)
     {
         // Setup Params
         index_ = index;
@@ -340,13 +341,21 @@ private:
             ss.simplifySolution();
             std::cout << "Found solution:" << std::endl;
             ss.getSolutionPath().printAsMatrix(std::cout);
-            Eigen::MatrixXd new_knots(ss.getSolutionPath().getStateCount(), 3);
+            std::vector<Point3D> points(ss.getSolutionPath().getStateCount());
+            std::vector<double> tvec(ss.getSolutionPath().getStateCount());
+            Eigen::VectorXd ts(ss.getSolutionPath().getStateCount() - 1);
             for (std::size_t i = 0; i < ss.getSolutionPath().getStateCount(); ++i)
             {
                 const auto *pos = ss.getSolutionPath().getState(i)->as<ob::RealVectorStateSpace::StateType>();
-                new_knots.row(i) << pos->values[0], pos->values[1], pos->values[2];
+                points.at(i) << pos->values[0], pos->values[1], pos->values[2];
+                tvec.at(i) = pos->values[3];
             }
-            traj.set(new_knots);
+            for (std::size_t i = 1; i < ss.getSolutionPath().getStateCount(); ++i)
+            {
+                ts(i - 1) = tvec.at(i) - tvec.at(i - 1);
+            }
+            // TODO
+            traj = MincoTrajectory(points, ts);
             return true;
         }
         else

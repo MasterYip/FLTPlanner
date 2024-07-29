@@ -26,6 +26,14 @@ MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(SwingTrajPlannerConfig swing_traj_pla
     {
         swing_traj_planner_ = std::make_shared<SwingTrajPlannerRRT>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
     }
+    else if (swing_traj_planner_config.plannerID == 2)
+    {
+        swing_traj_planner_ = std::make_shared<SwingCfgTrajPlannerRRT>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
+    }
+    else
+    {
+        ROS_ERROR("Invalid planner ID");
+    }
 }
 
 bool MCTSWholeBodyPlanner::enqueue_MCTsolution(hexapod_State state0, hexapod_State state1)

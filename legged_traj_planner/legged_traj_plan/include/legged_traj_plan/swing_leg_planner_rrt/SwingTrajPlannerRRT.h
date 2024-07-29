@@ -47,3 +47,25 @@ public:
                  const pinocchio::SE3 &pose1,
                  int index);
 };
+
+class SwingCfgTrajPlannerRRT : public SwingTrajPlannerBase
+{
+private:
+    ros::NodeHandle nh_;
+    SwingCfgTrajOptRRT swing_traj_opt_;
+
+public:
+    SwingCfgTrajPlannerRRT(SwingTrajPlannerConfig config,
+                        std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                        std::shared_ptr<GridMapInterface> gridmap_interface);
+    ~SwingCfgTrajPlannerRRT() = default;
+
+    std::shared_ptr<TrajectoryBase> getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                uint index);
+
+    bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
+                 const pinocchio::SE3 &pose0,
+                 const pinocchio::SE3 &pose1,
+                 int index);
+};

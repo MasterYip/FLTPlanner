@@ -6,8 +6,10 @@
     <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
-    <!-- Planner Config: swing_traj_planner / swing_traj_planner_cfg / swing_traj_planner_rrt -->
-    <arg name="planner_cfg" default="swing_traj_planner_cfg" />
+    <!-- Planner Config -->
+    <!-- swing_traj_planner / swing_traj_planner_cfg -->
+    <!-- swing_traj_planner_rrt / swing_traj_planner_rrtcfg -->
+    <arg name="planner_cfg" default="swing_traj_planner_rrtcfg" />
     <!-- Optitrack -->
     <arg name="use_optitrack" default="false" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
@@ -33,7 +35,7 @@
     <!-- GridMap -->
     <arg name="grid_map_topic" value="/grid_map" />
     <!-- ROS bag record (under ~/.ros) -->
-    <arg name="rosbag_record" value="true" />
+    <arg name="rosbag_record" value="false" />
 
     <!-- Launch -->
     <!-- GridMap -->
