@@ -24,6 +24,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/SpaceInformation.h>
+#include <ompl/base/PlannerTerminationCondition.h>
 #include <ompl/base/ProblemDefinition.h>
 #include <ompl/base/Path.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
@@ -141,8 +142,9 @@ public:
         return 10.0 * lengthObj + 0.1 * clearObj;
     }
 
-    inline bool optimize(UniBSpline &traj, SwingTrajPlannerConfig &config, double max_time = 0.1)
+    inline bool optimize(UniBSpline &traj, SwingTrajPlannerConfig &config)
     {
+        double max_time = config.maxTime;
         // Setup Params
         start_exclude_cylinder_ = traj.evaluate(0, 0, true);
         end_exclude_cylinder_ = traj.evaluate(1, 0, true);
@@ -150,7 +152,7 @@ public:
         // Set Bounds
         ob::RealVectorBounds bounds(3);
         Eigen::MatrixXd knots = traj.get();
-        double margin = 0.6; // Margin of the bounding box
+        double margin = 0.1; // Margin of the bounding box
         for (int i = 0; i < 3; i++)
         {
             bounds.setLow(i, knots.col(i).minCoeff() - margin);
@@ -169,7 +171,7 @@ public:
         goal[1] = knots(knots.rows() - 1, 1);
         goal[2] = knots(knots.rows() - 1, 2);
 
-        if (1)
+        if (0)
         {
             auto si(std::make_shared<ob::SpaceInformation>(space_));
             si->setStateValidityChecker(std::bind(&SwingTrajOptRRT::isStateValid, this, std::placeholders::_1));
@@ -219,16 +221,19 @@ public:
             ss.setStartAndGoalStates(start, goal);
 
             // Optimization objective
-            ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
+            // ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
 
             // Create an RRT* planner
             // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
             // auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
             auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
+            planner->setRange(0.1); // max step size
             ss.setPlanner(planner);
 
             // Attempt to solve the problem within a given time (seconds)
-            ob::PlannerStatus solved = ss.solve(max_time);
+            auto terminateCondition = ob::exactSolnPlannerTerminationCondition(ss.getProblemDefinition());
+            // auto terminateCondition = ob::timedPlannerTerminationCondition(max_time);
+            ob::PlannerStatus solved = ss.solve(terminateCondition);
 
             if (solved)
             {
