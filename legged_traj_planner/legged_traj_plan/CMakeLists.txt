@@ -138,7 +138,7 @@ catkin_package(
  INCLUDE_DIRS include
  LIBRARIES legged_traj_plan 
  CATKIN_DEPENDS grid_map_core roscpp std_msgs third_party
- DEPENDS
+ DEPENDS ompl
 )
 
 ###########
