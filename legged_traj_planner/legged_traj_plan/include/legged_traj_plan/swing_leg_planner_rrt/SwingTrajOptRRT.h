@@ -212,3 +212,147 @@ public:
         }
     }
 };
+
+class SwingCfgTrajOptRRT
+{
+private:
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
+    SwingTrajPlannerConfig config_;
+
+    // RRT
+    double collball_radius_;
+    double exclude_radius_;
+    double coll_margin_;
+    int index_;
+
+    Eigen::Vector3d start_exclude_cylinder_;
+    Eigen::Vector3d end_exclude_cylinder_;
+    std::shared_ptr<ob::RealVectorStateSpace> space_;
+
+    // Visualizer
+    ros::NodeHandle nh_;
+    ros::Rate rate_ = ros::Rate(5);
+    std::shared_ptr<GCSVisualizer> visualizer_;
+    bool enable_vis_ = false;
+
+    // Benchmarking
+    Benchmark benchmark_;
+
+    SwingCfgTrajOptRRT(SwingTrajPlannerConfig config,
+                       std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                       std::shared_ptr<GridMapInterface> gridmap_interface,
+                       std::shared_ptr<GCSVisualizer> visualizer = nullptr,
+                       bool enable_benchmark = true)
+        : config_(config), robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
+          space_(std::make_shared<ob::RealVectorStateSpace>(4)),
+          visualizer_(visualizer),
+          benchmark_("SwingCfgTrajOptRRT", enable_benchmark)
+    {
+        if (visualizer != nullptr)
+            enable_vis_ = true;
+        setupParams(config);
+    };
+
+    void setupParams(SwingTrajPlannerConfig &config)
+    {
+        collball_radius_ = config.collBallRadius;
+        exclude_radius_ = config.excludeRadius;
+        coll_margin_ = config.collMargin;
+    }
+
+    bool isStateValid(const ob::State *state)
+    {
+        const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
+        Eigen::Vector3d pos_vec(pos->values[0], pos->values[1], pos->values[2]);
+        double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
+        if (!inExcludeCylinder(pos_vec, start_exclude_cylinder_, exclude_radius_) &&
+            !inExcludeCylinder(pos_vec, end_exclude_cylinder_, exclude_radius_) &&
+            collball_radius_ > sdf - coll_margin_)
+            return false;
+        // if (robot_interface_->getFootPolyhedra(index).)
+        return true;
+    }
+
+    ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr &si)
+    {
+        ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
+        // ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
+
+        // return 10.0 * lengthObj + 0.1 * clearObj;
+        lengthObj->setCostThreshold(ob::Cost(10.0));
+        return lengthObj;
+    }
+
+    inline bool optimize(UniBSpline &traj, int index)
+    {
+        // Setup Params
+        index_ = index;
+        Eigen::Vector3d s = traj.evaluate(0, 0, true);
+        Eigen::Vector3d g = traj.evaluate(1, 0, true);
+        start_exclude_cylinder_ = s;
+        end_exclude_cylinder_ = g;
+        double max_time = config_.maxTime;
+
+        // Set Bounds
+        ob::RealVectorBounds bounds(4);
+        bounds.setLow(0, config_.joint1PosMin);
+        bounds.setHigh(0, config_.joint1PosMax);
+        bounds.setLow(1, config_.joint2PosMin);
+        bounds.setHigh(1, config_.joint2PosMax);
+        bounds.setLow(2, config_.joint3PosMin);
+        bounds.setHigh(2, config_.joint3PosMax);
+        bounds.setLow(3, 0);
+        bounds.setHigh(3, 1); // param t
+
+        space_->setBounds(bounds);
+
+        // Define start and goal states
+        ob::ScopedState<> start(space_);
+        start[0] = s(0);
+        start[1] = s(1);
+        start[2] = s(2);
+        start[3] = 0;
+
+        ob::ScopedState<> goal(space_);
+        goal[0] = g(0);
+        goal[1] = g(1);
+        goal[2] = g(2);
+        goal[3] = 1;
+
+        // SimpleSetup
+        og::SimpleSetup ss(space_);
+        ss.setStateValidityChecker(std::bind(&SwingCfgTrajOptRRT::isStateValid, this, std::placeholders::_1));
+        ss.setStartAndGoalStates(start, goal);
+        ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
+
+        // Planner setup
+        // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
+        // auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
+        auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
+        planner->setRange(0.1); // max step size
+        ss.setPlanner(planner);
+
+        ob::PlannerStatus solved = ss.solve(max_time);
+
+        if (solved)
+        {
+            ss.simplifySolution();
+            std::cout << "Found solution:" << std::endl;
+            ss.getSolutionPath().printAsMatrix(std::cout);
+            Eigen::MatrixXd new_knots(ss.getSolutionPath().getStateCount(), 3);
+            for (std::size_t i = 0; i < ss.getSolutionPath().getStateCount(); ++i)
+            {
+                const auto *pos = ss.getSolutionPath().getState(i)->as<ob::RealVectorStateSpace::StateType>();
+                new_knots.row(i) << pos->values[0], pos->values[1], pos->values[2];
+            }
+            traj.set(new_knots);
+            return true;
+        }
+        else
+        {
+            std::cout << "No solution found" << std::endl;
+            return false;
+        }
+    }
+};
