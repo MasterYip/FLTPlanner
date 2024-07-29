@@ -152,7 +152,7 @@ include_directories(
   include
   ${EIGEN3_INCLUDE_DIRS}
   ${PINOCCHIO_INCLUDE_DIRS}
-  # ${OMPL_INCLUDE_DIRS}
+  ${OMPL_INCLUDE_DIRS}
   )
   
 file(GLOB_RECURSE SOURCES "src/*.cpp")
