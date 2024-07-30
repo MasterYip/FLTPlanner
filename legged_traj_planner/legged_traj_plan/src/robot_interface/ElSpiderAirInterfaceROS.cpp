@@ -11,6 +11,17 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
 #include <geometry_msgs/TransformStamped.h>
 
+
+bool odom2SE3_Motion(const nav_msgs::Odometry &odom, pinocchio::SE3 &pos, pinocchio::Motion &vel)
+{
+    pos = pinocchio::SE3(Eigen::Quaterniond(odom.pose.pose.orientation.w, odom.pose.pose.orientation.x,
+                                            odom.pose.pose.orientation.y, odom.pose.pose.orientation.z),
+                         Eigen::Vector3d(odom.pose.pose.position.x, odom.pose.pose.position.y, odom.pose.pose.position.z));
+    vel = pinocchio::Motion(Eigen::Vector3d(odom.twist.twist.linear.x, odom.twist.twist.linear.y, odom.twist.twist.linear.z),
+                            Eigen::Vector3d(odom.twist.twist.angular.x, odom.twist.twist.angular.y, odom.twist.twist.angular.z));
+    return true;
+}
+
 ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool sim)
     : ElSpiderAirInterface(urdf), sim_(sim)
 {
@@ -20,7 +31,6 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     // Feedback
     footfdb_sub = nh.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirInterfaceROS::footfdb_callback, this);
     bodyfdb_sub = nh.subscribe("/base_odom", 1, &ElSpiderAirInterfaceROS::bodyfdb_callback, this);
-
     // Cmd
     footcmd_pub = nh.advertise<legged_traj_plan::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
     jointcmd_pub = nh.advertise<legged_traj_plan::JointCmd>("/hexapod/hlc/joint_cmd_track", 1);
@@ -36,6 +46,21 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
         joint_kd = {5, 7.5, 7.5};
     }
 }
+
+
+// feedbacks
+
+void ElSpiderAirInterfaceROS::footfdb_callback(const legged_traj_plan::FootState &msg)
+{
+    foot_state_fdb_ = msg;
+}
+
+void ElSpiderAirInterfaceROS::bodyfdb_callback(const nav_msgs::Odometry &msg)
+{
+    odom2SE3_Motion(msg, body_pose_fdb_, body_vel_fdb_);
+}
+
+// Commands
 
 void ElSpiderAirInterfaceROS::pub_footcmd_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos)
 {
@@ -134,6 +159,8 @@ void ElSpiderAirInterfaceROS::pub_jointcmd_from_jointpos(const std::vector<Eigen
     }
     pub_jointcmd_from_jointpos(q_vec);
 }
+
+// Rviz
 
 void ElSpiderAirInterfaceROS::pub_odom(const pinocchio::SE3 &odom,
                                        const std::string &child_frame,

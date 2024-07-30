@@ -24,8 +24,10 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Vector3.h>
 #include <sensor_msgs/JointState.h>
+#include <nav_msgs/Odometry.h>
 #include "legged_traj_plan/FootCmd.h"
 #include "legged_traj_plan/JointCmd.h"
+#include "legged_traj_plan/FootState.h"
 
 /* internal project header files */
 
@@ -41,7 +43,10 @@ private:
 
     // feedbacks
     ros::Subscriber footfdb_sub;
+    legged_traj_plan::FootState foot_state_fdb_;
     ros::Subscriber bodyfdb_sub;
+    pinocchio::SE3 body_pose_fdb_;
+    pinocchio::Motion body_vel_fdb_;
 
     // Commands
     // Foot command
@@ -71,6 +76,13 @@ public:
     }
 
     // Rviz visualization
+    /**
+     * @brief Publish base pose in case of fake feedback
+     * 
+     * @param odom 
+     * @param child_frame 
+     * @param parent_frame 
+     */
     void pub_odom(const pinocchio::SE3 &odom,
                   const std::string &child_frame = "base",
                   const std::string &parent_frame = "odom");
@@ -83,7 +95,11 @@ public:
     void pub_shadow_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
 
     // HexapodSoftware HLC feedbacks
-
+    void footfdb_callback(const legged_traj_plan::FootState &msg);
+    void bodyfdb_callback(const nav_msgs::Odometry &msg);
+    const legged_traj_plan::FootState &get_foot_state_fdb() const { return foot_state_fdb_; }
+    const pinocchio::SE3 &get_body_pose_fdb() const { return body_pose_fdb_; }
+    const pinocchio::Motion &get_body_vel_fdb() const { return body_vel_fdb_; }
 
     // HexapodSoftware HLC commands
     /**

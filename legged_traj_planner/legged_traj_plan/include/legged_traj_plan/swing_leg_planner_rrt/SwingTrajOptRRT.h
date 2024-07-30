@@ -37,6 +37,7 @@
 
 /* internal project header files */
 #include "legged_traj_plan/utils/Spline.h"
+#include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
@@ -229,6 +230,8 @@ private:
     Eigen::Vector3d start_exclude_cylinder_;
     Eigen::Vector3d end_exclude_cylinder_;
     std::shared_ptr<ob::RealVectorStateSpace> space_;
+    pinocchio::SE3 pose0_;
+    pinocchio::SE3 pose1_;
 
     // Visualizer
     ros::NodeHandle nh_;
@@ -265,13 +268,20 @@ public:
     bool isStateValid(const ob::State *state)
     {
         const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
-        Eigen::Vector3d pos_vec(pos->values[0], pos->values[1], pos->values[2]);
+        Eigen::Vector3d pos_vec(point_SE3Act(poseLinearInterp(pose0_, pose1_, pos->values[3]).inverse(),
+                                             robot_interface_->FK_foot(Eigen::Vector3d(pos->values[0], pos->values[1], pos->values[2]), index_)));
+
         double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
         if (!inExcludeCylinder(pos_vec, start_exclude_cylinder_, exclude_radius_) &&
             !inExcludeCylinder(pos_vec, end_exclude_cylinder_, exclude_radius_) &&
             collball_radius_ > sdf - coll_margin_)
+        {
             return false;
-        // if (robot_interface_->getFootPolyhedra(index).)
+        }
+        if (pos->values[0] < config_.joint1PosMin || pos->values[0] > config_.joint1PosMax ||
+            pos->values[1] < config_.joint2PosMin || pos->values[1] > config_.joint2PosMax ||
+            pos->values[2] < config_.joint3PosMin || pos->values[2] > config_.joint3PosMax)
+            return false;
         return true;
     }
 
@@ -285,14 +295,19 @@ public:
         return lengthObj;
     }
 
-    inline bool optimize(TrajectoryBase &traj, int index)
+    inline bool optimize(std::shared_ptr<TrajectoryBase> &traj,
+                         const pinocchio::SE3 &pose0,
+                         const pinocchio::SE3 &pose1,
+                         int index)
     {
         // Setup Params
         index_ = index;
-        Eigen::Vector3d s = traj.evaluate(0, 0, true);
-        Eigen::Vector3d g = traj.evaluate(1, 0, true);
-        start_exclude_cylinder_ = s;
-        end_exclude_cylinder_ = g;
+        Eigen::Vector3d s = traj->evaluate(0, 0, true);
+        Eigen::Vector3d g = traj->evaluate(1, 0, true);
+        pose0_ = pose0;
+        pose1_ = pose1;
+        start_exclude_cylinder_ = point_SE3Act(pose0_.inverse(), robot_interface_->FK_foot(s, index_));
+        end_exclude_cylinder_ = point_SE3Act(pose1_.inverse(), robot_interface_->FK_foot(g, index_));
         double max_time = config_.maxTime;
 
         // Set Bounds
@@ -331,7 +346,7 @@ public:
         // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
         // auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
         auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
-        planner->setRange(0.1); // max step size
+        planner->setRange(0.4); // max step size
         ss.setPlanner(planner);
 
         ob::PlannerStatus solved = ss.solve(max_time);
@@ -355,7 +370,7 @@ public:
                 ts(i - 1) = tvec.at(i) - tvec.at(i - 1);
             }
             // TODO
-            traj = MincoTrajectory(points, ts);
+            traj = std::make_shared<MincoTrajectory>(points, ts);
             return true;
         }
         else

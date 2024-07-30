@@ -17,10 +17,12 @@
 /* c++ standard library header files */
 
 /* internal project header files */
+#include <pinocchio/math/rpy.hpp>
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/whole_body_planner/WholeBodyPlanner.h"
+#include "legged_traj_plan/whole_body_planner/CmdVelExtrapolator.h"
 
 #include "legged_traj_plan/hexapod_State.h"
 #include "legged_traj_plan/FootState.h"
@@ -164,6 +166,7 @@ private:
     tf2_ros::Buffer tfBuffer_;
     tf2_ros::TransformListener tfListener_;
     geometry_msgs::TransformStamped body_state_tf_;
+    pinocchio::SE3 body_pose_;
     bool recv_body_state_ = false;
 
     // Interface
@@ -174,9 +177,10 @@ private:
     // MCTS planner Interface
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
+    GridMapCmdVelExtrapolator gridmap_extrapolator_;
     std::vector<Eigen::Vector3f> exp_path_;
-    float multiply_factor_ = 0.03;
     int point_num_ = 50;
+    float delta_t_ = 0.01;
 
     // Misc
     SwingTrajPlannerConfig config_;
@@ -215,6 +219,19 @@ public:
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimplePlanner::cmd_callback, this);
         foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirSimplePlanner::foot_state_callback, this);
         // body_state_sub_ = nh_.subscribe("/hexapod/body_state_fdb", 1, &ElSpiderAirSimplePlanner::body_state_callback, this);
+
+        PosList pose_sample_pts;
+        int len = 6;
+        double delta = 0.2;
+        for (int i = 0; i < len; i++)
+        {
+            for (int j = 0; j < len; j++)
+            {
+                pose_sample_pts.emplace_back(Eigen::Vector3d(i * delta - 0.5 * len * delta,
+                                                             j * delta - 0.5 * len * delta, 0));
+            }
+        }
+        gridmap_extrapolator_.init(gridmap_interface_, pose_sample_pts);
 
         robot_state_.initialize();
         next_planned_state_.initialize();
@@ -263,8 +280,8 @@ public:
                 // Fetch feedback
                 ros::spinOnce();
                 // update robot state
-                update_exp_path();
                 update_robot_state();
+                update_exp_path();
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
@@ -382,14 +399,19 @@ public:
     {
         if (fake_estimation_)
         {
+            // Update Robot State
             robot_state_ = next_planned_state_;
             if (fake_estimation_noisy_)
             {
                 randomizeRobotState(robot_state_, noise_amp_);
             }
+            // Update body pose
+            body_pose_ = pinocchio::SE3(pinocchio::rpy::rpyToMatrix(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw),
+                                        Eigen::Vector3d(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
         }
         else
         {
+            // Update Robot State
             // TODO: time stamp?
             robot_state_.pose.x = body_state_tf_.transform.translation.x;
             robot_state_.pose.y = body_state_tf_.transform.translation.y;
@@ -417,6 +439,10 @@ public:
             //     robot_state_.moveDirection = atan2(cmd_.linear.y, cmd_.linear.x);
             robot_state_.moveDirection = robot_state_.pose.yaw;
             // TODO: maxNormalForce, frictionMu
+
+            // Update body pose
+            body_pose_ = pinocchio::SE3(Eigen::Quaterniond(q.w(), q.x(), q.y(), q.z()),
+                                        Eigen::Vector3d(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
         }
     }
 
@@ -424,14 +450,12 @@ public:
     void update_exp_path(void)
     {
         exp_path_.clear();
-        // FIXME: pose.z should be on torso height map!!! (Not used temporarily in MCTS)
-        double height = 0.25;
-        exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, height));
-        for (int i = 0; i < point_num_; ++i)
+        gridmap_extrapolator_.update(body_pose_, cmd_);
+
+        for (int i=0; i < point_num_; ++i)
         {
-            exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + (cmd_.linear.x * cos(robot_state_.pose.yaw) - cmd_.linear.y * sin(robot_state_.pose.yaw)) * multiply_factor_ * i,
-                                                robot_state_.pose.y + (cmd_.linear.x * sin(robot_state_.pose.yaw) + cmd_.linear.y * cos(robot_state_.pose.yaw)) * multiply_factor_ * i,
-                                                height));
+            Eigen::Vector3d trans = gridmap_extrapolator_.extrapolate(i * delta_t_).translation();
+            exp_path_.push_back(Eigen::Vector3f(trans[0], trans[1], trans[2]));
         }
     }
 
