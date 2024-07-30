@@ -28,6 +28,7 @@ find_package(catkin REQUIRED COMPONENTS
   legged_traj_search
   hexapod_controller
   ros_visualizer
+  ompl
   roscpp
   std_msgs
   third_party
@@ -142,6 +143,7 @@ add_subdirectory(mcts_planner)
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${OMPL_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}

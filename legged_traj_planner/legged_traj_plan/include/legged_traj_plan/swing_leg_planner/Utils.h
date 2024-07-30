@@ -122,6 +122,19 @@ struct SwingTrajPlannerConfig
     double excludeRadius;
     double collMargin;
 
+    //// ID[2] RRTCfgPlannerSettings
+    // double maxTime;
+    // double collBallRadius;
+    // double excludeRadius;
+    // double collMargin;
+    // Same with above
+    // double joint1PosMin;
+    // double joint1PosMax;
+    // double joint2PosMin;
+    // double joint2PosMax;
+    // double joint3PosMin;
+    // double joint3PosMax;
+
     void loadParams(ros::NodeHandle &nh)
     {
         bool check_digit = true;
@@ -177,6 +190,20 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("RRTPlanner/collBallRadius", collBallRadius);
             check_digit *= nh.getParam("RRTPlanner/excludeRadius", excludeRadius);
             check_digit *= nh.getParam("RRTPlanner/collMargin", collMargin);
+        }
+        //// ID[2] RRTCfgPlannerSettings
+        else if (plannerID == 2)
+        {
+            check_digit *= nh.getParam("RRTCfgPlanner/maxTime", maxTime);
+            check_digit *= nh.getParam("RRTCfgPlanner/collBallRadius", collBallRadius);
+            check_digit *= nh.getParam("RRTCfgPlanner/excludeRadius", excludeRadius);
+            check_digit *= nh.getParam("RRTCfgPlanner/collMargin", collMargin);
+            check_digit *= nh.getParam("RRTCfgPlanner/joint1PosMin", joint1PosMin);
+            check_digit *= nh.getParam("RRTCfgPlanner/joint1PosMax", joint1PosMax);
+            check_digit *= nh.getParam("RRTCfgPlanner/joint2PosMin", joint2PosMin);
+            check_digit *= nh.getParam("RRTCfgPlanner/joint2PosMax", joint2PosMax);
+            check_digit *= nh.getParam("RRTCfgPlanner/joint3PosMin", joint3PosMin);
+            check_digit *= nh.getParam("RRTCfgPlanner/joint3PosMax", joint3PosMax);
         }
 
         if (!check_digit)
