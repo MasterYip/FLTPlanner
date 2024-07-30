@@ -268,7 +268,7 @@ public:
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        gridmap_interface_->getMap(), true, 250);
+                                                        gridmap_interface_->getMap(), true, 100);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
                 gridmap_interface_->unlockMapUpdate();
             }
@@ -360,17 +360,12 @@ public:
         {
             // Get Interpolated State
             auto odom_interp = state_traj.eval_torso_traj(t);
-            auto footend_interp = state_traj.eval_foot_traj(t); // Footend position in world frame
+            auto footend_interp = state_traj.eval_cfg_traj(t);
             auto support_state = state_traj.eval_support_state(t);
-            for (size_t k = 0; k < 6; ++k)
-            {
-                // Convert to BASE
-                footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
-            }
 
             // Visualization
             robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
-            robot_interface_->pub_shadow_joint_state_from_footendpos(footend_interp);
+            robot_interface_->pub_shadow_joint_state(footend_interp);
             if (!fake_estimation_)
             {
                 ros::spinOnce();  // Fetch feedback

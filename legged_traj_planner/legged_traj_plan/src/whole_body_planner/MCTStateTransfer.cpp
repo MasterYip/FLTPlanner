@@ -176,6 +176,7 @@ void MCTStateTransfer::opt_swing_traj(int index)
 
         // Normal randomization for replanning
         swing_traj_planner_->getConfig().enableLiftRandomize = true;
+        swing_traj_planner_->getConfig().enableVis = false;
         while (!opt_check(index))
         {
             swingtraj_[index] = swing_traj_planner_->getInitTraj(
@@ -185,6 +186,7 @@ void MCTStateTransfer::opt_swing_traj(int index)
                 swingtraj_[index], pose0, pose1, index);
         }
         swing_traj_planner_->getConfig().enableLiftRandomize = false;
+        swing_traj_planner_->getConfig().enableVis = true;
     }
 }
 
