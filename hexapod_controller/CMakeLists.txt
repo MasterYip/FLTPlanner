@@ -153,6 +153,7 @@ target_link_libraries(vmc_controller_node
   ${catkin_LIBRARIES}
   ${PINOCCHIO_LIBRARIES}
 )
+add_dependencies(vmc_controller_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(test_vmc_controller test/test_vmc_controller.cpp)
 target_link_libraries(test_vmc_controller
@@ -160,6 +161,7 @@ target_link_libraries(test_vmc_controller
   ${catkin_LIBRARIES}
   ${PINOCCHIO_LIBRARIES}
 )
+add_dependencies(test_vmc_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(test_vmc_stance test/test_vmc_stance.cpp)
 target_link_libraries(test_vmc_stance
@@ -167,6 +169,7 @@ target_link_libraries(test_vmc_stance
   ${catkin_LIBRARIES}
   ${PINOCCHIO_LIBRARIES}
 )
+add_dependencies(test_vmc_stance ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use

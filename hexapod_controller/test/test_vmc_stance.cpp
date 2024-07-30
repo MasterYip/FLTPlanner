@@ -16,7 +16,7 @@
 #include <vector>
 
 #include <ros/ros.h>
-#include "legged_traj_plan/FootState.h"
+#include "hexapod_controller/FootState.h"
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/Joy.h"
 #include <geometry_msgs/Point.h>
@@ -41,7 +41,7 @@ private:
 
     // Cmd Pub
     ros::Publisher exp_foot_state_pub_;
-    legged_traj_plan::FootState exp_foot_state_;
+    hexapod_controller::FootState exp_foot_state_;
     ros::Publisher exp_body_state_pub_;
     nav_msgs::Odometry exp_body_state_;
 
@@ -68,7 +68,7 @@ public:
     TestVMCCmdPub(ros::NodeHandle &nh) : nh_(nh)
     {
         cfg_.loadConfig(nh_);
-        exp_foot_state_pub_ = nh_.advertise<legged_traj_plan::FootState>("/exp_foot_state", 1);
+        exp_foot_state_pub_ = nh_.advertise<hexapod_controller::FootState>("/exp_foot_state", 1);
         exp_body_state_pub_ = nh_.advertise<nav_msgs::Odometry>("/exp_odom", 1);
         fdb_pose_sub_ = nh_.subscribe("/base_odom", 1, &TestVMCCmdPub::fdbPoseCallback, this);
         joy_sub_ = nh_.subscribe("/joy", 1, &TestVMCCmdPub::joyCallback, this);
