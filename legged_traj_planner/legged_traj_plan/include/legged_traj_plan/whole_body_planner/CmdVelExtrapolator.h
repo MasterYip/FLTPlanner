@@ -74,14 +74,15 @@ class GridMapCmdVelExtrapolator : public CmdVelExtrapolator
 protected:
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     PosList exp_pose_samples_; // Expected pose sample points in base frame
-    double nominal_height_ = 0.25;
+    double nominal_height_;
 
 public:
     void init(std::shared_ptr<GridMapInterface> gridmap_interface,
-              PosList exp_pose_samples)
+              PosList exp_pose_samples, double nominal_height = 0.25)
     {
         gridmap_interface_ = gridmap_interface;
         exp_pose_samples_ = exp_pose_samples;
+        nominal_height_ = nominal_height;
     }
 
     pinocchio::SE3 extrapolate(double dt) override

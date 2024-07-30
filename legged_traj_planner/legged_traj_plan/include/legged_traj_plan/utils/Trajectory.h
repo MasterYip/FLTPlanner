@@ -61,8 +61,8 @@ public:
 
     MincoTrajectory(const std::vector<Point3D> &poly_path,
                     const Eigen::VectorXd &ts,
-                    Eigen::Vector3d start_vel = {0, 0, 0.3},
-                    Eigen::Vector3d goal_vel = {0, 0, -0.3},
+                    Eigen::Vector3d start_vel = {0, 0, 0},
+                    Eigen::Vector3d goal_vel = {0, 0, 0},
                     double total_time = 1.0) : poly_path_(poly_path),
                                                start_vel_(start_vel),
                                                goal_vel_(goal_vel),
@@ -92,8 +92,8 @@ public:
     }
 
     MincoTrajectory(const std::vector<Point3D> &poly_path,
-                    Eigen::Vector3d start_vel = {0, 0, 0.3},
-                    Eigen::Vector3d goal_vel = {0, 0, -0.3},
+                    Eigen::Vector3d start_vel = {0, 0, 0},
+                    Eigen::Vector3d goal_vel = {0, 0, 0},
                     double total_time = 1.0) : poly_path_(poly_path),
                                                start_vel_(start_vel),
                                                goal_vel_(goal_vel),
