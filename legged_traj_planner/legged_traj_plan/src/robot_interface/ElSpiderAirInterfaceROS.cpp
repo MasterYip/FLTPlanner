@@ -14,8 +14,14 @@
 ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool sim)
     : ElSpiderAirInterface(urdf), sim_(sim)
 {
+    // Rviz
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     shadow_joint_state_pub = nh.advertise<sensor_msgs::JointState>("shadow/joint_states", 10);
+    // Feedback
+    footfdb_sub = nh.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirInterfaceROS::footfdb_callback, this);
+    bodyfdb_sub = nh.subscribe("/base_odom", 1, &ElSpiderAirInterfaceROS::bodyfdb_callback, this);
+
+    // Cmd
     footcmd_pub = nh.advertise<legged_traj_plan::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
     jointcmd_pub = nh.advertise<legged_traj_plan::JointCmd>("/hexapod/hlc/joint_cmd_track", 1);
     feedforward_type = 0;

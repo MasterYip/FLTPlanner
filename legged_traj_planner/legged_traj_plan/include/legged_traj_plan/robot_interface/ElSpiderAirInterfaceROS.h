@@ -33,10 +33,16 @@ class ElSpiderAirInterfaceROS : public ElSpiderAirInterface
 {
 private:
     ros::NodeHandle nh;
+
     // Rviz
     ros::Publisher joint_state_pub;
     ros::Publisher shadow_joint_state_pub;
     tf2_ros::TransformBroadcaster odom_pub;
+
+    // feedbacks
+    ros::Subscriber footfdb_sub;
+    ros::Subscriber bodyfdb_sub;
+
     // Commands
     // Foot command
     ros::Publisher footcmd_pub;
@@ -45,6 +51,7 @@ private:
     ros::Publisher jointcmd_pub;
     std::vector<double> joint_kp;
     std::vector<double> joint_kd;
+    
     // Misc
     bool sim_;
 
@@ -63,7 +70,7 @@ public:
         return false;
     }
 
-    // Rviz
+    // Rviz visualization
     void pub_odom(const pinocchio::SE3 &odom,
                   const std::string &child_frame = "base",
                   const std::string &parent_frame = "odom");
@@ -75,7 +82,10 @@ public:
     void pub_shadow_joint_state(const std::vector<Eigen::Vector3d> &q);
     void pub_shadow_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
 
-    // HexapodSoftware
+    // HexapodSoftware HLC feedbacks
+
+
+    // HexapodSoftware HLC commands
     /**
      * @brief Publish foot command from foot end position
      * @note Interface with HexapodSoftware HLC
