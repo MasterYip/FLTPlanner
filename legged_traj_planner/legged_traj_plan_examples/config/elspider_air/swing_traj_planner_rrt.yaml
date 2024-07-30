@@ -9,7 +9,7 @@ trajInit:
 misc:
   enableOptimizer: true
   useCfgSpace: false
-  useCfgCommand: false
+  useCfgCommand: true
   enableVis: true
   enableOptVis: true
   optVisRate: 10
@@ -19,9 +19,9 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 RRTPlanner:
-  maxTime: 10.0
+  maxTime: 2.0
   collBallRadius: 0.02
   excludeRadius: 0.04 # exclude cylinder radius
-  collMargin: 0.05
+  collMargin: 0.04
 
 

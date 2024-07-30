@@ -121,7 +121,7 @@ void randomizeRobotState(MDT::RobotState &state_, double noise_amp = 0.1)
     state_.moveDirection += (rand() % 200 - 100) / 100.0 * noise_amp;
 }
 
-MDT::RobotState getInitState(MDT::Pose robotPose = {-2, 0, USER::norminalTrunkHeight, 0, 0, 0 * _PI_ / 6},
+MDT::RobotState getInitState(MDT::Pose robotPose = {0, 0, USER::norminalTrunkHeight, 0, 0, -1.5 * _PI_ / 6},
                              float moveDir = 0)
 {
     MDT::Vector6b gaitToNow;
@@ -258,7 +258,7 @@ public:
             whole_body_planner_.visClear();
 
             bool ret = false;
-            // while (!ret && ros::ok())
+            while (!ret && ros::ok())
             {
                 // Fetch feedback
                 ros::spinOnce();
@@ -268,7 +268,7 @@ public:
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        gridmap_interface_->getMap(), true, 600);
+                                                        gridmap_interface_->getMap(), true, 250);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
                 gridmap_interface_->unlockMapUpdate();
             }
@@ -276,7 +276,6 @@ public:
             // Visualization
             visualizer_.delAll();
             visualizer_base_.delAll();
-            
 
             // Vis expected path
             if (config_.enableVis)

@@ -48,4 +48,4 @@ LFTPlanner:
     CollBall1Weight: 0.0
     CollBall2Weight: 2.0
     CollBall3Weight: 2.0
-    FootCollExcludeBallRad: 0.08
+    FootCollExcludeBallRad: 0.07
