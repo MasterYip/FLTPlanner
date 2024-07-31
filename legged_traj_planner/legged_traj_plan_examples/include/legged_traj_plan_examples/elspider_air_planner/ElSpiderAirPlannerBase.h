@@ -31,4 +31,8 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_listener.h>
 
-
+struct PlannerConfig
+{
+    std::string cmdvelFrame;
+    
+}

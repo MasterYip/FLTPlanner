@@ -291,7 +291,7 @@ public:
         // ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
 
         // return 10.0 * lengthObj + 0.1 * clearObj;
-        lengthObj->setCostThreshold(ob::Cost(10.0));
+        lengthObj->setCostThreshold(ob::Cost(4.0));
         return lengthObj;
     }
 

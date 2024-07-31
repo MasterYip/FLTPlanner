@@ -156,10 +156,19 @@ void GridMapInterface::updateSDF(const std::string &layer_name, uint index, doub
 
 double GridMapInterface::value(const grid_map::Position &position, const std::string &layer_name)
 {
-    if (layer_name.empty())
-        return map_.atPosition(ground_layer, position);
-    else
-        return map_.atPosition(layer_name, position);
+    // Check position validity
+    try
+    {
+        if (layer_name.empty())
+            return map_.atPosition(ground_layer, position);
+        else
+            return map_.atPosition(layer_name, position);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+        return 0.0; // TODO: return interpolation
+    }
 }
 
 double GridMapInterface::sdfValue(const grid_map::Position3 &position, const std::string &mode)
