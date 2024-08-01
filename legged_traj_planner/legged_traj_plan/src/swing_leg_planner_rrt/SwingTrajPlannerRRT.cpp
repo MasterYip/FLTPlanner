@@ -22,9 +22,9 @@ SwingTrajPlannerRRT::SwingTrajPlannerRRT(SwingTrajPlannerConfig config,
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
 }
 
-std::shared_ptr<TrajectoryBase> SwingTrajPlannerRRT::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                                 Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                                 uint index)
+std::shared_ptr<TrajectoryBase> SwingTrajPlannerRRT::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                                     Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                                     uint index)
 {
     double h_lift = config_.hLift;
     Eigen::MatrixXd knots(3, 3);
@@ -41,10 +41,10 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlannerRRT::getInitTraj(pinocchio::SE3 
     return unib_traj;
 }
 
-bool SwingTrajPlannerRRT::optTraj(std::shared_ptr<TrajectoryBase> &traj,
-                                  const pinocchio::SE3 &pose0,
-                                  const pinocchio::SE3 &pose1,
-                                  int index)
+bool SwingTrajPlannerRRT::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
+                                      const pinocchio::SE3 &pose0,
+                                      const pinocchio::SE3 &pose1,
+                                      int index)
 {
     if (!config_.enableOptimizer)
         return true;
@@ -79,9 +79,9 @@ SwingCfgTrajPlannerRRT::SwingCfgTrajPlannerRRT(SwingTrajPlannerConfig config,
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
 }
 
-std::shared_ptr<TrajectoryBase> SwingCfgTrajPlannerRRT::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                                    Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                                    uint index)
+std::shared_ptr<TrajectoryBase> SwingCfgTrajPlannerRRT::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                                        Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                                        uint index)
 {
     double h_lift = config_.hLift;
     double v_lift = config_.vLift;
@@ -124,10 +124,10 @@ std::shared_ptr<TrajectoryBase> SwingCfgTrajPlannerRRT::getInitTraj(pinocchio::S
 //     visualizer_->visCurve(path_opt);
 // }
 
-bool SwingCfgTrajPlannerRRT::optTraj(std::shared_ptr<TrajectoryBase> &traj,
-                                     const pinocchio::SE3 &pose0,
-                                     const pinocchio::SE3 &pose1,
-                                     int index)
+bool SwingCfgTrajPlannerRRT::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
+                                         const pinocchio::SE3 &pose0,
+                                         const pinocchio::SE3 &pose1,
+                                         int index)
 {
     if (!config_.enableOptimizer)
         return true;

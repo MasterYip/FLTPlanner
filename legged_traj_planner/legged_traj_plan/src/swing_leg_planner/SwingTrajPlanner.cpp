@@ -141,9 +141,9 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     return true;
 }
 
-std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                              Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                              uint index)
+std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                                  Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                                  uint index)
 {
     double v_lift = config_.vLift;
     double h_lift = config_.hLift;
@@ -172,10 +172,10 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTraj(pinocchio::SE3 pos
     return std::make_shared<MincoTrajectory>(minco_traj);
 }
 
-bool SwingTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
-                               const pinocchio::SE3 &pose0,
-                               const pinocchio::SE3 &pose1,
-                               int index)
+bool SwingTrajPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
+                                   const pinocchio::SE3 &pose0,
+                                   const pinocchio::SE3 &pose1,
+                                   int index)
 {
     if (!config_.enableOptimizer)
         return true;
@@ -379,9 +379,9 @@ bool SwingCfgTrajPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
 /**
  * @brief Orthogonal disk randomize
  * @note Return a randomized vector \bar{r} given a normal vector \bar{n}, the \bar{r} is orthogonal to \bar{n}
- * @param normal 
- * @param radius 
- * @return Eigen::Vector3d 
+ * @param normal
+ * @param radius
+ * @return Eigen::Vector3d
  */
 Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double radius)
 {
@@ -390,7 +390,6 @@ Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double ra
     Eigen::Vector3d tangent = random - random.dot(normal) * normal;
     return radius * tangent;
 }
-
 
 /**
  * @brief
@@ -403,9 +402,9 @@ Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double ra
  * @param index
  * @return std::shared_ptr<MincoTrajectory>
  */
-std::shared_ptr<TrajectoryBase> SwingCfgTrajPlanner::getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                                 Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                                 uint index)
+std::shared_ptr<TrajectoryBase> SwingCfgTrajPlanner::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                                     Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                                     uint index)
 {
     std::vector<Point3D> cfg_poly_traj;
     if (!getCfgPolyTraj(cfg_poly_traj, pose0, pose1, p0, p1, index))
@@ -439,10 +438,10 @@ std::shared_ptr<TrajectoryBase> SwingCfgTrajPlanner::getInitTraj(pinocchio::SE3 
     return std::make_shared<MincoTrajectory>(minco_traj);
 }
 
-bool SwingCfgTrajPlanner::optTraj(std::shared_ptr<TrajectoryBase> &traj,
-                                  const pinocchio::SE3 &pose0,
-                                  const pinocchio::SE3 &pose1,
-                                  int index)
+bool SwingCfgTrajPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
+                                      const pinocchio::SE3 &pose0,
+                                      const pinocchio::SE3 &pose1,
+                                      int index)
 {
     if (!config_.enableOptimizer)
         return true;

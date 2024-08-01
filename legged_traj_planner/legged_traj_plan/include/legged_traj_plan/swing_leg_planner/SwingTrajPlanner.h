@@ -37,6 +37,7 @@ protected:
     SwingTrajPlannerConfig config_;
 
     std::shared_ptr<GCSVisualizer> visualizer_;
+    Benchmark benchmark_;
     std::vector<BenchmarkResult> benchmark_results_;
 
 public:
@@ -44,7 +45,8 @@ public:
                          std::shared_ptr<ElSpiderAirInterface> robot_interface,
                          std::shared_ptr<GridMapInterface> gridmap_interface) : robot_interface_(robot_interface),
                                                                                 gridmap_interface_(gridmap_interface),
-                                                                                config_(config) {};
+                                                                                config_(config),
+                                                                                benchmark_("SwingTrajPlannerBenchmark", config_.enableBenchmark) {};
     ~SwingTrajPlannerBase() = default;
 
     SwingTrajPlannerConfig &getConfig()
@@ -83,17 +85,38 @@ public:
         std::cout << "Benchmark results saved to: " << config_.benchmarkSavePath << std::endl;
     }
 
-    virtual std::shared_ptr<TrajectoryBase> getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                        Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                        uint index) = 0;
+    std::shared_ptr<TrajectoryBase> getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                uint index)
+    {
+        benchmark_.reset();
+        std::shared_ptr<TrajectoryBase> traj = getInitTrajHook(pose0, pose1, p0, p1, index);
+        benchmark_.record("getInitTraj");
+        return traj;
+    }
 
-    virtual bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
+    virtual std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                            Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                            uint index) = 0;
+
+    bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
                          const pinocchio::SE3 &pose0,
                          const pinocchio::SE3 &pose1,
-                         int index) = 0;
+                         int index)
+    {
+        benchmark_.resetTimer();
+        bool ret = optTrajHook(traj, pose0, pose1, index);
+        benchmark_.record("optTraj");
+        benchmark_.end();
+        benchmark_results_.emplace_back(benchmark_.getResult());
+        return ret;
+    }
+
+    virtual bool optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
+                             const pinocchio::SE3 &pose0,
+                             const pinocchio::SE3 &pose1,
+                             int index) = 0;
 };
-
-
 
 class SwingTrajPlanner : public SwingTrajPlannerBase
 {
@@ -127,11 +150,11 @@ public:
     std::shared_ptr<MincoTrajectory> getDefaultTraj(const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
                                                     double v_lift, double h_lift = 0.1);
 
-    std::shared_ptr<TrajectoryBase> getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+    std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                 Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                 uint index) override;
 
-    bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
+    bool optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
                  const pinocchio::SE3 &pose0,
                  const pinocchio::SE3 &pose1,
                  int index) override;
@@ -179,11 +202,11 @@ public:
     std::shared_ptr<MincoTrajectory> getDefaultCfgTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
                                                        const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index);
 
-    std::shared_ptr<TrajectoryBase> getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+    std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                 Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                 uint index) override;
 
-    bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
+    bool optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
                  const pinocchio::SE3 &pose0,
                  const pinocchio::SE3 &pose1,
                  int index) override;
