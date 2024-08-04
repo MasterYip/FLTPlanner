@@ -212,7 +212,7 @@ SwingCfgTrajPlanner::SwingCfgTrajPlanner(SwingTrajPlannerConfig config,
                                          std::shared_ptr<ElSpiderAirInterface> robot_interface,
                                          std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
                                                                                                 swing_traj_opt_(robot_interface_, gridmap_interface_,
-                                                                                                                nullptr, config.enableBenchmark)
+                                                                                                                nullptr, false)
 {
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
     if (config_.enableOptVis)

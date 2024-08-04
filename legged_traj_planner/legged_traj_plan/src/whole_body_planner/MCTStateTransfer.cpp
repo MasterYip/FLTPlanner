@@ -38,16 +38,17 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
         swingtraj_isneeded_[i] = (state1.support_State_Now[i] == 0);
     }
 
+    // NOTE: Init when opt for now
     // Init swing trajectory
-    for (int i = 0; i < 6; ++i)
-    {
-        if (swingtraj_isneeded_[i])
-        {
-            swingtraj_[i] = swing_traj_planner_->getInitTraj(
-                XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
-                footpos_list0_[i], footpos_list1_[i], i);
-        }
-    }
+    // for (int i = 0; i < 6; ++i)
+    // {
+    //     if (swingtraj_isneeded_[i])
+    //     {
+    //         swingtraj_[i] = swing_traj_planner_->getInitTraj(
+    //             XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
+    //             footpos_list0_[i], footpos_list1_[i], i);
+    //     }
+    // }
 }
 
 pinocchio::SE3 MCTStateTransfer::eval_torso_traj(double t)
@@ -171,11 +172,16 @@ void MCTStateTransfer::opt_swing_traj(int index)
         pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
         pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
 
+        // Init when opt
+        swingtraj_[index] = swing_traj_planner_->getInitTraj(
+            pose0, pose1, footpos_list0_[index], footpos_list1_[index], index);
+
         swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
             swingtraj_[index], pose0, pose1, index);
 
         // Normal randomization for replanning
         swing_traj_planner_->getConfig().enableLiftRandomize = true;
+        bool enableVis = swing_traj_planner_->getConfig().enableVis;
         swing_traj_planner_->getConfig().enableVis = false;
         while (!opt_check(index))
         {
@@ -186,7 +192,7 @@ void MCTStateTransfer::opt_swing_traj(int index)
                 swingtraj_[index], pose0, pose1, index);
         }
         swing_traj_planner_->getConfig().enableLiftRandomize = false;
-        swing_traj_planner_->getConfig().enableVis = true;
+        swing_traj_planner_->getConfig().enableVis = enableVis;
     }
 }
 

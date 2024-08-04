@@ -86,13 +86,19 @@ public:
     Benchmark(std::string name = "Benchmark", bool enabled = true);
     ~Benchmark();
     void reset();
+
+    // Reset timer for the next record
     void resetTimer()
     {
         if (!enabled_)
             return;
         timer_.timerReset();
     };
+
+    // Record the time and restart the timer for the next record
     void record(std::string name, uint type = RecordType::NORMAL);
+
+    // End up the benchmark and print the records
     void end();
 
     void addCustomData(double data)
