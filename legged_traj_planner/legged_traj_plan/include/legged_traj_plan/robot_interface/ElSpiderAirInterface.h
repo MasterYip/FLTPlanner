@@ -105,9 +105,10 @@ const std::vector<Eigen::Vector3d> LOWEST_FOOT_POS = {
 
 class ElSpiderAirInterface : public BaseRobotInterface
 {
+private:
+    ElSpiderKin robot_kin;
 
 public:
-    ElSpiderKin robot_kin;
 
     ElSpiderAirInterface(const std::string &urdf, const std::vector<std::string> &package_dirs = {})
         : BaseRobotInterface(urdf, package_dirs)
@@ -119,6 +120,7 @@ public:
         }
     }
 
+    // Kinematics
     std::vector<double> IKFast_foots(const std::vector<Eigen::Vector3d> &footendpos)
     {
         std::vector<double> q;
@@ -189,4 +191,33 @@ public:
     {
         return robot_kin;
     }
+
+    // Feedback Interface
+    // virtual legged_traj_plan::FootState getFootStateFdb()
+    // {
+    //     throw std::runtime_error("Not implemented");
+    // }
+    // virtual legged_traj_plan::JointState getJointStateFdb()
+    // {
+    //     throw std::runtime_error("Not implemented");
+    // }
+    // virtual auto getBodyPoseFdb()
+    // {
+    //     throw std::runtime_error("Not implemented");
+    // }
+    // virtual auto getBodyVelFdb()
+    // {
+    //     throw std::runtime_error("Not implemented");
+    // }
+
+    // Command Interface
+    // virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos)
+    // {
+    //     throw std::runtime_error("Not implemented");
+    // }
+    // virtual void setJointCmd(const std::vector<double> &q)
+    // {
+    //     throw std::runtime_error("Not implemented");
+    // }
+
 };
