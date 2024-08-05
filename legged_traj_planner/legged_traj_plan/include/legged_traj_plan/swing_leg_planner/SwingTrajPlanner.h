@@ -80,7 +80,12 @@ public:
         for (auto result : benchmark_results_)
         {
             file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
-                 << result.tot_time << ", " << result.custom_data[0] << ", " << result.custom_data[1] << std::endl;
+                 << result.tot_time << ", ";
+            for (auto data : result.custom_data)
+            {
+                file << data << ", ";
+            }
+            file << std::endl;
         }
         std::cout << "Benchmark results saved to: " << config_.benchmarkSavePath << std::endl;
     }
