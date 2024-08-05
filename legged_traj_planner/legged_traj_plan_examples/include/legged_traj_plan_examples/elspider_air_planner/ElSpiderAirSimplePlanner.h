@@ -671,8 +671,12 @@ public:
         }
         if (config_.enableBenchmark)
         {
+            std::cout << "Save benchmark results..." << std::endl;
             whole_body_planner_.saveBenchmarkResults();
+            std::cout << "Save robot profile..." << std::endl;
             saveRobotProfile();
+            std::cout << "Benchmark results and robot profile saved." << std::endl;
         }
+
     }
 };

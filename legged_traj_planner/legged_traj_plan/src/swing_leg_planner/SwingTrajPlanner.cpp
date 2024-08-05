@@ -458,10 +458,11 @@ bool SwingCfgTrajPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
                           config_, true, false);
     bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), config_.relCostTol);
 
-    if (config_.enableBenchmark)
-    {
-        benchmark_results_.emplace_back(swing_traj_opt_.getBenchmarkResult());
-    }
+    // SwingTrajOpt Benchmark disabled for now
+    // if (config_.enableBenchmark)
+    // {
+    //     benchmark_results_.emplace_back(swing_traj_opt_.getBenchmarkResult());
+    // }
 
     if (config_.enableVis && ret)
     {
