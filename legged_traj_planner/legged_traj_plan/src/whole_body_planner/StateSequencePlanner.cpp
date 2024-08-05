@@ -1,11 +1,6 @@
-#include "legged_traj_plan/whole_body_planner/WholeBodyPlanner.h"
+#include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
 
-// MCTSWholeBodyPlanner::MCTSWholeBodyPlanner()
-// {
-//     swing_traj_planner = SwingTrajPlanner();
-// }
-
-MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+StateSequencePlanner::StateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                                            std::shared_ptr<GridMapInterface> gridmap_interface,
                                            std::shared_ptr<ElSpiderAirInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
@@ -36,13 +31,13 @@ MCTSWholeBodyPlanner::MCTSWholeBodyPlanner(SwingTrajPlannerConfig swing_traj_pla
     }
 }
 
-bool MCTSWholeBodyPlanner::enqueue_MCTsolution(hexapod_State state0, hexapod_State state1)
+bool StateSequencePlanner::enqueue_MCTsolution(hexapod_State state0, hexapod_State state1)
 {
     state_trajs.emplace_back(MCTStateTransfer(state0, state1, swing_traj_planner_, use_cfg_space_));
     return true;
 }
 
-MCTStateTransfer MCTSWholeBodyPlanner::dequeue_MCTsolution()
+MCTStateTransfer StateSequencePlanner::dequeue_MCTsolution()
 {
     MCTStateTransfer ret = state_trajs.front();
     assert(!state_trajs.empty());
@@ -50,17 +45,17 @@ MCTStateTransfer MCTSWholeBodyPlanner::dequeue_MCTsolution()
     return ret;
 }
 
-MCTStateTransfer MCTSWholeBodyPlanner::get_state_traj(int index)
+MCTStateTransfer StateSequencePlanner::get_state_traj(int index)
 {
     return state_trajs.at(index);
 }
 
-int MCTSWholeBodyPlanner::get_state_traj_length()
+int StateSequencePlanner::get_state_traj_length()
 {
     return state_trajs.size();
 }
 
-// std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>> MCTSWholeBodyPlanner::get_foot_traj(double t, int point_num, double delta) {
+// std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>> StateSequencePlanner::get_foot_traj(double t, int point_num, double delta) {
 //     std::vector<std::vector<double>> default_traj_list(6, std::vector<double>());
 //     std::vector<std::vector<double>> opt_traj_list(6, std::vector<double>());
 //     int index = 0;

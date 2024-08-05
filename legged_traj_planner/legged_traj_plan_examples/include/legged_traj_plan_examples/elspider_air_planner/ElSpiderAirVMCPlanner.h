@@ -20,7 +20,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
-#include "legged_traj_plan/whole_body_planner/WholeBodyPlanner.h"
+#include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
 
 #include "legged_traj_plan/hexapod_State.h"
 #include "legged_traj_plan/FootState.h"
@@ -161,7 +161,7 @@ private:
     // Fast legged planner interface
     std::shared_ptr<ElSpiderAirInterfaceROS> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    MCTSWholeBodyPlanner whole_body_planner_;
+    StateSequencePlanner whole_body_planner_;
 
     // MCTS planner Interface
     MDT::RobotState robot_state_;

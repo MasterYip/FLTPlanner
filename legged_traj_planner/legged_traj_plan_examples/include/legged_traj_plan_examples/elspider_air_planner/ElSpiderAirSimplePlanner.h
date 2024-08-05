@@ -21,7 +21,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
-#include "legged_traj_plan/whole_body_planner/WholeBodyPlanner.h"
+#include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
 #include "legged_traj_plan/whole_body_planner/CmdVelExtrapolator.h"
 
 #include "legged_traj_plan/hexapod_State.h"
@@ -172,7 +172,7 @@ private:
     // Interface
     std::shared_ptr<ElSpiderAirInterfaceROS> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    MCTSWholeBodyPlanner whole_body_planner_;
+    StateSequencePlanner whole_body_planner_;
 
     // MCTS planner Interface
     MDT::RobotState robot_state_;
@@ -452,7 +452,7 @@ public:
         exp_path_.clear();
         gridmap_extrapolator_.update(body_pose_, cmd_);
 
-        for (int i=0; i < point_num_; ++i)
+        for (int i = 0; i < point_num_; ++i)
         {
             Eigen::Vector3d trans = gridmap_extrapolator_.extrapolate(i * delta_t_).translation();
             exp_path_.push_back(Eigen::Vector3f(trans[0], trans[1], trans[2]));
@@ -677,6 +677,5 @@ public:
             saveRobotProfile();
             std::cout << "Benchmark results and robot profile saved." << std::endl;
         }
-
     }
 };

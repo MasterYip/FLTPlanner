@@ -1,5 +1,5 @@
 /**
- * @file WholeBodyPlanner.h
+ * @file StateSequencePlanner.h
  * @author Master Yip (2205929492@qq.com)
  * @brief
  * @version 0.1
@@ -27,7 +27,7 @@
 /* external project header files */
 #include <geometry_msgs/Twist.h>
 
-class MCTSWholeBodyPlanner
+class StateSequencePlanner
 {
 private:
     std::vector<MCTStateTransfer> state_trajs;
@@ -37,7 +37,7 @@ private:
     bool use_cfg_space_;
 
 public:
-    MCTSWholeBodyPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+    StateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                          std::shared_ptr<GridMapInterface> gridmap_interface,
                          std::shared_ptr<ElSpiderAirInterface> robot_interface);
 
@@ -58,6 +58,4 @@ public:
     {
         swing_traj_planner_->visClear();
     }
-
 };
-

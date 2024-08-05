@@ -21,7 +21,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
-#include "legged_traj_plan/whole_body_planner/WholeBodyPlanner.h"
+#include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
 #include "legged_traj_plan/hexapod_State.h"
 
 /* external project header files */
@@ -35,7 +35,7 @@ private:
     ros::Subscriber sub_;
     std::shared_ptr<ElSpiderAirInterfaceROS> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    MCTSWholeBodyPlanner whole_body_planner_;
+    StateSequencePlanner whole_body_planner_;
     std::vector<hexapod_State> MCT_solution_;
     ros::Rate rate_;
 
