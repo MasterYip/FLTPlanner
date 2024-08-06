@@ -31,10 +31,73 @@
 
 /* internal project header files */
 
+struct ElSpiderAirInterfaceROSConfig
+{
+
+    std::string urdfParamPath;
+    std::string urdf; // Auto loaded
+
+    // Rviz
+    bool enableVis;
+    std::string jointStateTopic;
+    std::string jointNamePrefix;
+    std::string odomChildFrame;
+    std::string odomParentFrame;
+
+    // Feedback
+    std::string footStateFdbTopic;
+    std::string bodyStateFdbTopic;
+
+    // Command
+    std::string footCmdTopic;
+    std::string jointCmdTopic;
+
+    // Control Params
+    bool sim;
+    std::vector<double> jointKpSim;
+    std::vector<double> jointKdSim;
+    std::vector<double> jointKpHardware;
+    std::vector<double> jointKdHardware;
+
+    void loadParam(ros::NodeHandle &nh, std::string ns = "robotInterface")
+    {
+        bool check_digit = true;
+        check_digit &= nh.getParam(ns + "/urdfParamPath", urdfParamPath);
+        check_digit &= nh.getParam(urdfParamPath, urdf);
+
+        check_digit &= nh.getParam(ns + "/enableVis", enableVis);
+        check_digit &= nh.getParam(ns + "/jointStateTopic", jointStateTopic);
+        check_digit &= nh.getParam(ns + "/jointNamePrefix", jointNamePrefix);
+        check_digit &= nh.getParam(ns + "/odomChildFrame", odomChildFrame);
+        check_digit &= nh.getParam(ns + "/odomParentFrame", odomParentFrame);
+
+        check_digit &= nh.getParam(ns + "/footStateFdbTopic", footStateFdbTopic);
+        check_digit &= nh.getParam(ns + "/bodyStateFdbTopic", bodyStateFdbTopic);
+        check_digit &= nh.getParam(ns + "/footCmdTopic", footCmdTopic);
+        check_digit &= nh.getParam(ns + "/jointCmdTopic", jointCmdTopic);
+
+        check_digit &= nh.getParam(ns + "/sim", sim);
+        check_digit &= nh.getParam(ns + "/jointKpSim", jointKpSim);
+        check_digit &= jointKpSim.size() == 3;
+        check_digit &= nh.getParam(ns + "/jointKdSim", jointKdSim);
+        check_digit &= jointKdSim.size() == 3;
+        check_digit &= nh.getParam(ns + "/jointKpHardware", jointKpHardware);
+        check_digit &= jointKpHardware.size() == 3;
+        check_digit &= nh.getParam(ns + "/jointKdHardware", jointKdHardware);
+        check_digit &= jointKdHardware.size() == 3;
+
+        if (!check_digit)
+        {
+            ROS_ERROR("Failed to load parameters");
+        }
+    }
+};
+
 class ElSpiderAirInterfaceROS : public ElSpiderAirInterface
 {
 private:
     ros::NodeHandle nh;
+    ElSpiderAirInterfaceROSConfig config_; // New added
 
     // Rviz
     ros::Publisher joint_state_pub;
@@ -61,7 +124,10 @@ private:
     bool sim_;
 
 public:
+    // Reserve for backward compatibility
     ElSpiderAirInterfaceROS(const std::string &urdf, bool sim = false);
+
+    ElSpiderAirInterfaceROS(const ElSpiderAirInterfaceROSConfig &config);
 
     bool setJointKpKd(const std::vector<double> &kp, const std::vector<double> &kd)
     {
@@ -120,14 +186,30 @@ public:
     const pinocchio::SE3 &getBodyPoseFdb() const override { return body_pose_fdb_; }
     const pinocchio::Motion &getBodyVelFdb() const override { return body_vel_fdb_; }
 
-    // void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override {};
+    void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override {}; // Not used
     void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
     {
         pub_footcmd_from_footendpos(footendpos);
+        if (config_.enableVis)
+        {
+            pub_joint_state_from_footendpos(footendpos);
+        }
     };
     void setJointCmd(const std::vector<double> &q) override
     {
         pub_jointcmd_from_jointpos(q);
+        if (config_.enableVis)
+        {
+            pub_joint_state(q);
+        }
     };
-    
+
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
+    {
+        pub_jointcmd_from_jointpos(q);
+        if (config_.enableVis)
+        {
+            pub_joint_state(q);
+        }
+    };
 };

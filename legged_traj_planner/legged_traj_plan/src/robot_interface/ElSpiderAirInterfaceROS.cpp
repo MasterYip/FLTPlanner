@@ -21,9 +21,10 @@ bool odom2SE3_Motion(const nav_msgs::Odometry &odom, pinocchio::SE3 &pos, pinocc
     return true;
 }
 
-ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool sim)
+[[deprecated("constructor deprecated")]] ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool sim)
     : ElSpiderAirInterface(urdf), sim_(sim)
 {
+    ROS_WARN("ElSpiderAirInterfaceROS(const std::string &urdf, bool sim) constructor is deprecated.");
     // Rviz
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     shadow_joint_state_pub = nh.advertise<sensor_msgs::JointState>("shadow/joint_states", 10);
@@ -43,6 +44,28 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     {
         joint_kp = {1500, 3000, 3000};
         joint_kd = {5, 7.5, 7.5};
+    }
+}
+
+ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const ElSpiderAirInterfaceROSConfig &config) : config_(config), ElSpiderAirInterface(config.urdf)
+{
+    joint_state_pub = nh.advertise<sensor_msgs::JointState>(config.jointStateTopic, 10);
+
+    footfdb_sub = nh.subscribe(config.footStateFdbTopic, 1, &ElSpiderAirInterfaceROS::footfdbCallback, this);
+    bodyfdb_sub = nh.subscribe(config.bodyStateFdbTopic, 1, &ElSpiderAirInterfaceROS::bodyfdbCallback, this);
+    footcmd_pub = nh.advertise<legged_traj_plan::FootCmd>(config.footCmdTopic, 1);
+    jointcmd_pub = nh.advertise<legged_traj_plan::JointCmd>(config.jointCmdTopic, 1);
+
+    feedforward_type = 0;
+    if (!config.sim) // Hardware
+    {
+        joint_kp = config.jointKpHardware;
+        joint_kd = config.jointKdHardware;
+    }
+    else // Gazebo
+    {
+        joint_kp = config.jointKpSim;
+        joint_kd = config.jointKdSim;
     }
 }
 

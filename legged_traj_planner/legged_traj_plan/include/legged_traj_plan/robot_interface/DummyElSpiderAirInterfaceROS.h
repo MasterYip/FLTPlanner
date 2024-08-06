@@ -32,7 +32,7 @@
 
 /* internal project header files */
 
-struct DummyElSpiderAirConfig
+struct DummyElSpiderAirInterfaceROSConfig
 {
 
     std::string urdfParamPath;
@@ -76,7 +76,7 @@ class DummyElSpiderAirInterfaceROS : public ElSpiderAirInterface
 {
 private:
     ros::NodeHandle nh;
-    DummyElSpiderAirConfig config_;
+    DummyElSpiderAirInterfaceROSConfig config_;
 
     // Rviz
     ros::Publisher joint_state_pub;
@@ -145,7 +145,7 @@ private:
     }
 
 public:
-    DummyElSpiderAirInterfaceROS(const DummyElSpiderAirConfig &config) : ElSpiderAirInterface(config.urdf), config_(config)
+    DummyElSpiderAirInterfaceROS(const DummyElSpiderAirInterfaceROSConfig &config) : ElSpiderAirInterface(config.urdf), config_(config)
     {
         // Rviz
         joint_state_pub = nh.advertise<sensor_msgs::JointState>(config_.jointStateTopic, 10);

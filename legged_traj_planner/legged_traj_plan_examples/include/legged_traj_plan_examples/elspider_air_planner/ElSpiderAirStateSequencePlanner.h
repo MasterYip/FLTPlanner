@@ -19,6 +19,7 @@
 /* internal project header files */
 #include <pinocchio/math/rpy.hpp>
 #include "legged_traj_plan/robot_interface/DummyElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
+#include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
@@ -169,10 +170,10 @@ private:
 public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirStateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                                    DummyElSpiderAirConfig dummy_robot_config,
-                                    DummyElSpiderAirConfig dummy_robot_config_shadow) : nh_("~"),
-                                                                                        robot_interface_(std::make_shared<DummyElSpiderAirInterfaceROS>(dummy_robot_config)),
-                                                                                        robot_interface_shadow_(std::make_shared<DummyElSpiderAirInterfaceROS>(dummy_robot_config_shadow)),
+                                    std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                                    std::shared_ptr<ElSpiderAirInterface> robot_interface_shadow) : nh_("~"),
+                                                                                        robot_interface_(robot_interface),
+                                                                                        robot_interface_shadow_(robot_interface_shadow),
                                                                                         gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                         whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
                                                                                         visualizer_(nh_, "odom", "visualizer_markers"),
