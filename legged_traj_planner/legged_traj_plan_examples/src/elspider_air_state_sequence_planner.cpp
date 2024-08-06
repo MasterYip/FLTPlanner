@@ -20,7 +20,9 @@ int main(int argc, char **argv)
     swing_traj_planner_config.loadParams(nh);
     DummyElSpiderAirConfig dummy_config;
     dummy_config.loadParam(nh);
-    ElSpiderAirStateSequencePlanner planner(swing_traj_planner_config, dummy_config);
+    DummyElSpiderAirConfig dummy_config_shadow;
+    dummy_config_shadow.loadParam(nh, "robotInterfaceShadow");
+    ElSpiderAirStateSequencePlanner planner(swing_traj_planner_config, dummy_config, dummy_config_shadow);
     planner.run();
     return 0;
 }

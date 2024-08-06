@@ -1,6 +1,24 @@
 robotInterface:
+  urdfParamPath: /robot_description
   jointStateTopic: joint_states
+  jointNamePrefix: "" # empty
   odomChildFrame: base
+  odomParentFrame: odom
+  enableVis: true
+  nominalFootPos: [0.35, -0.23, -0.24,
+                0.05, -0.29, -0.24,
+                -0.35, -0.23, -0.24,
+                0.35, 0.23, -0.24,
+                0.05, 0.29, -0.24,
+                -0.35, 0.23, -0.24]
+  nominalFootPosShift: [0, 0.10, 0]
+  initBodyPose: [0, 0, 0.24, 0, 0, 0]
+
+robotInterfaceShadow:
+  urdfParamPath: /shadow/robot_description
+  jointStateTopic: /shadow/joint_states
+  jointNamePrefix: shadow
+  odomChildFrame: shadowbase
   odomParentFrame: odom
   enableVis: true
   nominalFootPos: [0.35, -0.23, -0.24,

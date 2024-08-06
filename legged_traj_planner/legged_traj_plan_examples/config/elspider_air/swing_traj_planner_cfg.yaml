@@ -15,7 +15,7 @@ misc:
   enableVis: true
   enableOptVis: false # Visualize the optimization process
   optVisRate: 10
-  enableBenchmark: false
+  enableBenchmark: true
   # Benchmark result save path
   # benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/optBenchmark.csv
   # robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/robotProfile.csv

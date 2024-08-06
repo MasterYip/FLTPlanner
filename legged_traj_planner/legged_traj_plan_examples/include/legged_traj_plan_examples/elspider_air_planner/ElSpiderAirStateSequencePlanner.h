@@ -140,6 +140,7 @@ private:
 
     // Interface
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_shadow_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     StateSequencePlanner whole_body_planner_;
 
@@ -157,8 +158,7 @@ private:
     // Status
     bool motion_lock_ = false;
 
-    // ROS Timer event
-    ros::Timer timer_;
+    // Robot profile
     double init_time_ = 0.0;
     std::vector<RobotProfile> robot_profile_;
 
@@ -166,18 +166,13 @@ private:
     GCSVisualizer visualizer_;
     GCSVisualizer visualizer_base_;
 
-    // Settings
-    bool fake_estimation_;
-    bool fake_estimation_noisy_ = false;
-    double noise_amp_ = 0.02;
-    bool simulation_;
-
 public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirStateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                               DummyElSpiderAirConfig dummy_robot_config,
-                               bool fake_estimation = false, bool simulation = false) : nh_("~"),
+                                    DummyElSpiderAirConfig dummy_robot_config,
+                                    DummyElSpiderAirConfig dummy_robot_config_shadow) : nh_("~"),
                                                                                         robot_interface_(std::make_shared<DummyElSpiderAirInterfaceROS>(dummy_robot_config)),
+                                                                                        robot_interface_shadow_(std::make_shared<DummyElSpiderAirInterfaceROS>(dummy_robot_config_shadow)),
                                                                                         gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
                                                                                         whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
                                                                                         visualizer_(nh_, "odom", "visualizer_markers"),
@@ -293,8 +288,8 @@ public:
             auto support_state = state_traj.eval_support_state(t);
 
             // Visualization
-            // robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
-            // robot_interface_->pub_shadow_joint_state(footend_interp);
+            robot_interface_shadow_->setBodyPoseCmd(odom_interp);
+            robot_interface_shadow_->setJointCmd(footend_interp);
 
             rate_.sleep();
         }
@@ -304,7 +299,7 @@ public:
     // Update Robot State for MCTS Interface
     void update_robot_state(pinocchio::SE3 body_pose, legged_traj_plan::FootState foot_state)
     {
-        // Update Robot pose
+        // Robot pose
         robot_state_.pose.x = body_pose.translation()[0];
         robot_state_.pose.y = body_pose.translation()[1];
         robot_state_.pose.z = body_pose.translation()[2];
@@ -346,7 +341,7 @@ public:
         Eigen::Vector3d foot_force;
         auto foot_state_ = robot_interface_->getFootStateFdb();
         foot_force << foot_state_.effort[leg_idx].x, foot_state_.effort[leg_idx].y, foot_state_.effort[leg_idx].z;
-        return foot_force.norm() > eps;
+        return (foot_force.norm() > eps) || foot_state_.contact[leg_idx];
     }
 
     void stance_contact_handle(void)
@@ -379,7 +374,6 @@ public:
                 robot_interface_->setJointCmd(robot_interface_->IKFast_foots(footend_interp));
             else
                 robot_interface_->setFootCmd(footend_interp);
-
         }
         if (max_cnt <= 0)
             ROS_WARN("Stance contact handling failed.");
@@ -460,8 +454,8 @@ public:
         } while (whole_body_planner_.get_state_traj_length() > 0);
 
         // Stance contact handling
-        // ros::Duration(0.4).sleep();
-        // stance_contact_handle();
+        ros::Duration(0.4).sleep();
+        stance_contact_handle();
     }
 
     void saveRobotProfile()

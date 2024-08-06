@@ -34,8 +34,12 @@
 
 struct DummyElSpiderAirConfig
 {
-    std::string urdf;
+
+    std::string urdfParamPath;
+    std::string urdf; // Auto loaded
+
     std::string jointStateTopic;
+    std::string jointNamePrefix;
     std::string odomChildFrame;
     std::string odomParentFrame;
     bool enableVis;
@@ -45,19 +49,21 @@ struct DummyElSpiderAirConfig
     std::vector<double> nominalFootPosShift; // size 3: (dx dy dz)
     std::vector<double> initBodyPose;        // size 6: (xyzrpy)
 
-    void loadParam(ros::NodeHandle &nh)
+    void loadParam(ros::NodeHandle &nh, std::string ns = "robotInterface")
     {
         bool check_digit = true;
-        check_digit &= nh.getParam("/robot_description", urdf);
-        check_digit &= nh.getParam("robotInterface/jointStateTopic", jointStateTopic);
-        check_digit &= nh.getParam("robotInterface/odomChildFrame", odomChildFrame);
-        check_digit &= nh.getParam("robotInterface/odomParentFrame", odomParentFrame);
-        check_digit &= nh.getParam("robotInterface/enableVis", enableVis);
-        check_digit &= nh.getParam("robotInterface/nominalFootPos", nominalFootPos);
+        check_digit &= nh.getParam(ns + "/urdfParamPath", urdfParamPath);
+        check_digit &= nh.getParam(urdfParamPath, urdf);
+        check_digit &= nh.getParam(ns + "/jointStateTopic", jointStateTopic);
+        check_digit &= nh.getParam(ns + "/jointNamePrefix", jointNamePrefix);
+        check_digit &= nh.getParam(ns + "/odomChildFrame", odomChildFrame);
+        check_digit &= nh.getParam(ns + "/odomParentFrame", odomParentFrame);
+        check_digit &= nh.getParam(ns + "/enableVis", enableVis);
+        check_digit &= nh.getParam(ns + "/nominalFootPos", nominalFootPos);
         check_digit &= nominalFootPos.size() == 18;
-        check_digit &= nh.getParam("robotInterface/nominalFootPosShift", nominalFootPosShift);
+        check_digit &= nh.getParam(ns + "/nominalFootPosShift", nominalFootPosShift);
         check_digit &= nominalFootPosShift.size() == 3;
-        check_digit &= nh.getParam("robotInterface/initBodyPose", initBodyPose);
+        check_digit &= nh.getParam(ns + "/initBodyPose", initBodyPose);
         check_digit &= initBodyPose.size() == 6;
         if (!check_digit)
         {
@@ -112,6 +118,11 @@ private:
         sensor_msgs::JointState joint_state;
         joint_state.header.stamp = ros::Time::now();
         joint_state.name = JOINT_STATE_NAME;
+        if (config_.jointNamePrefix != "")
+        {
+            for (auto &name : joint_state.name)
+                name = config_.jointNamePrefix + name;
+        }
         joint_state.position = q;
         joint_state_pub.publish(joint_state);
     }
@@ -156,6 +167,9 @@ public:
         }
         foot_state_.velocity.resize(6);
         foot_state_.effort.resize(6);
+        // foot_state_.contact.resize(6);
+        // FIXME: contact state default to true
+        foot_state_.contact = {true, true, true, true, true, true};
 
         joint_state_.velocity.resize(18);
         joint_state_.effort.resize(18);
@@ -164,7 +178,7 @@ public:
                                     Eigen::Vector3d(config_.initBodyPose[0], config_.initBodyPose[1], config_.initBodyPose[2]));
     }
 
-    // Overrides
+    //// Overrides
     // Feedback Interface
     const legged_traj_plan::FootState &getFootStateFdb() const override
     {
@@ -193,7 +207,7 @@ public:
         if (config_.enableVis)
             pub_odom(body_pose);
     }
-    // FIXME: setJointCmd & setFootCmd should share the same state variable
+
     void setJointCmd(const std::vector<double> &q) override
     {
         joint_state_.position = q;
@@ -230,6 +244,36 @@ public:
             pt.y = footendpos[i][1];
             pt.z = footendpos[i][2];
             foot_state_.position[i] = pt;
+            // update joint_state_
+            Eigen::Vector3d q_i = IKFast_foot(footendpos[i], i);
+            joint_state_.position[i * 3] = q_i[0];
+            joint_state_.position[i * 3 + 1] = q_i[1];
+            joint_state_.position[i * 3 + 2] = q_i[2];
+        }
+        if (config_.enableVis)
+            pub_joint_state_from_footendpos(footendpos);
+    }
+
+    // Interface extension
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                    const std::vector<Eigen::Vector3d> &footendvel,
+                    const std::vector<Eigen::Vector3d> &footendeffort,
+                    const std::vector<bool> contact)
+    {
+        for (int i = 0; i < 6; ++i)
+        {
+            geometry_msgs::Point pt;
+            pt.x = footendpos[i][0];
+            pt.y = footendpos[i][1];
+            pt.z = footendpos[i][2];
+            foot_state_.position[i] = pt;
+            foot_state_.velocity[i].x = footendvel[i][0];
+            foot_state_.velocity[i].y = footendvel[i][1];
+            foot_state_.velocity[i].z = footendvel[i][2];
+            foot_state_.effort[i].x = footendeffort[i][0];
+            foot_state_.effort[i].y = footendeffort[i][1];
+            foot_state_.effort[i].z = footendeffort[i][2];
+            foot_state_.contact[i] = contact[i];
             // update joint_state_
             Eigen::Vector3d q_i = IKFast_foot(footendpos[i], i);
             joint_state_.position[i * 3] = q_i[0];
