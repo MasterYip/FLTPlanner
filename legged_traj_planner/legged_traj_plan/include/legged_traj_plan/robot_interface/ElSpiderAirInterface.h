@@ -112,7 +112,6 @@ private:
     ElSpiderKin robot_kin;
 
 public:
-
     ElSpiderAirInterface(const std::string &urdf, const std::vector<std::string> &package_dirs = {})
         : BaseRobotInterface(urdf, package_dirs)
     {
@@ -196,19 +195,19 @@ public:
     }
 
     // Feedback Interface
-    virtual const legged_traj_plan::FootState & getFootStateFdb() const
+    virtual const legged_traj_plan::FootState &getFootStateFdb() const
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual const sensor_msgs::JointState & getJointStateFdb() const
+    virtual const sensor_msgs::JointState &getJointStateFdb() const
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual const pinocchio::SE3 & getBodyPoseFdb() const
+    virtual const pinocchio::SE3 &getBodyPoseFdb() const
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual const pinocchio::Motion & getBodyVelFdb() const
+    virtual const pinocchio::Motion &getBodyVelFdb() const
     {
         throw std::runtime_error("Not implemented");
     }
@@ -217,8 +216,8 @@ public:
 
     /**
      * @brief Set body pose (for dummy robot)
-     * 
-     * @param body_pose 
+     *
+     * @param body_pose
      */
     virtual void setBodyPoseCmd(const pinocchio::SE3 &body_pose)
     {
@@ -233,5 +232,8 @@ public:
     {
         throw std::runtime_error("Not implemented");
     }
-
+    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q)
+    {
+        throw std::runtime_error("Not implemented");
+    }
 };

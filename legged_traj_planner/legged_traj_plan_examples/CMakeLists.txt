@@ -183,9 +183,17 @@ target_link_libraries(elspider_air_swingtraj_planner
   ${PROJECT_NAME}
 )
 
-# ElSpiderAirSimplePlanner
+# ElSpiderAirSimplePlanner [Deprecated]
 add_executable(elspider_air_simple_planner src/elspider_air_simple_planner.cpp)
 target_link_libraries(elspider_air_simple_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+  mcts_planner
+)
+
+# ElSpiderAirStateSequencePlanner
+add_executable(elspider_air_state_sequence_planner src/elspider_air_state_sequence_planner.cpp)
+target_link_libraries(elspider_air_state_sequence_planner
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
   mcts_planner

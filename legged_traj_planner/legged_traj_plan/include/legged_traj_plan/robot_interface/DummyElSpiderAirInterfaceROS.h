@@ -31,7 +31,6 @@
 
 /* internal project header files */
 
-
 struct DummyElSpiderAirConfig
 {
     std::string urdf;
@@ -40,20 +39,31 @@ struct DummyElSpiderAirConfig
     std::string odomParentFrame;
     bool enableVis;
 
+    // Init
+    std::vector<double> nominalFootPos;      // size 18: (xyz in base frame) * 6
+    std::vector<double> nominalFootPosShift; // size 3: (dx dy dz)
+    std::vector<double> initBodyPose;        // size 6: (xyzrpy)
+
     void loadParam(ros::NodeHandle &nh)
     {
         bool check_digit = true;
-        check_digit &= nh.getParam("urdf", urdf);
-        check_digit &= nh.getParam("jointStateTopic", jointStateTopic);
-        check_digit &= nh.getParam("odomChildFrame", odomChildFrame);
-        check_digit &= nh.getParam("odomParentFrame", odomParentFrame);
-        check_digit &= nh.getParam("enableVis", enableVis);
+        check_digit &= nh.getParam("/robot_description", urdf);
+        check_digit &= nh.getParam("robotInterface/jointStateTopic", jointStateTopic);
+        check_digit &= nh.getParam("robotInterface/odomChildFrame", odomChildFrame);
+        check_digit &= nh.getParam("robotInterface/odomParentFrame", odomParentFrame);
+        check_digit &= nh.getParam("robotInterface/enableVis", enableVis);
+        check_digit &= nh.getParam("robotInterface/nominalFootPos", nominalFootPos);
+        check_digit &= nominalFootPos.size() == 18;
+        check_digit &= nh.getParam("robotInterface/nominalFootPosShift", nominalFootPosShift);
+        check_digit &= nominalFootPosShift.size() == 3;
+        check_digit &= nh.getParam("robotInterface/initBodyPose", initBodyPose);
+        check_digit &= initBodyPose.size() == 6;
         if (!check_digit)
         {
             ROS_ERROR("Failed to load parameters");
         }
     }
-}
+};
 
 class DummyElSpiderAirInterfaceROS : public ElSpiderAirInterface
 {
@@ -123,10 +133,31 @@ private:
     }
 
 public:
-    DummyElSpiderAirInterfaceROS(const DummyElSpiderAirConfig &config) : ElSpiderAirInterface(config.urdf)
+    DummyElSpiderAirInterfaceROS(const DummyElSpiderAirConfig &config_) : ElSpiderAirInterface(config_.urdf)
     {
         // Rviz
-        joint_state_pub = nh.advertise<sensor_msgs::JointState>(config.jointStateTopic, 10);
+        joint_state_pub = nh.advertise<sensor_msgs::JointState>(config_.jointStateTopic, 10);
+        // Init State
+        for (int i = 0; i < 6; i++)
+        {
+            geometry_msgs::Point pt;
+            pt.x = config_.nominalFootPos[3 * i] + config_.nominalFootPosShift[0];
+            if (i < 3)
+                pt.y = config_.nominalFootPos[3 * i + 1] - config_.nominalFootPosShift[1];
+            else
+                pt.y = config_.nominalFootPos[3 * i + 1] + config_.nominalFootPosShift[1];
+            pt.z = config_.nominalFootPos[3 * i + 2] + config_.nominalFootPosShift[2];
+            foot_state_.position.emplace_back(pt);
+            Eigen::Vector3d q_i = IKFast_foot(Eigen::Vector3d(pt.x, pt.y, pt.z), i);
+            joint_state_.position.emplace_back(q_i[0]);
+            joint_state_.position.emplace_back(q_i[1]);
+            joint_state_.position.emplace_back(q_i[2]);
+        }
+        foot_state_.velocity.resize(6);
+        foot_state_.effort.resize(6);
+
+        joint_state_.velocity.resize(18);
+        joint_state_.effort.resize(18);
     }
 
     // Overrides
@@ -155,15 +186,29 @@ public:
     void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override
     {
         body_pose_ = body_pose;
-        if (config.enableVis)
+        if (config_.enableVis)
             pub_odom(body_pose);
     }
     // FIXME: setJointCmd & setFootCmd should share the same state variable
     void setJointCmd(const std::vector<double> &q) override
     {
         joint_state_.position = q;
-        if (config.enableVis)
+        if (config_.enableVis)
             pub_joint_state(q);
+    }
+
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
+    {
+        std::vector<double> q_vec;
+        for (auto pos : q)
+        {
+            q_vec.emplace_back(pos[0]);
+            q_vec.emplace_back(pos[1]);
+            q_vec.emplace_back(pos[2]);
+        }
+        joint_state_.position = q_vec;
+        if (config_.enableVis)
+            pub_joint_state(q_vec);
     }
 
     void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
@@ -174,10 +219,10 @@ public:
             pt.x = footendpos[i][0];
             pt.y = footendpos[i][1];
             pt.z = footendpos[i][2];
-            foot_state_.foot_pos[i] = pt;
+            foot_state_.position[i] = pt;
             // TODO: update joint_state_
         }
-        if (config.enableVis)
+        if (config_.enableVis)
             pub_joint_state_from_footendpos(footendpos);
     }
 };

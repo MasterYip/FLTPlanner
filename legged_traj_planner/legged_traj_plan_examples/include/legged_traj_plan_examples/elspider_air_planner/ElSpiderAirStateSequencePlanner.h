@@ -18,7 +18,7 @@
 
 /* internal project header files */
 #include <pinocchio/math/rpy.hpp>
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
+#include "legged_traj_plan/robot_interface/DummyElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
 #include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
@@ -106,23 +106,6 @@ MDT::RobotState initRobotState(const MDT::Pose &robotPoseW, MDT::Vector6b gaitTo
     return state_;
 }
 
-void randomizeRobotState(MDT::RobotState &state_, double noise_amp = 0.1)
-{
-    for (int i = 0; i < 6; i++)
-    {
-        state_.feetPosition[i] += Eigen::Vector3d((rand() % 200 - 100) / 100.0 * noise_amp,
-                                                  (rand() % 200 - 100) / 100.0 * noise_amp,
-                                                  (rand() % 200 - 100) / 100.0 * noise_amp);
-    }
-    state_.pose.x += (rand() % 200 - 100) / 100.0 * noise_amp;
-    state_.pose.y += (rand() % 200 - 100) / 100.0 * noise_amp;
-    state_.pose.z += (rand() % 200 - 100) / 100.0 * noise_amp;
-    state_.pose.roll += (rand() % 200 - 100) / 100.0 * noise_amp;
-    state_.pose.pitch += (rand() % 200 - 100) / 100.0 * noise_amp;
-    state_.pose.yaw += (rand() % 200 - 100) / 100.0 * noise_amp;
-    state_.moveDirection += (rand() % 200 - 100) / 100.0 * noise_amp;
-}
-
 MDT::RobotState getInitState(MDT::Pose robotPose = {0, 0, USER::norminalTrunkHeight, 0, 0, -1.5 * _PI_ / 6},
                              float moveDir = 0)
 {
@@ -145,7 +128,7 @@ struct RobotProfile
     geometry_msgs::Twist cmd_vel;
 };
 
-class ElSpiderAirSequencePlanner
+class ElSpiderAirStateSequencePlanner
 {
 private:
     ros::Rate rate_;
@@ -191,7 +174,7 @@ private:
 
 public:
     // FIXME: use ros param to init gridmap_interface_
-    ElSpiderAirSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+    ElSpiderAirStateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                                DummyElSpiderAirConfig dummy_robot_config,
                                bool fake_estimation = false, bool simulation = false) : nh_("~"),
                                                                                         robot_interface_(std::make_shared<DummyElSpiderAirInterfaceROS>(dummy_robot_config)),
@@ -224,12 +207,12 @@ public:
         next_planned_state_ = robot_state_;
     }
 
-    // Joystick cmd callback
+    // cmd_vel callback
     void cmd_callback(const geometry_msgs::Twist &msg)
     {
         if (motion_lock_)
             ROS_WARN("Robot is in motion, ignore new command.");
-        else if ((recv_foot_state_ && recv_body_state_) || fake_estimation_)
+        else
         {
             motion_lock_ = true;
             cmd_ = msg;
@@ -241,7 +224,7 @@ public:
                 // Fetch feedback
                 ros::spinOnce();
                 // update robot state
-                update_robot_state();
+                update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
                 update_exp_path();
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
@@ -296,10 +279,6 @@ public:
             traj_planner();
             motion_lock_ = false;
         }
-        else
-        {
-            ROS_WARN("No foot state feedback, ignore command.");
-        }
     }
 
     //// Rviz
@@ -314,13 +293,8 @@ public:
             auto support_state = state_traj.eval_support_state(t);
 
             // Visualization
-            robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
-            robot_interface_->pub_shadow_joint_state(footend_interp);
-            if (!fake_estimation_)
-            {
-                ros::spinOnce();  // Fetch feedback
-                pub_jointstate(); // Publish real joint state
-            }
+            // robot_interface_->pub_odom(odom_interp, "shadowbase", "odom");
+            // robot_interface_->pub_shadow_joint_state(footend_interp);
 
             rate_.sleep();
         }
@@ -328,7 +302,6 @@ public:
 
     //// MCTS Interface
     // Update Robot State for MCTS Interface
-
     void update_robot_state(pinocchio::SE3 body_pose, legged_traj_plan::FootState foot_state)
     {
         // Update Robot pose
@@ -455,7 +428,7 @@ public:
             if (config_.useCfgCommand)
             {
                 footend_interp = state_traj.eval_cfg_traj(sine_remap(t));
-
+                
                 robot_interface_->setJointCmd(footend_interp);
                 robot_interface_->setBodyPoseCmd(odom_interp);
             }
