@@ -196,24 +196,35 @@ public:
     }
 
     // Feedback Interface
-    virtual legged_traj_plan::FootState getFootStateFdb()
+    virtual const legged_traj_plan::FootState & getFootStateFdb() const
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual sensor_msgs::JointState getJointStateFdb()
+    virtual const sensor_msgs::JointState & getJointStateFdb() const
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual pinocchio::SE3 getBodyPoseFdb()
+    virtual const pinocchio::SE3 & getBodyPoseFdb() const
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual pinocchio::Motion getBodyVelFdb()
+    virtual const pinocchio::Motion & getBodyVelFdb() const
     {
         throw std::runtime_error("Not implemented");
     }
 
     // Command Interface
+
+    /**
+     * @brief Set body pose (for dummy robot)
+     * 
+     * @param body_pose 
+     */
+    virtual void setBodyPoseCmd(const pinocchio::SE3 &body_pose)
+    {
+        throw std::runtime_error("Not implemented");
+    }
+
     virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos)
     {
         throw std::runtime_error("Not implemented");

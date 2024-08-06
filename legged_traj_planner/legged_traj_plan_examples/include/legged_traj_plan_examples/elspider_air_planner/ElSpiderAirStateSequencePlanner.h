@@ -1,12 +1,12 @@
 /**
  * @file ElSpiderAirStateSequencePlanner.h
  * @author Master Yip (2205929492@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-08-05
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 #pragma once
 
@@ -131,9 +131,6 @@ MDT::RobotState getInitState(MDT::Pose robotPose = {0, 0, USER::norminalTrunkHei
     return initRobotState(robotPose, gaitToNow, moveDir);
 }
 
-
-
-
 // For robot state recording
 struct RobotProfile
 {
@@ -158,22 +155,8 @@ private:
     ros::Subscriber cmd_sub_;
     geometry_msgs::Twist cmd_;
 
-    // HexapodSoftware Interface
-    ros::Subscriber foot_state_sub_;
-    legged_traj_plan::FootState foot_state_;
-    bool recv_foot_state_ = false;
-
-    // IMU
-    // ros::Subscriber body_state_sub_; // not used
-    // legged_traj_plan::BodyState body_state_; // not used
-    tf2_ros::Buffer tfBuffer_;
-    tf2_ros::TransformListener tfListener_;
-    geometry_msgs::TransformStamped body_state_tf_;
-    pinocchio::SE3 body_pose_;
-    bool recv_body_state_ = false;
-
     // Interface
-    std::shared_ptr<ElSpiderAirInterfaceROS> robot_interface_;
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     StateSequencePlanner whole_body_planner_;
 
@@ -209,19 +192,17 @@ private:
 public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                             bool fake_estimation = false, bool simulation = false) : nh_("~"),
-                                                                                      robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
-                                                                                      gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
-                                                                                      whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
-                                                                                      tfListener_(tfBuffer_), visualizer_(nh_, "odom", "visualizer_markers"),
-                                                                                      visualizer_base_(nh_, "base", "visualizer_markers_base"),
-                                                                                      rate_(100), fake_estimation_(fake_estimation), simulation_(simulation),
-                                                                                      config_(swing_traj_planner_config)
+                               DummyElSpiderAirConfig dummy_robot_config,
+                               bool fake_estimation = false, bool simulation = false) : nh_("~"),
+                                                                                        robot_interface_(std::make_shared<DummyElSpiderAirInterfaceROS>(dummy_robot_config)),
+                                                                                        gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
+                                                                                        whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
+                                                                                        visualizer_(nh_, "odom", "visualizer_markers"),
+                                                                                        visualizer_base_(nh_, "base", "visualizer_markers_base"),
+                                                                                        rate_(100),
+                                                                                        config_(swing_traj_planner_config)
     {
         init_time_ = ros::Time::now().toSec();
-        cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSequencePlanner::cmd_callback, this);
-        foot_state_sub_ = nh_.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirSequencePlanner::foot_state_callback, this);
-        // body_state_sub_ = nh_.subscribe("/hexapod/body_state_fdb", 1, &ElSpiderAirSequencePlanner::body_state_callback, this);
 
         PosList pose_sample_pts;
         int len = 6;
@@ -238,32 +219,9 @@ public:
 
         robot_state_.initialize();
         next_planned_state_.initialize();
-        if (fake_estimation_)
-        {
-            robot_state_ = getInitState();
-            next_planned_state_ = robot_state_;
-        }
-        else
-        {
-            timer_ = nh_.createTimer(ros::Duration(0.05), &ElSpiderAirSequencePlanner::timer_callback, this);
-        }
-    }
 
-    //// Callbacks
-    void timer_callback(const ros::TimerEvent &event)
-    {
-        pub_jointstate();
-        // Update body state
-        try
-        {
-            // Use ros::Time(0) to prevent warning of `extrapolate to future`
-            body_state_tf_ = tfBuffer_.lookupTransform("odom", "base", ros::Time(0));
-            recv_body_state_ = true;
-        }
-        catch (tf2::TransformException &ex)
-        {
-            ROS_WARN("%s", ex.what());
-        }
+        update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
+        next_planned_state_ = robot_state_;
     }
 
     // Joystick cmd callback
@@ -344,35 +302,7 @@ public:
         }
     }
 
-    // Foot state feedback callback
-    void foot_state_callback(const legged_traj_plan::FootState &msg)
-    {
-        recv_foot_state_ = true;
-        foot_state_ = msg;
-    }
-
     //// Rviz
-    // Pub Real Robot JointState for Rviz
-    void pub_jointstate(void)
-    {
-        std::vector<Eigen::Vector3d> footend_now;
-        if (recv_foot_state_ && recv_body_state_)
-        {
-            update_robot_state();
-        }
-        for (size_t k = 0; k < 6; ++k)
-        {
-            tf2::Transform transform;
-            tf2::Quaternion quaternion;
-            quaternion.setRPY(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw);
-            transform.setOrigin(tf2::Vector3(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
-            transform.setRotation(quaternion);
-            Eigen::Isometry3d pose = tf2::transformToEigen(tf2::toMsg(transform));
-            // inverse transform
-            footend_now.emplace_back(pose.inverse() * robot_state_.feetPosition[k]);
-        }
-        robot_interface_->pub_joint_state_from_footendpos(footend_now);
-    }
 
     void state_traj_replay(MCTStateTransfer &state_traj)
     {
@@ -398,62 +328,41 @@ public:
 
     //// MCTS Interface
     // Update Robot State for MCTS Interface
-    void update_robot_state(void)
+
+    void update_robot_state(pinocchio::SE3 body_pose, legged_traj_plan::FootState foot_state)
     {
-        if (fake_estimation_)
+        // Update Robot pose
+        robot_state_.pose.x = body_pose.translation()[0];
+        robot_state_.pose.y = body_pose.translation()[1];
+        robot_state_.pose.z = body_pose.translation()[2];
+        Eigen::Quaterniond quat(body_pose.rotation());
+        quat.normalized();
+        quat = quat.inverse();
+        quat.normalize();
+        double roll, pitch, yaw;
+        tf2::Matrix3x3(tf2::Quaternion(quat.x(), quat.y(), quat.z(), quat.w())).getRPY(roll, pitch, yaw);
+        robot_state_.pose.roll = roll;
+        robot_state_.pose.pitch = pitch;
+        robot_state_.pose.yaw = yaw;
+
+        // Foot state
+        for (int i = 0; i < 6; ++i)
         {
-            // Update Robot State
-            robot_state_ = next_planned_state_;
-            if (fake_estimation_noisy_)
-            {
-                randomizeRobotState(robot_state_, noise_amp_);
-            }
-            // Update body pose
-            body_pose_ = pinocchio::SE3(pinocchio::rpy::rpyToMatrix(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw),
-                                        Eigen::Vector3d(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
+            // Last planned state gait (MDT::SUPPORT if not planned)
+            robot_state_.gaitToNow[i] = next_planned_state_.gaitToNow[i];
+            robot_state_.faultStateToNow[i] = MDT::NORMAL_LEG_FLAG;
+            // Absolute foot position
+            robot_state_.feetPosition[i] = point_SE3Act(body_pose.inverse(), Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z));
+            robot_state_.feetNormalVector[i] << 0, 0, 1; // TODO: use gridmap normal
         }
-        else
-        {
-            // Update Robot State
-            // TODO: time stamp?
-            robot_state_.pose.x = body_state_tf_.transform.translation.x;
-            robot_state_.pose.y = body_state_tf_.transform.translation.y;
-            robot_state_.pose.z = body_state_tf_.transform.translation.z;
-            // RPY
-            tf2::Quaternion q;
-            tf2::fromMsg(body_state_tf_.transform.rotation, q);
-            tf2::Matrix3x3(q).getRPY(robot_state_.pose.roll, robot_state_.pose.pitch, robot_state_.pose.yaw);
-
-            std::vector<Eigen::Vector3d> footend_vis;
-            for (int i = 0; i < 6; ++i)
-            {
-                // Last planned state gait (MDT::SUPPORT if not planned)
-                robot_state_.gaitToNow[i] = next_planned_state_.gaitToNow[i];
-                robot_state_.faultStateToNow[i] = MDT::NORMAL_LEG_FLAG;
-                // Absolute foot position
-                robot_state_.feetPosition[i] = tf2::transformToEigen(body_state_tf_.transform) *
-                                               Eigen::Vector3d(foot_state_.position[i].x, foot_state_.position[i].y, foot_state_.position[i].z);
-                robot_state_.feetNormalVector[i] << 0, 0, 1; // TODO: use gridmap normal
-                footend_vis.emplace_back(robot_state_.feetPosition[i]);
-            }
-
-            // FIXME: cmd_ should be under robot frame
-            // if (cmd_.linear.x != 0)
-            //     robot_state_.moveDirection = atan2(cmd_.linear.y, cmd_.linear.x);
-            robot_state_.moveDirection = robot_state_.pose.yaw;
-            // TODO: maxNormalForce, frictionMu
-
-            // Update body pose
-            body_pose_ = pinocchio::SE3(Eigen::Quaterniond(q.w(), q.x(), q.y(), q.z()),
-                                        Eigen::Vector3d(robot_state_.pose.x, robot_state_.pose.y, robot_state_.pose.z));
-        }
+        robot_state_.moveDirection = robot_state_.pose.yaw;
     }
 
     // Update Exp Path for MCTS Interface
     void update_exp_path(void)
     {
         exp_path_.clear();
-        gridmap_extrapolator_.update(body_pose_, cmd_);
+        gridmap_extrapolator_.update(robot_interface_->getBodyPoseFdb(), cmd_);
 
         for (int i = 0; i < point_num_; ++i)
         {
@@ -467,6 +376,7 @@ public:
     bool is_contact(int leg_idx, double eps = 0.1)
     {
         Eigen::Vector3d foot_force;
+        auto foot_state_ = robot_interface_->getFootStateFdb();
         foot_force << foot_state_.effort[leg_idx].x, foot_state_.effort[leg_idx].y, foot_state_.effort[leg_idx].z;
         return foot_force.norm() > eps;
     }
@@ -476,6 +386,7 @@ public:
         bool flag = false;
         int max_cnt = 200;
         double alpha = 0.005;
+        auto foot_state_ = robot_interface_->getFootStateFdb();
         std::vector<Eigen::Vector3d> footend_interp(6, Eigen::Vector3d::Zero());
         for (size_t k = 0; k < 6; ++k)
         {
@@ -497,9 +408,9 @@ public:
                 }
             }
             if (config_.useCfgCommand)
-                robot_interface_->pub_jointcmd_from_jointpos(robot_interface_->IKFast_foots(footend_interp));
+                robot_interface_->setJointCmd(robot_interface_->IKFast_foots(footend_interp));
             else
-                robot_interface_->pub_footcmd_from_footendpos(footend_interp);
+                robot_interface_->setFootCmd(footend_interp);
             // FIXME: cmd should not pub at this time
             ros::spinOnce(); // Fetch feedback
             rate_.sleep();
@@ -544,16 +455,9 @@ public:
             if (config_.useCfgCommand)
             {
                 footend_interp = state_traj.eval_cfg_traj(sine_remap(t));
-                if (fake_estimation_)
-                {
-                    robot_interface_->pub_joint_state(footend_interp);
-                    robot_interface_->pub_odom(odom_interp);
-                }
-                else
-                {
-                    robot_interface_->pub_jointcmd_from_jointpos(footend_interp);
-                    pub_jointstate();
-                }
+
+                robot_interface_->setJointCmd(footend_interp);
+                robot_interface_->setBodyPoseCmd(odom_interp);
             }
             else
             {
@@ -564,21 +468,9 @@ public:
                     // Convert to BASE
                     footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
                 }
-                if (fake_estimation_)
-                {
-                    robot_interface_->pub_joint_state_from_footendpos(footend_interp);
-                    robot_interface_->pub_odom(odom_interp);
-                }
-                else
-                {
-                    robot_interface_->pub_footcmd_from_footendpos(footend_interp);
-                    pub_jointstate();
-                }
-            }
 
-            if (!fake_estimation_)
-            {
-                ros::spinOnce();
+                robot_interface_->setFootCmd(footend_interp);
+                robot_interface_->setBodyPoseCmd(odom_interp);
             }
 
             // State recording
@@ -608,14 +500,9 @@ public:
             rate_.sleep();
         } while (whole_body_planner_.get_state_traj_length() > 0);
 
-        if (!fake_estimation_)
-        {
-            ros::spinOnce();  // Fetch feedback
-            pub_jointstate(); // Publish real joint state
-            ros::Duration(0.4).sleep();
-            // Stance contact handling
-            stance_contact_handle();
-        }
+        // Stance contact handling
+        ros::Duration(0.4).sleep();
+        stance_contact_handle();
     }
 
     void saveRobotProfile()
@@ -667,7 +554,6 @@ public:
 
     void run()
     {
-        // ros::spin();
         while (ros::ok())
         {
             ros::spinOnce();

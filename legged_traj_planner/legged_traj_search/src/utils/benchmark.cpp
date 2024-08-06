@@ -11,7 +11,7 @@
 
 #include "legged_traj_search/utils/benchmark.hpp"
 
-Benchmark::Benchmark(std::string name, bool enabled) : name_(name), enabled_(enabled)
+Benchmark::Benchmark(std::string name, bool enabled) :enabled_(enabled), name_(name) 
 {
 }
 

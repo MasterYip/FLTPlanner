@@ -97,10 +97,6 @@ public:
     // HexapodSoftware HLC feedbacks
     void footfdbCallback(const legged_traj_plan::FootState &msg);
     void bodyfdbCallback(const nav_msgs::Odometry &msg);
-    // const sensor_msgs::JointState &getJointStateFdb() const { return joint_state_fdb_; }
-    const legged_traj_plan::FootState &getFootStateFdb() const { return foot_state_fdb_; }
-    const pinocchio::SE3 &getBodyPoseFdb() const { return body_pose_fdb_; }
-    const pinocchio::Motion &getBodyVelFdb() const { return body_vel_fdb_; }
 
     // HexapodSoftware HLC commands
     /**
@@ -117,4 +113,21 @@ public:
     void pub_jointcmd_from_jointpos(const std::vector<double> &q);
 
     void pub_jointcmd_from_jointpos(const std::vector<Eigen::Vector3d> &q);
+
+    // overrides
+    // const sensor_msgs::JointState &getJointStateFdb() const { return joint_state_fdb_; }
+    const legged_traj_plan::FootState &getFootStateFdb() const override { return foot_state_fdb_; }
+    const pinocchio::SE3 &getBodyPoseFdb() const override { return body_pose_fdb_; }
+    const pinocchio::Motion &getBodyVelFdb() const override { return body_vel_fdb_; }
+
+    // void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override {};
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
+    {
+        pub_footcmd_from_footendpos(footendpos);
+    };
+    void setJointCmd(const std::vector<double> &q) override
+    {
+        pub_jointcmd_from_jointpos(q);
+    };
+    
 };
