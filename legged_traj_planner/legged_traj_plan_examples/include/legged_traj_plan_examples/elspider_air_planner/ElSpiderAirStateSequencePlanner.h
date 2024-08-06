@@ -246,18 +246,18 @@ public:
             }
 
             // Vis getAvailableFootholds
-            MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
-            std::vector<Eigen::Vector3d> pts;
-            for (int i = 0; i < 6; i++)
-            {
-                if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
-                    continue;
-                for (auto pt : available_points.position.leg[i])
-                {
-                    pts.emplace_back(pt);
-                }
-            }
-            visualizer_.visSphere(pts, 0.01);
+            // MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
+            // std::vector<Eigen::Vector3d> pts;
+            // for (int i = 0; i < 6; i++)
+            // {
+            //     if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
+            //         continue;
+            //     for (auto pt : available_points.position.leg[i])
+            //     {
+            //         pts.emplace_back(pt);
+            //     }
+            // }
+            // visualizer_.visSphere(pts, 0.01);
 
             if (ret)
             {

@@ -66,20 +66,9 @@
             <param name="ceiling_layer" value="$(arg ceiling_layer)" />
             <rosparam command="load" file="$(find legged_traj_plan_examples)/config/image_to_gridmap.yaml" />
         </node>
-        <!-- sdf_pub for SDF visualization (pointcloud) -->
-        <!-- <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen">
-            <param name="elevation_layer" value="$(arg elevation_layer)" />
-            <param name="grid_map_topic" value="$(arg grid_map_topic)" />
-            <param name="pointcloud_topic" value="/sdf_pointcloud" />
-        </node> -->
     </group>
 
     <group if="$(eval fake_feedback == 0)">
-        <!-- HexapodSoftware -->
-        <!-- <include file="$(find user)/launch/main.launch">
-            <arg name="robot_name" value="elspider_air" />
-            <arg name="controller_type" value="hlc" />
-        </include> -->
         <!-- Vrpn Client ROS -->
         <include file="$(find vrpn_client_ros)/launch/sample.launch" if="$(eval use_optitrack == 1)"/>
         <!-- HexapodElevationMapping -->
@@ -98,6 +87,9 @@
     <!-- Simple Planner -->
     <node pkg="legged_traj_plan_examples" type="elspider_air_state_sequence_planner" name="elspider_air_state_sequence_planner" output="screen">
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air/robot_interface.yaml"/>
+        <param name="robotInterface" value="ElSpiderAirROS" if="$(eval fake_feedback == 0)"/>
+        <param name="robotInterface" value="ElSpiderAirDummy" if="$(eval fake_feedback == 1)"/> 
+        <param name="ElSpiderAirROS/sim" value="$(arg sim)" />
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air/$(arg planner_cfg).yaml"/>
     </node>
 

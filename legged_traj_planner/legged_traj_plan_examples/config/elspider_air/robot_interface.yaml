@@ -1,4 +1,4 @@
-robotInterface: ElSpiderAirROS
+# robotInterface: ElSpiderAirROS # IMPORTANT: load by launch file
 
 # Interfaces Params
 ElSpiderAirROS:
@@ -16,7 +16,7 @@ ElSpiderAirROS:
   footCmdTopic: /hexapod/hlc/foot_cmd_track
   jointCmdTopic: /hexapod/hlc/joint_cmd_track
   # Control Params
-  sim: true # IMPORTANT
+  # sim: true # IMPORTANT: load by launch file
   jointKpSim: [1500, 3000, 3000]
   jointKdSim: [5, 7.5, 7.5]
   jointKpHardware: [0.15, 0.15, 0.15]
