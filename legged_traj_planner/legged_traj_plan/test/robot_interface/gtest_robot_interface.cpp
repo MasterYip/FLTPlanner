@@ -32,7 +32,7 @@ TEST(InterfaceTest, test_elspider_air_interface)
     Eigen::Vector3d pos(0.35350208, -0.22998902, -0.1360658);
     Eigen::Vector3d sol;
     Eigen::Vector3d exp_sol = Eigen::Vector3d(0, 0.01851, 0.00813);
-    robot_interface.robot_kin.inverseKinConstraint(pos, sol, 0);
+    robot_interface.getRobotKin().inverseKinConstraint(pos, sol, 0);
     cout << "Inverse Kinematics Solutions: " << endl;
     cout << sol.transpose() << endl;
     ASSERT_TRUE(sol.isApprox(exp_sol, 1e-2));
