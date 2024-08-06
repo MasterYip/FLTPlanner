@@ -292,6 +292,7 @@ public:
             robot_interface_shadow_->setBodyPoseCmd(odom_interp);
             robot_interface_shadow_->setJointCmd(footend_interp);
 
+            ros::spinOnce(); // Fetch feedback
             rate_.sleep();
         }
     }
@@ -350,6 +351,7 @@ public:
         bool flag = false;
         int max_cnt = 200;
         double alpha = 0.005;
+        ros::spinOnce(); // Fetch feedback
         auto foot_state_ = robot_interface_->getFootStateFdb();
         std::vector<Eigen::Vector3d> footend_interp(6, Eigen::Vector3d::Zero());
         for (size_t k = 0; k < 6; ++k)
@@ -375,6 +377,9 @@ public:
                 robot_interface_->setJointCmd(robot_interface_->IKFast_foots(footend_interp));
             else
                 robot_interface_->setFootCmd(footend_interp);
+
+            ros::spinOnce(); // Fetch feedback
+            rate_.sleep();
         }
         if (max_cnt <= 0)
             ROS_WARN("Stance contact handling failed.");
@@ -451,6 +456,7 @@ public:
                 if (whole_body_planner_.get_state_traj_length() > 0)
                     state_traj = whole_body_planner_.get_state_traj(0);
             }
+            ros::spinOnce(); // Fetch feedback
             rate_.sleep();
         } while (whole_body_planner_.get_state_traj_length() > 0);
 

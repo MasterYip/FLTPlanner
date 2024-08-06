@@ -45,6 +45,7 @@ struct ElSpiderAirInterfaceROSConfig
     std::string odomParentFrame;
 
     // Feedback
+    std::string jointStateFdbTopic;
     std::string footStateFdbTopic;
     std::string bodyStateFdbTopic;
 
@@ -71,6 +72,7 @@ struct ElSpiderAirInterfaceROSConfig
         check_digit &= nh.getParam(ns + "/odomChildFrame", odomChildFrame);
         check_digit &= nh.getParam(ns + "/odomParentFrame", odomParentFrame);
 
+        check_digit &= nh.getParam(ns + "/jointStateFdbTopic", jointStateFdbTopic);
         check_digit &= nh.getParam(ns + "/footStateFdbTopic", footStateFdbTopic);
         check_digit &= nh.getParam(ns + "/bodyStateFdbTopic", bodyStateFdbTopic);
         check_digit &= nh.getParam(ns + "/footCmdTopic", footCmdTopic);
@@ -105,6 +107,8 @@ private:
     tf2_ros::TransformBroadcaster odom_pub;
 
     // feedbacks
+    ros::Subscriber jointfdb_sub;
+    sensor_msgs::JointState joint_state_fdb_;
     ros::Subscriber footfdb_sub;
     legged_traj_plan::FootState foot_state_fdb_;
     ros::Subscriber bodyfdb_sub;
@@ -161,6 +165,7 @@ public:
     void pub_shadow_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
 
     // HexapodSoftware HLC feedbacks
+    void jointfdbCallback(const sensor_msgs::JointState &msg);
     void footfdbCallback(const legged_traj_plan::FootState &msg);
     void bodyfdbCallback(const nav_msgs::Odometry &msg);
 
@@ -190,26 +195,14 @@ public:
     void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
     {
         pub_footcmd_from_footendpos(footendpos);
-        if (config_.enableVis)
-        {
-            pub_joint_state_from_footendpos(footendpos);
-        }
     };
     void setJointCmd(const std::vector<double> &q) override
     {
         pub_jointcmd_from_jointpos(q);
-        if (config_.enableVis)
-        {
-            pub_joint_state(q);
-        }
     };
 
     void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
     {
         pub_jointcmd_from_jointpos(q);
-        if (config_.enableVis)
-        {
-            pub_joint_state(q);
-        }
     };
 };

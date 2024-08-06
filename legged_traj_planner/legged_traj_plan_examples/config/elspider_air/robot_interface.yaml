@@ -10,6 +10,7 @@ ElSpiderAirROS:
   odomParentFrame: odom
   enableVis: true
   # Feedback & Command
+  jointStateFdbTopic: /hexapod/joint_state_fdb
   footStateFdbTopic: /hexapod/foot_state_fdb
   bodyStateFdbTopic: /base_odom
   footCmdTopic: /hexapod/hlc/foot_cmd_track

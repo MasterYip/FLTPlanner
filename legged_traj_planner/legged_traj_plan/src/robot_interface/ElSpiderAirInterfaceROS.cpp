@@ -51,6 +51,7 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const ElSpiderAirInterfaceROSCo
 {
     joint_state_pub = nh.advertise<sensor_msgs::JointState>(config.jointStateTopic, 10);
 
+    jointfdb_sub = nh.subscribe(config.jointStateFdbTopic, 1, &ElSpiderAirInterfaceROS::jointfdbCallback, this);
     footfdb_sub = nh.subscribe(config.footStateFdbTopic, 1, &ElSpiderAirInterfaceROS::footfdbCallback, this);
     bodyfdb_sub = nh.subscribe(config.bodyStateFdbTopic, 1, &ElSpiderAirInterfaceROS::bodyfdbCallback, this);
     footcmd_pub = nh.advertise<legged_traj_plan::FootCmd>(config.footCmdTopic, 1);
@@ -70,6 +71,18 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const ElSpiderAirInterfaceROSCo
 }
 
 // feedbacks
+
+void ElSpiderAirInterfaceROS::jointfdbCallback(const sensor_msgs::JointState &msg)
+{
+    joint_state_fdb_ = msg;
+    for (int i=0; i<6; ++i)
+    {
+        joint_state_fdb_.position[i*3+1] = -joint_state_fdb_.position[i*3+1] + 0.5*M_PI;
+        joint_state_fdb_.velocity[i*3+1] *= -1;
+        joint_state_fdb_.position[i*3+2] += M_PI;
+    }
+    pub_joint_state(joint_state_fdb_.position);
+}
 
 void ElSpiderAirInterfaceROS::footfdbCallback(const legged_traj_plan::FootState &msg)
 {
