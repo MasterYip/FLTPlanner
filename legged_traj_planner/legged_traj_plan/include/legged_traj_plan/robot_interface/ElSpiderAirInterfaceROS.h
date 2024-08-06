@@ -56,7 +56,7 @@ private:
     ros::Publisher jointcmd_pub;
     std::vector<double> joint_kp;
     std::vector<double> joint_kd;
-    
+
     // Misc
     bool sim_;
 
@@ -78,10 +78,10 @@ public:
     // Rviz visualization
     /**
      * @brief Publish base pose in case of fake feedback
-     * 
-     * @param odom 
-     * @param child_frame 
-     * @param parent_frame 
+     *
+     * @param odom
+     * @param child_frame
+     * @param parent_frame
      */
     void pub_odom(const pinocchio::SE3 &odom,
                   const std::string &child_frame = "base",
@@ -95,11 +95,12 @@ public:
     void pub_shadow_joint_state_from_footendpos(const std::vector<Eigen::Vector3d> &footendpos);
 
     // HexapodSoftware HLC feedbacks
-    void footfdb_callback(const legged_traj_plan::FootState &msg);
-    void bodyfdb_callback(const nav_msgs::Odometry &msg);
-    const legged_traj_plan::FootState &get_foot_state_fdb() const { return foot_state_fdb_; }
-    const pinocchio::SE3 &get_body_pose_fdb() const { return body_pose_fdb_; }
-    const pinocchio::Motion &get_body_vel_fdb() const { return body_vel_fdb_; }
+    void footfdbCallback(const legged_traj_plan::FootState &msg);
+    void bodyfdbCallback(const nav_msgs::Odometry &msg);
+    // const sensor_msgs::JointState &getJointStateFdb() const { return joint_state_fdb_; }
+    const legged_traj_plan::FootState &getFootStateFdb() const { return foot_state_fdb_; }
+    const pinocchio::SE3 &getBodyPoseFdb() const { return body_pose_fdb_; }
+    const pinocchio::Motion &getBodyVelFdb() const { return body_vel_fdb_; }
 
     // HexapodSoftware HLC commands
     /**

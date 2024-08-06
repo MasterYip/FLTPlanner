@@ -11,7 +11,6 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
 #include <geometry_msgs/TransformStamped.h>
 
-
 bool odom2SE3_Motion(const nav_msgs::Odometry &odom, pinocchio::SE3 &pos, pinocchio::Motion &vel)
 {
     pos = pinocchio::SE3(Eigen::Quaterniond(odom.pose.pose.orientation.w, odom.pose.pose.orientation.x,
@@ -29,8 +28,8 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     shadow_joint_state_pub = nh.advertise<sensor_msgs::JointState>("shadow/joint_states", 10);
     // Feedback
-    footfdb_sub = nh.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirInterfaceROS::footfdb_callback, this);
-    bodyfdb_sub = nh.subscribe("/base_odom", 1, &ElSpiderAirInterfaceROS::bodyfdb_callback, this);
+    footfdb_sub = nh.subscribe("/hexapod/foot_state_fdb", 1, &ElSpiderAirInterfaceROS::footfdbCallback, this);
+    bodyfdb_sub = nh.subscribe("/base_odom", 1, &ElSpiderAirInterfaceROS::bodyfdbCallback, this);
     // Cmd
     footcmd_pub = nh.advertise<legged_traj_plan::FootCmd>("/hexapod/hlc/foot_cmd_track", 1);
     jointcmd_pub = nh.advertise<legged_traj_plan::JointCmd>("/hexapod/hlc/joint_cmd_track", 1);
@@ -47,15 +46,14 @@ ElSpiderAirInterfaceROS::ElSpiderAirInterfaceROS(const std::string &urdf, bool s
     }
 }
 
-
 // feedbacks
 
-void ElSpiderAirInterfaceROS::footfdb_callback(const legged_traj_plan::FootState &msg)
+void ElSpiderAirInterfaceROS::footfdbCallback(const legged_traj_plan::FootState &msg)
 {
     foot_state_fdb_ = msg;
 }
 
-void ElSpiderAirInterfaceROS::bodyfdb_callback(const nav_msgs::Odometry &msg)
+void ElSpiderAirInterfaceROS::bodyfdbCallback(const nav_msgs::Odometry &msg)
 {
     odom2SE3_Motion(msg, body_pose_fdb_, body_vel_fdb_);
 }

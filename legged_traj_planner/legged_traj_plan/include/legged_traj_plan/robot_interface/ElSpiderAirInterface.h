@@ -23,6 +23,9 @@
 /* internal project header files */
 #include "elspider_air_kin.h"
 #include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
+// FIXME: msgs are ros related
+#include <sensor_msgs/JointState.h>
+#include "legged_traj_plan/FootState.h"
 
 // Define JOINT_STATE_NAME and FOOT_LINK_NAME constants
 const std::vector<std::string> JOINT_STATE_NAME = {"RF_HAA", "RF_HFE", "RF_KFE",
@@ -193,31 +196,31 @@ public:
     }
 
     // Feedback Interface
-    // virtual legged_traj_plan::FootState getFootStateFdb()
-    // {
-    //     throw std::runtime_error("Not implemented");
-    // }
-    // virtual legged_traj_plan::JointState getJointStateFdb()
-    // {
-    //     throw std::runtime_error("Not implemented");
-    // }
-    // virtual auto getBodyPoseFdb()
-    // {
-    //     throw std::runtime_error("Not implemented");
-    // }
-    // virtual auto getBodyVelFdb()
-    // {
-    //     throw std::runtime_error("Not implemented");
-    // }
+    virtual legged_traj_plan::FootState getFootStateFdb()
+    {
+        throw std::runtime_error("Not implemented");
+    }
+    virtual sensor_msgs::JointState getJointStateFdb()
+    {
+        throw std::runtime_error("Not implemented");
+    }
+    virtual pinocchio::SE3 getBodyPoseFdb()
+    {
+        throw std::runtime_error("Not implemented");
+    }
+    virtual pinocchio::Motion getBodyVelFdb()
+    {
+        throw std::runtime_error("Not implemented");
+    }
 
     // Command Interface
-    // virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos)
-    // {
-    //     throw std::runtime_error("Not implemented");
-    // }
-    // virtual void setJointCmd(const std::vector<double> &q)
-    // {
-    //     throw std::runtime_error("Not implemented");
-    // }
+    virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos)
+    {
+        throw std::runtime_error("Not implemented");
+    }
+    virtual void setJointCmd(const std::vector<double> &q)
+    {
+        throw std::runtime_error("Not implemented");
+    }
 
 };
