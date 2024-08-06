@@ -186,6 +186,7 @@ public:
                                                                                         config_(swing_traj_planner_config)
     {
         init_time_ = ros::Time::now().toSec();
+        cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirStateSequencePlanner::cmd_callback, this);
 
         PosList pose_sample_pts;
         int len = 6;
@@ -202,7 +203,6 @@ public:
 
         robot_state_.initialize();
         next_planned_state_.initialize();
-
         update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
         next_planned_state_ = robot_state_;
     }
@@ -229,7 +229,7 @@ public:
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        gridmap_interface_->getMap(), true, 100);
+                                                        gridmap_interface_->getMap(), true, 50);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
                 gridmap_interface_->unlockMapUpdate();
             }
@@ -308,15 +308,10 @@ public:
         robot_state_.pose.x = body_pose.translation()[0];
         robot_state_.pose.y = body_pose.translation()[1];
         robot_state_.pose.z = body_pose.translation()[2];
-        Eigen::Quaterniond quat(body_pose.rotation());
-        quat.normalized();
-        quat = quat.inverse();
-        quat.normalize();
-        double roll, pitch, yaw;
-        tf2::Matrix3x3(tf2::Quaternion(quat.x(), quat.y(), quat.z(), quat.w())).getRPY(roll, pitch, yaw);
-        robot_state_.pose.roll = roll;
-        robot_state_.pose.pitch = pitch;
-        robot_state_.pose.yaw = yaw;
+        Eigen::Vector3d rpy = pinocchio::rpy::matrixToRpy(body_pose.rotation());
+        robot_state_.pose.roll = rpy[0];
+        robot_state_.pose.pitch = rpy[1];
+        robot_state_.pose.yaw = rpy[2];
 
         // Foot state
         for (int i = 0; i < 6; ++i)
@@ -384,9 +379,7 @@ public:
                 robot_interface_->setJointCmd(robot_interface_->IKFast_foots(footend_interp));
             else
                 robot_interface_->setFootCmd(footend_interp);
-            // FIXME: cmd should not pub at this time
-            ros::spinOnce(); // Fetch feedback
-            rate_.sleep();
+
         }
         if (max_cnt <= 0)
             ROS_WARN("Stance contact handling failed.");
@@ -411,13 +404,6 @@ public:
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
 
         state_traj_replay(state_traj);
-        if (fake_estimation_)
-            ros::Duration(0.4).sleep();
-        else
-        {
-            std::cout << "Press space to execute trajectory...";
-            getchar();
-        }
 
         do
         {
@@ -428,7 +414,7 @@ public:
             if (config_.useCfgCommand)
             {
                 footend_interp = state_traj.eval_cfg_traj(sine_remap(t));
-                
+
                 robot_interface_->setJointCmd(footend_interp);
                 robot_interface_->setBodyPoseCmd(odom_interp);
             }
@@ -474,8 +460,8 @@ public:
         } while (whole_body_planner_.get_state_traj_length() > 0);
 
         // Stance contact handling
-        ros::Duration(0.4).sleep();
-        stance_contact_handle();
+        // ros::Duration(0.4).sleep();
+        // stance_contact_handle();
     }
 
     void saveRobotProfile()

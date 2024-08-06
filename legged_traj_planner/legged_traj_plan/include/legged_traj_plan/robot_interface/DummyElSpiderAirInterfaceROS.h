@@ -18,6 +18,7 @@
 /* c++ standard library header files */
 
 /* external project header files */
+#include <pinocchio/math/rpy.hpp>
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include <ros/ros.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -133,7 +134,7 @@ private:
     }
 
 public:
-    DummyElSpiderAirInterfaceROS(const DummyElSpiderAirConfig &config_) : ElSpiderAirInterface(config_.urdf)
+    DummyElSpiderAirInterfaceROS(const DummyElSpiderAirConfig &config) : ElSpiderAirInterface(config.urdf), config_(config)
     {
         // Rviz
         joint_state_pub = nh.advertise<sensor_msgs::JointState>(config_.jointStateTopic, 10);
@@ -158,6 +159,9 @@ public:
 
         joint_state_.velocity.resize(18);
         joint_state_.effort.resize(18);
+
+        body_pose_ = pinocchio::SE3(pinocchio::rpy::rpyToMatrix(Eigen::Vector3d(config_.initBodyPose[3], config_.initBodyPose[4], config_.initBodyPose[5])),
+                                    Eigen::Vector3d(config_.initBodyPose[0], config_.initBodyPose[1], config_.initBodyPose[2]));
     }
 
     // Overrides
@@ -193,6 +197,14 @@ public:
     void setJointCmd(const std::vector<double> &q) override
     {
         joint_state_.position = q;
+        // update foot_state_
+        for (int i = 0; i < 6; ++i)
+        {
+            Eigen::Vector3d foot_i = FK_foot(Eigen::Vector3d(q[i * 3], q[i * 3 + 1], q[i * 3 + 2]), i);
+            foot_state_.position[i].x = foot_i[0];
+            foot_state_.position[i].y = foot_i[1];
+            foot_state_.position[i].z = foot_i[2];
+        }
         if (config_.enableVis)
             pub_joint_state(q);
     }
@@ -206,9 +218,7 @@ public:
             q_vec.emplace_back(pos[1]);
             q_vec.emplace_back(pos[2]);
         }
-        joint_state_.position = q_vec;
-        if (config_.enableVis)
-            pub_joint_state(q_vec);
+        setJointCmd(q_vec);
     }
 
     void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
@@ -220,7 +230,11 @@ public:
             pt.y = footendpos[i][1];
             pt.z = footendpos[i][2];
             foot_state_.position[i] = pt;
-            // TODO: update joint_state_
+            // update joint_state_
+            Eigen::Vector3d q_i = IKFast_foot(footendpos[i], i);
+            joint_state_.position[i * 3] = q_i[0];
+            joint_state_.position[i * 3 + 1] = q_i[1];
+            joint_state_.position[i * 3 + 2] = q_i[2];
         }
         if (config_.enableVis)
             pub_joint_state_from_footendpos(footendpos);

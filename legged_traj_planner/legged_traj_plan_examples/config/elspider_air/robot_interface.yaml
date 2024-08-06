@@ -1,7 +1,7 @@
 robotInterface:
-  jointStateTopic: "joint_states"
-  odomChildFrame: "base"
-  odomParentFrame: "odom"
+  jointStateTopic: joint_states
+  odomChildFrame: base
+  odomParentFrame: odom
   enableVis: true
   nominalFootPos: [0.35, -0.23, -0.24,
                 0.05, -0.29, -0.24,
