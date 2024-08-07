@@ -138,6 +138,8 @@ private:
     // Cmd
     ros::Subscriber cmd_sub_;
     geometry_msgs::Twist cmd_;
+    ros::Subscriber nav_sub_;
+    geometry_msgs::PoseStamped nav_;
 
     // Interface
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
@@ -148,10 +150,14 @@ private:
     // MCTS planner Interface
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
+    std::vector<MDT::RobotState> planned_states_;
     GridMapCmdVelExtrapolator gridmap_extrapolator_;
     std::vector<Eigen::Vector3f> exp_path_;
+    // cmd_vel extrapolator
     int point_num_ = 50;
     float delta_t_ = 0.01;
+    // nav extrapolator
+    int samples_num = 100;
 
     // Misc
     SwingTrajPlannerConfig config_;
@@ -172,17 +178,18 @@ public:
     ElSpiderAirStateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                                     std::shared_ptr<ElSpiderAirInterface> robot_interface,
                                     std::shared_ptr<ElSpiderAirInterface> robot_interface_shadow) : nh_("~"),
-                                                                                        robot_interface_(robot_interface),
-                                                                                        robot_interface_shadow_(robot_interface_shadow),
-                                                                                        gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
-                                                                                        whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
-                                                                                        visualizer_(nh_, "odom", "visualizer_markers"),
-                                                                                        visualizer_base_(nh_, "base", "visualizer_markers_base"),
-                                                                                        rate_(100),
-                                                                                        config_(swing_traj_planner_config)
+                                                                                                    robot_interface_(robot_interface),
+                                                                                                    robot_interface_shadow_(robot_interface_shadow),
+                                                                                                    gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
+                                                                                                    whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
+                                                                                                    visualizer_(nh_, "odom", "visualizer_markers"),
+                                                                                                    visualizer_base_(nh_, "base", "visualizer_markers_base"),
+                                                                                                    rate_(100),
+                                                                                                    config_(swing_traj_planner_config)
     {
         init_time_ = ros::Time::now().toSec();
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirStateSequencePlanner::cmd_callback, this);
+        nav_sub_ = nh_.subscribe("/move_base_simple/goal", 1, &ElSpiderAirStateSequencePlanner::nav_callback, this);
 
         PosList pose_sample_pts;
         int len = 6;
@@ -221,7 +228,7 @@ public:
                 ros::spinOnce();
                 // update robot state
                 update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
-                update_exp_path();
+                update_exp_path(cmd_);
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
@@ -234,35 +241,115 @@ public:
             visualizer_.delAll();
             visualizer_base_.delAll();
 
-            // Vis expected path
             if (config_.enableVis)
             {
+                // Vis expected path
                 std::vector<Point3D> exp_path_vis;
                 for (const auto &pt : exp_path_)
                 {
                     exp_path_vis.emplace_back(Point3D(pt[0], pt[1], pt[2]));
                 }
                 visualizer_.visCurve(exp_path_vis);
-            }
 
-            // Vis getAvailableFootholds
-            // MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
-            // std::vector<Eigen::Vector3d> pts;
-            // for (int i = 0; i < 6; i++)
-            // {
-            //     if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
-            //         continue;
-            //     for (auto pt : available_points.position.leg[i])
-            //     {
-            //         pts.emplace_back(pt);
-            //     }
-            // }
-            // visualizer_.visSphere(pts, 0.01);
+                // Vis getAvailableFootholds
+                // MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
+                // std::vector<Eigen::Vector3d> pts;
+                // for (int i = 0; i < 6; i++)
+                // {
+                //     if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
+                //         continue;
+                //     for (auto pt : available_points.position.leg[i])
+                //     {
+                //         pts.emplace_back(pt);
+                //     }
+                // }
+                // visualizer_.visSphere(pts, 0.01);
+            }
 
             if (ret)
             {
                 whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
                                                         transRobotState(next_planned_state_));
+            }
+            else
+            {
+                ROS_INFO("MCTS failed to plan, reset to nominal state.");
+                visualizer_base_.visPolytope(robot_interface_->getFootPolyhedra());
+                whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                        transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
+            }
+
+            traj_planner();
+            motion_lock_ = false;
+        }
+    }
+
+    void nav_callback(const geometry_msgs::PoseStamped &msg)
+    {
+        if (motion_lock_)
+            ROS_WARN("Robot is in motion, ignore new command.");
+        else
+        {
+            motion_lock_ = true;
+            nav_ = msg;
+            whole_body_planner_.visClear();
+
+            bool ret = false;
+            while (!ret && ros::ok())
+            {
+                // Fetch feedback
+                ros::spinOnce();
+                // update robot state
+                update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
+                update_exp_path(nav_);
+                planned_states_.clear();
+
+                // MCTS planning
+                gridmap_interface_->lockMapUpdate();
+                ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, planned_states_, exp_path_,
+                                                        gridmap_interface_->getMap(), 500);
+                // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
+                gridmap_interface_->unlockMapUpdate();
+            }
+
+            // Visualization
+            visualizer_.delAll();
+            visualizer_base_.delAll();
+
+            if (config_.enableVis)
+            {
+                // Vis expected path
+                std::vector<Point3D> exp_path_vis;
+                for (const auto &pt : exp_path_)
+                {
+                    exp_path_vis.emplace_back(Point3D(pt[0], pt[1], pt[2]));
+                }
+                visualizer_.visCurve(exp_path_vis);
+
+                // Vis getAvailableFootholds
+                // MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
+                // std::vector<Eigen::Vector3d> pts;
+                // for (int i = 0; i < 6; i++)
+                // {
+                //     if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
+                //         continue;
+                //     for (auto pt : available_points.position.leg[i])
+                //     {
+                //         pts.emplace_back(pt);
+                //     }
+                // }
+                // visualizer_.visSphere(pts, 0.01);
+            }
+
+            if (ret)
+            {
+                whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                        transRobotState(planned_states_.at(0)));
+                for (size_t i = 1; i < planned_states_.size(); ++i)
+                {
+                    whole_body_planner_.enqueue_MCTsolution(transRobotState(planned_states_.at(i - 1)),
+                                                            transRobotState(planned_states_.at(i)));
+                }
             }
             else
             {
@@ -324,15 +411,36 @@ public:
     }
 
     // Update Exp Path for MCTS Interface
-    void update_exp_path(void)
+    void update_exp_path(const geometry_msgs::Twist &cmd)
     {
         exp_path_.clear();
-        gridmap_extrapolator_.update(robot_interface_->getBodyPoseFdb(), cmd_);
+        gridmap_extrapolator_.update(robot_interface_->getBodyPoseFdb(), cmd);
 
         for (int i = 0; i < point_num_; ++i)
         {
             Eigen::Vector3d trans = gridmap_extrapolator_.extrapolate(i * delta_t_).translation();
             exp_path_.push_back(Eigen::Vector3f(trans[0], trans[1], trans[2]));
+        }
+    }
+
+    void update_exp_path(const geometry_msgs::PoseStamped &nav)
+    {
+        exp_path_.clear();
+        pinocchio::SE3 goal_pose(Eigen::Quaterniond(nav.pose.orientation.w, nav.pose.orientation.x, nav.pose.orientation.y, nav.pose.orientation.z),
+                                 Eigen::Vector3d(nav.pose.position.x, nav.pose.position.y, nav.pose.position.z));
+        gridmap_extrapolator_.update(goal_pose);
+        // adapt to the gridmap
+        goal_pose = gridmap_extrapolator_.extrapolate(0);
+        pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
+        pinocchio::SE3 error_pose = body_pose.inverse() * goal_pose;
+        pinocchio::Motion error_motion = pinocchio::log6(error_pose);
+        for (int i = 0; i < samples_num; ++i)
+        {
+            double t = static_cast<double>(i) / samples_num;
+            pinocchio::SE3 interp_pose = body_pose * pinocchio::exp6(t * error_motion);
+            gridmap_extrapolator_.update(interp_pose);
+            interp_pose = gridmap_extrapolator_.extrapolate(0);
+            exp_path_.push_back(Eigen::Vector3f(interp_pose.translation()[0], interp_pose.translation()[1], interp_pose.translation()[2]));
         }
     }
 
@@ -461,7 +569,7 @@ public:
         } while (whole_body_planner_.get_state_traj_length() > 0);
 
         // Stance contact handling
-        ros::Duration(0.4).sleep();
+        // ros::Duration(0.4).sleep();
         stance_contact_handle();
     }
 
