@@ -45,7 +45,7 @@ public:
 
     MCTStateTransfer dequeue_MCTsolution();
 
-    MCTStateTransfer get_state_traj(int index);
+    MCTStateTransfer & get_state_traj(int index);
 
     void optSwingTraj(int index)
     {

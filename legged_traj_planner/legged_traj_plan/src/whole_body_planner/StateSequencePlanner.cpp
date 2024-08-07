@@ -45,7 +45,7 @@ MCTStateTransfer StateSequencePlanner::dequeue_MCTsolution()
     return ret;
 }
 
-MCTStateTransfer StateSequencePlanner::get_state_traj(int index)
+MCTStateTransfer & StateSequencePlanner::get_state_traj(int index)
 {
     return state_trajs.at(index);
 }

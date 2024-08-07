@@ -250,20 +250,6 @@ public:
                     exp_path_vis.emplace_back(Point3D(pt[0], pt[1], pt[2]));
                 }
                 visualizer_.visCurve(exp_path_vis);
-
-                // Vis getAvailableFootholds
-                // MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
-                // std::vector<Eigen::Vector3d> pts;
-                // for (int i = 0; i < 6; i++)
-                // {
-                //     if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
-                //         continue;
-                //     for (auto pt : available_points.position.leg[i])
-                //     {
-                //         pts.emplace_back(pt);
-                //     }
-                // }
-                // visualizer_.visSphere(pts, 0.01);
             }
 
             if (ret)
@@ -278,7 +264,7 @@ public:
                 whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
                                                         transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
             }
-
+            state_traj_replay(whole_body_planner_.get_state_traj(0));
             traj_planner();
             motion_lock_ = false;
         }
@@ -325,20 +311,6 @@ public:
                     exp_path_vis.emplace_back(Point3D(pt[0], pt[1], pt[2]));
                 }
                 visualizer_.visCurve(exp_path_vis);
-
-                // Vis getAvailableFootholds
-                // MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds_visual(next_planned_state_, gridmap_interface_->getMap());
-                // std::vector<Eigen::Vector3d> pts;
-                // for (int i = 0; i < 6; i++)
-                // {
-                //     if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
-                //         continue;
-                //     for (auto pt : available_points.position.leg[i])
-                //     {
-                //         pts.emplace_back(pt);
-                //     }
-                // }
-                // visualizer_.visSphere(pts, 0.01);
             }
 
             if (ret)
@@ -358,7 +330,7 @@ public:
                 whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
                                                         transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
             }
-
+            states_replay(whole_body_planner_);
             traj_planner();
             motion_lock_ = false;
         }
@@ -384,11 +356,11 @@ public:
         }
     }
 
-    void states_replay(StateSequencePlanner & wbplanner)
+    void states_replay(StateSequencePlanner &wbplanner)
     {
         for (size_t i = 0; i < wbplanner.get_state_traj_length(); ++i)
         {
-            MCTStateTransfer state_traj = wbplanner.get_state_traj(i);
+            MCTStateTransfer &state_traj = wbplanner.get_state_traj(i);
             auto odom_interp = state_traj.eval_torso_traj(0);
             auto footend_interp = state_traj.eval_cfg_traj(0);
             auto support_state = state_traj.eval_support_state(0);
@@ -398,7 +370,7 @@ public:
             robot_interface_shadow_->setJointCmd(footend_interp);
 
             ros::spinOnce(); // Fetch feedback
-            ros::Duration(0.5).sleep();
+            ros::Duration(0.2).sleep();
         }
     }
 
@@ -524,14 +496,10 @@ public:
     {
         double t = 0.0;
         double delta = 0.005;
-        MCTStateTransfer state_traj = whole_body_planner_.get_state_traj(0);
+        MCTStateTransfer & state_traj = whole_body_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
-
-        states_replay(whole_body_planner_);
-
-        state_traj_replay(state_traj);
 
         do
         {
