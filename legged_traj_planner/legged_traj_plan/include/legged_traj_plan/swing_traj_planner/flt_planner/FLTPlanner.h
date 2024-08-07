@@ -21,107 +21,13 @@
 #include <Eigen/Dense>
 /* internal project header files */
 #include "legged_traj_plan/utils/Spline.h"
+#include "legged_traj_plan/swing_traj_planner/SwingTrajPlannerBase.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
-
 #include "SwingTrajOpt.h"
 
 using namespace geo_utils;
-
-class SwingTrajPlannerBase
-{
-protected:
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
-    std::shared_ptr<GridMapInterface> gridmap_interface_;
-    SwingTrajPlannerConfig config_;
-
-    std::shared_ptr<GCSVisualizer> visualizer_;
-    Benchmark benchmark_;
-    std::vector<BenchmarkResult> benchmark_results_;
-
-public:
-    SwingTrajPlannerBase(SwingTrajPlannerConfig config,
-                         std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                         std::shared_ptr<GridMapInterface> gridmap_interface) : robot_interface_(robot_interface),
-                                                                                gridmap_interface_(gridmap_interface),
-                                                                                config_(config),
-                                                                                benchmark_("SwingTrajPlannerBenchmark", config_.enableBenchmark) {};
-    ~SwingTrajPlannerBase() = default;
-
-    SwingTrajPlannerConfig &getConfig()
-    {
-        return config_;
-    }
-
-    std::shared_ptr<ElSpiderAirInterface> getRobotInterface()
-    {
-        return robot_interface_;
-    }
-
-    void visClear()
-    {
-        if (visualizer_)
-            visualizer_->delAll();
-    }
-
-    void saveBenchmarkResults()
-    {
-        if (!config_.enableBenchmark)
-            return;
-        std::ofstream file;
-        file.open(config_.benchmarkSavePath);
-        if (!file.is_open())
-        {
-            std::cerr << "Failed to open file: " << config_.benchmarkSavePath << std::endl;
-            return;
-        }
-        file << "normalTime, criticalTime, miscTime, totTime, minCostFunctional, optRetType" << std::endl;
-        for (auto result : benchmark_results_)
-        {
-            file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
-                 << result.tot_time << ", ";
-            for (auto data : result.custom_data)
-            {
-                file << data << ", ";
-            }
-            file << std::endl;
-        }
-        std::cout << "Benchmark results saved to: " << config_.benchmarkSavePath << std::endl;
-    }
-
-    std::shared_ptr<TrajectoryBase> getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                uint index)
-    {
-        benchmark_.reset();
-        std::shared_ptr<TrajectoryBase> traj = getInitTrajHook(pose0, pose1, p0, p1, index);
-        benchmark_.record("getInitTraj");
-        return traj;
-    }
-
-    virtual std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                            Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                            uint index) = 0;
-
-    bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
-                 const pinocchio::SE3 &pose0,
-                 const pinocchio::SE3 &pose1,
-                 int index)
-    {
-        benchmark_.resetTimer();
-        bool ret = optTrajHook(traj, pose0, pose1, index);
-        benchmark_.record("optTraj");
-        benchmark_.end();
-        benchmark_results_.emplace_back(benchmark_.getResult());
-        return ret;
-    }
-
-    virtual bool optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
-                             const pinocchio::SE3 &pose0,
-                             const pinocchio::SE3 &pose1,
-                             int index) = 0;
-};
 
 class FLTPlanner : public SwingTrajPlannerBase
 {
