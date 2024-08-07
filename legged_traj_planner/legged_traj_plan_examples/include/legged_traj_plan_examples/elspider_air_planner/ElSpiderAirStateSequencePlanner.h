@@ -232,7 +232,7 @@ public:
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        gridmap_interface_->getMap(), true, 50);
+                                                        gridmap_interface_->getMap(), true, 250);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
                 gridmap_interface_->unlockMapUpdate();
             }
@@ -293,7 +293,7 @@ public:
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, planned_states_, exp_path_,
-                                                        gridmap_interface_->getMap(), 500);
+                                                        gridmap_interface_->getMap(), 600);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
                 gridmap_interface_->unlockMapUpdate();
             }
@@ -337,7 +337,6 @@ public:
     }
 
     //// Rviz
-
     void state_traj_replay(MCTStateTransfer &state_traj)
     {
         for (double t = 0.0; t < 1.01; t += 0.01)
