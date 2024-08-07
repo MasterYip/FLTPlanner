@@ -80,7 +80,7 @@
     <node pkg="legged_traj_plan_examples" type="elspider_air_raibert_vmc_planner" name="elspider_air_raibert_vmc_planner" output="screen">
         <param name="fake_feedback" value="$(arg fake_feedback)" />
         <param name="sim" value="$(arg sim)" />
-        <rosparam command="load" file="$(find legged_traj_plan_examples)/config/elspider_air/swing_traj_planner_cfg.yaml" />
+        <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner_cfg.yaml" />
         <rosparam command="load" file="$(find legged_traj_plan)/config/perception_interface.yaml" />
     </node>
 

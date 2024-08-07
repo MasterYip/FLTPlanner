@@ -36,7 +36,7 @@ ElSpiderAirDummy:
                 0.05, 0.29, -0.24,
                 -0.35, 0.23, -0.24]
   nominalFootPosShift: [0, 0.10, 0]
-  initBodyPose: [-3, 0, 0.24, 0, 0, 0]
+  initBodyPose: [0, 0, 0.24, 0, 0, 0]
 
 # Shadow
 ElSpiderAirShadow:
