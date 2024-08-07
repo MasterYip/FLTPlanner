@@ -1,5 +1,5 @@
 /**
- * @file SwingTrajPlanner.cpp
+ * @file FLTPlanner.cpp
  * @author Master Yip (2205929492@qq.com)
  * @brief
  * @version 0.1
@@ -10,7 +10,7 @@
  */
 
 #include <iostream>
-#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 #include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
@@ -36,21 +36,21 @@ Eigen::VectorXd getTrajTimeVec(const std::vector<Point3D> &path, double total_ti
 }
 
 ////////////////////
-// SwingTrajPlanner
+// FLTPlanner
 
-SwingTrajPlanner::SwingTrajPlanner(SwingTrajPlannerConfig config,
-                                   std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                                   std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
-                                                                                          swing_traj_opt_(robot_interface_, gridmap_interface_,
-                                                                                                          nullptr, config.enableBenchmark)
+FLTPlanner::FLTPlanner(SwingTrajPlannerConfig config,
+                       std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                       std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
+                                                                              swing_traj_opt_(robot_interface_, gridmap_interface_,
+                                                                                              nullptr, config.enableBenchmark)
 {
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
     if (config_.enableOptVis)
         swing_traj_opt_.setVisualizer(visualizer_);
 }
 
-std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getDefaultTraj(const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
-                                                                  double v_lift, double h_lift)
+std::shared_ptr<MincoTrajectory> FLTPlanner::getDefaultTraj(const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
+                                                            double v_lift, double h_lift)
 {
     // UniBSpline
     // Eigen::Vector3d pm = (p0 + p1) / 2;
@@ -69,10 +69,10 @@ std::shared_ptr<MincoTrajectory> SwingTrajPlanner::getDefaultTraj(const Eigen::V
     return std::make_shared<MincoTrajectory>(poly_path, start_vel, goal_vel, config_.trajTime);
 }
 
-bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
-                                      const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
-                                      const Eigen::Vector3d p0, const Eigen::Vector3d p1,
-                                      uint index, bool verbose)
+bool FLTPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
+                                const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
+                                const Eigen::Vector3d p0, const Eigen::Vector3d p1,
+                                uint index, bool verbose)
 {
     poly_traj.clear();
     gridmap_interface_->lockMapUpdate();
@@ -141,9 +141,9 @@ bool SwingTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     return true;
 }
 
-std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                                  Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                                  uint index)
+std::shared_ptr<TrajectoryBase> FLTPlanner::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                            Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                            uint index)
 {
     double v_lift = config_.vLift;
     double h_lift = config_.hLift;
@@ -172,10 +172,10 @@ std::shared_ptr<TrajectoryBase> SwingTrajPlanner::getInitTrajHook(pinocchio::SE3
     return std::make_shared<MincoTrajectory>(minco_traj);
 }
 
-bool SwingTrajPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
-                                   const pinocchio::SE3 &pose0,
-                                   const pinocchio::SE3 &pose1,
-                                   int index)
+bool FLTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
+                             const pinocchio::SE3 &pose0,
+                             const pinocchio::SE3 &pose1,
+                             int index)
 {
     if (!config_.enableOptimizer)
         return true;
@@ -206,23 +206,23 @@ bool SwingTrajPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 }
 
 ////////////////////
-// SwingCfgTrajPlanner
+// FLTCfgPlanner
 
-SwingCfgTrajPlanner::SwingCfgTrajPlanner(SwingTrajPlannerConfig config,
-                                         std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                                         std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
-                                                                                                swing_traj_opt_(robot_interface_, gridmap_interface_,
-                                                                                                                nullptr, false)
+FLTCfgPlanner::FLTCfgPlanner(SwingTrajPlannerConfig config,
+                             std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                             std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
+                                                                                    swing_traj_opt_(robot_interface_, gridmap_interface_,
+                                                                                                    nullptr, false)
 {
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
     if (config_.enableOptVis)
         swing_traj_opt_.setVisualizer(visualizer_);
 }
 
-void SwingCfgTrajPlanner::visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1, int index,
-                                          std::vector<Point3D> cfg_poly_traj,
-                                          Eigen::Vector3d start_vel, Eigen::Vector3d goal_vel, double trajTime,
-                                          int groupId)
+void FLTCfgPlanner::visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1, int index,
+                                    std::vector<Point3D> cfg_poly_traj,
+                                    Eigen::Vector3d start_vel, Eigen::Vector3d goal_vel, double trajTime,
+                                    int groupId)
 {
     MincoTrajectory minco_traj(cfg_poly_traj, start_vel, goal_vel, trajTime);
     std::vector<Point3D> cfg_path_opt;
@@ -240,8 +240,8 @@ void SwingCfgTrajPlanner::visCfgMincoTraj(const pinocchio::SE3 &pose0, const pin
     visualizer_->visCurve(path_opt);
 }
 
-std::shared_ptr<MincoTrajectory> SwingCfgTrajPlanner::getDefaultCfgTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
-                                                                        const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index)
+std::shared_ptr<MincoTrajectory> FLTCfgPlanner::getDefaultCfgTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
+                                                                  const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index)
 {
     std::vector<Point3D> cfg_poly_traj;
     std::vector<Point3D> poly_path;
@@ -280,10 +280,10 @@ std::shared_ptr<MincoTrajectory> SwingCfgTrajPlanner::getDefaultCfgTraj(const pi
     return std::make_shared<MincoTrajectory>(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
 }
 
-bool SwingCfgTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
-                                         const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
-                                         const Eigen::Vector3d p0, const Eigen::Vector3d p1,
-                                         uint index, bool verbose)
+bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
+                                   const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
+                                   const Eigen::Vector3d p0, const Eigen::Vector3d p1,
+                                   uint index, bool verbose)
 {
     poly_traj.clear();
     gridmap_interface_->lockMapUpdate();
@@ -352,10 +352,10 @@ bool SwingCfgTrajPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     return true;
 }
 
-bool SwingCfgTrajPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
-                                         pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                         Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                         uint index)
+bool FLTCfgPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
+                                   pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                   Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                   uint index)
 {
     cfg_poly_traj.clear();
     std::vector<Point3D> poly_path;
@@ -402,9 +402,9 @@ Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double ra
  * @param index
  * @return std::shared_ptr<MincoTrajectory>
  */
-std::shared_ptr<TrajectoryBase> SwingCfgTrajPlanner::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                                     Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                                     uint index)
+std::shared_ptr<TrajectoryBase> FLTCfgPlanner::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                               Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                               uint index)
 {
     std::vector<Point3D> cfg_poly_traj;
     if (!getCfgPolyTraj(cfg_poly_traj, pose0, pose1, p0, p1, index))
@@ -438,10 +438,10 @@ std::shared_ptr<TrajectoryBase> SwingCfgTrajPlanner::getInitTrajHook(pinocchio::
     return std::make_shared<MincoTrajectory>(minco_traj);
 }
 
-bool SwingCfgTrajPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
-                                      const pinocchio::SE3 &pose0,
-                                      const pinocchio::SE3 &pose1,
-                                      int index)
+bool FLTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
+                                const pinocchio::SE3 &pose0,
+                                const pinocchio::SE3 &pose1,
+                                int index)
 {
     if (!config_.enableOptimizer)
         return true;

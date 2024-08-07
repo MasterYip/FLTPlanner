@@ -19,8 +19,8 @@
 /* internal project header files */
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/utils/CircleQueue.h"
-#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
-#include "legged_traj_plan/swing_leg_planner_rrt/SwingTrajPlannerRRT.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/rrt_planner/RRTPlanner.h"
 #include "legged_traj_plan/whole_body_planner/MCTStateTransfer.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 
@@ -45,7 +45,7 @@ public:
 
     MCTStateTransfer dequeue_MCTsolution();
 
-    MCTStateTransfer & get_state_traj(int index);
+    MCTStateTransfer &get_state_traj(int index);
 
     void optSwingTraj(int index)
     {

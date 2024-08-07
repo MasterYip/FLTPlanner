@@ -19,7 +19,7 @@
 /* internal project header files */
 #include <pinocchio/math/rpy.hpp>
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
-#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
 #include "legged_traj_plan/whole_body_planner/CmdVelExtrapolator.h"

@@ -10,16 +10,16 @@ StateSequencePlanner::StateSequencePlanner(SwingTrajPlannerConfig swing_traj_pla
     {
         if (use_cfg_space_)
         {
-            swing_traj_planner_ = std::make_shared<SwingCfgTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
+            swing_traj_planner_ = std::make_shared<FLTCfgPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
         }
         else
         {
-            swing_traj_planner_ = std::make_shared<SwingTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
+            swing_traj_planner_ = std::make_shared<FLTPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
         }
     }
     else if (swing_traj_planner_config.plannerID == 1)
     {
-        swing_traj_planner_ = std::make_shared<SwingTrajPlannerRRT>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
+        swing_traj_planner_ = std::make_shared<RRTPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
     }
     else if (swing_traj_planner_config.plannerID == 2)
     {
@@ -45,7 +45,7 @@ MCTStateTransfer StateSequencePlanner::dequeue_MCTsolution()
     return ret;
 }
 
-MCTStateTransfer & StateSequencePlanner::get_state_traj(int index)
+MCTStateTransfer &StateSequencePlanner::get_state_traj(int index)
 {
     return state_trajs.at(index);
 }

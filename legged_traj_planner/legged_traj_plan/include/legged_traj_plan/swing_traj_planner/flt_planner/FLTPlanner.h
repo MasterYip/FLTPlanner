@@ -1,5 +1,5 @@
 /**
- * @file SwingTrajPlanner.h
+ * @file FLTPlanner.h
  * @author Master Yip (2205929492@qq.com)
  * @brief
  * @version 0.1
@@ -105,9 +105,9 @@ public:
                                                             uint index) = 0;
 
     bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
-                         const pinocchio::SE3 &pose0,
-                         const pinocchio::SE3 &pose1,
-                         int index)
+                 const pinocchio::SE3 &pose0,
+                 const pinocchio::SE3 &pose1,
+                 int index)
     {
         benchmark_.resetTimer();
         bool ret = optTrajHook(traj, pose0, pose1, index);
@@ -123,16 +123,16 @@ public:
                              int index) = 0;
 };
 
-class SwingTrajPlanner : public SwingTrajPlannerBase
+class FLTPlanner : public SwingTrajPlannerBase
 {
 private:
     ros::NodeHandle nh_;
     SwingTrajOpt swing_traj_opt_;
 
 public:
-    SwingTrajPlanner(SwingTrajPlannerConfig config,
-                     std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                     std::shared_ptr<GridMapInterface> gridmap_interface);
+    FLTPlanner(SwingTrajPlannerConfig config,
+               std::shared_ptr<ElSpiderAirInterface> robot_interface,
+               std::shared_ptr<GridMapInterface> gridmap_interface);
 
     /**
      * @brief Search for a poly feasible trajectory
@@ -156,25 +156,25 @@ public:
                                                     double v_lift, double h_lift = 0.1);
 
     std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                uint index) override;
+                                                    Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                    uint index) override;
 
     bool optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
-                 const pinocchio::SE3 &pose0,
-                 const pinocchio::SE3 &pose1,
-                 int index) override;
+                     const pinocchio::SE3 &pose0,
+                     const pinocchio::SE3 &pose1,
+                     int index) override;
 };
 
-class SwingCfgTrajPlanner : public SwingTrajPlannerBase
+class FLTCfgPlanner : public SwingTrajPlannerBase
 {
 private:
     ros::NodeHandle nh_;
     SwingTrajOpt swing_traj_opt_;
 
 public:
-    SwingCfgTrajPlanner(SwingTrajPlannerConfig config,
-                        std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                        std::shared_ptr<GridMapInterface> gridmap_interface);
+    FLTCfgPlanner(SwingTrajPlannerConfig config,
+                  std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                  std::shared_ptr<GridMapInterface> gridmap_interface);
 
     void visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1, int index,
                          std::vector<Point3D> cfg_poly_traj,
@@ -208,11 +208,11 @@ public:
                                                        const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index);
 
     std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                                Eigen::Vector3d p0, Eigen::Vector3d p1,
-                                                uint index) override;
+                                                    Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                    uint index) override;
 
     bool optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
-                 const pinocchio::SE3 &pose0,
-                 const pinocchio::SE3 &pose1,
-                 int index) override;
+                     const pinocchio::SE3 &pose0,
+                     const pinocchio::SE3 &pose1,
+                     int index) override;
 };

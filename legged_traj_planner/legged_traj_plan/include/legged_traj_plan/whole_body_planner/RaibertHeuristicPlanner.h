@@ -19,12 +19,10 @@
 
 /* internal project header files */
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
-#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "CmdVelExtrapolator.h"
 /* external project header files */
-
-
 
 class LegSwitchScheduler
 {
@@ -46,7 +44,7 @@ public:
      * @param phase_shift_ Phase shift (0~1) - apply DELAY to the scheduler
      */
     LegSwitchScheduler(double interval, double duty, double phase_shift = 0)
-        : interval_(interval), duty_(duty), phase_shift_(phase_shift){};
+        : interval_(interval), duty_(duty), phase_shift_(phase_shift) {};
 
     /**
      * @brief Reset scheduler
@@ -201,7 +199,7 @@ struct LegTraj
             std::shared_ptr<TrajectoryBase> swing_traj)
         : t_lift(t_lift), t_touch(t_touch), t_mid((t_lift + t_touch) / 2),
           foothold_lift(foothold_lift), foothold_touch(foothold_touch),
-          swing_traj(swing_traj){};
+          swing_traj(swing_traj) {};
 
     // [[deprecated]] void update(double t_lift, double t_touch,
     //                            Eigen::Vector3d foothold_lift, Eigen::Vector3d foothold_touch,
@@ -232,7 +230,6 @@ struct LegTraj
         return t >= t_lift && t <= t_touch;
     }
 };
-
 
 /**
  * @brief simple raibert planner without trajectory stack
@@ -278,7 +275,7 @@ class RaibertHeuristicPlanner
 private:
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    std::shared_ptr<SwingCfgTrajPlanner> swing_traj_planner_;
+    std::shared_ptr<FLTCfgPlanner> swing_traj_planner_;
     GridMapCmdVelExtrapolator cmd_vel_extrapolator_;
     std::vector<std::vector<LegTraj>> leg_traj_;
     std::vector<LegSwitchScheduler> switch_scheduler_;

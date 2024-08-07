@@ -1,5 +1,5 @@
 /**
- * @file SwingTrajPlannerChomp.h
+ * @file ChompPlanner.h
  * @author Master Yip (2205929492@qq.com)
  * @brief 
  * @version 0.1

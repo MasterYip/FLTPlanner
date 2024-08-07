@@ -20,7 +20,7 @@
 #include <pinocchio/math/rpy.hpp>
 #include "legged_traj_plan/robot_interface/DummyElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
-#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
 #include "legged_traj_plan/whole_body_planner/CmdVelExtrapolator.h"
@@ -495,7 +495,7 @@ public:
     {
         double t = 0.0;
         double delta = 0.005;
-        MCTStateTransfer & state_traj = whole_body_planner_.get_state_traj(0);
+        MCTStateTransfer &state_traj = whole_body_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);

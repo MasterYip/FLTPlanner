@@ -19,7 +19,7 @@
 
 /* internal project header files */
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
-#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/whole_body_planner/RaibertHeuristicPlanner.h"
 
@@ -172,8 +172,8 @@ public:
             exp_foot_state_.header.frame_id = "odom";
             for (int i = 0; i < 6; ++i)
             {
-                
-                exp_foot_pos[i] = point_SE3Act(body_pose_, exp_foot_pos[i]); 
+
+                exp_foot_pos[i] = point_SE3Act(body_pose_, exp_foot_pos[i]);
                 exp_foot_state_.position[i].x = exp_foot_pos[i](0);
                 exp_foot_state_.position[i].y = exp_foot_pos[i](1);
                 exp_foot_state_.position[i].z = exp_foot_pos[i](2);
@@ -257,7 +257,7 @@ public:
                 PosList foot_pos_list;
                 std::array<bool, 6> contact_state;
                 pinocchio::SE3 pose;
-                std::cout<< "wbp updating" << std::endl;
+                std::cout << "wbp updating" << std::endl;
                 whole_body_planner_.query(ros::Time::now().toSec(), pose, foot_pos_list, contact_state);
                 whole_body_planner_.update(pose, cmd_);
             }

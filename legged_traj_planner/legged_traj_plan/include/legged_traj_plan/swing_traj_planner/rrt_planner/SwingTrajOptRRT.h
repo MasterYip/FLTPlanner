@@ -40,7 +40,7 @@
 #include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
-#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
 namespace ob = ompl::base;

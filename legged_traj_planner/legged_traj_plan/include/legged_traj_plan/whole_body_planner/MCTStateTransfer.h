@@ -24,7 +24,7 @@
 /* internal project header files */
 #include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_plan/hexapod_State.h"
-#include "legged_traj_plan/swing_leg_planner/SwingTrajPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 
 using hexapod_State = legged_traj_plan::hexapod_State;
 using PosList = std::vector<Eigen::Vector3d>;

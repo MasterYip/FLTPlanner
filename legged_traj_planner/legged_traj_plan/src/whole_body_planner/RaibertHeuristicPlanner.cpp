@@ -147,7 +147,7 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
                                                  std::shared_ptr<GridMapInterface> gridmap_interface,
                                                  std::shared_ptr<ElSpiderAirInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
-      swing_traj_planner_(std::make_shared<SwingCfgTrajPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_)),
+      swing_traj_planner_(std::make_shared<FLTCfgPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_)),
       use_cfg_space_(swing_traj_planner_config.useCfgSpace)
 {
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
@@ -252,8 +252,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                     p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
                 }
 
-                
-                // Vis Clear
+                                // Vis Clear
                 swing_traj_planner_->visClear();
                 if (index < leg_traj_[i].size())
                 {
