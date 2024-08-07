@@ -1,12 +1,12 @@
 /**
  * @file ElSpiderAirPlannerBase.h
  * @author Master Yip (2205029492@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-07-30
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #pragma once
@@ -18,21 +18,100 @@
 /* c++ standard library header files */
 
 /* internal project header files */
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
+
+#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h" // Should be included first (pinocchio)
+#include "legged_traj_plan/robot_interface/DummyElSpiderAirInterfaceROS.h"
+#include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
+
+#include "legged_traj_plan/perception_interface/GridMapInterface.h"
+
+#include "legged_traj_plan/swing_traj_planner/SwingTrajPlannerBase.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/rrt_planner/RRTPlanner.h"
+
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
 /* external project header files */
 #include <ros/ros.h>
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_eigen/tf2_eigen.h>
-#include <tf2_ros/transform_listener.h>
+// #include <geometry_msgs/Pose.h>
+// #include <geometry_msgs/Twist.h>
+// #include <geometry_msgs/PoseStamped.h>
+// #include <geometry_msgs/TransformStamped.h>
+// #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+// #include <tf2_ros/transform_listener.h>
+// #include <tf2_eigen/tf2_eigen.h>
 
-struct PlannerConfig
+
+
+class ElSpiderAirPlannerBase
 {
-    std::string cmdvelFrame;
-    
-}
+protected:
+    ros::NodeHandle nh_;
+
+    // Interface
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_shadow_;
+    std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
+
+    // Config
+    SwingTrajPlannerConfig swing_traj_planner_config_;
+
+public:
+    ElSpiderAirPlannerBase() : nh_("~")
+    {
+        // Robot Interface
+        std::string robot_interface_type;
+        nh_.getParam("robotInterface", robot_interface_type);
+        if (robot_interface_type == "ElSpiderAirDummy")
+        {
+            DummyElSpiderAirInterfaceROSConfig dummy_config;
+            dummy_config.loadParam(nh_, "ElSpiderAirDummy");
+            robot_interface_ = std::make_shared<DummyElSpiderAirInterfaceROS>(dummy_config);
+        }
+        else if (robot_interface_type == "ElSpiderAirROS")
+        {
+            ElSpiderAirInterfaceROSConfig config;
+            config.loadParam(nh_, "ElSpiderAirROS");
+            robot_interface_ = std::make_shared<ElSpiderAirInterfaceROS>(config);
+        }
+        else
+        {
+            ROS_ERROR("Unknown robot interface type: %s", robot_interface_type.c_str());
+        }
+
+        // Shadow Interface
+        DummyElSpiderAirInterfaceROSConfig interface_shadow_config;
+        interface_shadow_config.loadParam(nh_, "ElSpiderAirShadow");
+        robot_interface_shadow_ = std::make_shared<DummyElSpiderAirInterfaceROS>(interface_shadow_config);
+
+        // GridMap Interface
+        gridmap_interface_ = std::make_shared<GridMapInterface>(nh_, "/grid_map");
+
+        // Swing Traj Planner
+        swing_traj_planner_config_.loadParams(nh_);
+        if (swing_traj_planner_config_.plannerID == 0)
+        {
+            if (swing_traj_planner_config_.useCfgSpace)
+            {
+                swing_traj_planner_ = std::make_shared<FLTCfgPlanner>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
+            }
+            else
+            {
+                swing_traj_planner_ = std::make_shared<FLTPlanner>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
+            }
+        }
+        else if (swing_traj_planner_config_.plannerID == 1)
+        {
+            swing_traj_planner_ = std::make_shared<RRTPlanner>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
+        }
+        else if (swing_traj_planner_config_.plannerID == 2)
+        {
+            swing_traj_planner_ = std::make_shared<SwingCfgTrajPlannerRRT>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
+        }
+        else
+        {
+            ROS_ERROR("Invalid planner ID");
+        }
+    }
+};

@@ -18,10 +18,8 @@
 
 /* internal project header files */
 #include <pinocchio/math/rpy.hpp>
-#include "legged_traj_plan/robot_interface/DummyElSpiderAirInterfaceROS.h" // Should be included first (pinocchio)
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
-#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
-#include "legged_traj_plan/perception_interface/GridMapInterface.h"
+#include "ElSpiderAirPlannerBase.h"
+
 #include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
 #include "legged_traj_plan/whole_body_planner/CmdVelExtrapolator.h"
 
@@ -129,11 +127,10 @@ struct RobotProfile
     geometry_msgs::Twist cmd_vel;
 };
 
-class ElSpiderAirStateSequencePlanner
+class ElSpiderAirStateSequencePlanner : public ElSpiderAirPlannerBase
 {
 private:
     ros::Rate rate_;
-    ros::NodeHandle nh_;
 
     // Cmd
     ros::Subscriber cmd_sub_;
@@ -142,9 +139,6 @@ private:
     geometry_msgs::PoseStamped nav_;
 
     // Interface
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_shadow_;
-    std::shared_ptr<GridMapInterface> gridmap_interface_;
     StateSequencePlanner whole_body_planner_;
 
     // MCTS planner Interface
@@ -160,7 +154,6 @@ private:
     int samples_num = 100;
 
     // Misc
-    SwingTrajPlannerConfig config_;
 
     // Status
     bool motion_lock_ = false;
@@ -175,17 +168,11 @@ private:
 
 public:
     // FIXME: use ros param to init gridmap_interface_
-    ElSpiderAirStateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                                    std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                                    std::shared_ptr<ElSpiderAirInterface> robot_interface_shadow) : nh_("~"),
-                                                                                                    robot_interface_(robot_interface),
-                                                                                                    robot_interface_shadow_(robot_interface_shadow),
-                                                                                                    gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
-                                                                                                    whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
-                                                                                                    visualizer_(nh_, "odom", "visualizer_markers"),
-                                                                                                    visualizer_base_(nh_, "base", "visualizer_markers_base"),
-                                                                                                    rate_(100),
-                                                                                                    config_(swing_traj_planner_config)
+    ElSpiderAirStateSequencePlanner() : ElSpiderAirPlannerBase(),
+                                        whole_body_planner_(swing_traj_planner_config_, gridmap_interface_, robot_interface_),
+                                        visualizer_(nh_, "odom", "visualizer_markers"),
+                                        visualizer_base_(nh_, "base", "visualizer_markers_base"),
+                                        rate_(100)
     {
         init_time_ = ros::Time::now().toSec();
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirStateSequencePlanner::cmd_callback, this);
@@ -241,7 +228,7 @@ public:
             visualizer_.delAll();
             visualizer_base_.delAll();
 
-            if (config_.enableVis)
+            if (swing_traj_planner_config_.enableVis)
             {
                 // Vis expected path
                 std::vector<Point3D> exp_path_vis;
@@ -302,7 +289,7 @@ public:
             visualizer_.delAll();
             visualizer_base_.delAll();
 
-            if (config_.enableVis)
+            if (swing_traj_planner_config_.enableVis)
             {
                 // Vis expected path
                 std::vector<Point3D> exp_path_vis;
@@ -470,7 +457,7 @@ public:
                     footend_interp.at(k) = LOWEST_FOOT_POS[k] * alpha + footend_interp.at(k) * (1 - alpha);
                 }
             }
-            if (config_.useCfgCommand)
+            if (swing_traj_planner_config_.useCfgCommand)
                 robot_interface_->setJointCmd(robot_interface_->IKFast_foots(footend_interp));
             else
                 robot_interface_->setFootCmd(footend_interp);
@@ -506,7 +493,7 @@ public:
             odom_interp = state_traj.eval_torso_traj(sine_remap(t));
             support_state = state_traj.eval_support_state(sine_remap(t));
 
-            if (config_.useCfgCommand)
+            if (swing_traj_planner_config_.useCfgCommand)
             {
                 footend_interp = state_traj.eval_cfg_traj(sine_remap(t));
 
@@ -563,7 +550,7 @@ public:
     void saveRobotProfile()
     {
         // Save to file
-        std::ofstream file(config_.robotProfilePath);
+        std::ofstream file(swing_traj_planner_config_.robotProfilePath);
         if (file.is_open())
         {
             file << "time,t,pose_x,pose_y,pose_z,pose_roll,pose_pitch,pose_yaw,";
@@ -613,7 +600,7 @@ public:
         {
             ros::spinOnce();
         }
-        if (config_.enableBenchmark)
+        if (swing_traj_planner_config_.enableBenchmark)
         {
             std::cout << "Save benchmark results..." << std::endl;
             whole_body_planner_.saveBenchmarkResults();
