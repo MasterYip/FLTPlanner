@@ -423,6 +423,11 @@ private:
                 }
             }
         }
+        // Make sure time allocation is not 0
+        for (int i = 0; i < timeAlloc.size(); i++)
+        {
+            timeAlloc(i) = timeAlloc(i) > 1e-2 ? timeAlloc(i) : 1e-2;
+        }
     }
 
 public:
