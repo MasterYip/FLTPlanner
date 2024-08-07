@@ -7,9 +7,9 @@
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
     <!-- Planner Config -->
-    <!-- swing_traj_planner / swing_traj_planner_cfg -->
-    <!-- swing_traj_planner_rrt / swing_traj_planner_rrtcfg -->
-    <arg name="planner_cfg" default="swing_traj_planner_cfg" />
+    <!-- flt_planner / flt_cfg_planner -->
+    <!-- rrt_planner / rrt_cfg_planner -->
+    <arg name="planner_cfg" default="flt_cfg_planner" />
     <!-- Optitrack -->
     <arg name="use_optitrack" default="false" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
@@ -99,7 +99,7 @@
     <node pkg="legged_traj_plan_examples" type="elspider_air_simple_planner" name="elspider_air_simple_planner" output="screen">
         <param name="fake_feedback" value="$(arg fake_feedback)" />
         <param name="sim" value="$(arg sim)" />
-        <rosparam command="load" file="$(find legged_traj_plan)/config/$(arg planner_cfg).yaml"/>
+        <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/$(arg planner_cfg).yaml"/>
     </node>
 
     <!-- Robot related -->

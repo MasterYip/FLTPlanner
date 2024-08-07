@@ -36,8 +36,8 @@
     <node pkg="legged_traj_plan_examples" type="elspider_air_vmc_planner" name="elspider_air_vmc_planner" output="screen">
         <param name="fake_feedback" value="false" />
         <param name="sim" value="$(arg sim)" />
-        <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner.yaml" if="$(eval use_cfg_space == 0)"/>
-        <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner_cfg.yaml" if="$(eval use_cfg_space == 1)"/>
+        <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/flt_planner.yaml" if="$(eval use_cfg_space == 0)"/>
+        <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/flt_cfg_planner.yaml" if="$(eval use_cfg_space == 1)"/>
     </node>
     <!-- VMC Controller -->
     <node pkg="hexapod_controller" type="vmc_controller_node" name="vmc_controller_node" output="screen">
