@@ -48,9 +48,14 @@ public:
     pinocchio::SE3 eval_torso_traj(double t);
     PosList eval_foot_traj(double t, uint derivative = 0, bool auto_opt = true);
     PosList eval_cfg_traj(double t, uint derivative = 0, bool auto_opt = true);
-    
+
     // PROBLEM: margin too small will leads to unstable gait switch in VMC controller?
     std::array<bool, 6> eval_support_state(double t, double lift_margin = 0.0, double touch_margin = 0.0);
     void opt_swing_traj(int index);
+    void opt_swing_traj()
+    {
+        for (int i = 0; i < 6; ++i)
+            opt_swing_traj(i);
+    }
     bool opt_check(int index);
 };

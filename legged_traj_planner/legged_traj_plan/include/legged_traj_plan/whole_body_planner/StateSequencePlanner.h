@@ -47,6 +47,19 @@ public:
 
     MCTStateTransfer get_state_traj(int index);
 
+    void optSwingTraj(int index)
+    {
+        state_trajs[index].opt_swing_traj();
+    };
+
+    void optSwingTraj()
+    {
+        for (int i = 0; i < state_trajs.size(); ++i)
+        {
+            state_trajs[i].opt_swing_traj();
+        }
+    };
+
     int get_state_traj_length();
 
     void saveBenchmarkResults(void)

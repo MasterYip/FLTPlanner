@@ -384,6 +384,24 @@ public:
         }
     }
 
+    void states_replay(StateSequencePlanner & wbplanner)
+    {
+        for (size_t i = 0; i < wbplanner.get_state_traj_length(); ++i)
+        {
+            MCTStateTransfer state_traj = wbplanner.get_state_traj(i);
+            auto odom_interp = state_traj.eval_torso_traj(0);
+            auto footend_interp = state_traj.eval_cfg_traj(0);
+            auto support_state = state_traj.eval_support_state(0);
+
+            // Visualization
+            robot_interface_shadow_->setBodyPoseCmd(odom_interp);
+            robot_interface_shadow_->setJointCmd(footend_interp);
+
+            ros::spinOnce(); // Fetch feedback
+            ros::Duration(0.5).sleep();
+        }
+    }
+
     //// MCTS Interface
     // Update Robot State for MCTS Interface
     void update_robot_state(pinocchio::SE3 body_pose, legged_traj_plan::FootState foot_state)
@@ -510,6 +528,8 @@ public:
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
+
+        states_replay(whole_body_planner_);
 
         state_traj_replay(state_traj);
 
