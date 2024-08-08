@@ -86,7 +86,9 @@ public:
         robot_interface_shadow_ = std::make_shared<DummyElSpiderAirInterfaceROS>(interface_shadow_config);
 
         // GridMap Interface
-        gridmap_interface_ = std::make_shared<GridMapInterface>(nh_, "/grid_map");
+        GridMapInterfaceConfig gridmap_interface_config;
+        gridmap_interface_config.loadParam(nh_);
+        gridmap_interface_ = std::make_shared<GridMapInterface>(nh_, gridmap_interface_config);
 
         // Swing Traj Planner
         swing_traj_planner_config_.loadParams(nh_);

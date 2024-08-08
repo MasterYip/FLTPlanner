@@ -31,10 +31,36 @@
 
 using Derivative3 = Eigen::Vector3d;
 
+struct GridMapInterfaceConfig
+{
+    std::string topicName;
+    std::string groundLayerName;
+    std::string ceilingLayerName;
+
+    // SDF
+    double sdfMargin{0.3};
+
+    // TravMap
+    double normalTangentCrtic{0.5};
+
+    void loadParam(ros::NodeHandle &nh, std::string ns = "GridMapInterface")
+    {
+        bool check_digit = true;
+        check_digit &= nh.getParam(ns + "/topicName", topicName);
+        check_digit &= nh.getParam(ns + "/groundLayerName", groundLayerName);
+        check_digit &= nh.getParam(ns + "/ceilingLayerName", ceilingLayerName);
+        check_digit &= nh.getParam(ns + "/sdfMargin", sdfMargin);
+        check_digit &= nh.getParam(ns + "/normalTangentCrtic", normalTangentCrtic);
+    }
+};
+
 class GridMapInterface
 {
 private:
     ros::NodeHandle nh_;
+
+    GridMapInterfaceConfig config_;
+
     ros::Subscriber sub_;
     grid_map::GridMap map_;
     std::unique_ptr<grid_map::SignedDistanceField> sdf_[2];
@@ -61,10 +87,12 @@ private:
     ros::Publisher occupiedPublisher_;
 
 public:
-    GridMapInterface(ros::NodeHandle &nh,
-                     std::string topic_name = "grid_map",
-                     std::string ground_layer_name = "elevation_inpainted",
-                     std::string ceiling_layer_name = "ceiling");
+    [[deprecated]] GridMapInterface(ros::NodeHandle &nh,
+                                    std::string topic_name = "grid_map",
+                                    std::string ground_layer_name = "elevation_inpainted",
+                                    std::string ceiling_layer_name = "ceiling");
+
+    GridMapInterface(ros::NodeHandle &nh, GridMapInterfaceConfig &config);
 
     void callback(const grid_map_msgs::GridMap &msg);
     void update(bool block = true, double sdf_margin = 0.3); // FIXME: this should larger than robot height?
