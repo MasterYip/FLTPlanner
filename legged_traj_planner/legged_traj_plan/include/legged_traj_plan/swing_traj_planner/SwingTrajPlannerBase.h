@@ -37,6 +37,7 @@ struct SwingTrajPlannerConfig
 
     // Misc
     bool enableOptimizer;
+    bool reOptimize;
     bool useCfgSpace;
     bool useCfgCommand;
     bool enableVis;
@@ -115,6 +116,7 @@ struct SwingTrajPlannerConfig
         check_digit *= nh.getParam("trajInit/vLiftNormalRandomize", vLiftNormalRandomize);
 
         check_digit *= nh.getParam("misc/enableOptimizer", enableOptimizer);
+        check_digit *= nh.getParam("misc/reOptimize", reOptimize);
         check_digit *= nh.getParam("misc/useCfgSpace", useCfgSpace);
         check_digit *= nh.getParam("misc/useCfgCommand", useCfgCommand);
         check_digit *= nh.getParam("misc/enableVis", enableVis);
@@ -230,7 +232,7 @@ public:
             std::cerr << "Failed to open file: " << config_.benchmarkSavePath << std::endl;
             return;
         }
-        file << "normalTime, criticalTime, miscTime, totTime, minCostFunctional, optRetType" << std::endl;
+        file << "normalTime, criticalTime, miscTime, totTime, optRetType" << std::endl;
         for (auto result : benchmark_results_)
         {
             file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
@@ -266,6 +268,7 @@ public:
         benchmark_.resetTimer();
         bool ret = optTrajHook(traj, pose0, pose1, index);
         benchmark_.record("optTraj");
+        benchmark_.addCustomData(ret);
         benchmark_.end();
         benchmark_results_.emplace_back(benchmark_.getResult());
         return ret;

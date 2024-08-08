@@ -8,6 +8,7 @@ trajInit:
 
 misc:
   enableOptimizer: true
+  reOptimize: false
   useCfgSpace: false
   useCfgCommand: true
   enableVis: true

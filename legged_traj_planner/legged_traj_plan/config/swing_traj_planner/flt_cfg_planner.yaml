@@ -10,6 +10,7 @@ trajInit:
 
 misc:
   enableOptimizer: true
+  reOptimize: false
   useCfgSpace: true # Do not change this (this file is for cfg space)
   useCfgCommand: true
   enableVis: true
@@ -24,7 +25,7 @@ misc:
 
 LFTPlanner:
   optimizer:
-    lengthPerPiece: 0.3 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+    lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization
     relCostTol: 1.0e-4
     smoothingFactor: 1.0e-2
