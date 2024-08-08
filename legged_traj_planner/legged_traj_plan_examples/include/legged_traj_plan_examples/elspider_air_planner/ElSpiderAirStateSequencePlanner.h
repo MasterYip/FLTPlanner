@@ -127,10 +127,44 @@ struct RobotProfile
     geometry_msgs::Twist cmd_vel;
 };
 
+struct ElSpiderAirStateSequencePlannerConfig
+{
+    int rosRate;
+
+    int cmdMctsSearchNodeNum;
+    int navMctsSearchNodeNum;
+
+    int cmdExtrapolatePointNum;
+    float cmdExtrapolateDeltaT;
+    int navExtrapolateSamplesNum;
+
+    bool savePlannedStates;
+    std::string plannedStatesSavePath;
+
+    void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
+    {
+        bool check_digit = true;
+        check_digit &= nh.getParam(ns + "/rosRate", rosRate);
+        check_digit &= nh.getParam(ns + "/cmdMctsSearchNodeNum", cmdMctsSearchNodeNum);
+        check_digit &= nh.getParam(ns + "/navMctsSearchNodeNum", navMctsSearchNodeNum);
+        check_digit &= nh.getParam(ns + "/cmdExtrapolatePointNum", cmdExtrapolatePointNum);
+        check_digit &= nh.getParam(ns + "/cmdExtrapolateDeltaT", cmdExtrapolateDeltaT);
+        check_digit &= nh.getParam(ns + "/navExtrapolateSamplesNum", navExtrapolateSamplesNum);
+        check_digit &= nh.getParam(ns + "/savePlannedStates", savePlannedStates);
+        check_digit &= nh.getParam(ns + "/plannedStatesSavePath", plannedStatesSavePath);
+        if (!check_digit)
+        {
+            ROS_ERROR("Failed to load ElSpiderAirStateSequencePlannerConfig.");
+        }
+    }
+};
+
 class ElSpiderAirStateSequencePlanner : public ElSpiderAirPlannerBase
 {
 private:
     ros::Rate rate_;
+
+    ElSpiderAirStateSequencePlannerConfig config_;
 
     // Cmd
     ros::Subscriber cmd_sub_;
@@ -145,15 +179,12 @@ private:
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
     std::vector<MDT::RobotState> planned_states_;
+    std::vector<MDT::RobotState> record_states_; // State recorder for benchmarking
+
     GridMapCmdVelExtrapolator gridmap_extrapolator_;
     std::vector<Eigen::Vector3f> exp_path_;
     // cmd_vel extrapolator
-    int point_num_ = 50;
-    float delta_t_ = 0.01;
     // nav extrapolator
-    int samples_num = 100;
-
-    // Misc
 
     // Status
     bool motion_lock_ = false;
@@ -174,6 +205,8 @@ public:
                                         visualizer_base_(nh_, "base", "visualizer_markers_base"),
                                         rate_(100)
     {
+        config_.loadParams(nh_);
+        rate_ = ros::Rate(config_.rosRate);
         init_time_ = ros::Time::now().toSec();
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirStateSequencePlanner::cmd_callback, this);
         nav_sub_ = nh_.subscribe("/move_base_simple/goal", 1, &ElSpiderAirStateSequencePlanner::nav_callback, this);
@@ -219,7 +252,7 @@ public:
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        gridmap_interface_->getMap(), true, 250);
+                                                        gridmap_interface_->getMap(), true, config_.cmdMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
                 gridmap_interface_->unlockMapUpdate();
             }
@@ -280,7 +313,7 @@ public:
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, planned_states_, exp_path_,
-                                                        gridmap_interface_->getMap(), 600);
+                                                        gridmap_interface_->getMap(), config_.navMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
                 gridmap_interface_->unlockMapUpdate();
             }
@@ -392,9 +425,9 @@ public:
         exp_path_.clear();
         gridmap_extrapolator_.update(robot_interface_->getBodyPoseFdb(), cmd);
 
-        for (int i = 0; i < point_num_; ++i)
+        for (int i = 0; i < config_.cmdExtrapolatePointNum; ++i)
         {
-            Eigen::Vector3d trans = gridmap_extrapolator_.extrapolate(i * delta_t_).translation();
+            Eigen::Vector3d trans = gridmap_extrapolator_.extrapolate(i * config_.cmdExtrapolateDeltaT).translation();
             exp_path_.push_back(Eigen::Vector3f(trans[0], trans[1], trans[2]));
         }
     }
@@ -410,9 +443,9 @@ public:
         pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
         pinocchio::SE3 error_pose = body_pose.inverse() * goal_pose;
         pinocchio::Motion error_motion = pinocchio::log6(error_pose);
-        for (int i = 0; i < samples_num; ++i)
+        for (int i = 0; i < config_.navExtrapolateSamplesNum; ++i)
         {
-            double t = static_cast<double>(i) / samples_num;
+            double t = static_cast<double>(i) / config_.navExtrapolateSamplesNum;
             pinocchio::SE3 interp_pose = body_pose * pinocchio::exp6(t * error_motion);
             gridmap_extrapolator_.update(interp_pose);
             interp_pose = gridmap_extrapolator_.extrapolate(0);
