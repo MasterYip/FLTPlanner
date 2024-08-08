@@ -1,10 +1,10 @@
 plannerID: 0
 
 trajInit:
-  vLift: 0.02
+  vLift: 0.08
   vLiftNormalRandomize: 0.5
   hLift: 0.15
-  trajTime: 3 # Only affect init trajectory
+  trajTime: 5 # Only affect init trajectory
 
 misc:
   enableOptimizer: true

@@ -143,6 +143,8 @@ struct ElSpiderAirStateSequencePlannerConfig
     float cmdExtrapolateDeltaT;
     int navExtrapolateSamplesNum;
 
+    bool swingTrajPreOpt;
+
     std::string demoPath;
     bool savePlannedStates;
     bool execSavedStates;
@@ -157,6 +159,8 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/cmdExtrapolateDeltaT", cmdExtrapolateDeltaT);
         check_digit &= nh.getParam(ns + "/navExtrapolateSamplesNum", navExtrapolateSamplesNum);
 
+        check_digit &= nh.getParam(ns + "/swingTrajPreOpt", swingTrajPreOpt);
+        
         check_digit &= nh.getParam(ns + "/demoPath", demoPath);
         check_digit &= nh.getParam(ns + "/savePlannedStates", savePlannedStates);
         check_digit &= nh.getParam(ns + "/execSavedStates", execSavedStates);
@@ -197,6 +201,7 @@ private:
     // Robot profile
     double init_time_ = 0.0;
     std::vector<RobotProfile> robot_profile_;
+    Benchmark benchmark_;
 
     // Visualizer
     GCSVisualizer visualizer_;
@@ -208,7 +213,7 @@ public:
                                         state_sequence_planner_(swing_traj_planner_, gridmap_interface_, robot_interface_),
                                         visualizer_(nh_, "odom", "visualizer_markers"),
                                         visualizer_base_(nh_, "base", "visualizer_markers_base"),
-                                        rate_(100)
+                                        rate_(100), benchmark_("ElSpiderAirStateSequencePlannerBenchmark")
     {
         config_.loadParams(nh_);
         rate_ = ros::Rate(config_.rosRate);
@@ -527,6 +532,15 @@ public:
     {
         double t = 0.0;
         double delta = 0.005;
+
+        if(config_.swingTrajPreOpt)
+        {
+            benchmark_.reset();
+            state_sequence_planner_.optSwingTraj();
+            benchmark_.record("swing traj optimization");
+            benchmark_.end();
+        }
+
         MCTStateTransfer &state_traj = state_sequence_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
@@ -585,7 +599,7 @@ public:
             }
             ros::spinOnce(); // Fetch feedback
             rate_.sleep();
-        } while (state_sequence_planner_.get_state_traj_length() > 0);
+        } while (state_sequence_planner_.get_state_traj_length() > 0 && ros::ok());
 
         // Stance contact handling
         // ros::Duration(0.4).sleep();
@@ -646,7 +660,6 @@ public:
         if (file.is_open())
         {
             std::vector<hexapod_State> record_states = state_sequence_planner_.getRecordStates();
-            std::cout << record_states.size() << std::endl;
             hexapod_State save_states[record_states.size()];
             for (size_t i = 0; i < record_states.size(); ++i)
             {

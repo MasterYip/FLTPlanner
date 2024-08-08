@@ -5,8 +5,10 @@ StateSequencePlanner:
   cmdExtrapolatePointNum: 50
   cmdExtrapolateDeltaT: 0.01
   navExtrapolateSamplesNum: 100
+
+  swingTrajPreOpt: true
   # Demo select
   # demoPath: # NOTE: offered by launch file
-  savePlannedStates: true
+  savePlannedStates: false
   # Executing saved states on startup
   execSavedStates: true
