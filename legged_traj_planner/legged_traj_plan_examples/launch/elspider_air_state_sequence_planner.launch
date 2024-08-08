@@ -1,43 +1,32 @@
 <launch>
     <!-- ElSpider Air State Sequence Planner -->
 
+    <!-- Demo Select -->
+    <arg name="demo_name" default="1_stairs" />
+    <!-- Planner Select -->
+    <!-- flt_planner / flt_cfg_planner -->
+    <!-- rrt_planner / rrt_cfg_planner -->
+    <arg name="planner_cfg" default="flt_cfg_planner" />
+
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
     <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
-    <!-- Planner Config -->
-    <!-- flt_planner / flt_cfg_planner -->
-    <!-- rrt_planner / rrt_cfg_planner -->
-    <arg name="planner_cfg" default="flt_cfg_planner" />
-    <!-- Optitrack -->
-    <arg name="use_optitrack" default="false" />
     <!-- true: plan only in Rviz / false: get feedback from HexapodSoftware -->
     <arg name="fake_feedback" default="false" />
+    <!-- Optitrack -->
+    <arg name="use_optitrack" default="false" />
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="resolution" value="0.025" />
-    <!-- Ground -->
-    <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain2-HalfSideSlope-ground.png" /> -->
-    <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ground.png" />
-    <arg name="min_height" value="0" />
-    <arg name="max_height" value="0.35" /> -->
-    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain3-Stairs-ground.png" />
-    <arg name="min_height" value="0" />
-    <arg name="max_height" value="0.48" />
-    <!-- Ceiling -->
-    <arg name="with_ceiling" value="false" />
-    <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ceiling.png" />
-    <arg name="min_height_ceiling" value="0.0" />
-    <arg name="max_height_ceiling" value="0.5" />
-    <!-- Only used when fake_feedback=true -->
-    <arg name="elevation_layer" value="elevation_inpainted" />
-    <arg name="ceiling_layer" value="ceiling" />
-    <!-- GridMap -->
-    <arg name="grid_map_topic" value="/grid_map" />
+    <arg name="with_ceiling" value="false"/>
     <!-- ROS bag record (under ~/.ros) -->
     <arg name="rosbag_record" value="false" />
 
     <!-- Launch -->
+    <!-- Config -->
+    <arg name="grid_map_topic" value="/grid_map" />
+    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ground.png" />
+    <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ceiling.png" />
     <!-- GridMap -->
     <group if="$(eval fake_feedback == 1)">
         <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="screen">
@@ -54,17 +43,9 @@
             <param name="with_ceiling" value="$(arg with_ceiling)" />
             <param name="image_topic" value="/image_publisher/image" />
             <param name="image_ceiling_topic" value="/image_ceiling_publisher/image" />
-            <param name="resolution" value="$(arg resolution)" />
             <param name="map_frame_id" value="odom" />
-            <param name="min_height" value="0" />
-            <param name="max_height" value="$(arg max_height)" />
-            <param name="min_height_ceiling" value="$(arg min_height_ceiling)" />
-            <param name="max_height_ceiling" value="$(arg max_height_ceiling)" />
-            <!-- Name -->
             <param name="grid_map_topic" value="$(arg grid_map_topic)" />
-            <param name="elevation_layer" value="$(arg elevation_layer)" />
-            <param name="ceiling_layer" value="$(arg ceiling_layer)" />
-            <rosparam command="load" file="$(find legged_traj_plan_examples)/config/image_to_gridmap.yaml" />
+            <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
         </node>
     </group>
 
@@ -92,6 +73,7 @@
         <param name="ElSpiderAirROS/sim" value="$(arg sim)" />
         <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/$(arg planner_cfg).yaml"/>
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/state_sequence_planner.yaml"/>
+        <param name="StateSequencePlanner/demoPath" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/" />
     </node>
 
     <!-- Robot related -->

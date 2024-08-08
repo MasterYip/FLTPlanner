@@ -5,7 +5,8 @@ StateSequencePlanner:
   cmdExtrapolatePointNum: 50
   cmdExtrapolateDeltaT: 0.01
   navExtrapolateSamplesNum: 100
+  # Demo select
+  # demoPath: # NOTE: offered by launch file
   savePlannedStates: true
-  plannedStatesSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/demos/1_stairs/planned_states
   # Executing saved states on startup
   execSavedStates: true

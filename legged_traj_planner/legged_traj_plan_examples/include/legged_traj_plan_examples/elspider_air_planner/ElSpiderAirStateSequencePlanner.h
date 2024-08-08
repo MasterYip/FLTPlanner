@@ -127,6 +127,11 @@ struct RobotProfile
     geometry_msgs::Twist cmd_vel;
 };
 
+namespace DemoFiles
+{
+    const std::string planned_states = "planned_states";
+};
+
 struct ElSpiderAirStateSequencePlannerConfig
 {
     int rosRate;
@@ -138,9 +143,8 @@ struct ElSpiderAirStateSequencePlannerConfig
     float cmdExtrapolateDeltaT;
     int navExtrapolateSamplesNum;
 
+    std::string demoPath;
     bool savePlannedStates;
-    std::string plannedStatesSavePath;
-
     bool execSavedStates;
 
     void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
@@ -152,8 +156,9 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/cmdExtrapolatePointNum", cmdExtrapolatePointNum);
         check_digit &= nh.getParam(ns + "/cmdExtrapolateDeltaT", cmdExtrapolateDeltaT);
         check_digit &= nh.getParam(ns + "/navExtrapolateSamplesNum", navExtrapolateSamplesNum);
+
+        check_digit &= nh.getParam(ns + "/demoPath", demoPath);
         check_digit &= nh.getParam(ns + "/savePlannedStates", savePlannedStates);
-        check_digit &= nh.getParam(ns + "/plannedStatesSavePath", plannedStatesSavePath);
         check_digit &= nh.getParam(ns + "/execSavedStates", execSavedStates);
         if (!check_digit)
         {
@@ -185,8 +190,6 @@ private:
 
     GridMapCmdVelExtrapolator gridmap_extrapolator_;
     std::vector<Eigen::Vector3f> exp_path_;
-    // cmd_vel extrapolator
-    // nav extrapolator
 
     // Status
     bool motion_lock_ = false;
@@ -234,6 +237,7 @@ public:
 
         if (config_.execSavedStates)
         {
+            ros::Duration(1.0).sleep();
             execRecordStates();
         }
     }
@@ -638,7 +642,7 @@ public:
 
     void saveRecordStates()
     {
-        std::ofstream file(config_.plannedStatesSavePath);
+        std::ofstream file(config_.demoPath + DemoFiles::planned_states, std::ios::binary);
         if (file.is_open())
         {
             std::vector<hexapod_State> record_states = state_sequence_planner_.getRecordStates();
@@ -655,7 +659,7 @@ public:
 
     void execRecordStates()
     {
-        std::ifstream file(config_.plannedStatesSavePath);
+        std::ifstream file(config_.demoPath + DemoFiles::planned_states, std::ios::binary);
         if (file.is_open())
         {
             std::vector<hexapod_State> record_states;
