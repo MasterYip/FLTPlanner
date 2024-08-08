@@ -91,6 +91,10 @@ namespace grid_map_demos
     double minHeightCeiling_;
     double maxHeightCeiling_;
 
+    //! Map position
+    double mapPositionX_;
+    double mapPositionY_;
+
     //! Frame id of the grid map.
     std::string mapFrameId_;
 

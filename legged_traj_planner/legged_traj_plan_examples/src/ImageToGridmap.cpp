@@ -45,6 +45,8 @@ namespace grid_map_demos
     nodeHandle_.param("max_height_ceiling", maxHeightCeiling_, 1.0);
     nodeHandle_.param("map_frame_id", mapFrameId_, std::string("odom"));
     nodeHandle_.param("filter_chain_parameter_name", filterChainParametersName_, std::string("grid_map_filters"));
+    nodeHandle_.param("map_position_x", mapPositionX_, 0.0);
+    nodeHandle_.param("map_position_y", mapPositionY_, 0.0);
     if (!filterChain_.configure(filterChainParametersName_, nodeHandle_))
     {
       ROS_ERROR("Could not configure the filter chain!");
@@ -67,9 +69,7 @@ namespace grid_map_demos
       grid_map::GridMapRosConverter::addLayerFromImage(msg, elevation_layer_name_, map_, minHeight_, maxHeight_);
       grid_map::GridMapRosConverter::addColorLayerFromImage(msg, "color", map_);
       map_.setFrameId(mapFrameId_);
-      // map_.add("normal_x");
-      // map_.add("normal_y");
-      // map_.add("normal_z");
+      map_.setPosition(grid_map::Position(mapPositionX_, mapPositionY_));
 
       // Computation of normals using filterChain_.update function.
       if (!filterChain_.update(map_, map_))
@@ -87,9 +87,7 @@ namespace grid_map_demos
       grid_map::GridMapRosConverter::addLayerFromImage(msg, elevation_layer_name_, map_, minHeight_, maxHeight_);
       grid_map::GridMapRosConverter::addColorLayerFromImage(msg, "color", map_);
       map_.setFrameId(mapFrameId_);
-      // map_.add("normal_x");
-      // map_.add("normal_y");
-      // map_.add("normal_z");
+      map_.setPosition(grid_map::Position(mapPositionX_, mapPositionY_));
 
       // Computation of normals using filterChain_.update function.
       if (!filterChain_.update(map_, map_))
