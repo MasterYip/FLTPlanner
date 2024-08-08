@@ -7,3 +7,5 @@ StateSequencePlanner:
   navExtrapolateSamplesNum: 100
   savePlannedStates: true
   plannedStatesSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/demos/1_stairs/planned_states
+  # Executing saved states on startup
+  execSavedStates: true

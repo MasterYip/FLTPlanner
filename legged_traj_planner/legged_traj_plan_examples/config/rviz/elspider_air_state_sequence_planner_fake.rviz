@@ -461,7 +461,7 @@ Visualization Manager:
       Marker Topic: /elspider_air_state_sequence_planner/visualizer_markers
       Name: ros_viz
       Namespaces:
-        {}
+        curve: true
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -495,7 +495,7 @@ Visualization Manager:
       Min Intensity: 0
       Name: TravMap
       Show Grid Lines: true
-      Topic: /elspider_air_simple_planner/grid_map_trav_test
+      Topic: /elspider_air_state_sequence_planner/grid_map_trav_test
       Unreliable: false
       Use ColorMap: true
       Value: true
@@ -543,9 +543,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7147960066795349
+      Pitch: 0.6247962713241577
       Target Frame: base
-      Yaw: 0.8295459747314453
+      Yaw: 1.0795449018478394
     Saved: ~
 Window Geometry:
   Displays:

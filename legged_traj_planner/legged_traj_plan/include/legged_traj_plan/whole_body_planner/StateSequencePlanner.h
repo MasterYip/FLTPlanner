@@ -36,8 +36,15 @@ private:
     std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
     bool use_cfg_space_;
 
+    bool enable_record_states_;
+    std::vector<hexapod_State> record_states_;
+
 public:
-    StateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+    [[deprecated]] StateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+                                        std::shared_ptr<GridMapInterface> gridmap_interface,
+                                        std::shared_ptr<ElSpiderAirInterface> robot_interface);
+
+    StateSequencePlanner(std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner,
                          std::shared_ptr<GridMapInterface> gridmap_interface,
                          std::shared_ptr<ElSpiderAirInterface> robot_interface);
 
@@ -65,6 +72,16 @@ public:
     void saveBenchmarkResults(void)
     {
         swing_traj_planner_->saveBenchmarkResults();
+    }
+
+    void enableRecordStates(bool enable)
+    {
+        enable_record_states_ = enable;
+    }
+
+    std::vector<hexapod_State> &getRecordStates()
+    {
+        return record_states_;
     }
 
     void visClear()

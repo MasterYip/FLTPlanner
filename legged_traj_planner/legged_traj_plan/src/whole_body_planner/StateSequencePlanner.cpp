@@ -31,8 +31,21 @@ StateSequencePlanner::StateSequencePlanner(SwingTrajPlannerConfig swing_traj_pla
     }
 }
 
+StateSequencePlanner::StateSequencePlanner(std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner,
+                                           std::shared_ptr<GridMapInterface> gridmap_interface,
+                                           std::shared_ptr<ElSpiderAirInterface> robot_interface)
+    : swing_traj_planner_(swing_traj_planner),
+      gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
+      use_cfg_space_(swing_traj_planner->getConfig().useCfgSpace)
+{
+}
+
 bool StateSequencePlanner::enqueue_MCTsolution(hexapod_State state0, hexapod_State state1)
 {
+    if (enable_record_states_)
+    {
+        record_states_.push_back(state0);
+    }
     state_trajs.emplace_back(MCTStateTransfer(state0, state1, swing_traj_planner_, use_cfg_space_));
     return true;
 }
@@ -54,28 +67,3 @@ int StateSequencePlanner::get_state_traj_length()
 {
     return state_trajs.size();
 }
-
-// std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>> StateSequencePlanner::get_foot_traj(double t, int point_num, double delta) {
-//     std::vector<std::vector<double>> default_traj_list(6, std::vector<double>());
-//     std::vector<std::vector<double>> opt_traj_list(6, std::vector<double>());
-//     int index = 0;
-//     while (point_num > 0 && state_trajs.is_valid(index)) {
-//         MCTStateTransfer state_traj = state_trajs.at(index);
-//         while (t < 1 && point_num > 0) {
-//             std::vector<std::vector<double>> foot_pos_list = state_traj.eval_foot_traj(t, false);
-//             for (int j = 0; j < 6; ++j) {
-//                 // FIXME: It is not recommended to use private var
-//                 if (state_traj.opt_check(j) && state_traj.swingtraj_isneeded[j]) {
-//                     opt_traj_list[j].insert(opt_traj_list[j].end(), foot_pos_list[j].begin(), foot_pos_list[j].end());
-//                 } else {
-//                     default_traj_list[j].insert(default_traj_list[j].end(), foot_pos_list[j].begin(), foot_pos_list[j].end());
-//                 }
-//             }
-//             point_num--;
-//             t += delta;
-//         }
-//         index++;
-//         t = 0;
-//     }
-//     return std::make_pair(default_traj_list, opt_traj_list);
-// }

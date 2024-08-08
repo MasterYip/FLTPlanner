@@ -141,6 +141,8 @@ struct ElSpiderAirStateSequencePlannerConfig
     bool savePlannedStates;
     std::string plannedStatesSavePath;
 
+    bool execSavedStates;
+
     void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
     {
         bool check_digit = true;
@@ -152,6 +154,7 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/navExtrapolateSamplesNum", navExtrapolateSamplesNum);
         check_digit &= nh.getParam(ns + "/savePlannedStates", savePlannedStates);
         check_digit &= nh.getParam(ns + "/plannedStatesSavePath", plannedStatesSavePath);
+        check_digit &= nh.getParam(ns + "/execSavedStates", execSavedStates);
         if (!check_digit)
         {
             ROS_ERROR("Failed to load ElSpiderAirStateSequencePlannerConfig.");
@@ -173,13 +176,12 @@ private:
     geometry_msgs::PoseStamped nav_;
 
     // Interface
-    StateSequencePlanner whole_body_planner_;
+    StateSequencePlanner state_sequence_planner_;
 
     // MCTS planner Interface
     MDT::RobotState robot_state_;
     MDT::RobotState next_planned_state_;
     std::vector<MDT::RobotState> planned_states_;
-    std::vector<MDT::RobotState> record_states_; // State recorder for benchmarking
 
     GridMapCmdVelExtrapolator gridmap_extrapolator_;
     std::vector<Eigen::Vector3f> exp_path_;
@@ -200,7 +202,7 @@ private:
 public:
     // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirStateSequencePlanner() : ElSpiderAirPlannerBase(),
-                                        whole_body_planner_(swing_traj_planner_config_, gridmap_interface_, robot_interface_),
+                                        state_sequence_planner_(swing_traj_planner_, gridmap_interface_, robot_interface_),
                                         visualizer_(nh_, "odom", "visualizer_markers"),
                                         visualizer_base_(nh_, "base", "visualizer_markers_base"),
                                         rate_(100)
@@ -210,6 +212,7 @@ public:
         init_time_ = ros::Time::now().toSec();
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirStateSequencePlanner::cmd_callback, this);
         nav_sub_ = nh_.subscribe("/move_base_simple/goal", 1, &ElSpiderAirStateSequencePlanner::nav_callback, this);
+        state_sequence_planner_.enableRecordStates(config_.savePlannedStates);
 
         PosList pose_sample_pts;
         int len = 6;
@@ -228,6 +231,11 @@ public:
         next_planned_state_.initialize();
         update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
         next_planned_state_ = robot_state_;
+
+        if (config_.execSavedStates)
+        {
+            execRecordStates();
+        }
     }
 
     // cmd_vel callback
@@ -239,7 +247,7 @@ public:
         {
             motion_lock_ = true;
             cmd_ = msg;
-            whole_body_planner_.visClear();
+            state_sequence_planner_.visClear();
 
             bool ret = false;
             while (!ret && ros::ok())
@@ -274,17 +282,17 @@ public:
 
             if (ret)
             {
-                whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
-                                                        transRobotState(next_planned_state_));
+                state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                            transRobotState(next_planned_state_));
             }
             else
             {
                 ROS_INFO("MCTS failed to plan, reset to nominal state.");
                 visualizer_base_.visPolytope(robot_interface_->getFootPolyhedra());
-                whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
-                                                        transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
+                state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                            transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
             }
-            state_traj_replay(whole_body_planner_.get_state_traj(0));
+            state_traj_replay(state_sequence_planner_.get_state_traj(0));
             traj_planner();
             motion_lock_ = false;
         }
@@ -298,7 +306,7 @@ public:
         {
             motion_lock_ = true;
             nav_ = msg;
-            whole_body_planner_.visClear();
+            state_sequence_planner_.visClear();
 
             bool ret = false;
             while (!ret && ros::ok())
@@ -335,22 +343,22 @@ public:
 
             if (ret)
             {
-                whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
-                                                        transRobotState(planned_states_.at(0)));
+                state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                            transRobotState(planned_states_.at(0)));
                 for (size_t i = 1; i < planned_states_.size(); ++i)
                 {
-                    whole_body_planner_.enqueue_MCTsolution(transRobotState(planned_states_.at(i - 1)),
-                                                            transRobotState(planned_states_.at(i)));
+                    state_sequence_planner_.enqueue_MCTsolution(transRobotState(planned_states_.at(i - 1)),
+                                                                transRobotState(planned_states_.at(i)));
                 }
             }
             else
             {
                 ROS_INFO("MCTS failed to plan, reset to nominal state.");
                 visualizer_base_.visPolytope(robot_interface_->getFootPolyhedra());
-                whole_body_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
-                                                        transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
+                state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                            transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
             }
-            states_replay(whole_body_planner_);
+            states_replay(state_sequence_planner_);
             traj_planner();
             motion_lock_ = false;
         }
@@ -515,7 +523,7 @@ public:
     {
         double t = 0.0;
         double delta = 0.005;
-        MCTStateTransfer &state_traj = whole_body_planner_.get_state_traj(0);
+        MCTStateTransfer &state_traj = state_sequence_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
@@ -567,13 +575,13 @@ public:
             if (t > 1.0)
             {
                 t = 0.0;
-                whole_body_planner_.dequeue_MCTsolution();
-                if (whole_body_planner_.get_state_traj_length() > 0)
-                    state_traj = whole_body_planner_.get_state_traj(0);
+                state_sequence_planner_.dequeue_MCTsolution();
+                if (state_sequence_planner_.get_state_traj_length() > 0)
+                    state_traj = state_sequence_planner_.get_state_traj(0);
             }
             ros::spinOnce(); // Fetch feedback
             rate_.sleep();
-        } while (whole_body_planner_.get_state_traj_length() > 0);
+        } while (state_sequence_planner_.get_state_traj_length() > 0);
 
         // Stance contact handling
         // ros::Duration(0.4).sleep();
@@ -625,6 +633,59 @@ public:
                 file << profile.support_state[5] << "\n";
             }
         }
+        file.close();
+    }
+
+    void saveRecordStates()
+    {
+        std::ofstream file(config_.plannedStatesSavePath);
+        if (file.is_open())
+        {
+            std::vector<hexapod_State> record_states = state_sequence_planner_.getRecordStates();
+            std::cout << record_states.size() << std::endl;
+            hexapod_State save_states[record_states.size()];
+            for (size_t i = 0; i < record_states.size(); ++i)
+            {
+                save_states[i] = record_states[i];
+            }
+            file.write((char *)save_states, sizeof(hexapod_State) * record_states.size());
+        }
+        file.close();
+    }
+
+    void execRecordStates()
+    {
+        std::ifstream file(config_.plannedStatesSavePath);
+        if (file.is_open())
+        {
+            std::vector<hexapod_State> record_states;
+            hexapod_State *state = new hexapod_State();
+            while (!file.eof())
+            {
+                file.read((char *)state, sizeof(hexapod_State));
+                record_states.push_back(*state);
+            }
+            file.close();
+            record_states.pop_back(); // FIXME: the last one is invalid
+            ROS_INFO("Loaded record states: %d", record_states.size());
+            if (record_states.size() > 1)
+            {
+                for (size_t i = 0; i < record_states.size() - 1; ++i)
+                {
+                    state_sequence_planner_.enqueue_MCTsolution(record_states[i], record_states[i + 1]);
+                }
+                traj_planner();
+                return;
+            }
+            else
+            {
+                ROS_WARN("No record states loaded.");
+            }
+        }
+        else
+        {
+            ROS_WARN("Failed to open record states file.");
+        }
     }
 
     void run()
@@ -636,10 +697,15 @@ public:
         if (swing_traj_planner_config_.enableBenchmark)
         {
             std::cout << "Save benchmark results..." << std::endl;
-            whole_body_planner_.saveBenchmarkResults();
+            state_sequence_planner_.saveBenchmarkResults();
             std::cout << "Save robot profile..." << std::endl;
             saveRobotProfile();
             std::cout << "Benchmark results and robot profile saved." << std::endl;
+        }
+        if (config_.savePlannedStates)
+        {
+            saveRecordStates();
+            std::cout << "Save planned states." << std::endl;
         }
     }
 };
