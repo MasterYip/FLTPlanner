@@ -26,7 +26,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: SDF
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -435,7 +435,7 @@ Visualization Manager:
         Min Value: -10
         Value: true
       Axis: Z
-      Channel Name: z
+      Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 255
       Color Transformer: Intensity
@@ -451,7 +451,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /elspider_air_simple_planner/sdf/occupied_space
+      Topic: /elspider_air_state_sequence_planner/sdf/occupied_space
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -527,7 +527,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.5464469194412231
+      Distance: 1.732020616531372
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -535,17 +535,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.32295435667037964
-        Y: -0.028449930250644684
-        Z: 0.014802396297454834
+        X: 0.25315678119659424
+        Y: -0.10324786603450775
+        Z: -0.06110086664557457
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6247962713241577
+      Pitch: 0.5297960042953491
       Target Frame: base
-      Yaw: 1.0795449018478394
+      Yaw: 5.32954740524292
     Saved: ~
 Window Geometry:
   Displays:

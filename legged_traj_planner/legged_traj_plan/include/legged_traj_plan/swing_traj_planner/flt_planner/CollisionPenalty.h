@@ -220,6 +220,7 @@ public:
             gradPcoll = -df * sdfGrad / sdfGrad.norm();
             Eigen::Vector3d dg = weight_(2) * velnorm * J.transpose() *
                                  ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
+            // FIXME: avoid Nan
             // NaN check
             if (isnan(dg(0)) || isnan(dg(1)) || isnan(dg(2)))
                 std::cout << "Warning: dg is " << dg.transpose() << std::endl;
