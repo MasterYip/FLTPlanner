@@ -218,8 +218,13 @@ public:
             kappa = 1 / (velnorm * velnorm) * (I - veldir * veldir.transpose()) * acc;
             sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
             gradPcoll = -df * sdfGrad / sdfGrad.norm();
-            gradPosCfg += weight_(2) * velnorm * J.transpose() *
-                          ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
+            Eigen::Vector3d dg = weight_(2) * velnorm * J.transpose() *
+                                 ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
+            // NaN check
+            if (isnan(dg(0)) || isnan(dg(1)) || isnan(dg(2)))
+                std::cout << "Warning: dg is " << dg.transpose() << std::endl;
+            else
+                gradPosCfg += dg;
             pena += weight_(2) * f * velnorm;
             if (enable_vis_)
             {
@@ -244,8 +249,13 @@ public:
             kappa = 1 / (velnorm * velnorm) * (I - veldir * veldir.transpose()) * acc;
             sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
             gradPcoll = -df * sdfGrad / sdfGrad.norm();
-            gradPosCfg += weight_(1) * velnorm * J.transpose() *
-                          ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
+            Eigen::Vector3d dg = weight_(1) * velnorm * J.transpose() *
+                                 ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
+            // NaN check
+            if (isnan(dg(0)) || isnan(dg(1)) || isnan(dg(2)))
+                std::cout << "Warning: dg is " << dg.transpose() << std::endl;
+            else
+                gradPosCfg += dg;
             pena += weight_(1) * f * velnorm;
             if (enable_vis_)
             {
