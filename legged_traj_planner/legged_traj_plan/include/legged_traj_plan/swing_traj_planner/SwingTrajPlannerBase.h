@@ -1,12 +1,12 @@
 /**
  * @file SwingTrajPlannerBase.h
  * @author Master Yip (2205929492@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-08-07
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #pragma once
@@ -236,10 +236,10 @@ public:
         for (auto result : benchmark_results_)
         {
             file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
-                 << result.tot_time << ", ";
+                 << result.tot_time;
             for (auto data : result.custom_data)
             {
-                file << data << ", ";
+                file << ", " << data;
             }
             file << std::endl;
         }
