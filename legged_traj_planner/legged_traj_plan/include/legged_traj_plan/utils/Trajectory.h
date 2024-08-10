@@ -33,7 +33,7 @@ public:
     /**
      * @brief Evaluate the trajectory at t.
      *
-     * @param t normalized interpolation parameter
+     * @param t interpolation parameter
      * @param d_order derivative order (0 for position, 1 for velocity, etc.)
      * @param normalized whether to use normalized parameter t
      * @return Eigen::VectorXd
@@ -42,6 +42,12 @@ public:
     {
         throw std::runtime_error("Not implemented");
         return Eigen::VectorXd::Zero(3);
+    }
+
+    virtual double getTotalDuration() const
+    {
+        throw std::runtime_error("Not implemented");
+        return 0;
     }
 };
 
@@ -194,6 +200,11 @@ public:
             return traj_.getJer(t);
         else
             throw std::runtime_error("Invalid derivative order");
+    }
+
+    double getTotalDuration() const override
+    {
+        return traj_.getTotalDuration();
     }
 
     void getInitCondition(std::vector<Point3D> &poly_path,

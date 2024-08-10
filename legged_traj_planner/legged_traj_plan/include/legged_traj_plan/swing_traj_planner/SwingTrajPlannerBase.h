@@ -232,7 +232,7 @@ public:
             std::cerr << "Failed to open file: " << config_.benchmarkSavePath << std::endl;
             return;
         }
-        file << "normalTime, criticalTime, miscTime, totTime, optRetType" << std::endl;
+        file << "normalTime, criticalTime, miscTime, totTime, optRetType, totTime" << std::endl;
         for (auto result : benchmark_results_)
         {
             file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
@@ -269,6 +269,7 @@ public:
         bool ret = optTrajHook(traj, pose0, pose1, index);
         benchmark_.record("optTraj");
         benchmark_.addCustomData(ret);
+        benchmark_.addCustomData(traj->getTotalDuration());
         benchmark_.end();
         benchmark_results_.emplace_back(benchmark_.getResult());
         return ret;
