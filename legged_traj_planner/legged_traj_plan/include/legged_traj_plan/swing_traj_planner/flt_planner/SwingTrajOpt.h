@@ -227,7 +227,8 @@ private:
         const int pieceNum = T.size();
         const double total_time = T.sum();
         const double integralFrac = 1.0 / integralResolution;
-        double time = 0.0;
+        double pieceTime = 0.0;
+        double time;
 
         // Temp vis
         std::vector<Eigen::Vector3d> visTraj;
@@ -240,7 +241,7 @@ private:
             step = T(i) * integralFrac;
             for (int j = 0; j <= integralResolution; j++)
             {
-                time += step;
+                time = pieceTime + j * step;
                 // Derivatives of traj
                 s1 = j * step;
                 s2 = s1 * s1;
@@ -309,6 +310,7 @@ private:
                              node * integralFrac * pena);
                 cost += node * step * pena;
             }
+            pieceTime += T(i);
         }
         // Visualizer
         if (obj.enable_vis_)
