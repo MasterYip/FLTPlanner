@@ -18,11 +18,10 @@
 
 /* internal project header files */
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
-#include "legged_traj_plan/utils/CircleQueue.h"
-#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
-#include "legged_traj_plan/swing_traj_planner/rrt_planner/RRTPlanner.h"
 #include "legged_traj_plan/whole_body_planner/MCTStateTransfer.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/rrt_planner/RRTPlanner.h"
 
 /* external project header files */
 #include <geometry_msgs/Twist.h>

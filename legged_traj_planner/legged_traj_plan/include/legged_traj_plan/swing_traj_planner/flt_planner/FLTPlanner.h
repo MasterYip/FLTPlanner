@@ -16,15 +16,11 @@
 /* c system header files */
 
 /* c++ standard library header files */
-#include <memory>
+
 /* external project header files */
-#include <Eigen/Dense>
+
 /* internal project header files */
-#include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/swing_traj_planner/SwingTrajPlannerBase.h"
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
-#include "legged_traj_plan/perception_interface/GridMapInterface.h"
-#include "legged_traj_search/utils/gcs_visualizer.hpp"
 #include "SwingTrajOpt.h"
 
 using namespace geo_utils;

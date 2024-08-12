@@ -19,9 +19,9 @@
 
 /* internal project header files */
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
-#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
-#include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "CmdVelExtrapolator.h"
+#include "legged_traj_plan/perception_interface/GridMapInterface.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 /* external project header files */
 
 class LegSwitchScheduler

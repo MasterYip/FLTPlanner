@@ -24,6 +24,7 @@
 #include <geometry_msgs/Twist.h>
 
 /* internal project header files */
+#include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 
 
