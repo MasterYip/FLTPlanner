@@ -104,9 +104,9 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
     return false;
 }
 
-bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path, const int samples)
+bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path, const int samples,
+                                            double key_point_criteria, double margin)
 {
-    double key_point_criteria = 0.001; // FIXME: magic number
     int size = path.size();
 
     for (int i = size - 2; i >= 0; i--)
@@ -128,11 +128,11 @@ bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path, const in
             diffs[0] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j - 1].head(2))) - sample_points[j - 1][2];
             diffs[1] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j].head(2))) - sample_points[j][2];
             diffs[2] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j + 1].head(2))) - sample_points[j + 1][2];
-            if (diffs[1] > key_point_criteria &&
-                diffs[1] - diffs[0] > key_point_criteria &&
-                diffs[1] - diffs[2] > key_point_criteria)
+            if (diffs[1] > 0 &&
+                (diffs[1] - diffs[0]) / (Eigen::Vector2d(sample_points[j].head(2) - sample_points[j - 1].head(2))).norm() > key_point_criteria &&
+                (diffs[1] - diffs[2]) / (Eigen::Vector2d(sample_points[j + 1].head(2) - sample_points[j].head(2))).norm() > key_point_criteria)
             {
-                key_points.emplace_back(Eigen::Vector3d(sample_points[j][0], sample_points[j][1], sample_points[j][2] + diffs[1]));
+                key_points.emplace_back(Eigen::Vector3d(sample_points[j][0], sample_points[j][1], sample_points[j][2] + diffs[1] + margin));
             }
         }
         // Remove the key points that are local minimum
@@ -184,7 +184,7 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     path.back() = goal;
 
     benchmark_.record("Insert Vertical Key Point", RecordType::CRITICAL);
-    insertVerticalKeyPoint(path, 20);
+    insertVerticalKeyPoint(path, 20, 0.2, 0.05);
 
     benchmark_.end();
     return true;

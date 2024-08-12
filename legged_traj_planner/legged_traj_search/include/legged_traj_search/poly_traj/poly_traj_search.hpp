@@ -60,7 +60,9 @@ public:
     bool search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
     bool searchStringStraining(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
     // Traj Init
-    bool insertVerticalKeyPoint(std::vector<Point3D> &path, const int samples = 20);
+    bool insertVerticalKeyPoint(std::vector<Point3D> &path, const int samples = 20,
+                                double key_point_criteria = 0.2,
+                                double margin = 0.05);
     // Getters
     // Data
     GridPolyLine getBorder() const { return border_; }
