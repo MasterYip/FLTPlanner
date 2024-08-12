@@ -208,6 +208,22 @@ bool FLTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 ////////////////////
 // FLTCfgPlanner
 
+/**
+ * @brief Orthogonal disk randomize
+ * @note Return a randomized vector \bar{r} given a normal vector \bar{n}, the \bar{r} is orthogonal to \bar{n}
+ * @param normal
+ * @param radius
+ * @return Eigen::Vector3d
+ */
+Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double radius)
+{
+    Eigen::Vector3d random = Eigen::Vector3d::Random();
+    random.normalize();
+    Eigen::Vector3d tangent = random - random.dot(normal) * normal;
+    return radius * tangent;
+}
+
+
 FLTCfgPlanner::FLTCfgPlanner(SwingTrajPlannerConfig config,
                              std::shared_ptr<ElSpiderAirInterface> robot_interface,
                              std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
@@ -263,8 +279,16 @@ std::shared_ptr<MincoTrajectory> FLTCfgPlanner::getDefaultCfgTraj(const pinocchi
 
     // Get start and goal velocity in config space
     // NOTE: the vel is in BASE frame, not in WORLD frame
-    Eigen::Vector3d start_vel = Eigen::Vector3d(0, 0, config_.vLift);
-    Eigen::Vector3d goal_vel = Eigen::Vector3d(0, 0, -config_.vLift);
+    Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
+    normal.normalize();
+    if (config_.enableLiftRandomize)
+        normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
+    Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * config_.vLift); // Base frame
+    normal = gridmap_interface_->sdfDerivative(p1, 0);
+    normal.normalize();
+    if (config_.enableLiftRandomize)
+        normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
+    Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * config_.vLift); // Base frame
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_traj.front(), index);
     Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
     start_vel = J_inv * start_vel;
@@ -385,21 +409,6 @@ bool FLTCfgPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
     Point3D base_pt = point_SE3Act(pose1, poly_path.back());
     cfg_poly_traj.emplace_back(robot_interface_->IKFast_foot(base_pt, index));
     return true;
-}
-
-/**
- * @brief Orthogonal disk randomize
- * @note Return a randomized vector \bar{r} given a normal vector \bar{n}, the \bar{r} is orthogonal to \bar{n}
- * @param normal
- * @param radius
- * @return Eigen::Vector3d
- */
-Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double radius)
-{
-    Eigen::Vector3d random = Eigen::Vector3d::Random();
-    random.normalize();
-    Eigen::Vector3d tangent = random - random.dot(normal) * normal;
-    return radius * tangent;
 }
 
 /**
