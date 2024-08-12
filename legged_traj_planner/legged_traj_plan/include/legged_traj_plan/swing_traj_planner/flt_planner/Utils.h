@@ -16,9 +16,9 @@
 /* c system header files */
 
 /* c++ standard library header files */
-#include <iostream>
+
 /* external project header files */
-#include <ros/ros.h>
+
 /* internal project header files */
 
 /**

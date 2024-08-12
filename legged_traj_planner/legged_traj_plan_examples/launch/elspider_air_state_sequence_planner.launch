@@ -3,11 +3,12 @@
 
     <!-- Demo Select -->
     <!-- 1_stairs / 2_stairs / 3_quincuncial_piles -->
-    <arg name="demo_name" default="3_quincuncial_piles" />
+    <arg name="demo_name" default="2_stairs" />
     <!-- Planner Select -->
+    <!-- height_clear_planner -->
     <!-- flt_planner / flt_cfg_planner -->
     <!-- rrt_planner / rrt_cfg_planner -->
-    <arg name="planner_cfg" default="flt_cfg_planner" />
+    <arg name="planner_cfg" default="height_clear_planner" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->

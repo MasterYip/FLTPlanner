@@ -26,6 +26,7 @@
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 
 #include "legged_traj_plan/swing_traj_planner/SwingTrajPlannerBase.h"
+#include "legged_traj_plan/swing_traj_planner/simple_planner/SimplePlanner.h"
 #include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 #include "legged_traj_plan/swing_traj_planner/rrt_planner/RRTPlanner.h"
 
@@ -110,6 +111,10 @@ public:
         else if (swing_traj_planner_config_.plannerID == 2)
         {
             swing_traj_planner_ = std::make_shared<SwingCfgTrajPlannerRRT>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
+        }
+        else if (swing_traj_planner_config_.plannerID == 3)
+        {
+            swing_traj_planner_ = std::make_shared<HeightClearPlanner>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
         }
         else
         {

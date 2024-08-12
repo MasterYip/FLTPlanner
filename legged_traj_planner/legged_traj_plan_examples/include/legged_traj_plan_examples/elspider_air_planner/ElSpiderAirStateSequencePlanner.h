@@ -684,7 +684,7 @@ public:
             }
             file.close();
             record_states.pop_back(); // FIXME: the last one is invalid
-            ROS_INFO("Loaded record states: %d", record_states.size());
+            ROS_INFO("Loaded record states: %ld", record_states.size());
             if (record_states.size() > 1)
             {
                 for (size_t i = 0; i < record_states.size() - 1; ++i)

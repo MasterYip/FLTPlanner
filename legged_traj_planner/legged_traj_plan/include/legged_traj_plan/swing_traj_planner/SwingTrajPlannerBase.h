@@ -176,7 +176,11 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("RRTCfgPlanner/joint3PosMin", joint3PosMin);
             check_digit *= nh.getParam("RRTCfgPlanner/joint3PosMax", joint3PosMax);
         }
-
+        //// ID[3] HeightClearPlannerSettings
+        else if (plannerID == 3)
+        {
+            
+        }
         if (!check_digit)
         {
             ROS_ERROR("Not all parameters loaded successfully!");

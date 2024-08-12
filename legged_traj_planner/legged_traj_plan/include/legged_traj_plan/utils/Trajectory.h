@@ -46,7 +46,7 @@ public:
 
     virtual double getTotalDuration() const
     {
-        throw std::runtime_error("Not implemented");
+        printf("getTotalDuration() not implemented\n");
         return 0;
     }
 };

@@ -34,7 +34,6 @@ const Eigen::MatrixXd UNIB_COE_MAT = (Eigen::MatrixXd(4, 4) << 1, 4, 1, 0,
                                          .finished() /
                                      6;
 
-
 const Eigen::MatrixXd HERMITE_COE_MAT = (Eigen::MatrixXd(4, 4) << 1, 0, 0, 0,
                                          0, 1, 0, 0,
                                          -3, -2, 3, -1,
@@ -133,7 +132,7 @@ private:
 
 public:
     // FIXME: add default constructor
-    UniBSpline(){};
+    UniBSpline() {};
 
     UniBSpline(const Eigen::MatrixXd &params, int k = 3) : k_(k)
     {
@@ -207,6 +206,99 @@ public:
     Eigen::VectorXd get_end() const override
     {
         return params_.row(n - 1);
+    }
+
+    template <typename T>
+    bool getTrajSamples(std::vector<T> &samples, int sample_num)
+    {
+        if (sample_num < 2)
+        {
+            std::cerr << "Sample number should be at least 2" << std::endl;
+            return false;
+        }
+        samples.clear();
+        for (int i = 0; i < sample_num; i++)
+        {
+            samples.emplace_back(evaluate(i * (t_range_.second - t_range_.first) / (sample_num - 1) + t_range_.first));
+        }
+        return true;
+    }
+};
+
+class CubicHermiteSpline : public SplineBase
+{
+private:
+    int n_;                                       // node count
+    int dimen_;                                   // Dimension of the spline
+    Eigen::MatrixXd params_;                      // Parameters of the spline(nodes in rows)
+    Eigen::MatrixXd coeff_mat_ = HERMITE_COE_MAT; // Coefficient matrix for Cubic Hermite Spline
+    std::pair<double, double> t_range_;           // Range of parameter t
+public:
+    CubicHermiteSpline() {};
+
+    CubicHermiteSpline(const Eigen::MatrixXd &params)
+    {
+        set(params);
+    }
+
+    void set(const Eigen::MatrixXd &params) override
+    {
+        this->params_ = params;
+        n_ = params.rows() / 2;
+        dimen_ = params.cols();
+        t_range_ = std::make_pair(0, n_ - 1);
+    }
+
+    Eigen::MatrixXd get() const override
+    {
+        return params_;
+    }
+
+    virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
+    {
+        // convert normalized t to real t
+        if (normalized)
+        {
+            t = t * (t_range_.second - t_range_.first) + t_range_.first;
+        }
+
+        if (t < t_range_.first || t > t_range_.second)
+        {
+            std::cerr << "Warning: Parameter t out of range" << std::endl;
+            // Saturation
+            if (t < t_range_.first)
+                t = t_range_.first;
+            if (t > t_range_.second)
+                t = t_range_.second;
+        }
+
+        int i = floor(t);
+        Eigen::MatrixXd knots = Eigen::MatrixXd::Zero(4, dimen_);
+        knots.row(0) = params_.row(i * 2);
+        knots.row(1) = params_.row(i * 2 + 1);
+        knots.row(2) = params_.row(i * 2 + 2);
+        knots.row(3) = params_.row(i * 2 + 3);
+        return cubic_evaluate(coeff_mat_, knots, t - i, d_order);
+    }
+
+    std::pair<double, double> get_range() const override
+    {
+        return t_range_;
+    }
+
+    int get_dimen() const override
+    {
+        return dimen_;
+    }
+
+    Eigen::VectorXd get_start() const override
+    {
+        return params_.row(0);
+    }
+
+    Eigen::VectorXd get_end() const override
+    {
+        return params_.row(n_ * 2 - 1);
     }
 
     template <typename T>
