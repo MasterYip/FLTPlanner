@@ -295,40 +295,27 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     PolyTrajSearch poly_traj_search(corridor, gridmap_interface_->getMap(),
                                     gridmap_interface_->getGroundLayerName(),
                                     gridmap_interface_->getCeilingLayerName(), true, false);
+    bool ret_endpoint = poly_traj_search.endpointValid(p0, p1);
+    bool ret_reachable = poly_traj_search.reachable(p0, p1);
+    bool ret_search = poly_traj_search.search(p0, p1, poly_traj);
+    gridmap_interface_->unlockMapUpdate();
+
+    if (verbose)
+    {
+        if (!ret_endpoint)
+            std::cout << "Warning: poly_traj_search.endpointValid failed (leg " << index << ")" << std::endl;
+        if (!ret_reachable)
+            std::cout << "Warning: poly_traj_search.reachable failed" << std::endl;
+        if (!ret_search)
+            std::cout << "Warning: poly_traj_search.search failed" << std::endl;
+        // BUG: if is reachable then it must be able to find a path, this failure should not happen
+    }
+
     if (config_.enableVis)
     {
         // Polytope
         visualizer_->setIdGroup(1);
         visualizer_->visPolytope(corridor.getCorridor());
-    }
-
-    if (!poly_traj_search.endpointValid(p0, p1))
-    {
-        if (verbose)
-            std::cout << "Warning: poly_traj_search.endpointValid failed (leg " << index << ")" << std::endl;
-        return false;
-    }
-    if (!poly_traj_search.reachable(p0, p1))
-    {
-        if (verbose)
-            std::cout << "Warning: poly_traj_search.reachable failed" << std::endl;
-        return false;
-    }
-    if (!poly_traj_search.search(p0, p1, poly_traj))
-    {
-        // BUG: if is reachable then it must be able to find a path, this failure should not happen
-        if (verbose)
-            std::cout << "Warning: poly_traj_search.search failed" << std::endl;
-        return false;
-    }
-    gridmap_interface_->unlockMapUpdate();
-
-    if (config_.enableVis)
-    {
-        visualizer_->setIdGroup(1);
-        // Polytope
-        // visualizer_->visPolytope(corridor.getCorridor());
-        // Start Goal
         visualizer_->visSphere(p0, 0.02);
         visualizer_->visSphere(p1, 0.02);
         // Border
@@ -349,7 +336,7 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         visualizer_->visCurve(poly_traj, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.02));
     }
 
-    return true;
+    return ret_endpoint && ret_reachable && ret_search;
 }
 
 bool FLTCfgPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,

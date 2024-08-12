@@ -160,7 +160,7 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/navExtrapolateSamplesNum", navExtrapolateSamplesNum);
 
         check_digit &= nh.getParam(ns + "/swingTrajPreOpt", swingTrajPreOpt);
-        
+
         check_digit &= nh.getParam(ns + "/demoPath", demoPath);
         check_digit &= nh.getParam(ns + "/savePlannedStates", savePlannedStates);
         check_digit &= nh.getParam(ns + "/execSavedStates", execSavedStates);
@@ -533,7 +533,7 @@ public:
         double t = 0.0;
         double delta = 0.005;
 
-        if(config_.swingTrajPreOpt)
+        if (config_.swingTrajPreOpt)
         {
             benchmark_.reset();
             state_sequence_planner_.optSwingTraj();
@@ -593,6 +593,7 @@ public:
             if (t > 1.0)
             {
                 t = 0.0;
+                state_sequence_planner_.visClear();
                 state_sequence_planner_.dequeue_MCTsolution();
                 if (state_sequence_planner_.get_state_traj_length() > 0)
                     state_traj = state_sequence_planner_.get_state_traj(0);
