@@ -129,8 +129,7 @@ bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path, const in
             diffs[1] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j].head(2))) - sample_points[j][2];
             diffs[2] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j + 1].head(2))) - sample_points[j + 1][2];
             if (diffs[1] > 0 &&
-                (diffs[1] - diffs[0]) / (Eigen::Vector2d(sample_points[j].head(2) - sample_points[j - 1].head(2))).norm() > key_point_criteria &&
-                (diffs[1] - diffs[2]) / (Eigen::Vector2d(sample_points[j + 1].head(2) - sample_points[j].head(2))).norm() > key_point_criteria)
+                (2 * diffs[1] - diffs[0] - diffs[2]) / (Eigen::Vector2d(sample_points[j + 1].head(2) - sample_points[j - 1].head(2))).norm() > key_point_criteria)
             {
                 key_points.emplace_back(Eigen::Vector3d(sample_points[j][0], sample_points[j][1], sample_points[j][2] + diffs[1] + margin));
             }
@@ -138,7 +137,7 @@ bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path, const in
         // Remove the key points that are local minimum
         for (int j = key_points.size() - 1; j > 0; j--)
         {
-            if (key_points[j][2] < key_points[j - 1][2] && key_points[j][2] < key_points[j + 1][2])
+            if (2 * key_points[j][2] < key_points[j - 1][2] + key_points[j + 1][2])
             {
                 key_points.erase(key_points.begin() + j);
             }
