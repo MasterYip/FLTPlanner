@@ -11,16 +11,6 @@
 
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
-PolyTrajSearch::PolyTrajSearch(IntersectBorder &intersect_border,
-                               const bool enable_benchmark)
-    : poly_corridor_(intersect_border.getPolyCorridor()),
-      map_(intersect_border.getBorderCheck().getMap()),
-      index_remap_(intersect_border.getBorderCheck().getIndexRemap()),
-      border_check_(intersect_border.getBorderCheck()),
-      intersect_border_(intersect_border),
-      benchmark_("PolyTrajSearch", enable_benchmark)
-{
-}
 
 PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
                                const grid_map::GridMap &map,
@@ -28,21 +18,28 @@ PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
                                const std::string ceiling_layer,
                                const bool enable_ground,
                                const bool enable_ceiling,
-                               const bool enable_benchmark) : poly_corridor_(poly_corridor),
-                                                              map_(map),
+                               const bool enable_benchmark) : map_(map),
                                                               index_remap_(map),
                                                               border_check_(poly_corridor, map, ground_layer, ceiling_layer, enable_ground, enable_ceiling),
-                                                              intersect_border_(poly_corridor_, border_check_),
+                                                              intersect_border_(border_check_),
                                                               benchmark_("PolyTrajSearch", enable_benchmark)
 {
 }
+
+PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
+                               const grid_map::GridMap &map,
+                               const PolyTrajSearchConfig config) : map_(map),
+                                                                    index_remap_(map),
+                                                                    border_check_(poly_corridor, map, config.ground_layer, config.ceiling_layer, config.enable_ground, config.enable_ceiling),
+                                                                    intersect_border_(border_check_),
+                                                                    benchmark_("PolyTrajSearch", config.enable_benchmark) {}
 
 bool PolyTrajSearch::endpointValid(const Point3D &start, const Point3D &goal)
 {
     GridPt start_2d = index_remap_.pos2Grid(start.head(2));
     GridPt goal_2d = index_remap_.pos2Grid(goal.head(2));
-    return intersect_border_.getBorderCheck().isStartValid(start_2d) &&
-           intersect_border_.getBorderCheck().isGoalValid(goal_2d);
+    return border_check_.isStartValid(start_2d) &&
+           border_check_.isGoalValid(goal_2d);
 }
 
 bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)

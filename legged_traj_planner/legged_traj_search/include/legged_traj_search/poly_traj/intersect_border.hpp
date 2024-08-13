@@ -104,19 +104,7 @@ private:
     BorderCheck &border_check_;
 
 public:
-    [[deprecated]] IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &border_check);
-
     IntersectBorder(BorderCheck &border_check);
 
     bool getIntersectBorder(const GridPt &start, const GridPt &goal, GridPolyLine &border, int max_iter = 2000);
-
-    PolyCorridor &getPolyCorridor()
-    {
-        return border_check_.getPolyCorridor();
-    }
-
-    BorderCheck &getBorderCheck()
-    {
-        return border_check_;
-    }
 };

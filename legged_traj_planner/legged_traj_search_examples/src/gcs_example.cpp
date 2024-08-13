@@ -148,11 +148,10 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
                                   bool use_string_straining = false)
 {
     // Init
-    // TODO: add enable ceiling
     PolyCorridor poly_corridor(polys, start3d, goal3d);
-    BorderCheck border_check(poly_corridor, map_, "elevation");
-    IntersectBorder intersect_border(poly_corridor, border_check);
-    PolyTrajSearch poly_traj_search(intersect_border, true);
+    PolyTrajSearchConfig config;
+    config.enable_benchmark = true;
+    PolyTrajSearch poly_traj_search(poly_corridor, map_, config);
     std::vector<Point3D> path;
 
     // Check validity
@@ -164,17 +163,17 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     Point start = start3d.head(2);
     Point goal = goal3d.head(2);
     GridPt start_idx, goal_idx;
-    start_idx = border_check.getIndexRemap().pos2Grid(start);
-    goal_idx = border_check.getIndexRemap().pos2Grid(goal);
+    start_idx = poly_traj_search.getIndexRemap().pos2Grid(start);
+    goal_idx = poly_traj_search.getIndexRemap().pos2Grid(goal);
     // map_.getIndex(start, start_idx);
     // map_.getIndex(goal, goal_idx);
     Point3D start3d_grid, goal3d_grid;
     // start3d_grid.head(2) = getPos(start_idx);
-    start3d_grid.head(2) = border_check.getIndexRemap().grid2Pos(start_idx);
-    start3d_grid[2] = border_check.queryHeight(start_idx);
+    start3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(start_idx);
+    start3d_grid[2] = poly_traj_search.getBorderCheck().queryHeight(start_idx);
     // goal3d_grid.head(2) = getPos(goal_idx);
-    goal3d_grid.head(2) = border_check.getIndexRemap().grid2Pos(goal_idx);
-    goal3d_grid[2] = border_check.queryHeight(goal_idx);
+    goal3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(goal_idx);
+    goal3d_grid[2] = poly_traj_search.getBorderCheck().queryHeight(goal_idx);
     gcs_visualizer_.visSphere(start3d_grid, 0.01);
     gcs_visualizer_.visSphere(goal3d_grid, 0.01);
     gcs_visualizer_.visSphere(start3d, 0.02);
@@ -193,7 +192,7 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     {
         Point3D pos;
         Eigen::Vector2d posxy;
-        pos[2] = border_check.queryHeight(border.at(i));
+        pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
         map_.getPosition(border.at(i), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();
@@ -209,8 +208,8 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     {
         Point3D pos;
         // pos.head(2) = getPos(pt);
-        pos.head(2) = border_check.getIndexRemap().grid2Pos(pt);
-        pos[2] = border_check.queryHeight(pt);
+        pos.head(2) = poly_traj_search.getIndexRemap().grid2Pos(pt);
+        pos[2] = poly_traj_search.getBorderCheck().queryHeight(pt);
         concave_pts.push_back(pos);
     }
     gcs_visualizer_.visSphere(concave_pts, 0.03);
@@ -251,10 +250,10 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
                         {
                             // pos1.head(2) = getPos(vis_graph.getPt(i));
                             // pos2.head(2) = getPos(vis_graph.getPt(j));
-                            pos1.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(i));
-                            pos2.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(j));
-                            pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
-                            pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
+                            pos1.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(i));
+                            pos2.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(j));
+                            pos1[2] = poly_traj_search.getBorderCheck().queryHeight(vis_graph.getPt(i));
+                            pos2[2] = poly_traj_search.getBorderCheck().queryHeight(vis_graph.getPt(j));
                             mesh.push_back(pos1);
                             mesh.push_back(pos2);
                         }
@@ -301,11 +300,8 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
                                       bool use_string_straining = false)
 {
     // Init
-    // TODO: add enable ceiling
     PolyCorridor poly_corridor(polys, start3d, goal3d);
-    BorderCheck border_check(poly_corridor, map_, "elevation");
-    IntersectBorder intersect_border(poly_corridor, border_check);
-    PolyTrajSearch poly_traj_search(intersect_border, true);
+    PolyTrajSearch poly_traj_search(poly_corridor, map_);
     std::vector<Point3D> path;
 
     // Check validity
@@ -317,17 +313,17 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
     Point start = start3d.head(2);
     Point goal = goal3d.head(2);
     GridPt start_idx, goal_idx;
-    start_idx = border_check.getIndexRemap().pos2Grid(start);
-    goal_idx = border_check.getIndexRemap().pos2Grid(goal);
+    start_idx = poly_traj_search.getIndexRemap().pos2Grid(start);
+    goal_idx = poly_traj_search.getIndexRemap().pos2Grid(goal);
     // map_.getIndex(start, start_idx);
     // map_.getIndex(goal, goal_idx);
     Point3D start3d_grid, goal3d_grid;
     // start3d_grid.head(2) = getPos(start_idx);
-    start3d_grid.head(2) = border_check.getIndexRemap().grid2Pos(start_idx);
-    start3d_grid[2] = border_check.queryHeight(start_idx);
+    start3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(start_idx);
+    start3d_grid[2] = poly_traj_search.getBorderCheck().queryHeight(start_idx);
     // goal3d_grid.head(2) = getPos(goal_idx);
-    goal3d_grid.head(2) = border_check.getIndexRemap().grid2Pos(goal_idx);
-    goal3d_grid[2] = border_check.queryHeight(goal_idx);
+    goal3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(goal_idx);
+    goal3d_grid[2] = poly_traj_search.getBorderCheck().queryHeight(goal_idx);
     gcs_visualizer_.visSphere(start3d_grid, 0.01);
     gcs_visualizer_.visSphere(goal3d_grid, 0.01);
     gcs_visualizer_.visSphere(start3d, 0.02);
@@ -346,7 +342,7 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
     {
         Point3D pos;
         Eigen::Vector2d posxy;
-        pos[2] = border_check.queryHeight(border.at(i));
+        pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
         map_.getPosition(border.at(i), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();
@@ -362,8 +358,8 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
     {
         Point3D pos;
         // pos.head(2) = getPos(pt);
-        pos.head(2) = border_check.getIndexRemap().grid2Pos(pt);
-        pos[2] = border_check.queryHeight(pt);
+        pos.head(2) = poly_traj_search.getIndexRemap().grid2Pos(pt);
+        pos[2] = poly_traj_search.getBorderCheck().queryHeight(pt);
         concave_pts.push_back(pos);
     }
     gcs_visualizer_.visSphere(concave_pts, 0.03);
@@ -404,10 +400,10 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
                         {
                             // pos1.head(2) = getPos(vis_graph.getPt(i));
                             // pos2.head(2) = getPos(vis_graph.getPt(j));
-                            pos1.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(i));
-                            pos2.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(j));
-                            pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
-                            pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
+                            pos1.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(i));
+                            pos2.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(j));
+                            pos1[2] = poly_traj_search.getBorderCheck().queryHeight(vis_graph.getPt(i));
+                            pos2[2] = poly_traj_search.getBorderCheck().queryHeight(vis_graph.getPt(j));
                             mesh.push_back(pos1);
                             mesh.push_back(pos2);
                         }
@@ -503,7 +499,7 @@ void GCS_Example::eg_guide_surface()
     map_pub_.publish(gm_message);
 
     BorderCheck border_check(corridor, map_, "elevation", "ceiling", false, false);
-    IntersectBorder intersect_border(corridor, border_check);
+    IntersectBorder intersect_border(border_check);
     GridPt start_2d = border_check.getIndexRemap().pos2Grid(key_points.front().head(2));
     GridPt goal_2d = border_check.getIndexRemap().pos2Grid(key_points.back().head(2));
     GridPolyLine border;

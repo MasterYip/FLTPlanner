@@ -138,11 +138,8 @@ Point3D randomPoint(double scale = 1.0)
 bool CVX_TrajOpt::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d, Point3D goal3d)
 {
     // Init
-    // TODO: add enable ceiling
     PolyCorridor poly_corridor(polys, start3d, goal3d);
-    BorderCheck border_check(poly_corridor, map_, "elevation");
-    IntersectBorder intersect_border(poly_corridor, border_check);
-    PolyTrajSearch poly_traj_search(intersect_border);
+    PolyTrajSearch poly_traj_search(poly_corridor, map_);
     std::vector<Point3D> path;
 
     if (!poly_traj_search.endpointValid(start3d, goal3d))

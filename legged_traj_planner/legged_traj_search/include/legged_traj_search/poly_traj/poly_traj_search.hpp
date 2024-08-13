@@ -49,12 +49,10 @@ struct PolyTrajSearchConfig
     bool enable_benchmark = false;
 };
 
-
 class PolyTrajSearch
 {
 private:
     // input data
-    PolyCorridor poly_corridor_;
     const grid_map::GridMap map_;
     IndexRemap index_remap_;
     BorderCheck border_check_;
@@ -70,14 +68,16 @@ private:
     GridPolyLine grid_traj_;
 
 public:
-    PolyTrajSearch(IntersectBorder &intersect_border, const bool enable_benchmark = false);
     PolyTrajSearch(PolyCorridor &poly_corridor,
                    const grid_map::GridMap &map,
-                   const std::string ground_layer = "elevation",
-                   const std::string ceiling_layer = "ceiling",
-                   const bool enable_ground = true,
-                   const bool enable_ceiling = false,
+                   const std::string ground_layer,
+                   const std::string ceiling_layer,
+                   const bool enable_ground,
+                   const bool enable_ceiling,
                    const bool enable_benchmark = false);
+    PolyTrajSearch(PolyCorridor &poly_corridor,
+                   const grid_map::GridMap &map,
+                   const PolyTrajSearchConfig config = PolyTrajSearchConfig());
     ~PolyTrajSearch() = default;
     // Poly Traj Search
     bool endpointValid(const Point3D &start, const Point3D &goal);
@@ -89,13 +89,15 @@ public:
                                 double key_point_criteria = 0.2,
                                 double margin = 0.05);
     // Getters
+    // Objects
+    BorderCheck &getBorderCheck() { return border_check_; }
+    IndexRemap &getIndexRemap() { return index_remap_; }
+
     // Data
     GridPolyLine getBorder() const { return border_; }
     GridPoints getConcavePts() const { return concave_pts_; }
     GridPolyLine getGridTraj() const { return grid_traj_; }
     VisibilityGraph getVisGraph() const { return vis_graph_; }
-    // Objects
-    BorderCheck &getBorderCheck() { return border_check_; }
 
     // Benchmark
     std::vector<Record> getRecords() { return benchmark_.getRecords(); }

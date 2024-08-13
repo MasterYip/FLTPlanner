@@ -120,12 +120,12 @@ public:
 
     bool isStartValid(const GridPt &start) override
     {
-        return inPoly(start, 0) >= 0;
+        return inPoly(start, 0);
     }
 
     bool isGoalValid(const GridPt &goal) override
     {
-        return inPoly(goal, poly_corridor_.getPolySize() - 1) >= 0;
+        return inPoly(goal, poly_corridor_.getPolySize() - 1);
     }
 
     double disInBorder(const Eigen::Vector2d &pos2d) override;
@@ -164,10 +164,5 @@ public:
     const IndexRemap &getIndexRemap() const
     {
         return index_remap_;
-    }
-
-    PolyCorridor &getPolyCorridor() const
-    {
-        return poly_corridor_;
     }
 };

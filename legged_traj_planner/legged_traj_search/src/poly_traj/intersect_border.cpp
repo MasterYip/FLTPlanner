@@ -11,10 +11,6 @@
 
 #include "legged_traj_search/poly_traj/intersect_border.hpp"
 
-IntersectBorder::IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &border_check)
-    : border_check_(border_check)
-{
-}
 
 IntersectBorder::IntersectBorder(BorderCheck &border_check)
     : border_check_(border_check)
