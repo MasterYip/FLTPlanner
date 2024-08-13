@@ -93,7 +93,7 @@ public:
     virtual bool isGoalValid(const GridPt &goal) = 0;
 };
 
-class BorderCheck : public BorderCheckBase
+class CorridorBorderCheck : public BorderCheckBase
 {
 private:
     /* data */
@@ -105,32 +105,6 @@ private:
     std::string ceiling_layer_;
     bool enable_ceiling_;
     bool enable_ground_;
-
-public:
-    BorderCheck(PolyCorridor &poly_corridor,
-                const grid_map::GridMap &map,
-                const std::string ground_layer = "elevation",
-                const std::string ceiling_layer = "ceiling",
-                const bool enable_ground = true,
-                const bool enable_ceiling = false);
-
-    double queryHeight(const Eigen::Vector2d &pos2d) override;
-
-    double queryHeight(const GridPt &grid2d) override;
-
-    bool isStartValid(const GridPt &start) override
-    {
-        return inPoly(start, 0);
-    }
-
-    bool isGoalValid(const GridPt &goal) override
-    {
-        return inPoly(goal, poly_corridor_.getPolySize() - 1);
-    }
-
-    double disInBorder(const Eigen::Vector2d &pos2d) override;
-
-    double disInBorder(const GridPt &grid2d) override;
 
     /**
      * @brief Check if the given position is in the corridor intersection border
@@ -156,13 +130,29 @@ public:
 
     int inPoly(const GridPt &grid2d, const int &poly_idx);
 
-    const grid_map::GridMap &getMap() const
+public:
+    CorridorBorderCheck(PolyCorridor &poly_corridor,
+                        const grid_map::GridMap &map,
+                        const std::string ground_layer = "elevation",
+                        const std::string ceiling_layer = "ceiling",
+                        const bool enable_ground = true,
+                        const bool enable_ceiling = false);
+
+    double queryHeight(const Eigen::Vector2d &pos2d) override;
+
+    double queryHeight(const GridPt &grid2d) override;
+
+    bool isStartValid(const GridPt &start) override
     {
-        return map_;
+        return inPoly(start, 0);
     }
 
-    const IndexRemap &getIndexRemap() const
+    bool isGoalValid(const GridPt &goal) override
     {
-        return index_remap_;
+        return inPoly(goal, poly_corridor_.getPolySize() - 1);
     }
+
+    double disInBorder(const Eigen::Vector2d &pos2d) override;
+
+    double disInBorder(const GridPt &grid2d) override;
 };

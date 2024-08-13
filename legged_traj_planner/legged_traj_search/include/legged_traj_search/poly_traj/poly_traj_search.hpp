@@ -55,7 +55,7 @@ private:
     // input data
     const grid_map::GridMap map_;
     IndexRemap index_remap_;
-    BorderCheck border_check_;
+    CorridorBorderCheck border_check_;
     IntersectBorder intersect_border_;
     VisibilityGraph vis_graph_;
 
@@ -90,7 +90,7 @@ public:
                                 double margin = 0.05);
     // Getters
     // Objects
-    BorderCheck &getBorderCheck() { return border_check_; }
+    CorridorBorderCheck &getBorderCheck() { return border_check_; }
     IndexRemap &getIndexRemap() { return index_remap_; }
 
     // Data

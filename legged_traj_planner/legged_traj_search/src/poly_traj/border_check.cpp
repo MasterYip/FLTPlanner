@@ -11,12 +11,12 @@
 
 #include "legged_traj_search/poly_traj/border_check.hpp"
 
-BorderCheck::BorderCheck(PolyCorridor &poly_corridor,
-                         const grid_map::GridMap &map,
-                         const std::string ground_layer,
-                         const std::string ceiling_layer,
-                         const bool enable_ground,
-                         const bool enable_ceiling)
+CorridorBorderCheck::CorridorBorderCheck(PolyCorridor &poly_corridor,
+                                         const grid_map::GridMap &map,
+                                         const std::string ground_layer,
+                                         const std::string ceiling_layer,
+                                         const bool enable_ground,
+                                         const bool enable_ceiling)
     : poly_corridor_(poly_corridor),
       map_(map),
       index_remap_(map),
@@ -27,7 +27,7 @@ BorderCheck::BorderCheck(PolyCorridor &poly_corridor,
 {
 }
 
-double BorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
+double CorridorBorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
 {
     geo_utils_2d::Point pos;
     pos << pos2d(0), pos2d(1);
@@ -43,7 +43,7 @@ double BorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
     return query_height;
 }
 
-double BorderCheck::queryHeight(const GridPt &grid2d)
+double CorridorBorderCheck::queryHeight(const GridPt &grid2d)
 {
     Eigen::Vector2d pos2d;
     GridPt index = index_remap_.grid2Index(grid2d);
@@ -62,12 +62,12 @@ double BorderCheck::queryHeight(const GridPt &grid2d)
     return query_height;
 }
 
-int BorderCheck::inBorder(const Eigen::Vector2d &pos2d)
+int CorridorBorderCheck::inBorder(const Eigen::Vector2d &pos2d)
 {
     return poly_corridor_.isInCorridor(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(pos2d)));
 }
 
-int BorderCheck::inBorder(const GridPt &grid2d)
+int CorridorBorderCheck::inBorder(const GridPt &grid2d)
 {
     Eigen::Vector2d pos2d;
     GridPt index = index_remap_.grid2Index(grid2d);
@@ -75,12 +75,12 @@ int BorderCheck::inBorder(const GridPt &grid2d)
     return poly_corridor_.isInCorridor(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)));
 }
 
-double BorderCheck::disInBorder(const Eigen::Vector2d &pos2d)
+double CorridorBorderCheck::disInBorder(const Eigen::Vector2d &pos2d)
 {
     return -poly_corridor_.disOutCorrider(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(pos2d)));
 }
 
-double BorderCheck::disInBorder(const GridPt &grid2d)
+double CorridorBorderCheck::disInBorder(const GridPt &grid2d)
 {
     Eigen::Vector2d pos2d;
     GridPt index = index_remap_.grid2Index(grid2d);
@@ -88,7 +88,7 @@ double BorderCheck::disInBorder(const GridPt &grid2d)
     return -poly_corridor_.disOutCorrider(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)));
 }
 
-bool BorderCheck::inCorridor(const GridPt &grid2d, const int &corridor_idx)
+bool CorridorBorderCheck::inCorridor(const GridPt &grid2d, const int &corridor_idx)
 {
     Eigen::Vector2d pos2d;
     GridPt index = index_remap_.grid2Index(grid2d);
@@ -96,7 +96,7 @@ bool BorderCheck::inCorridor(const GridPt &grid2d, const int &corridor_idx)
     return poly_corridor_.isInCorridor(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)), corridor_idx);
 }
 
-int BorderCheck::inPoly(const GridPt &grid2d)
+int CorridorBorderCheck::inPoly(const GridPt &grid2d)
 {
     Eigen::Vector2d pos2d;
     GridPt index = index_remap_.grid2Index(grid2d);
@@ -104,7 +104,7 @@ int BorderCheck::inPoly(const GridPt &grid2d)
     return poly_corridor_.isInPoly(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)));
 }
 
-int BorderCheck::inPoly(const GridPt &grid2d, const int &poly_idx)
+int CorridorBorderCheck::inPoly(const GridPt &grid2d, const int &poly_idx)
 {
     Eigen::Vector2d pos2d;
     GridPt index = index_remap_.grid2Index(grid2d);

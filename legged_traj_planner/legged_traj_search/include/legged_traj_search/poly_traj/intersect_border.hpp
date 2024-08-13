@@ -101,10 +101,10 @@ public:
 class IntersectBorder
 {
 private:
-    BorderCheck &border_check_;
+    CorridorBorderCheck &border_check_;
 
 public:
-    IntersectBorder(BorderCheck &border_check);
+    IntersectBorder(CorridorBorderCheck &border_check);
 
     bool getIntersectBorder(const GridPt &start, const GridPt &goal, GridPolyLine &border, int max_iter = 2000);
 };

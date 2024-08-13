@@ -126,7 +126,7 @@ bool FLTPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         for (uint i = 0; i < border.size(); i++)
         {
             Point3D pos;
-            Eigen::Vector2d posxy = poly_traj_search.getBorderCheck().getIndexRemap().grid2Pos(border.at(i));
+            Eigen::Vector2d posxy = poly_traj_search.getIndexRemap().grid2Pos(border.at(i));
             pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
             pos[0] = posxy.x();
             pos[1] = posxy.y();
@@ -348,7 +348,7 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         for (uint i = 0; i < border.size(); i++)
         {
             Point3D pos;
-            Eigen::Vector2d posxy = poly_traj_search.getBorderCheck().getIndexRemap().grid2Pos(border.at(i));
+            Eigen::Vector2d posxy = poly_traj_search.getIndexRemap().grid2Pos(border.at(i));
             pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
             pos[0] = posxy.x();
             pos[1] = posxy.y();
@@ -358,7 +358,7 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         visualizer_->visCurve(border_pos, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.01));
         // // Vis Graph
         // VisibilityGraph vis_graph = poly_traj_search.getVisGraph();
-        // BorderCheck border_check = poly_traj_search.getBorderCheck();
+        // CorridorBorderCheck border_check = poly_traj_search.getBorderCheck();
         // std::vector<Point3D> mesh;
         // uint size = vis_graph.size();
         // Point3D pos1, pos2;
@@ -450,8 +450,8 @@ std::shared_ptr<TrajectoryBase> FLTCfgPlanner::getInitTrajHook(pinocchio::SE3 po
     J = robot_interface_->getJacobian(cfg_poly_traj.back(), index);
     J_inv = J.transpose() * (J * J.transpose()).inverse();
     goal_vel = J_inv * goal_vel;
-    // start_vel[2] += 0.1;
-    // goal_vel[2] -= 0.1;
+    // start_vel[2] += 0.05;
+    // goal_vel[2] -= 0.05;
     MincoTrajectory minco_traj(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
     if (config_.enableVis)
     {
@@ -472,6 +472,7 @@ bool FLTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::Vector3d start_vel;
     Eigen::Vector3d goal_vel;
     minco_traj->getOptInitCondition(poly_path, start_vel, goal_vel, config_.lengthPerPiece);
+    // minco_traj->getInitCondition(poly_path, start_vel, goal_vel);
     Eigen::Matrix3Xd poly_path_mat(3, poly_path.size());
     for (size_t i = 0; i < poly_path.size(); i++)
         poly_path_mat.col(i) = poly_path[i];

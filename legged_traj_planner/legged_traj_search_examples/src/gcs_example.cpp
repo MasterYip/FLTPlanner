@@ -498,10 +498,11 @@ void GCS_Example::eg_guide_surface()
     grid_map::GridMapRosConverter::toMessage(map_, gm_message);
     map_pub_.publish(gm_message);
 
-    BorderCheck border_check(corridor, map_, "elevation", "ceiling", false, false);
+    CorridorBorderCheck border_check(corridor, map_, "elevation", "ceiling", false, false);
+    IndexRemap index_remap(map_);
     IntersectBorder intersect_border(border_check);
-    GridPt start_2d = border_check.getIndexRemap().pos2Grid(key_points.front().head(2));
-    GridPt goal_2d = border_check.getIndexRemap().pos2Grid(key_points.back().head(2));
+    GridPt start_2d = index_remap.pos2Grid(key_points.front().head(2));
+    GridPt goal_2d = index_remap.pos2Grid(key_points.back().head(2));
     GridPolyLine border;
     bool ret = intersect_border.getIntersectBorder(start_2d, goal_2d, border);
     if (ret)
