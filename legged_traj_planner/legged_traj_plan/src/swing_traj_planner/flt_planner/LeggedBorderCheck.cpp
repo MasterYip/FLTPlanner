@@ -9,18 +9,20 @@
  *
  */
 
+// include clamp
+#include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_plan/swing_traj_planner/flt_planner/LeggedBorderCheck.h"
 
 double LeggedBorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
 {
     geo_utils_2d::Point pos;
     pos << pos2d(0), pos2d(1);
-    double query_height = poly_corridor_.getGuideSurf().getHeight(pos);
-    if (enable_ground_ && query_height < map_.atPosition(config_.ground_layer, pos2d))
+    double query_height = guide_surf_.getHeight(pos);
+    if (config_.enable_ground && query_height < map_.atPosition(config_.ground_layer, pos2d))
     {
         query_height = map_.atPosition(config_.ground_layer, pos2d);
     }
-    if (enable_ceiling_ && query_height > map_.atPosition(config_.ceiling_layer, pos2d))
+    if (config_.enable_ceiling && query_height > map_.atPosition(config_.ceiling_layer, pos2d))
     {
         query_height = map_.atPosition(config_.ceiling_layer, pos2d);
     }
@@ -34,25 +36,30 @@ double LeggedBorderCheck::queryHeight(const GridPt &grid2d)
     map_.getPosition(index, pos2d);
     geo_utils_2d::Point pos;
     pos << pos2d(0), pos2d(1);
-    double query_height = poly_corridor_.getGuideSurf().getHeight(pos);
-    if (enable_ground_ && query_height < map_.at(config_.ground_layer, index))
+    double query_height = guide_surf_.getHeight(pos);
+    if (config_.enable_ground && query_height < map_.at(config_.ground_layer, index))
     {
         query_height = map_.at(config_.ground_layer, index);
     }
-    if (enable_ceiling_ && query_height > map_.at(config_.ceiling_layer, index))
+    if (config_.enable_ceiling && query_height > map_.at(config_.ceiling_layer, index))
     {
         query_height = map_.at(config_.ceiling_layer, index);
     }
     return query_height;
 };
 
+double clamp(double val, double min, double max)
+{
+    return std::max(min, std::min(max, val));
+}
+
 double LeggedBorderCheck::projectInterp(const Eigen::Vector2d &pos2d)
 {
-    Eigen::Vector2d vec = p1_ - p0_;
+    Eigen::Vector2d vec = p1_.head(2) - p0_.head(2);
     double len = vec.norm();
     vec.normalize();
-    double len_proj = (pos2d - p0_).dot(vec);   
-    return std::clamp(len_proj, 0.0, len) / len;
+    double len_proj = (pos2d - p0_.head(2)).dot(vec);   
+    return clamp(len_proj, 0.0, len) / len;
 }
 
 // FIXME: this function can't return distance in border, only return whether in border
@@ -61,7 +68,7 @@ double LeggedBorderCheck::disInBorder(const Eigen::Vector2d &pos2d)
     pinocchio::SE3 pose = poseLinearInterp(pose0_, pose1_, projectInterp(pos2d));
     Eigen::Vector3d pos(pos2d(0), pos2d(1), queryHeight(pos2d));
     pos = point_SE3Act(pose, pos);
-    Eigen::Vecto3d sol;
+    Eigen::Vector3d sol;
     return robot_interface_->getRobotKin().inverseKinConstraint(pos, sol, index_, false) ? 1.0 : -1.0;
 }
 

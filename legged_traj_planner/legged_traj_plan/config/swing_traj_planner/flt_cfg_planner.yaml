@@ -24,6 +24,8 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 LFTPlanner:
+  searcher:
+    useLeggedBorderCheck: false
   optimizer:
     lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization

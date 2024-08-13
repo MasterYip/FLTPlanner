@@ -55,6 +55,7 @@ struct SwingTrajPlannerConfig
     //// ID[0] LFTPlannerSettings
     //// GCS TrajSearch & MINCO optimization
     // Enable
+    bool useLeggedBorderCheck;
     // Minco Init
     double lengthPerPiece;
     double allocSpeed;
@@ -130,6 +131,7 @@ struct SwingTrajPlannerConfig
         //// ID[0] LFTPlannerSettings
         if (plannerID == 0)
         {
+            check_digit *= nh.getParam("LFTPlanner/searcher/useLeggedBorderCheck", useLeggedBorderCheck);
             check_digit *= nh.getParam("LFTPlanner/optimizer/lengthPerPiece", lengthPerPiece);
             check_digit *= nh.getParam("LFTPlanner/optimizer/allocSpeed", allocSpeed);
             check_digit *= nh.getParam("LFTPlanner/optimizer/relCostTol", relCostTol);

@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/LeggedBorderCheck.h"
 #include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
@@ -223,7 +224,6 @@ Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double ra
     return radius * tangent;
 }
 
-
 FLTCfgPlanner::FLTCfgPlanner(SwingTrajPlannerConfig config,
                              std::shared_ptr<ElSpiderAirInterface> robot_interface,
                              std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
@@ -311,14 +311,37 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
 {
     poly_traj.clear();
     gridmap_interface_->lockMapUpdate();
-    Eigen::Matrix3Xd hull = robot_interface_->getFootPolyhedra(index).getVRep();
-    std::vector<Polyhedra> hulls;
-    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0.inverse(), hull))));
-    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose1.inverse(), hull))));
-    PolyCorridor corridor(hulls, p0, p1);
-    PolyTrajSearch poly_traj_search(corridor, gridmap_interface_->getMap(),
-                                    gridmap_interface_->getGroundLayerName(),
-                                    gridmap_interface_->getCeilingLayerName(), true, false);
+
+    if (config_.useLeggedBorderCheck)
+    {
+        // Use LeggedBorderCheck
+        LeggedBorderCheckConfig config;
+        config.ground_layer = gridmap_interface_->getGroundLayerName();
+        config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
+        config.enable_ground = true;
+        config.enable_ceiling = true;
+        auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
+                                                                pose0, pose1, p0, p1, index, config);
+        PolyTrajSearchConfig cfg;
+        cfg.ground_layer = gridmap_interface_->getGroundLayerName();
+        cfg.ceiling_layer = gridmap_interface_->getCeilingLayerName();
+        cfg.enable_ground = true;
+        cfg.enable_ceiling = true;
+        cfg.enable_benchmark = false;
+        PolyTrajSearch poly_traj_search(border_check, gridmap_interface_->getMap(), cfg);
+    }
+    else
+    {
+        Eigen::Matrix3Xd hull = robot_interface_->getFootPolyhedra(index).getVRep();
+        std::vector<Polyhedra> hulls;
+        hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0.inverse(), hull))));
+        hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose1.inverse(), hull))));
+        PolyCorridor corridor(hulls, p0, p1);
+        PolyTrajSearch poly_traj_search(corridor, gridmap_interface_->getMap(),
+                                        gridmap_interface_->getGroundLayerName(),
+                                        gridmap_interface_->getCeilingLayerName(), true, false);
+    }
+
     bool ret_endpoint = poly_traj_search.endpointValid(p0, p1);
     bool ret_reachable = poly_traj_search.reachable(p0, p1);
     bool ret_search = poly_traj_search.search(p0, p1, poly_traj);
@@ -339,7 +362,7 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     {
         // Polytope
         visualizer_->setIdGroup(1);
-        visualizer_->visPolytope(corridor.getCorridor());
+        // visualizer_->visPolytope(corridor.getCorridor());
         visualizer_->visSphere(p0, 0.02);
         visualizer_->visSphere(p1, 0.02);
         // Border

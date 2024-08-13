@@ -2,8 +2,8 @@
     <!-- ElSpider Air State Sequence Planner -->
 
     <!-- Demo Select -->
-    <!-- 1_stairs / 2_stairs / 3_quincuncial_piles / 4_barrier / 5_channel-->
-    <arg name="demo_name" default="5_channel" />
+    <!-- 1_stairs / 2_stairs / 3_quincuncial_piles / 4_barrier / 5_channel / 6_fractal-->
+    <arg name="demo_name" default="4_barrier" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
     <!-- flt_planner / flt_cfg_planner -->
