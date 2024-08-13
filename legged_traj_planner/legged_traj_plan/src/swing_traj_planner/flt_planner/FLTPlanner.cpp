@@ -311,50 +311,47 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
 {
     poly_traj.clear();
     gridmap_interface_->lockMapUpdate();
+    std::unique_ptr<PolyTrajSearch> poly_traj_search;
 
-    if (config_.useLeggedBorderCheck)
-    {
-        // Use LeggedBorderCheck
-        LeggedBorderCheckConfig config;
-        config.ground_layer = gridmap_interface_->getGroundLayerName();
-        config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
-        config.enable_ground = true;
-        config.enable_ceiling = true;
-        auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-                                                                pose0, pose1, p0, p1, index, config);
-        PolyTrajSearchConfig cfg;
-        cfg.ground_layer = gridmap_interface_->getGroundLayerName();
-        cfg.ceiling_layer = gridmap_interface_->getCeilingLayerName();
-        cfg.enable_ground = true;
-        cfg.enable_ceiling = true;
-        cfg.enable_benchmark = false;
-        PolyTrajSearch poly_traj_search(border_check, gridmap_interface_->getMap(), cfg);
-    }
-    else
-    {
-        Eigen::Matrix3Xd hull = robot_interface_->getFootPolyhedra(index).getVRep();
-        std::vector<Polyhedra> hulls;
-        hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0.inverse(), hull))));
-        hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose1.inverse(), hull))));
-        PolyCorridor corridor(hulls, p0, p1);
-        PolyTrajSearch poly_traj_search(corridor, gridmap_interface_->getMap(),
-                                        gridmap_interface_->getGroundLayerName(),
-                                        gridmap_interface_->getCeilingLayerName(), true, false);
-    }
+    // Use CorridorBorderCheck
+    // Eigen::Matrix3Xd hull = robot_interface_->getFootPolyhedra(index).getVRep();
+    // std::vector<Polyhedra> hulls;
+    // hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0.inverse(), hull))));
+    // hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose1.inverse(), hull))));
+    // PolyCorridor corridor(hulls, p0, p1);
+    // poly_traj_search = std::make_unique<PolyTrajSearch>(corridor, gridmap_interface_->getMap(),
+    //                                                     gridmap_interface_->getGroundLayerName(),
+    //                                                     gridmap_interface_->getCeilingLayerName(), true, false);
+    // Use LeggedBorderCheck
+    LeggedBorderCheckConfig config;
+    config.ground_layer = gridmap_interface_->getGroundLayerName();
+    config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
+    config.enable_ground = true;
+    config.enable_ceiling = true;
+    auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
+                                                            pose0, pose1, p0, p1, index, config);
+    PolyTrajSearchConfig cfg;
+    cfg.ground_layer = gridmap_interface_->getGroundLayerName();
+    cfg.ceiling_layer = gridmap_interface_->getCeilingLayerName();
+    cfg.enable_ground = true;
+    cfg.enable_ceiling = true;
+    cfg.enable_benchmark = false;
+    poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
 
-    bool ret_endpoint = poly_traj_search.endpointValid(p0, p1);
-    bool ret_reachable = poly_traj_search.reachable(p0, p1);
-    bool ret_search = poly_traj_search.search(p0, p1, poly_traj);
+
+    bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
+    bool ret_reachable = poly_traj_search->reachable(p0, p1);
+    bool ret_search = poly_traj_search->search(p0, p1, poly_traj);
     gridmap_interface_->unlockMapUpdate();
 
     if (verbose)
     {
         if (!ret_endpoint)
-            std::cout << "Warning: poly_traj_search.endpointValid failed (leg " << index << ")" << std::endl;
+            std::cout << "Warning: poly_traj_search->endpointValid failed (leg " << index << ")" << std::endl;
         if (!ret_reachable)
-            std::cout << "Warning: poly_traj_search.reachable failed" << std::endl;
+            std::cout << "Warning: poly_traj_search->reachable failed" << std::endl;
         if (!ret_search)
-            std::cout << "Warning: poly_traj_search.search failed" << std::endl;
+            std::cout << "Warning: poly_traj_search->search failed" << std::endl;
         // BUG: if is reachable then it must be able to find a path, this failure should not happen
     }
 
@@ -366,13 +363,13 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         visualizer_->visSphere(p0, 0.02);
         visualizer_->visSphere(p1, 0.02);
         // Border
-        GridPolyLine border = poly_traj_search.getBorder();
+        GridPolyLine border = poly_traj_search->getBorder();
         std::vector<Point3D> border_pos;
         for (uint i = 0; i < border.size(); i++)
         {
             Point3D pos;
-            Eigen::Vector2d posxy = poly_traj_search.getIndexRemap().grid2Pos(border.at(i));
-            pos[2] = poly_traj_search.getBorderCheck()->queryHeight(border.at(i));
+            Eigen::Vector2d posxy = poly_traj_search->getIndexRemap().grid2Pos(border.at(i));
+            pos[2] = poly_traj_search->getBorderCheck()->queryHeight(border.at(i));
             pos[0] = posxy.x();
             pos[1] = posxy.y();
             border_pos.emplace_back(pos);
@@ -380,8 +377,8 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         border_pos.push_back(border_pos.front());
         visualizer_->visCurve(border_pos, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.01));
         // // Vis Graph
-        // VisibilityGraph vis_graph = poly_traj_search.getVisGraph();
-        // CorridorBorderCheck border_check = poly_traj_search.getBorderCheck();
+        // VisibilityGraph vis_graph = poly_traj_search->getVisGraph();
+        // CorridorBorderCheck border_check = poly_traj_search->getBorderCheck();
         // std::vector<Point3D> mesh;
         // uint size = vis_graph.size();
         // Point3D pos1, pos2;
