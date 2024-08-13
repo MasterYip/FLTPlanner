@@ -337,7 +337,7 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     cfg.enable_ceiling = true;
     cfg.enable_benchmark = false;
     poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
-
+    //////
 
     bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
     bool ret_reachable = poly_traj_search->reachable(p0, p1);
@@ -374,8 +374,11 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
             pos[1] = posxy.y();
             border_pos.emplace_back(pos);
         }
-        border_pos.push_back(border_pos.front());
-        visualizer_->visCurve(border_pos, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.01));
+        if (border_pos.size() > 0)
+        {
+            border_pos.push_back(border_pos.front());
+            visualizer_->visCurve(border_pos, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.01));
+        }
         // // Vis Graph
         // VisibilityGraph vis_graph = poly_traj_search->getVisGraph();
         // CorridorBorderCheck border_check = poly_traj_search->getBorderCheck();

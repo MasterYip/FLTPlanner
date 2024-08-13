@@ -64,7 +64,8 @@ public:
           pose0_(pose0),
           pose1_(pose1),
           p0_(p0),
-          p1_(p1)
+          p1_(p1),
+          index_(index)
     {
         std::vector<Point3D> key_points = {p0_, p1_};
         guide_surf_ = HarmonicGuideSurf(key_points);
