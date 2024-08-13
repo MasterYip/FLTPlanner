@@ -450,6 +450,8 @@ std::shared_ptr<TrajectoryBase> FLTCfgPlanner::getInitTrajHook(pinocchio::SE3 po
     J = robot_interface_->getJacobian(cfg_poly_traj.back(), index);
     J_inv = J.transpose() * (J * J.transpose()).inverse();
     goal_vel = J_inv * goal_vel;
+    // start_vel[2] += 0.1;
+    // goal_vel[2] -= 0.1;
     MincoTrajectory minco_traj(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
     if (config_.enableVis)
     {
@@ -469,7 +471,7 @@ bool FLTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     std::vector<Point3D> poly_path;
     Eigen::Vector3d start_vel;
     Eigen::Vector3d goal_vel;
-    minco_traj->getInitCondition(poly_path, start_vel, goal_vel);
+    minco_traj->getOptInitCondition(poly_path, start_vel, goal_vel, config_.lengthPerPiece);
     Eigen::Matrix3Xd poly_path_mat(3, poly_path.size());
     for (size_t i = 0; i < poly_path.size(); i++)
         poly_path_mat.col(i) = poly_path[i];

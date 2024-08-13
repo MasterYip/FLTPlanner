@@ -183,7 +183,7 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     path.back() = goal;
 
     benchmark_.record("Insert Vertical Key Point", RecordType::CRITICAL);
-    insertVerticalKeyPoint(path, 20, 0.2, 0.05);
+    insertVerticalKeyPoint(path, 20, 0.15, 0.05);
 
     benchmark_.end();
     return true;

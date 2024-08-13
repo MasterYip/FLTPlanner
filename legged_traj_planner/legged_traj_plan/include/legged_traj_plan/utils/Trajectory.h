@@ -216,6 +216,21 @@ public:
         goal_vel = goal_vel_;
     }
 
+    void getOptInitCondition(std::vector<Point3D> &poly_path,
+                             Eigen::Vector3d &start_vel,
+                             Eigen::Vector3d &goal_vel,
+                             const double &max_piece_length) const
+    {
+        double tot_length = 0;
+        for (int i = 1; i < poly_path_.size(); i++)
+            tot_length += (poly_path_[i] - poly_path_[i - 1]).norm();
+        int seg_num = tot_length / max_piece_length > 1 ? tot_length / max_piece_length : 1; 
+        for (int i = 0; i < seg_num + 2; i++)
+            poly_path.emplace_back(traj_.getPos((double)i / (seg_num + 1) * traj_.getTotalDuration()));
+        start_vel = start_vel_;
+        goal_vel = goal_vel_;
+    }
+
     // Test
     bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01, bool normalized = true)
     {
