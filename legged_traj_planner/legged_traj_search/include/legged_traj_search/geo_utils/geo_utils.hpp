@@ -172,12 +172,33 @@ namespace geo_utils
         return (hPoly.leftCols<3>() * point + hPoly.rightCols<1>()).maxCoeff() <= eps;
     }
 
+
+    /**
+     * @brief distance out side of a convex polyhedron
+     * 
+     * @param hPoly 
+     * @param point 
+     * @return double ret <= 0 if inside, ret > 0 if outside
+     */
+    inline double disOutHpoly(const Eigen::MatrixX4d &hPoly,
+                             const Eigen::Vector3d &point)
+    {
+        return (hPoly.leftCols<3>() * point + hPoly.rightCols<1>()).maxCoeff();
+    }
+
     inline bool inVpoly(const Eigen::Matrix3Xd &vPoly,
                         const Eigen::Vector3d &point,
                         const double eps = 0)
     {
         Eigen::MatrixX4d hPoly = vpoly2hpoly(vPoly);
         return inHpoly(hPoly, point, eps);
+    }
+
+    inline double disOutVpoly(const Eigen::Matrix3Xd &vPoly,
+                             const Eigen::Vector3d &point)
+    {
+        Eigen::MatrixX4d hPoly = vpoly2hpoly(vPoly);
+        return disOutHpoly(hPoly, point);
     }
 
     /**

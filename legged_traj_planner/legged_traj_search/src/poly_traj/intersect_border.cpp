@@ -12,7 +12,12 @@
 #include "legged_traj_search/poly_traj/intersect_border.hpp"
 
 IntersectBorder::IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &border_check)
-    : poly_corridor_(poly_corridor), border_check_(border_check)
+    : border_check_(border_check)
+{
+}
+
+IntersectBorder::IntersectBorder(BorderCheck &border_check)
+    : border_check_(border_check)
 {
 }
 
@@ -54,7 +59,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
 
     // Find start border (x direction)
     // FIXME: This may find a start point in the middle of the corridor
-    while (border_check_.inBorder(idx) != -1)
+    while (border_check_.disInBorder(idx) >= 0)
     {
         idx[0]++;
     }
@@ -66,7 +71,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
     // Find the intersect border
     // FIXME: Sometimes it stucks (loop)
     int cnt = 0;
-    int tmp_incorridor_idx = -1;
+    double tmp_dis_incorridor = -1;
     do
     {
         cnt++;
@@ -85,14 +90,14 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
         for (int i = 0; i < 9; i++)
         {
             tmp_idx = grid_ptr.getNextCandidateState();
-            tmp_incorridor_idx = border_check_.inBorder(tmp_idx);
+            tmp_dis_incorridor = border_check_.disInBorder(tmp_idx);
             // flag: pointer out of border
-            if (!out_corridor_flag && tmp_incorridor_idx == -1)
+            if (!out_corridor_flag && tmp_dis_incorridor < 0)
             {
                 out_corridor_flag = true;
             }
             // flag: pointer back from border
-            if (out_corridor_flag && tmp_incorridor_idx != -1)
+            if (out_corridor_flag && tmp_dis_incorridor >= 0)
             {
                 nosol_flag = false;
                 if (tmp_border.size() > 1 && tmp_idx.isApprox(tmp_border.at(tmp_border.size() - 2)))

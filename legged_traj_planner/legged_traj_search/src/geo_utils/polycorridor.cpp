@@ -65,6 +65,20 @@ int PolyCorridor::isInCorridor(const Eigen::Vector3d &pos)
     return -1;
 }
 
+double PolyCorridor::disOutCorrider(const Eigen::Vector3d &pos)
+{
+    double min_dis = std::numeric_limits<double>::max();
+    for (uint i = 0; i < poly_size_ - 1; i++)
+    {
+        double dis = geo_utils::disOutHpoly(corridor_.at(i).getHRep(), pos);
+        if (dis < 0) // FIXME:: short circuit
+            return dis;
+        if (dis < min_dis)
+            min_dis = dis;
+    }
+    return min_dis;
+}
+
 bool PolyCorridor::isInCorridor(const Eigen::Vector3d &pos, const uint &corridor_idx)
 {
     if (corridor_idx >= poly_size_ - 1)

@@ -101,11 +101,12 @@ public:
 class IntersectBorder
 {
 private:
-    PolyCorridor &poly_corridor_;
     BorderCheck &border_check_;
 
 public:
-    IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &border_check);
+    [[deprecated]] IntersectBorder(PolyCorridor &poly_corridor, BorderCheck &border_check);
+
+    IntersectBorder(BorderCheck &border_check);
 
     /**
      * @brief Check the given point projection on aux plain (T) is in the polyhedra (used for start & goal)
@@ -125,7 +126,7 @@ public:
 
     PolyCorridor &getPolyCorridor()
     {
-        return poly_corridor_;
+        return border_check_.getPolyCorridor();
     }
 
     BorderCheck &getBorderCheck()

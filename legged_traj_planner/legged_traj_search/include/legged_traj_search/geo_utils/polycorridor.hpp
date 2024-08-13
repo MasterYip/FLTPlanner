@@ -67,6 +67,14 @@ public:
      */
     int isInCorridor(const Eigen::Vector3d &pos);
 
+    /**
+     * @brief distance to the nearest corridor
+     *
+     * @param pos
+     * @return double ret < 0 if in corridor, > 0 if out of corridor
+     */
+    double disOutCorrider(const Eigen::Vector3d &pos);
+
     bool isInCorridor(const Eigen::Vector3d &pos, const uint &corridor_idx);
 
     int isInPoly(const Eigen::Vector3d &pos);

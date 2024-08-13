@@ -75,6 +75,19 @@ int BorderCheck::inBorder(const GridPt &grid2d)
     return poly_corridor_.isInCorridor(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)));
 }
 
+double BorderCheck::disInBorder(const Eigen::Vector2d &pos2d)
+{
+    return -poly_corridor_.disOutCorrider(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(pos2d)));
+}
+
+double BorderCheck::disInBorder(const GridPt &grid2d)
+{
+    Eigen::Vector2d pos2d;
+    GridPt index = index_remap_.grid2Index(grid2d);
+    map_.getPosition(index, pos2d);
+    return -poly_corridor_.disOutCorrider(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)));
+}
+
 bool BorderCheck::inCorridor(const GridPt &grid2d, const int &corridor_idx)
 {
     Eigen::Vector2d pos2d;

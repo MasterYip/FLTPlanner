@@ -77,7 +77,20 @@ public:
     }
 };
 
-class BorderCheck
+
+class BorderCheckBase
+{
+public:
+    virtual double disInBorder(const Eigen::Vector2d &pos2d) = 0;
+
+    virtual double disInBorder(const GridPt &grid2d) = 0;
+
+    virtual const IndexRemap &getIndexRemap() const = 0;
+
+};
+
+
+class BorderCheck : public BorderCheckBase
 {
 private:
     /* data */
@@ -113,6 +126,10 @@ public:
 
     int inBorder(const GridPt &grid2d);
 
+    double disInBorder(const Eigen::Vector2d &pos2d) override;
+
+    double disInBorder(const GridPt &grid2d) override;
+
     bool inCorridor(const GridPt &grid2d, const int &corridor_idx);
 
     /**
@@ -134,5 +151,10 @@ public:
     const IndexRemap &getIndexRemap() const
     {
         return index_remap_;
+    }
+
+    PolyCorridor &getPolyCorridor() const
+    {
+        return poly_corridor_;
     }
 };
