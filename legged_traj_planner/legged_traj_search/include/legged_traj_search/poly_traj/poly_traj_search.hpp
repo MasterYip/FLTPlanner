@@ -16,7 +16,7 @@
 /* c system header files */
 
 /* c++ standard library header files */
-
+#include <memory>
 /* external project header files */
 
 /* internal project header files */
@@ -27,18 +27,43 @@
 #include "legged_traj_search/geo_utils/guide_surf.hpp"
 #include "legged_traj_search/utils/benchmark.hpp"
 
+// class PolyTrajSearchBase
+// {
+// protected:
+//     std::shared_ptr<grid_map::GridMap> map_;
+//     std::shared_ptr<IndexRemap> index_remap_;
+//     std::shared_ptr<BorderCheckBase> border_check_;
+//     std::shared_ptr<IntersectBorder> intersect_border_;
+//     std::shared_ptr<VisibilityGraph> vis_graph_;
+//     Benchmark benchmark_;
+
+// };
+
+struct PolyTrajSearchConfig
+{
+    std::string ground_layer = "elevation";
+    std::string ceiling_layer = "ceiling";
+    bool enable_ground = true;
+    bool enable_ceiling = false;
+
+    bool enable_benchmark = false;
+};
+
+
 class PolyTrajSearch
 {
 private:
     // input data
     PolyCorridor poly_corridor_;
     const grid_map::GridMap map_;
+    IndexRemap index_remap_;
     BorderCheck border_check_;
     IntersectBorder intersect_border_;
     VisibilityGraph vis_graph_;
 
     Benchmark benchmark_;
     int reachable_ = 0; // 0: unknown, 1: reachable, -1: unreachable
+
     // output data
     GridPolyLine border_;
     GridPoints concave_pts_;

@@ -504,8 +504,8 @@ void GCS_Example::eg_guide_surface()
 
     BorderCheck border_check(corridor, map_, "elevation", "ceiling", false, false);
     IntersectBorder intersect_border(corridor, border_check);
-    Point start_2d = key_points.front().head(2);
-    Point goal_2d = key_points.back().head(2);
+    GridPt start_2d = border_check.getIndexRemap().pos2Grid(key_points.front().head(2));
+    GridPt goal_2d = border_check.getIndexRemap().pos2Grid(key_points.back().head(2));
     GridPolyLine border;
     bool ret = intersect_border.getIntersectBorder(start_2d, goal_2d, border);
     if (ret)

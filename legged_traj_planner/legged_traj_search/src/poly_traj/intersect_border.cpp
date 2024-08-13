@@ -21,25 +21,6 @@ IntersectBorder::IntersectBorder(BorderCheck &border_check)
 {
 }
 
-bool IntersectBorder::checkPointProjectInPoly(const Point &pt, int poly_idx)
-{
-    GridPt grid_pt = border_check_.getIndexRemap().pos2Grid(pt);
-    return border_check_.inPoly(grid_pt, poly_idx);
-}
-
-bool IntersectBorder::checkPointProjectInPoly(const GridPt &pt, int poly_idx)
-{
-    return border_check_.inPoly(pt, poly_idx);
-}
-
-bool IntersectBorder::getIntersectBorder(const Point &start, const Point &goal,
-                                         GridPolyLine &border, int max_iter)
-{
-    GridPt start_grid = border_check_.getIndexRemap().pos2Grid(start);
-    GridPt goal_grid = border_check_.getIndexRemap().pos2Grid(goal);
-
-    return getIntersectBorder(start_grid, goal_grid, border, max_iter);
-}
 
 bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal,
                                          GridPolyLine &border, int max_iter)
@@ -51,9 +32,9 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
 
     GridPt idx, start_border_idx, tmp_idx, revisit_idx;
     idx = start;
-    if (!checkPointProjectInPoly(start, 0))
+    if (!border_check_.isStartValid(start))
     {
-        std::cerr << "Start point not in poly 0! find in poly " << border_check_.inPoly(idx) << std::endl;
+        std::cerr << "Start point not valid!" << std::endl;
         return false;
     }
 

@@ -15,6 +15,7 @@ PolyTrajSearch::PolyTrajSearch(IntersectBorder &intersect_border,
                                const bool enable_benchmark)
     : poly_corridor_(intersect_border.getPolyCorridor()),
       map_(intersect_border.getBorderCheck().getMap()),
+      index_remap_(intersect_border.getBorderCheck().getIndexRemap()),
       border_check_(intersect_border.getBorderCheck()),
       intersect_border_(intersect_border),
       benchmark_("PolyTrajSearch", enable_benchmark)
@@ -29,6 +30,7 @@ PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
                                const bool enable_ceiling,
                                const bool enable_benchmark) : poly_corridor_(poly_corridor),
                                                               map_(map),
+                                                              index_remap_(map),
                                                               border_check_(poly_corridor, map, ground_layer, ceiling_layer, enable_ground, enable_ceiling),
                                                               intersect_border_(poly_corridor_, border_check_),
                                                               benchmark_("PolyTrajSearch", enable_benchmark)
@@ -37,10 +39,10 @@ PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
 
 bool PolyTrajSearch::endpointValid(const Point3D &start, const Point3D &goal)
 {
-    Point start_2d = start.head(2);
-    Point goal_2d = goal.head(2);
-    return intersect_border_.checkPointProjectInPoly(start_2d, 0) &&
-           intersect_border_.checkPointProjectInPoly(goal_2d, intersect_border_.getPolyCorridor().getPolySize() - 1);
+    GridPt start_2d = index_remap_.pos2Grid(start.head(2));
+    GridPt goal_2d = index_remap_.pos2Grid(goal.head(2));
+    return intersect_border_.getBorderCheck().isStartValid(start_2d) &&
+           intersect_border_.getBorderCheck().isGoalValid(goal_2d);
 }
 
 bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
@@ -56,8 +58,8 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
     }
 
     // Intersect Border
-    Point start_2d = start.head(2);
-    Point goal_2d = goal.head(2);
+    GridPt start_2d = index_remap_.pos2Grid(start.head(2));
+    GridPt goal_2d = index_remap_.pos2Grid(goal.head(2));
     if (!intersect_border_.getIntersectBorder(start_2d, goal_2d, border_))
     {
         std::cout << "Warning: intersect_border_.getIntersectBorder failed" << std::endl;
@@ -84,8 +86,8 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
 
     // Visiblity Graph Init
     // FIXME: is this appropriate?
-    GridPt start_grid = border_check_.getIndexRemap().pos2Grid(start.head(2));
-    GridPt goal_grid = border_check_.getIndexRemap().pos2Grid(goal.head(2));
+    GridPt start_grid = index_remap_.pos2Grid(start.head(2));
+    GridPt goal_grid = index_remap_.pos2Grid(goal.head(2));
 
     // FIXME: needs to improve the performance
     vis_graph_ = VisibilityGraph(border_, concave_pts_, start_grid, goal_grid);
@@ -172,7 +174,7 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     for (uint i = 0; i < grid_traj_.size(); i++)
     {
         Eigen::Vector3d pos;
-        Eigen::Vector2d posxy = border_check_.getIndexRemap().grid2Pos(grid_traj_.at(i));
+        Eigen::Vector2d posxy = index_remap_.grid2Pos(grid_traj_.at(i));
         pos[2] = border_check_.queryHeight(grid_traj_.at(i));
         pos[0] = posxy.x();
         pos[1] = posxy.y();
@@ -201,8 +203,8 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
     }
 
     // Intersect Border
-    Point start_2d = start.head(2);
-    Point goal_2d = goal.head(2);
+    GridPt start_2d = index_remap_.pos2Grid(start.head(2));
+    GridPt goal_2d = index_remap_.pos2Grid(goal.head(2));
     if (!intersect_border_.getIntersectBorder(start_2d, goal_2d, border_))
     {
         std::cout << "Warning: intersect_border_.getIntersectBorder failed" << std::endl;
@@ -223,8 +225,8 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
     benchmark_.record(msg, RecordType::CRITICAL);
 
     // String Straining
-    GridPt start_grid = border_check_.getIndexRemap().pos2Grid(start.head(2));
-    GridPt goal_grid = border_check_.getIndexRemap().pos2Grid(goal.head(2));
+    GridPt start_grid = index_remap_.pos2Grid(start.head(2));
+    GridPt goal_grid = index_remap_.pos2Grid(goal.head(2));
 
     StringStrainingSearch sss(border_, start_grid, goal_grid);
     bool ret = sss.search(grid_traj_, 4);
@@ -238,7 +240,7 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
     for (uint i = 0; i < grid_traj_.size(); i++)
     {
         Eigen::Vector3d pos;
-        Eigen::Vector2d posxy = border_check_.getIndexRemap().grid2Pos(grid_traj_.at(i));
+        Eigen::Vector2d posxy = index_remap_.grid2Pos(grid_traj_.at(i));
         pos[2] = border_check_.queryHeight(grid_traj_.at(i));
         pos[0] = posxy.x();
         pos[1] = posxy.y();

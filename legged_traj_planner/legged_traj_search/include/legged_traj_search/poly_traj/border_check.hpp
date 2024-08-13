@@ -46,8 +46,8 @@ public:
           map_position_(map.getPosition()),
           resolution_(map.getResolution())
     {
-        map_shift_[0] = (int) (map_position_[0] / resolution_);
-        map_shift_[1] = (int) (map_position_[1] / resolution_);
+        map_shift_[0] = (int)(map_position_[0] / resolution_);
+        map_shift_[1] = (int)(map_position_[1] / resolution_);
     }
 
     GridPt pos2Grid(const Eigen::Vector2d &pos) const
@@ -77,18 +77,21 @@ public:
     }
 };
 
-
 class BorderCheckBase
 {
 public:
+    virtual double queryHeight(const Eigen::Vector2d &pos2d) = 0;
+
+    virtual double queryHeight(const GridPt &grid2d) = 0;
+
     virtual double disInBorder(const Eigen::Vector2d &pos2d) = 0;
 
     virtual double disInBorder(const GridPt &grid2d) = 0;
 
-    virtual const IndexRemap &getIndexRemap() const = 0;
+    virtual bool isStartValid(const GridPt &start) = 0;
 
+    virtual bool isGoalValid(const GridPt &goal) = 0;
 };
-
 
 class BorderCheck : public BorderCheckBase
 {
@@ -111,9 +114,23 @@ public:
                 const bool enable_ground = true,
                 const bool enable_ceiling = false);
 
-    double queryHeight(const Eigen::Vector2d &pos2d);
+    double queryHeight(const Eigen::Vector2d &pos2d) override;
 
-    double queryHeight(const GridPt &grid2d);
+    double queryHeight(const GridPt &grid2d) override;
+
+    bool isStartValid(const GridPt &start) override
+    {
+        return inPoly(start, 0) >= 0;
+    }
+
+    bool isGoalValid(const GridPt &goal) override
+    {
+        return inPoly(goal, poly_corridor_.getPolySize() - 1) >= 0;
+    }
+
+    double disInBorder(const Eigen::Vector2d &pos2d) override;
+
+    double disInBorder(const GridPt &grid2d) override;
 
     /**
      * @brief Check if the given position is in the corridor intersection border
@@ -125,10 +142,6 @@ public:
     int inBorder(const Eigen::Vector2d &pos2d);
 
     int inBorder(const GridPt &grid2d);
-
-    double disInBorder(const Eigen::Vector2d &pos2d) override;
-
-    double disInBorder(const GridPt &grid2d) override;
 
     bool inCorridor(const GridPt &grid2d, const int &corridor_idx);
 
