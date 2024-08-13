@@ -69,7 +69,14 @@ double LeggedBorderCheck::disInBorder(const Eigen::Vector2d &pos2d)
     Eigen::Vector3d pos(pos2d(0), pos2d(1), queryHeight(pos2d));
     pos = point_SE3Act(pose, pos);
     Eigen::Vector3d sol;
-    return robot_interface_->getRobotKin().inverseKinConstraint(pos, sol, index_, false) ? 1.0 : -1.0;
+    bool joint_limit_check = robot_interface_->getRobotKin().inverseKinConstraint(pos, sol, index_, false);
+    if (!joint_limit_check)
+    {
+        return -1.0;
+    }
+    Eigen::Vector3d joint2_pos = point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(sol, index_, 2));
+    bool collision_check = config_.collBallRad2 < gridmap_interface_->sdfValue(joint2_pos, "min");
+    return collision_check ? 1.0 : -1.0;
 }
 
 double LeggedBorderCheck::disInBorder(const GridPt &grid2d)

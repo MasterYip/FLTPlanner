@@ -29,6 +29,10 @@ struct LeggedBorderCheckConfig
     std::string ceiling_layer = "ceiling";
     bool enable_ground = true;
     bool enable_ceiling = false;
+
+    double collBallRad1 = 0.0;
+    double collBallRad2 = 0.0;
+    double collBallRad3 = 0.0;
 };
 
 class LeggedBorderCheck : public BorderCheckBase

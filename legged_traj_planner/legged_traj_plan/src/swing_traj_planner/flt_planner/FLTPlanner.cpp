@@ -328,6 +328,9 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
     config.enable_ground = true;
     config.enable_ceiling = true;
+    config.collBallRad1 = config_.CollBall1Rad;
+    config.collBallRad2 = config_.CollBall2Rad;
+    config.collBallRad3 = config_.CollBall3Rad;
     auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
                                                             pose0, pose1, p0, p1, index, config);
     PolyTrajSearchConfig cfg;
