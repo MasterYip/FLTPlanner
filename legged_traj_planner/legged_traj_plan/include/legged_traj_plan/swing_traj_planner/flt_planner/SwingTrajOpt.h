@@ -516,11 +516,13 @@ public:
         integralRes = config_.integralResolution;
         allocSpeed = config_.allocSpeed;
 
+        // NOTE: Subdivide is done outside in minco_traj->getOptInitCondition
         // subdivide cfg poly path if exceeds length limit
-        const Eigen::Matrix3Xd deltas = polyPath.rightCols(polyPath.cols() - 1) -
-                                        polyPath.leftCols(polyPath.cols() - 1);
-        pieceIdx = (deltas.colwise().norm() / config_.lengthPerPiece).cast<int>().transpose();
-        pieceIdx.array() += 1;
+        // const Eigen::Matrix3Xd deltas = polyPath.rightCols(polyPath.cols() - 1) -
+        //                                 polyPath.leftCols(polyPath.cols() - 1);
+        // pieceIdx = (deltas.colwise().norm() / config_.lengthPerPiece).cast<int>().transpose();
+        // pieceIdx.array() += 1;
+        pieceIdx = Eigen::VectorXi::Ones(polyPath.cols() - 1);
         pieceN = pieceIdx.sum();
 
         temporalDim = pieceN;
