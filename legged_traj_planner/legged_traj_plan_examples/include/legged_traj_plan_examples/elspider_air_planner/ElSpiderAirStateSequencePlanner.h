@@ -593,10 +593,12 @@ public:
             if (t > 1.0)
             {
                 t = 0.0;
-                state_sequence_planner_.visClear();
                 state_sequence_planner_.dequeue_MCTsolution();
                 if (state_sequence_planner_.get_state_traj_length() > 0)
+                {
                     state_traj = state_sequence_planner_.get_state_traj(0);
+                    state_sequence_planner_.visClear();
+                }
             }
             ros::spinOnce(); // Fetch feedback
             rate_.sleep();
