@@ -85,6 +85,7 @@ struct SwingTrajPlannerConfig
     double CollBall2Weight;
     double CollBall3Weight;
     double FootCollExcludeBallRad;
+    double FootCollExcludeBallSmoothRad;
 
     //// ID[1] RRTPlannerSettings
     double maxTime;
@@ -153,6 +154,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("LFTPlanner/penalty/CollBall2Weight", CollBall2Weight);
             check_digit *= nh.getParam("LFTPlanner/penalty/CollBall3Weight", CollBall3Weight);
             check_digit *= nh.getParam("LFTPlanner/penalty/FootCollExcludeBallRad", FootCollExcludeBallRad);
+            check_digit *= nh.getParam("LFTPlanner/penalty/FootCollExcludeBallSmoothRad", FootCollExcludeBallSmoothRad);
         }
         //// ID[1] RRTPlannerSettings
         else if (plannerID == 1)

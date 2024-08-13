@@ -1,0 +1,52 @@
+plannerID: 0
+
+trajInit:
+  # perpendicular to the ground (avoid collision detection)
+  vLift: 0.010 # For trajopt
+  # vLift: 0.018 # For raibert planner init traj
+  vLiftNormalRandomize: 2.0 # Rand normal for RE-PLANNING (orthogonal disk randomization)
+  hLift: 0.1
+  trajTime: 20
+
+misc:
+  enableOptimizer: true
+  reOptimize: true
+  useCfgSpace: true # Do not change this (this file is for cfg space)
+  useCfgCommand: true
+  enableVis: true
+  enableOptVis: false # Visualize the optimization process
+  optVisRate: 20
+  enableBenchmark: true
+  # Benchmark result save path
+  # benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/optBenchmark.csv
+  # robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/robotProfile.csv
+  benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/optBenchmark2.csv
+  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
+
+LFTPlanner:
+  optimizer:
+    lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+    allocSpeed: 0.010 # NOTE: crucial for optimization
+    relCostTol: 1.0e-4
+    smoothingFactor: 1.0e-2
+    integralResolution: 8
+  penalty:
+    timeWeight: 0.0004 # PROBLEM: too large or too small will leads to max-try error
+    joint1PosMin: -0.785
+    joint1PosMax: 0.785
+    joint2PosMin: -0.5233
+    joint2PosMax: 3.14
+    joint3PosMin: -0.6978
+    joint3PosMax: 3.925
+    jointMaxVel: 100.0
+    jointMaxAcc: 500.0
+    jointPosWeight: 0.4
+    jointVelWeight: 0.1
+    jointAccWeight: 0.1
+    CollBall1Rad: 0.06
+    CollBall2Rad: 0.06
+    CollBall3Rad: 0.04
+    CollBall1Weight: 0.0
+    CollBall2Weight: 2.0
+    CollBall3Weight: 2.0
+    FootCollExcludeBallRad: 0.07

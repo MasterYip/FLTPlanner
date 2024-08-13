@@ -131,6 +131,7 @@ private:
     double mu_;
 
     double endCollExcludeRadius_; // TODO: use gaussian weight better
+    double endCollExcludeSmooth_;
     Eigen::Vector3d startExcludeBall_;
     Eigen::Vector3d endExcludeBall_;
 
@@ -165,6 +166,7 @@ public:
         weight_ << config.CollBall1Weight, config.CollBall2Weight, config.CollBall3Weight;
         mu_ = config.smoothingFactor;
         endCollExcludeRadius_ = config.FootCollExcludeBallRad;
+        endCollExcludeSmooth_ = config.FootCollExcludeBallSmoothRad;
     }
 
     /**
@@ -179,6 +181,10 @@ public:
         endExcludeBall_ = end;
     }
 
+    double sine_remap(double t)
+    {
+        return 0.5 * (1 + std::sin(M_PI * (t - 0.5)));
+    }
     /**
      * @brief Attach penalty to position, velocity and acceleration
      *
@@ -204,10 +210,19 @@ public:
         // Foot Collision
         pos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
         sdf = gridmap_interface_->sdfValue(pos, sdf_mode);
-        if ((pos - startExcludeBall_).norm() > endCollExcludeRadius_ &&
-            (pos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
+        double start_dis = (pos - startExcludeBall_).norm();
+        double end_dis = (pos - endExcludeBall_).norm();
+        double exclude_weight = 1;
+        if (start_dis > endCollExcludeRadius_ &&
+            end_dis > endCollExcludeRadius_ &&
             smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
+            if (std::min(start_dis, end_dis) < endCollExcludeRadius_ + endCollExcludeSmooth_)
+            {
+                exclude_weight = sine_remap((std::min(start_dis, end_dis) - endCollExcludeRadius_) / endCollExcludeSmooth_);
+                f *= exclude_weight;
+                df *= exclude_weight;
+            }
             J = robot_interface_->getJacobian(posCfg, index);
             dJ = robot_interface_->getJacobianTimeVariation(posCfg, velCfg, index);
             vel = vec_SE3Act(pose.inverse(), J * velCfg);
