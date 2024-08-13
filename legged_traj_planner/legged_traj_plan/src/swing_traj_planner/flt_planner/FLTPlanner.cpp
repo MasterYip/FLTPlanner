@@ -127,7 +127,7 @@ bool FLTPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         {
             Point3D pos;
             Eigen::Vector2d posxy = poly_traj_search.getIndexRemap().grid2Pos(border.at(i));
-            pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
+            pos[2] = poly_traj_search.getBorderCheck()->queryHeight(border.at(i));
             pos[0] = posxy.x();
             pos[1] = posxy.y();
             border_pos.emplace_back(pos);
@@ -349,7 +349,7 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         {
             Point3D pos;
             Eigen::Vector2d posxy = poly_traj_search.getIndexRemap().grid2Pos(border.at(i));
-            pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
+            pos[2] = poly_traj_search.getBorderCheck()->queryHeight(border.at(i));
             pos[0] = posxy.x();
             pos[1] = posxy.y();
             border_pos.emplace_back(pos);

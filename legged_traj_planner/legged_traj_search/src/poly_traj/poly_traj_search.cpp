@@ -11,7 +11,6 @@
 
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
-
 PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
                                const grid_map::GridMap &map,
                                const std::string ground_layer,
@@ -20,7 +19,9 @@ PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
                                const bool enable_ceiling,
                                const bool enable_benchmark) : map_(map),
                                                               index_remap_(map),
-                                                              border_check_(poly_corridor, map, ground_layer, ceiling_layer, enable_ground, enable_ceiling),
+                                                              border_check_(std::make_shared<CorridorBorderCheck>(poly_corridor, map,
+                                                                                                                  ground_layer, ceiling_layer,
+                                                                                                                  enable_ground, enable_ceiling)),
                                                               intersect_border_(border_check_),
                                                               benchmark_("PolyTrajSearch", enable_benchmark)
 {
@@ -30,7 +31,17 @@ PolyTrajSearch::PolyTrajSearch(PolyCorridor &poly_corridor,
                                const grid_map::GridMap &map,
                                const PolyTrajSearchConfig config) : map_(map),
                                                                     index_remap_(map),
-                                                                    border_check_(poly_corridor, map, config.ground_layer, config.ceiling_layer, config.enable_ground, config.enable_ceiling),
+                                                                    border_check_(std::make_shared<CorridorBorderCheck>(poly_corridor, map,
+                                                                                                                        config.ground_layer, config.ceiling_layer,
+                                                                                                                        config.enable_ground, config.enable_ceiling)),
+                                                                    intersect_border_(border_check_),
+                                                                    benchmark_("PolyTrajSearch", config.enable_benchmark) {}
+
+PolyTrajSearch::PolyTrajSearch(std::shared_ptr<BorderCheckBase> border_check,
+                               const grid_map::GridMap &map,
+                               const PolyTrajSearchConfig config) : map_(map),
+                                                                    index_remap_(map),
+                                                                    border_check_(border_check),
                                                                     intersect_border_(border_check_),
                                                                     benchmark_("PolyTrajSearch", config.enable_benchmark) {}
 
@@ -38,8 +49,8 @@ bool PolyTrajSearch::endpointValid(const Point3D &start, const Point3D &goal)
 {
     GridPt start_2d = index_remap_.pos2Grid(start.head(2));
     GridPt goal_2d = index_remap_.pos2Grid(goal.head(2));
-    return border_check_.isStartValid(start_2d) &&
-           border_check_.isGoalValid(goal_2d);
+    return border_check_->isStartValid(start_2d) &&
+           border_check_->isGoalValid(goal_2d);
 }
 
 bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
@@ -124,9 +135,9 @@ bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path, const in
         for (int j = 1; j < samples - 1; j++)
         {
             double diffs[3];
-            diffs[0] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j - 1].head(2))) - sample_points[j - 1][2];
-            diffs[1] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j].head(2))) - sample_points[j][2];
-            diffs[2] = border_check_.queryHeight(Eigen::Vector2d(sample_points[j + 1].head(2))) - sample_points[j + 1][2];
+            diffs[0] = border_check_->queryHeight(Eigen::Vector2d(sample_points[j - 1].head(2))) - sample_points[j - 1][2];
+            diffs[1] = border_check_->queryHeight(Eigen::Vector2d(sample_points[j].head(2))) - sample_points[j][2];
+            diffs[2] = border_check_->queryHeight(Eigen::Vector2d(sample_points[j + 1].head(2))) - sample_points[j + 1][2];
             if (diffs[1] > 0 &&
                 (2 * diffs[1] - diffs[0] - diffs[2]) / (Eigen::Vector2d(sample_points[j + 1].head(2) - sample_points[j - 1].head(2))).norm() > key_point_criteria)
             {
@@ -172,7 +183,7 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     {
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy = index_remap_.grid2Pos(grid_traj_.at(i));
-        pos[2] = border_check_.queryHeight(grid_traj_.at(i));
+        pos[2] = border_check_->queryHeight(grid_traj_.at(i));
         pos[0] = posxy.x();
         pos[1] = posxy.y();
         path.emplace_back(pos);
@@ -238,7 +249,7 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
     {
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy = index_remap_.grid2Pos(grid_traj_.at(i));
-        pos[2] = border_check_.queryHeight(grid_traj_.at(i));
+        pos[2] = border_check_->queryHeight(grid_traj_.at(i));
         pos[0] = posxy.x();
         pos[1] = posxy.y();
         path.emplace_back(pos);

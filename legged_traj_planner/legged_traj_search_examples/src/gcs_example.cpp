@@ -170,10 +170,10 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     Point3D start3d_grid, goal3d_grid;
     // start3d_grid.head(2) = getPos(start_idx);
     start3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(start_idx);
-    start3d_grid[2] = poly_traj_search.getBorderCheck().queryHeight(start_idx);
+    start3d_grid[2] = poly_traj_search.getBorderCheck()->queryHeight(start_idx);
     // goal3d_grid.head(2) = getPos(goal_idx);
     goal3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(goal_idx);
-    goal3d_grid[2] = poly_traj_search.getBorderCheck().queryHeight(goal_idx);
+    goal3d_grid[2] = poly_traj_search.getBorderCheck()->queryHeight(goal_idx);
     gcs_visualizer_.visSphere(start3d_grid, 0.01);
     gcs_visualizer_.visSphere(goal3d_grid, 0.01);
     gcs_visualizer_.visSphere(start3d, 0.02);
@@ -192,7 +192,7 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
     {
         Point3D pos;
         Eigen::Vector2d posxy;
-        pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
+        pos[2] = poly_traj_search.getBorderCheck()->queryHeight(border.at(i));
         map_.getPosition(border.at(i), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();
@@ -209,7 +209,7 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
         Point3D pos;
         // pos.head(2) = getPos(pt);
         pos.head(2) = poly_traj_search.getIndexRemap().grid2Pos(pt);
-        pos[2] = poly_traj_search.getBorderCheck().queryHeight(pt);
+        pos[2] = poly_traj_search.getBorderCheck()->queryHeight(pt);
         concave_pts.push_back(pos);
     }
     gcs_visualizer_.visSphere(concave_pts, 0.03);
@@ -252,8 +252,8 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
                             // pos2.head(2) = getPos(vis_graph.getPt(j));
                             pos1.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(i));
                             pos2.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(j));
-                            pos1[2] = poly_traj_search.getBorderCheck().queryHeight(vis_graph.getPt(i));
-                            pos2[2] = poly_traj_search.getBorderCheck().queryHeight(vis_graph.getPt(j));
+                            pos1[2] = poly_traj_search.getBorderCheck()->queryHeight(vis_graph.getPt(i));
+                            pos2[2] = poly_traj_search.getBorderCheck()->queryHeight(vis_graph.getPt(j));
                             mesh.push_back(pos1);
                             mesh.push_back(pos2);
                         }
@@ -320,10 +320,10 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
     Point3D start3d_grid, goal3d_grid;
     // start3d_grid.head(2) = getPos(start_idx);
     start3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(start_idx);
-    start3d_grid[2] = poly_traj_search.getBorderCheck().queryHeight(start_idx);
+    start3d_grid[2] = poly_traj_search.getBorderCheck()->queryHeight(start_idx);
     // goal3d_grid.head(2) = getPos(goal_idx);
     goal3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(goal_idx);
-    goal3d_grid[2] = poly_traj_search.getBorderCheck().queryHeight(goal_idx);
+    goal3d_grid[2] = poly_traj_search.getBorderCheck()->queryHeight(goal_idx);
     gcs_visualizer_.visSphere(start3d_grid, 0.01);
     gcs_visualizer_.visSphere(goal3d_grid, 0.01);
     gcs_visualizer_.visSphere(start3d, 0.02);
@@ -342,7 +342,7 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
     {
         Point3D pos;
         Eigen::Vector2d posxy;
-        pos[2] = poly_traj_search.getBorderCheck().queryHeight(border.at(i));
+        pos[2] = poly_traj_search.getBorderCheck()->queryHeight(border.at(i));
         map_.getPosition(border.at(i), posxy);
         pos[0] = posxy.x();
         pos[1] = posxy.y();
@@ -359,7 +359,7 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
         Point3D pos;
         // pos.head(2) = getPos(pt);
         pos.head(2) = poly_traj_search.getIndexRemap().grid2Pos(pt);
-        pos[2] = poly_traj_search.getBorderCheck().queryHeight(pt);
+        pos[2] = poly_traj_search.getBorderCheck()->queryHeight(pt);
         concave_pts.push_back(pos);
     }
     gcs_visualizer_.visSphere(concave_pts, 0.03);
@@ -402,8 +402,8 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
                             // pos2.head(2) = getPos(vis_graph.getPt(j));
                             pos1.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(i));
                             pos2.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(j));
-                            pos1[2] = poly_traj_search.getBorderCheck().queryHeight(vis_graph.getPt(i));
-                            pos2[2] = poly_traj_search.getBorderCheck().queryHeight(vis_graph.getPt(j));
+                            pos1[2] = poly_traj_search.getBorderCheck()->queryHeight(vis_graph.getPt(i));
+                            pos2[2] = poly_traj_search.getBorderCheck()->queryHeight(vis_graph.getPt(j));
                             mesh.push_back(pos1);
                             mesh.push_back(pos2);
                         }
@@ -498,7 +498,7 @@ void GCS_Example::eg_guide_surface()
     grid_map::GridMapRosConverter::toMessage(map_, gm_message);
     map_pub_.publish(gm_message);
 
-    CorridorBorderCheck border_check(corridor, map_, "elevation", "ceiling", false, false);
+    std::shared_ptr<CorridorBorderCheck> border_check = std::make_shared<CorridorBorderCheck>(corridor, map_, "elevation", "ceiling", false, false);
     IndexRemap index_remap(map_);
     IntersectBorder intersect_border(border_check);
     GridPt start_2d = index_remap.pos2Grid(key_points.front().head(2));
@@ -512,7 +512,7 @@ void GCS_Example::eg_guide_surface()
         {
             Point3D pos;
             Eigen::Vector2d posxy;
-            pos[2] = border_check.queryHeight(border.at(i));
+            pos[2] = border_check->queryHeight(border.at(i));
             map_.getPosition(border.at(i), posxy);
             pos[0] = posxy.x();
             pos[1] = posxy.y();

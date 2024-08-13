@@ -16,7 +16,7 @@
 /* c system header files */
 
 /* c++ standard library header files */
-#include <memory>
+
 /* external project header files */
 
 /* internal project header files */
@@ -55,7 +55,7 @@ private:
     // input data
     const grid_map::GridMap map_;
     IndexRemap index_remap_;
-    CorridorBorderCheck border_check_;
+    std::shared_ptr<BorderCheckBase> border_check_;
     IntersectBorder intersect_border_;
     VisibilityGraph vis_graph_;
 
@@ -78,6 +78,9 @@ public:
     PolyTrajSearch(PolyCorridor &poly_corridor,
                    const grid_map::GridMap &map,
                    const PolyTrajSearchConfig config = PolyTrajSearchConfig());
+    PolyTrajSearch(std::shared_ptr<BorderCheckBase> border_check,
+                   const grid_map::GridMap &map,
+                   const PolyTrajSearchConfig config = PolyTrajSearchConfig());
     ~PolyTrajSearch() = default;
     // Poly Traj Search
     bool endpointValid(const Point3D &start, const Point3D &goal);
@@ -90,7 +93,7 @@ public:
                                 double margin = 0.05);
     // Getters
     // Objects
-    CorridorBorderCheck &getBorderCheck() { return border_check_; }
+    std::shared_ptr<BorderCheckBase> getBorderCheck() { return border_check_; }
     IndexRemap &getIndexRemap() { return index_remap_; }
 
     // Data

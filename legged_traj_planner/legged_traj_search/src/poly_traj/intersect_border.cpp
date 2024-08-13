@@ -11,7 +11,7 @@
 
 #include "legged_traj_search/poly_traj/intersect_border.hpp"
 
-IntersectBorder::IntersectBorder(CorridorBorderCheck &border_check)
+IntersectBorder::IntersectBorder(std::shared_ptr<BorderCheckBase> border_check)
     : border_check_(border_check)
 {
 }
@@ -26,7 +26,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
 
     GridPt idx, start_border_idx, tmp_idx, revisit_idx;
     idx = start;
-    if (!border_check_.isStartValid(start))
+    if (!border_check_->isStartValid(start))
     {
         std::cerr << "Start point not valid!" << std::endl;
         return false;
@@ -34,7 +34,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
 
     // Find start border (x direction)
     // FIXME: This may find a start point in the middle of the corridor
-    while (border_check_.disInBorder(idx) >= 0)
+    while (border_check_->disInBorder(idx) >= 0)
     {
         idx[0]++;
     }
@@ -65,7 +65,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
         for (int i = 0; i < 9; i++)
         {
             tmp_idx = grid_ptr.getNextCandidateState();
-            tmp_dis_incorridor = border_check_.disInBorder(tmp_idx);
+            tmp_dis_incorridor = border_check_->disInBorder(tmp_idx);
             // flag: pointer out of border
             if (!out_corridor_flag && tmp_dis_incorridor < 0)
             {
