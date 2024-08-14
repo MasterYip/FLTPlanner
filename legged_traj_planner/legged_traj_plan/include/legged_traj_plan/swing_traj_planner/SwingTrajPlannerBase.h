@@ -63,6 +63,7 @@ struct SwingTrajPlannerConfig
     double relCostTol;
     double smoothingFactor;
     int integralResolution;
+    bool enableSpaceDeform;
     double spaceDeform1;
     double spaceDeform2;
     double spaceDeform3;
@@ -147,6 +148,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("LFTPlanner/optimizer/relCostTol", relCostTol);
             check_digit *= nh.getParam("LFTPlanner/optimizer/smoothingFactor", smoothingFactor);
             check_digit *= nh.getParam("LFTPlanner/optimizer/integralResolution", integralResolution);
+            check_digit *= nh.getParam("LFTPlanner/optimizer/enableSpaceDeform", enableSpaceDeform);
             check_digit *= nh.getParam("LFTPlanner/optimizer/spaceDeform1", spaceDeform1);
             check_digit *= nh.getParam("LFTPlanner/optimizer/spaceDeform2", spaceDeform2);
             check_digit *= nh.getParam("LFTPlanner/optimizer/spaceDeform3", spaceDeform3);

@@ -241,10 +241,18 @@ private:
                 beta1(0) = 0.0, beta1(1) = 1.0, beta1(2) = 2.0 * s1, beta1(3) = 3.0 * s2;
                 beta2(0) = 0.0, beta2(1) = 0.0, beta2(2) = 2.0, beta2(3) = 6.0 * s1;
                 beta3(0) = 0.0, beta3(1) = 0.0, beta3(2) = 0.0, beta3(3) = 6.0;
+                // Space Deformation
                 pos = c.transpose() * beta0;
                 vel = c.transpose() * beta1;
                 acc = c.transpose() * beta2;
                 jer = c.transpose() * beta3;
+                if (obj.config_.enableSpaceDeform)
+                {
+                    pos = pos.cwiseProduct(obj.spaceDeform);
+                    vel = vel.cwiseProduct(obj.spaceDeform);
+                    acc = acc.cwiseProduct(obj.spaceDeform);
+                    jer = jer.cwiseProduct(obj.spaceDeform);
+                }
 
                 // Penalties
                 gradPos.setZero(), gradVel.setZero(), gradAcc.setZero();
@@ -279,6 +287,14 @@ private:
                         if (j == 0 || j == integralResolution)
                             visInPs.push_back(pos);
                     }
+                }
+
+                // Space Deformation
+                if (obj.config_.enableSpaceDeform)
+                {
+                    gradPos = gradPos.cwiseQuotient(obj.spaceDeform);
+                    gradVel = gradVel.cwiseQuotient(obj.spaceDeform);
+                    gradAcc = gradAcc.cwiseQuotient(obj.spaceDeform);
                 }
 
                 // Backward to gradC
@@ -489,13 +505,19 @@ public:
         }
         else
             polyPath = TrajPolyPath;
-        polyPath = polyPath.colwise().cwiseQuotient(spaceDeform);
 
         // Terminal Conditions
-        headPV.col(0) = polyPath.leftCols(1);
-        headPV.col(1) = initialVel.cwiseQuotient(spaceDeform);
-        tailPV.col(0) = polyPath.rightCols(1);
-        tailPV.col(1) = terminalVel.cwiseQuotient(spaceDeform);
+        headPV.col(0) = TrajPolyPath.leftCols(1);
+        headPV.col(1) = initialVel;
+        tailPV.col(0) = TrajPolyPath.rightCols(1);
+        tailPV.col(1) = terminalVel;
+
+        if (config_.enableSpaceDeform)
+        {
+            polyPath = polyPath.array() / spaceDeform.replicate(1, polyPath.cols()).array();
+            headPV = headPV.array() / spaceDeform.replicate(1, 2).array();
+            tailPV = tailPV.array() / spaceDeform.replicate(1, 2).array();
+        }
 
         // NOTE: Subdivide is done outside in minco_traj->getOptInitCondition
         // subdivide cfg poly path if exceeds length limit

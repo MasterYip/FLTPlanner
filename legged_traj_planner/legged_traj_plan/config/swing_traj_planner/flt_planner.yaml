@@ -28,6 +28,10 @@ LFTPlanner:
     relCostTol: 1.0e-4
     smoothingFactor: 1.0e-2
     integralResolution: 16
+    enableSpaceDeform: false
+    spaceDeform1: 1.0
+    spaceDeform2: 1.0
+    spaceDeform3: 1.0
   penalty:
     timeWeight: 0.001 # PROBLEM: too large or too small will leads to max-try error
     joint1PosMin: -0.785

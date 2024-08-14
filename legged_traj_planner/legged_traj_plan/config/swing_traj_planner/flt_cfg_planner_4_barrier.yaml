@@ -10,11 +10,11 @@ trajInit:
 
 misc:
   enableOptimizer: true
-  reOptimize: true
+  reOptimize: false
   useCfgSpace: true # Do not change this (this file is for cfg space)
   useCfgCommand: true
   enableVis: true
-  enableOptVis: true # Visualize the optimization process
+  enableOptVis: false # Visualize the optimization process
   optVisRate: 10
   enableBenchmark: true
   # Benchmark result save path
@@ -32,6 +32,10 @@ LFTPlanner:
     relCostTol: 1.0e-4
     smoothingFactor: 6.0e-2 # IMPORTANT: smooth obstacle is good for optimization
     integralResolution: 8
+    enableSpaceDeform: false
+    spaceDeform1: 1.0
+    spaceDeform2: 1.0
+    spaceDeform3: 1.0
   penalty:
     timeWeight: 0.00035 # PROBLEM: too large or too small will leads to max-try error
     joint1PosMin: -0.785
@@ -53,3 +57,9 @@ LFTPlanner:
     CollBall3Weight: 4.0
     FootCollExcludeBallRad: 0.05
     FootCollExcludeBallSmoothRad: 0.05
+    primitivePos1: 0.0
+    primitivePos2: 0.0
+    primitivePos3: 0.0
+    primitiveWeight1: 0.0
+    primitiveWeight2: 0.0
+    primitiveWeight3: 0.0

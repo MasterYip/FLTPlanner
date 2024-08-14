@@ -61,6 +61,8 @@ private:
     double total_time_;
 
     Trajectory<3> traj_;
+    bool space_deform_flag_{false};
+    Eigen::Vector3d space_deform_{Eigen::Vector3d::Ones()};
 
 public:
     MincoTrajectory() = default;
@@ -191,13 +193,13 @@ public:
             t = traj_.getTotalDuration();
 
         if (d_order == 0)
-            return traj_.getPos(t);
+            return space_deform_flag_ ? traj_.getPos(t).cwiseProduct(space_deform_) : traj_.getPos(t);
         else if (d_order == 1)
-            return traj_.getVel(t);
+            return space_deform_flag_ ? traj_.getVel(t).cwiseProduct(space_deform_) : traj_.getVel(t);
         else if (d_order == 2)
-            return traj_.getAcc(t);
+            return space_deform_flag_ ? traj_.getAcc(t).cwiseProduct(space_deform_) : traj_.getAcc(t);
         else if (d_order == 3)
-            return traj_.getJer(t);
+            return space_deform_flag_ ? traj_.getJer(t).cwiseProduct(space_deform_) : traj_.getJer(t);
         else
             throw std::runtime_error("Invalid derivative order");
     }
@@ -224,7 +226,7 @@ public:
         double tot_length = 0;
         for (int i = 1; i < poly_path_.size(); i++)
             tot_length += (poly_path_[i] - poly_path_[i - 1]).norm();
-        int seg_num = tot_length / max_piece_length > 1 ? tot_length / max_piece_length : 1; 
+        int seg_num = tot_length / max_piece_length > 1 ? tot_length / max_piece_length : 1;
         for (int i = 0; i < seg_num + 2; i++)
             poly_path.emplace_back(traj_.getPos((double)i / (seg_num + 1) * traj_.getTotalDuration()));
         start_vel = start_vel_;
@@ -239,7 +241,19 @@ public:
             return false;
         double delta = normalized ? T * traj_.getTotalDuration() : T;
         for (double t = 0; t < traj_.getTotalDuration(); t += delta)
-            discrete_traj.emplace_back(traj_.getPos(t));
+            discrete_traj.emplace_back(space_deform_flag_ ? traj_.getPos(t).cwiseProduct(space_deform_) : traj_.getPos(t));
         return true;
+    }
+
+    void setSpaceDeform(const Eigen::Vector3d &space_deform)
+    {
+        space_deform_flag_ = true;
+        space_deform_ = space_deform;
+    }
+
+    void unsetSpaceDeform()
+    {
+        space_deform_flag_ = false;
+        space_deform_ = Eigen::Vector3d::Ones();
     }
 };

@@ -190,7 +190,7 @@ bool FLTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
         poly_path_mat.col(i) = poly_path[i];
 
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
-                          config_, false, false);
+                          config_, false);
     bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), config_.relCostTol);
 
     if (config_.enableVis && ret)
@@ -500,8 +500,12 @@ bool FLTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
         poly_path_mat.col(i) = poly_path[i];
 
     swing_traj_opt_.setup(pose0, pose1, index, poly_path_mat, start_vel, goal_vel,
-                          config_, true, false);
+                          config_, true);
     bool ret = swing_traj_opt_.optimize(minco_traj->getTraj(), config_.relCostTol);
+    if (config_.enableSpaceDeform)
+        minco_traj->setSpaceDeform(Eigen::Vector3d(config_.spaceDeform1, config_.spaceDeform2, config_.spaceDeform3));
+    else
+        minco_traj->unsetSpaceDeform();
 
     // SwingTrajOpt Benchmark disabled for now
     // if (config_.enableBenchmark)
