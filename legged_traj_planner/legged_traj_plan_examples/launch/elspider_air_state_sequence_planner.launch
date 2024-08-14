@@ -2,7 +2,8 @@
     <!-- ElSpider Air State Sequence Planner -->
 
     <!-- Demo Select -->
-    <!-- 1_stairs / 2_stairs / 3_quincuncial_piles / 4_barrier / 5_channel / 6_fractal-->
+    <!-- 1_stairs / 2_stairs / 3_quincuncial_piles 
+    / 4_barrier / 4_barrier_vague / 5_channel / 6_fractal-->
     <arg name="demo_name" default="4_barrier" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
@@ -80,6 +81,8 @@
         <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/$(arg planner_cfg).yaml"/>
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/state_sequence_planner.yaml"/>
         <param name="StateSequencePlanner/demoPath" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/" />
+        <!-- Perception Config Override -->
+        <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
     </node>
 
     <!-- Robot related -->

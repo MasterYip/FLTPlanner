@@ -102,24 +102,6 @@ void GridMapInterface::update(bool block, double sdf_margin)
     occupiedPublisher_.publish(pointCloud2Msg);
 }
 
-void GridMapInterface::updateTorsoRef(void)
-{
-    // Add this layer by applying grid_map filter to ground layer & increase z value by nominal torso height
-    try
-    {
-        map_.add(torso_ref_layer, map_.get(ground_layer));
-        for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
-        {
-            map_.at(torso_ref_layer, *iterator) += 0.3;
-        }
-        // Filter
-    }
-    catch (const std::exception &e)
-    {
-        ROS_WARN_STREAM("Failed to update torso ref layer!");
-    }
-}
-
 void GridMapInterface::updateTravMap(void)
 {
     try
@@ -127,11 +109,12 @@ void GridMapInterface::updateTravMap(void)
         map_.add(ground_layer_trav, map_.get(ground_layer));
         for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
         {
+            bool valid = true;
             double normal_tan_ = std::sqrt(std::pow(map_.at(ground_norm_x_layer, *iterator), 2) + std::pow(map_.at(ground_norm_y_layer, *iterator), 2)) / map_.at(ground_norm_z_layer, *iterator);
-            if (normal_tan_ > config_.normalTangentCrtic)
-            {
+            valid &= normal_tan_ < config_.normalTangentCrtic;
+            valid &= config_.enableHeightFilter ? map_.at(ground_layer, *iterator) < config_.maxHeight : true;
+            if (!valid)
                 map_.at(ground_layer_trav, *iterator) = std::nan("");
-            }
         }
     }
     catch (const std::exception &e)

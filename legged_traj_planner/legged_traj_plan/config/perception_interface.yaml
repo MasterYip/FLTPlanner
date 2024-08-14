@@ -3,4 +3,6 @@ GridMapInterface:
   groundLayerName: elevation_inpainted
   ceilingLayerName: ceiling
   sdfMargin: 0.2
-  normalTangentCrtic: 1.0
+  normalTangentCrtic: 1.6
+  enableHeightFilter: false
+  maxHeight: 0.1

@@ -42,6 +42,8 @@ struct GridMapInterfaceConfig
 
     // TravMap
     double normalTangentCrtic{0.5};
+    bool enableHeightFilter{false};
+    double maxHeight{0.0};
 
     void loadParam(ros::NodeHandle &nh, std::string ns = "GridMapInterface")
     {
@@ -51,6 +53,8 @@ struct GridMapInterfaceConfig
         check_digit &= nh.getParam(ns + "/ceilingLayerName", ceilingLayerName);
         check_digit &= nh.getParam(ns + "/sdfMargin", sdfMargin);
         check_digit &= nh.getParam(ns + "/normalTangentCrtic", normalTangentCrtic);
+        check_digit &= nh.getParam(ns + "/enableHeightFilter", enableHeightFilter);
+        check_digit &= nh.getParam(ns + "/maxHeight", maxHeight);
     }
 };
 
@@ -96,7 +100,6 @@ public:
 
     void callback(const grid_map_msgs::GridMap &msg);
     void update(bool block = true, double sdf_margin = 0.3); // FIXME: this should larger than robot height?
-    void updateTorsoRef(void);
     void updateTravMap(void);
     void updateSDF(const std::string &layer_name, uint index = 0, double margin = 0.2);
     double value(const grid_map::Position &position, const std::string &layer_name = "");

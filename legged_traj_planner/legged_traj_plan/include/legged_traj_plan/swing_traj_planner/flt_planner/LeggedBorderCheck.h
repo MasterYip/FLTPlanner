@@ -71,7 +71,9 @@ public:
           p1_(p1),
           index_(index)
     {
-        std::vector<Point3D> key_points = {p0_, p1_};
+        Eigen::Vector3d pmid = (p0_ + p1_) / 2;
+        pmid[2] = gridmap_interface_->value(pmid.head(2), config_.ground_layer);
+        std::vector<Point3D> key_points = {p0_, pmid, p1_};
         guide_surf_ = HarmonicGuideSurf(key_points);
     }
 
