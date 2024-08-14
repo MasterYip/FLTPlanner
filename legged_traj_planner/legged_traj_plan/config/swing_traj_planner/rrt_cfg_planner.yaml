@@ -10,7 +10,7 @@ misc:
   enableOptimizer: true
   reOptimize: false
   useCfgSpace: true
-  useCfgCommand: false
+  useCfgCommand: true
   enableVis: true
   enableOptVis: true
   optVisRate: 10

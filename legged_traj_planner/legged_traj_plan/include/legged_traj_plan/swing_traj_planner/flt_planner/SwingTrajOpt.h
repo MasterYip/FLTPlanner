@@ -56,13 +56,13 @@ private:
     int index_;
 
     // Minco Parameters
+    Eigen::Vector3d spaceDeform;
     Eigen::VectorXi pieceIdx;
     int pieceN;
     int spatialDim;
     int temporalDim;
 
     // Parameters
-    double smoothEps;
     int integralRes;
     double allocSpeed;
 
@@ -193,7 +193,6 @@ private:
      *
      * @param[in] T Time vector
      * @param[in] coeffs Coefficients of trajectory (3, 4 * pieceNum)
-     * @param[in] smoothFactor Smooth factor for soft constraint cost function
      * @param[in] integralResolution Integral resolution
      * @param[out] cost Cost
      * @param[out] gradT Gradient of time allocation
@@ -202,25 +201,17 @@ private:
     static inline void attachPenaltyFunctional(SwingTrajOpt &obj,
                                                const Eigen::VectorXd &T,
                                                const Eigen::MatrixX3d &coeffs,
-                                               const double &smoothFactor,
                                                const int &integralResolution,
                                                double &cost,
                                                Eigen::VectorXd &gradT,
-                                               Eigen::MatrixX3d &gradC,
-                                               bool verbose = true)
+                                               Eigen::MatrixX3d &gradC)
     {
         Eigen::Vector3d pos, vel, acc, jer;
-        Eigen::Vector3d totalGradPos, totalGradVel, totalGradAcc;
         Eigen::Vector3d gradPos, gradVel, gradAcc;
 
         double step, alpha;
         double s1, s2, s3;
         Eigen::Matrix<double, 4, 1> beta0, beta1, beta2, beta3;
-        Eigen::Vector3d outerNormal;
-        int K, L;
-        double violaPos, violaVel, violaAcc;
-        double violaPosPenaD, violaVelPenaD, violaAccPenaD;
-        double violaPosPena, violaVelPena, violaAccPena;
         double node, pena;
 
         const int pieceNum = T.size();
@@ -229,11 +220,12 @@ private:
         double pieceTime = 0.0;
         double time;
 
-        // Temp vis
+        // Visualizer
         std::vector<Eigen::Vector3d> visTraj;
         std::vector<Eigen::Vector3d> visTraj2;
         std::vector<Eigen::Vector3d> visInPs;
         obj.legCollPena.visClear();
+
         for (int i = 0; i < pieceNum; i++)
         {
             const Eigen::Matrix<double, 4, 3> &c = coeffs.block<4, 3>(i * 4, 0);
@@ -257,7 +249,6 @@ private:
                 // Penalties
                 gradPos.setZero(), gradVel.setZero(), gradAcc.setZero();
                 pena = 0.0;
-
                 double norm_time = time / total_time;
                 if (obj.useCfgSpace_)
                 {
@@ -290,22 +281,17 @@ private:
                     }
                 }
 
-                // Backward
-                totalGradPos = gradPos;
-                totalGradVel = gradVel;
-                totalGradAcc = gradAcc;
-
-                // PROBLEM: What is this : maybe a simple partial derivative
+                // Backward to gradC
                 node = (j == 0 || j == integralResolution) ? 0.5 : 1.0;
                 alpha = j * integralFrac;
-                gradC.block<4, 3>(i * 4, 0) += (beta0 * totalGradPos.transpose() + // 4*3 order-1 newton?
-                                                beta1 * totalGradVel.transpose() + // 4*3
-                                                beta2 * totalGradAcc.transpose() *
+                gradC.block<4, 3>(i * 4, 0) += (beta0 * gradPos.transpose() + // 4*3
+                                                beta1 * gradVel.transpose() +
+                                                beta2 * gradAcc.transpose() *
                                                     node * step);
-                // PROBLEM: What is this
-                gradT(i) += (totalGradPos.dot(vel) +
-                             totalGradVel.dot(acc) +
-                             totalGradAcc.dot(jer) *
+                // PROBLEM: Backward to gradT
+                gradT(i) += (gradPos.dot(vel) +
+                             gradVel.dot(acc) +
+                             gradAcc.dot(jer) *
                                  alpha * node * step +
                              node * integralFrac * pena);
                 cost += node * step * pena;
@@ -360,9 +346,8 @@ private:
         obj.minco.getEnergyPartialGradByCoeffs(obj.partialGradByCoeffs);
         obj.minco.getEnergyPartialGradByTimes(obj.partialGradByTimes);
 
-        // TODO: 2.Penalty cost
-        attachPenaltyFunctional(obj, obj.times, obj.minco.getCoeffs(),
-                                obj.smoothEps, obj.integralRes,
+        // 2.Penalty cost
+        attachPenaltyFunctional(obj, obj.times, obj.minco.getCoeffs(), obj.integralRes,
                                 cost, obj.partialGradByTimes, obj.partialGradByCoeffs);
 
         // propogate gradient from partial c, partial t to dq,dt
@@ -376,14 +361,6 @@ private:
         // Backward
         backwardGradP(obj.gradByPoints, gradXi);
         backwardGradT(tau, obj.gradByTimes, gradTau);
-
-        // std::cout << "gradXi: " << gradXi.transpose() << std::endl;
-        // std::cout << "gradTau: " << gradTau.transpose() << std::endl;
-        // std::cout << "Xi: " << xi.transpose() << std::endl;
-        // std::cout << "Tau: " << tau.transpose() << std::endl;
-
-        // TODO: what is this?
-        // normRetrictionLayer(xi, obj.vPolyIdx, obj.vPolytopes, cost, gradXi);
 
         return cost;
     }
@@ -485,17 +462,24 @@ public:
         // Params
         SwingTrajPlannerConfig &config,
         // Settings
-        const bool useCfgSpace = false,
-        const bool verbose = false)
+        const bool useCfgSpace = false)
     {
-        config_ = config;
         benchmark_.reset();
-        rate_ = ros::Rate(config_.optVisRate);
 
+        // Parameters
+        config_ = config;
+        rate_ = ros::Rate(config_.optVisRate);
+        rho = config_.timeWeight;
+        integralRes = config_.integralResolution;
+        allocSpeed = config_.allocSpeed;
         useCfgSpace_ = useCfgSpace;
+        spaceDeform << config_.spaceDeform1, config_.spaceDeform2, config_.spaceDeform3;
+
         pose0_ = pose0;
         pose1_ = pose1;
         index_ = index;
+
+        // Waypoints
         if (TrajPolyPath.cols() < 3)
         {
             polyPath.resize(3, 3);
@@ -505,16 +489,13 @@ public:
         }
         else
             polyPath = TrajPolyPath;
+        polyPath = polyPath.colwise().cwiseQuotient(spaceDeform);
 
+        // Terminal Conditions
         headPV.col(0) = polyPath.leftCols(1);
-        headPV.col(1) = initialVel;
+        headPV.col(1) = initialVel.cwiseQuotient(spaceDeform);
         tailPV.col(0) = polyPath.rightCols(1);
-        tailPV.col(1) = terminalVel;
-
-        rho = config_.timeWeight;
-        smoothEps = config_.smoothingFactor;
-        integralRes = config_.integralResolution;
-        allocSpeed = config_.allocSpeed;
+        tailPV.col(1) = terminalVel.cwiseQuotient(spaceDeform);
 
         // NOTE: Subdivide is done outside in minco_traj->getOptInitCondition
         // subdivide cfg poly path if exceeds length limit
@@ -524,14 +505,11 @@ public:
         // pieceIdx.array() += 1;
         pieceIdx = Eigen::VectorXi::Ones(polyPath.cols() - 1);
         pieceN = pieceIdx.sum();
-
         temporalDim = pieceN;
         spatialDim = 3 * (pieceN - 1);
-
-        // Setup for minco
         minco.setConditions(headPV, tailPV, pieceN);
 
-        // Allocate temp variables
+        // Allocate intermediate variables
         points.resize(3, pieceN - 1);
         times.resize(pieceN);
         gradByPoints.resize(3, pieceN - 1);
@@ -544,13 +522,13 @@ public:
         if (useCfgSpace_)
         {
             legCollPena.setupParams(config_);
-            legCollPena.setExcludeBall(point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(headPV.col(0), index)),
-                                       point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(tailPV.col(0), index)));
+            legCollPena.setExcludeBall(point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(TrajPolyPath.leftCols(1), index)),
+                                       point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(TrajPolyPath.rightCols(0), index)));
         }
         else
         {
             collPena.setupParams(config_);
-            collPena.setExcludeBall(headPV.col(0), tailPV.col(0));
+            collPena.setExcludeBall(TrajPolyPath.leftCols(1), TrajPolyPath.rightCols(0));
         }
         // Limit Penalty
         Eigen::Matrix<double, 3, 2> posBd;
@@ -563,18 +541,11 @@ public:
         // Primitive Penalty
         primitivePena.setup(config_);
 
-        if (verbose)
-        {
-            std::cout << "\tPiece num: " << pieceN << std::endl;
-            std::cout << "\tSpatial dim: " << spatialDim << std::endl;
-            std::cout << "\tTemporal dim: " << temporalDim << std::endl;
-        }
         benchmark_.record("Setup", RecordType::NORMAL);
         return true;
     }
 
-    inline bool optimize(Trajectory<3> &traj,
-                         const double &relCostTol, const bool verbose = true)
+    inline bool optimize(Trajectory<3> &traj, const double &relCostTol)
     {
         benchmark_.resetTimer();
 
@@ -627,7 +598,6 @@ public:
         benchmark_.end();
 
         return ret >= 0;
-        // return minCostFunctional;
     }
 
     inline BenchmarkResult getBenchmarkResult()
