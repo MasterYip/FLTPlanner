@@ -24,6 +24,7 @@
 #include "Utils.h"
 #include "LegLimitPenalty.h"
 #include "CollisionPenalty.h"
+#include "PrimitivePenalty.h"
 
 #include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
@@ -68,6 +69,7 @@ private:
     // Penalties
     LegLimitPenalty lmtPena;         // Config space
     LegCollisionPenalty legCollPena; // Config space
+    PrimitivePenalty primitivePena;  // Config space
     CollisionPenalty collPena;       // Cartesian space
 
     // Intermediate variables
@@ -186,11 +188,8 @@ private:
         return;
     }
 
-    // Soft Constraint
-
-    // TODO:
     /**
-     * @brief
+     * @brief Penalty
      *
      * @param[in] T Time vector
      * @param[in] coeffs Coefficients of trajectory (3, 4 * pieceNum)
@@ -264,6 +263,7 @@ private:
                 {
                     // Joint Limit Soft Constraints
                     obj.lmtPena.attachPena(pos, vel, acc, gradPos, gradVel, gradAcc, pena);
+                    obj.primitivePena.attachPena(pos, gradPos, pena);
                     obj.legCollPena.attachPena(poseLinearInterp(obj.pose0_, obj.pose1_, norm_time), pos, vel, acc, gradPos, obj.index_, pena);
                 }
                 else
@@ -530,7 +530,17 @@ public:
 
         // Setup for minco
         minco.setConditions(headPV, tailPV, pieceN);
-        // Costs setup
+
+        // Allocate temp variables
+        points.resize(3, pieceN - 1);
+        times.resize(pieceN);
+        gradByPoints.resize(3, pieceN - 1);
+        gradByTimes.resize(pieceN);
+        partialGradByCoeffs.resize(4 * pieceN, 3); // NOTE:4-order traj
+        partialGradByTimes.resize(pieceN);
+
+        //// Penalty setup
+        // Collision Penalty
         if (useCfgSpace_)
         {
             legCollPena.setupParams(config_);
@@ -542,15 +552,7 @@ public:
             collPena.setupParams(config_);
             collPena.setExcludeBall(headPV.col(0), tailPV.col(0));
         }
-
-        // Allocate temp variables
-        points.resize(3, pieceN - 1);
-        times.resize(pieceN);
-        gradByPoints.resize(3, pieceN - 1);
-        gradByTimes.resize(pieceN);
-        partialGradByCoeffs.resize(4 * pieceN, 3); // NOTE:4-order traj
-        partialGradByTimes.resize(pieceN);
-
+        // Limit Penalty
         Eigen::Matrix<double, 3, 2> posBd;
         posBd << config_.joint1PosMin, config_.joint1PosMax,
             config_.joint2PosMin, config_.joint2PosMax,
@@ -558,6 +560,8 @@ public:
         Eigen::Vector2d magBd(config_.jointMaxVel, config_.jointMaxAcc);
         Eigen::Vector3d weight(config_.jointPosWeight, config_.jointVelWeight, config_.jointAccWeight);
         lmtPena.setup(posBd, magBd, weight, config_.smoothingFactor);
+        // Primitive Penalty
+        primitivePena.setup(config_);
 
         if (verbose)
         {

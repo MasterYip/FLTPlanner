@@ -2,19 +2,19 @@ plannerID: 0
 
 trajInit:
   # perpendicular to the ground (avoid collision detection)
-  vLift: 0.018 # For trajopt
+  vLift: 0.014 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
-  vLiftNormalRandomize: 1.0 # Rand normal for RE-PLANNING (orthogonal disk randomization)
+  vLiftNormalRandomize: 1.5 # Rand normal for RE-PLANNING (orthogonal disk randomization)
   hLift: 0.1
   trajTime: 20
 
 misc:
   enableOptimizer: true
-  reOptimize: false
+  reOptimize: true
   useCfgSpace: true # Do not change this (this file is for cfg space)
   useCfgCommand: true
   enableVis: true
-  enableOptVis: true # Visualize the optimization process
+  enableOptVis: false # Visualize the optimization process
   optVisRate: 10
   enableBenchmark: true
   # Benchmark result save path
@@ -49,7 +49,13 @@ LFTPlanner:
     CollBall2Rad: 0.05
     CollBall3Rad: 0.04
     CollBall1Weight: 0.0
-    CollBall2Weight: 4.0
+    CollBall2Weight: 8.0
     CollBall3Weight: 4.0
     FootCollExcludeBallRad: 0.06
     FootCollExcludeBallSmoothRad: 0.05
+    primitivePos1: 0.0
+    primitivePos2: 1.57
+    primitivePos3: 3.14
+    primitiveWeight1: 0.0
+    primitiveWeight2: 0.0005 # 0.00005
+    primitiveWeight3: 0.00002

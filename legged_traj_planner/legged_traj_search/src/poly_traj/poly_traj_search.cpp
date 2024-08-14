@@ -161,6 +161,37 @@ bool PolyTrajSearch::insertVerticalKeyPoint(std::vector<Point3D> &path, const in
     return true;
 }
 
+/**
+ * @brief
+ *
+ * @param path
+ * @param alpha between 0 and 1
+ * @return true
+ * @return false
+ */
+bool heightConvexRelax(std::vector<Point3D> &path, double alpha = 0.5)
+{
+    int size = path.size();
+    for (int i = 1; i < size - 1; i++)
+    {
+        double height = path[i][2];
+        double height_prev = path[i - 1][2];
+        double height_next = path[i + 1][2];
+        double rate = (path[i] - path[i - 1]).head(2).norm() /
+                      ((path[i + 1] - path[i]).head(2).norm() + (path[i] - path[i - 1]).head(2).norm());
+        double kappa;
+        if (height < (1 - rate) * height_prev + rate * height_next)
+        {
+            if (height_prev < height_next)
+                kappa = (1 - rate) * alpha;
+            else
+                kappa = 1 - rate * alpha;
+            path[i][2] = kappa * height_prev + (1 - kappa) * height_next;
+        }
+    }
+    return true;
+}
+
 bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path)
 {
     path.clear();
@@ -183,7 +214,7 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     {
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy = index_remap_.grid2Pos(grid_traj_.at(i));
-        pos[2] = border_check_->queryHeight(grid_traj_.at(i)) + 0.05;
+        pos[2] = border_check_->queryHeight(grid_traj_.at(i)) + 0.01;
         pos[0] = posxy.x();
         pos[1] = posxy.y();
         path.emplace_back(pos);
@@ -193,8 +224,8 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     path.back() = goal;
 
     benchmark_.record("Insert Vertical Key Point", RecordType::CRITICAL);
-    insertVerticalKeyPoint(path, 20, 0.15, 0.05);
-
+    insertVerticalKeyPoint(path, 20, 0.15, 0.01);
+    heightConvexRelax(path, 0.5);
     benchmark_.end();
     return true;
 }

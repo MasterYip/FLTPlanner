@@ -56,3 +56,12 @@ static inline bool smoothedL1(const double &x,
         return true;
     }
 }
+
+static inline bool penaltyL2(const double &x,
+                             double &f,
+                             double &df)
+{
+    f = 0.5 * x * x;
+    df = x;
+    return true;
+}

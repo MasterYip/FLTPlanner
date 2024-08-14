@@ -64,15 +64,19 @@ public:
           index_remap_(map_),
           robot_interface_(robot_interface),
           gridmap_interface_(gridmap_interface),
-          config_(config),
-          pose0_(pose0),
-          pose1_(pose1),
-          p0_(p0),
-          p1_(p1),
-          index_(index)
+          config_(config), pose0_(pose0), pose1_(pose1),
+          p0_(p0), p1_(p1), index_(index)
     {
+        int samples = 3;
         Eigen::Vector3d pmid = (p0_ + p1_) / 2;
-        pmid[2] = gridmap_interface_->value(pmid.head(2), config_.ground_layer);
+        double h = 0;
+        for (int i = 1; i < samples + 1; i++)
+        {
+            h += gridmap_interface_->value(
+                (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
+                config_.ground_layer);
+        }
+        pmid[2] = h / samples;
         std::vector<Point3D> key_points = {p0_, pmid, p1_};
         guide_surf_ = HarmonicGuideSurf(key_points);
     }
