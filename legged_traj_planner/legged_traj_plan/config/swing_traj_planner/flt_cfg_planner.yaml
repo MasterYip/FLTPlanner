@@ -58,4 +58,4 @@ LFTPlanner:
     primitivePos3: 3.14
     primitiveWeight1: 0.0
     primitiveWeight2: 0.0005 # 0.00005
-    primitiveWeight3: 0.00002
+    primitiveWeight3: 0.00002 # 0.00002
