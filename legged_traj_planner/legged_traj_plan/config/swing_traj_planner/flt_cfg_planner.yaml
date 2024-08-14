@@ -4,7 +4,7 @@ trajInit:
   # perpendicular to the ground (avoid collision detection)
   vLift: 0.018 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
-  vLiftNormalRandomize: 2.0 # Rand normal for RE-PLANNING (orthogonal disk randomization)
+  vLiftNormalRandomize: 1.0 # Rand normal for RE-PLANNING (orthogonal disk randomization)
   hLift: 0.1
   trajTime: 20
 
@@ -14,7 +14,7 @@ misc:
   useCfgSpace: true # Do not change this (this file is for cfg space)
   useCfgCommand: true
   enableVis: true
-  enableOptVis: false # Visualize the optimization process
+  enableOptVis: true # Visualize the optimization process
   optVisRate: 10
   enableBenchmark: true
   # Benchmark result save path
@@ -25,15 +25,15 @@ misc:
 
 LFTPlanner:
   searcher:
-    useLeggedBorderCheck: false
+    useLeggedBorderCheck: true
   optimizer:
     lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization
     relCostTol: 1.0e-4
-    smoothingFactor: 1.0e-2
-    integralResolution: 16
+    smoothingFactor: 5.0e-2
+    integralResolution: 8
   penalty:
-    timeWeight: 0.0002 # PROBLEM: too large or too small will leads to max-try error
+    timeWeight: 0.00026 # PROBLEM: too large or too small will leads to max-try error
     joint1PosMin: -0.785
     joint1PosMax: 0.785
     joint2PosMin: -0.5233
@@ -46,10 +46,10 @@ LFTPlanner:
     jointVelWeight: 0.1
     jointAccWeight: 0.1
     CollBall1Rad: 0.06
-    CollBall2Rad: 0.06
+    CollBall2Rad: 0.05
     CollBall3Rad: 0.04
     CollBall1Weight: 0.0
-    CollBall2Weight: 2.0
-    CollBall3Weight: 2.0
-    FootCollExcludeBallRad: 0.05
+    CollBall2Weight: 4.0
+    CollBall3Weight: 4.0
+    FootCollExcludeBallRad: 0.06
     FootCollExcludeBallSmoothRad: 0.05

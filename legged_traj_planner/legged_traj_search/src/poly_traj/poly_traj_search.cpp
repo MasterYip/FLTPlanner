@@ -183,7 +183,7 @@ bool PolyTrajSearch::search(const Point3D &start, const Point3D &goal, std::vect
     {
         Eigen::Vector3d pos;
         Eigen::Vector2d posxy = index_remap_.grid2Pos(grid_traj_.at(i));
-        pos[2] = border_check_->queryHeight(grid_traj_.at(i));
+        pos[2] = border_check_->queryHeight(grid_traj_.at(i)) + 0.05;
         pos[0] = posxy.x();
         pos[1] = posxy.y();
         path.emplace_back(pos);
