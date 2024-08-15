@@ -51,10 +51,10 @@ LFTPlanner:
     jointVelWeight: 0.1
     jointAccWeight: 0.1
     CollBall1Rad: 0.06
-    CollBall2Rad: 0.05
+    CollBall2Rad: 0.06
     CollBall3Rad: 0.04
     CollBall1Weight: 0.0
-    CollBall2Weight: 8.0
+    CollBall2Weight: 16.0
     CollBall3Weight: 4.0
     FootCollExcludeBallRad: 0.06
     FootCollExcludeBallSmoothRad: 0.05
