@@ -68,6 +68,7 @@ struct SwingTrajPlannerConfig
     double spaceDeform2;
     double spaceDeform3;
     //// Penalty
+    double energyWeight;
     // Time Cost
     double timeWeight;
     // Joint Limit Cost
@@ -127,7 +128,7 @@ struct SwingTrajPlannerConfig
         check_digit *= nh.getParam("trajInit/hLift", hLift);
         check_digit *= nh.getParam("trajInit/trajTime", trajTime);
         check_digit *= nh.getParam("trajInit/vLiftNormalRandomize", vLiftNormalRandomize);
-
+        
         check_digit *= nh.getParam("misc/enableOptimizer", enableOptimizer);
         check_digit *= nh.getParam("misc/reOptimize", reOptimize);
         check_digit *= nh.getParam("misc/useCfgSpace", useCfgSpace);
@@ -152,6 +153,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("LFTPlanner/optimizer/spaceDeform1", spaceDeform1);
             check_digit *= nh.getParam("LFTPlanner/optimizer/spaceDeform2", spaceDeform2);
             check_digit *= nh.getParam("LFTPlanner/optimizer/spaceDeform3", spaceDeform3);
+            check_digit *= nh.getParam("LFTPlanner/penalty/energyWeight", energyWeight);
             check_digit *= nh.getParam("LFTPlanner/penalty/timeWeight", timeWeight);
             check_digit *= nh.getParam("LFTPlanner/penalty/joint1PosMin", joint1PosMin);
             check_digit *= nh.getParam("LFTPlanner/penalty/joint1PosMax", joint1PosMax);

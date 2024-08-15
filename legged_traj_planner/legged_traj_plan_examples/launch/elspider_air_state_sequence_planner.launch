@@ -127,10 +127,10 @@
         <node pkg="rosbag" type="record" name="rosbag_record" args="
             /tf /tf_static 
             /grid_map 
-            /elspider_air_simple_planner/grid_map_trav_test 
+            /elspider_air_state_sequence_planner/grid_map_trav_test 
             /swing_traj_planner_vis 
             /hexapod/foot_state_fdb 
-            -o elspider_air_simple_planner" output="screen" />
+            -o elspider_air-$(arg demo_name)-$(arg planner_cfg)" output="screen" />
     </group>
 
 </launch>

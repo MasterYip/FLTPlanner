@@ -33,10 +33,11 @@ LFTPlanner:
     smoothingFactor: 5.0e-2
     integralResolution: 8
     enableSpaceDeform: false
-    spaceDeform1: 1.0
-    spaceDeform2: 1.0
-    spaceDeform3: 1.0
+    spaceDeform1: 1.57
+    spaceDeform2: 3.66
+    spaceDeform3: 4.62
   penalty:
+    energyWeight: 1.0
     timeWeight: 0.00026 # PROBLEM: too large or too small will leads to max-try error
     joint1PosMin: -0.785
     joint1PosMax: 0.785
@@ -61,5 +62,5 @@ LFTPlanner:
     primitivePos2: 1.57
     primitivePos3: 3.14
     primitiveWeight1: 0.0
-    primitiveWeight2: 0.0005 # 0.00005
-    primitiveWeight3: 0.00002 # 0.00002
+    primitiveWeight2: 0.0000 # 0.0005
+    primitiveWeight3: 0.0000 # 0.00002

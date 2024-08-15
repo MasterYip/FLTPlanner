@@ -361,7 +361,9 @@ private:
         obj.minco.getEnergy(cost); // 1.Energy cost
         obj.minco.getEnergyPartialGradByCoeffs(obj.partialGradByCoeffs);
         obj.minco.getEnergyPartialGradByTimes(obj.partialGradByTimes);
-
+        cost *= obj.config_.energyWeight;
+        obj.partialGradByCoeffs *= obj.config_.energyWeight;
+        obj.partialGradByTimes *= obj.config_.energyWeight;
         // 2.Penalty cost
         attachPenaltyFunctional(obj, obj.times, obj.minco.getCoeffs(), obj.integralRes,
                                 cost, obj.partialGradByTimes, obj.partialGradByCoeffs);
