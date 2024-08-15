@@ -181,13 +181,9 @@ double GridMapInterface::sdfValue(const grid_map::Position3 &position, const std
             return 0.0;
         }
         else if (!sdf_[1])
-        {
             return sdf_[0]->value(position);
-        }
         else
-        {
             return std::min(sdf_[0]->value(position), -sdf_[1]->value(position));
-        }
     }
     else if (mode == "ground")
     {
@@ -199,8 +195,34 @@ double GridMapInterface::sdfValue(const grid_map::Position3 &position, const std
         return sdf_[0]->value(position);
     }
     else
-    {
         throw std::invalid_argument("mode should be 'min' or 'ground'");
+}
+
+/**
+ * @brief Get the sdf derivative of the map that is closest to the position
+ *
+ *
+ * @param position
+ * @return Derivative3
+ */
+Derivative3 GridMapInterface::minSdfDerivative(const grid_map::Position3 &position)
+{
+    if (!sdf_[0])
+    {
+        ROS_WARN("SDF is not initialized!");
+        return Eigen::Vector3d::Zero();
+    }
+    else
+    {
+        if (!sdf_[1])
+            return sdf_[0]->derivative(position).transpose();
+        else
+        {
+            if (sdf_[0]->value(position) < -sdf_[1]->value(position))
+                return sdf_[0]->derivative(position).transpose();
+            else
+                return -sdf_[1]->derivative(position).transpose();
+        }
     }
 }
 
@@ -211,7 +233,10 @@ Derivative3 GridMapInterface::sdfDerivative(const grid_map::Position3 &position,
         ROS_WARN("SDF is not initialized!");
         return Eigen::Vector3d::Zero();
     }
-    return sdf_[index]->derivative(position).transpose();
+    if (index == 0)
+        return sdf_[0]->derivative(position).transpose();
+    else
+        return -sdf_[1]->derivative(position).transpose(); // ceiling
 }
 
 grid_map::Length GridMapInterface::getRange() const

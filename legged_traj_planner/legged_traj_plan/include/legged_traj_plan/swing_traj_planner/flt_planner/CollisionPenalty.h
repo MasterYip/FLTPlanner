@@ -231,7 +231,7 @@ public:
             veldir.normalize();
             velnorm = vel.norm();
             kappa = 1 / (velnorm * velnorm) * (I - veldir * veldir.transpose()) * acc;
-            sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
+            sdfGrad = gridmap_interface_->minSdfDerivative(pos);
             gradPcoll = -df * sdfGrad / sdfGrad.norm();
             Eigen::Vector3d dg = weight_(2) * velnorm * J.transpose() *
                                  ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
@@ -245,8 +245,8 @@ public:
             if (enable_vis_)
             {
                 visualizer_->setIdGroup(3);
-                visualizer_->visArrow(pos, pos + gradPcoll * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
-                // visualizer_->visArrow(posCfg, posCfg + gradPosCfg * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+                visualizer_->visArrow(pos, pos + weight_(2) * gradPcoll * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+                // visualizer_->visArrow(posCfg, posCfg + dg * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
             }
         }
 
@@ -263,7 +263,7 @@ public:
             veldir.normalize();
             velnorm = vel.norm();
             kappa = 1 / (velnorm * velnorm) * (I - veldir * veldir.transpose()) * acc;
-            sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
+            sdfGrad = gridmap_interface_->minSdfDerivative(pos);
             gradPcoll = -df * sdfGrad / sdfGrad.norm();
             Eigen::Vector3d dg = weight_(1) * velnorm * J.transpose() *
                                  ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
@@ -276,9 +276,42 @@ public:
             if (enable_vis_)
             {
                 visualizer_->setIdGroup(3);
-                visualizer_->visArrow(pos, pos + gradPcoll * 0.4, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+                visualizer_->visArrow(pos, pos + weight_(1) * gradPcoll * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+                visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 1)), collBallRadius_(0),
+                                       ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
+                visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 2)), collBallRadius_(1),
+                                       ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
+                visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index)), collBallRadius_(2),
+                                       ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
             }
         }
+        // TEST: Joint2 Soft guide
+        // if (smoothedL1(0.3 - sdf, 5, f, df))
+        // {
+        //     J = robot_interface_->getJacobian_CollBall(posCfg, index, 2);
+        //     dJ = robot_interface_->getJacobianTimeVariation_CollBall(posCfg, velCfg, index, 2);
+        //     vel = vec_SE3Act(pose.inverse(), J * velCfg);
+        //     acc = vec_SE3Act(pose.inverse(), J * accCfg + dJ * velCfg);
+        //     veldir = vel;
+        //     veldir.normalize();
+        //     velnorm = vel.norm();
+        //     kappa = 1 / (velnorm * velnorm) * (I - veldir * veldir.transpose()) * acc;
+        //     sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
+        //     gradPcoll = -5 * df * sdfGrad / sdfGrad.norm();
+        //     Eigen::Vector3d dg = weight_(1) * velnorm * J.transpose() *
+        //                          ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
+        //     // NaN check
+        //     if (isnan(dg(0)) || isnan(dg(1)) || isnan(dg(2)))
+        //         std::cout << "Warning: dg is " << dg.transpose() << std::endl;
+        //     else
+        //         gradPosCfg += dg;
+        //     pena += 5 * weight_(1) * f * velnorm;
+        //     if (enable_vis_)
+        //     {
+        //         visualizer_->setIdGroup(3);
+        //         visualizer_->visArrow(pos, pos + gradPcoll * 0.4, ros_visualizer::VisStyle(0.5, 0.1, 0.1, 0.3, 0.005));
+        //     }
+        // }
     }
 
     void visClear()
