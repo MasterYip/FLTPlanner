@@ -70,13 +70,22 @@ public:
         int samples = 3;
         Eigen::Vector3d pmid = (p0_ + p1_) / 2;
         double h = 0;
+        // Ave
+        // for (int i = 1; i < samples + 1; i++)
+        // {
+        //     h += gridmap_interface_->value(
+        //         (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
+        //         config_.ground_layer);
+        // }
+        // pmid[2] = h / samples;
+        // Max
         for (int i = 1; i < samples + 1; i++)
         {
-            h += gridmap_interface_->value(
-                (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
-                config_.ground_layer);
+            pmid[2] = std::max(pmid[2], gridmap_interface_->value(
+                                (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
+                                config_.ground_layer));
         }
-        pmid[2] = h / samples;
+
         std::vector<Point3D> key_points = {p0_, pmid, p1_};
         guide_surf_ = HarmonicGuideSurf(key_points);
     }
