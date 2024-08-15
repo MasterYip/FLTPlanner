@@ -545,12 +545,12 @@ public:
         {
             legCollPena.setupParams(config_);
             legCollPena.setExcludeBall(point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(TrajPolyPath.leftCols(1), index)),
-                                       point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(TrajPolyPath.rightCols(0), index)));
+                                       point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(TrajPolyPath.rightCols(1), index)));
         }
         else
         {
             collPena.setupParams(config_);
-            collPena.setExcludeBall(TrajPolyPath.leftCols(1), TrajPolyPath.rightCols(0));
+            collPena.setExcludeBall(TrajPolyPath.leftCols(1), TrajPolyPath.rightCols(1));
         }
         // Limit Penalty
         Eigen::Matrix<double, 3, 2> posBd;

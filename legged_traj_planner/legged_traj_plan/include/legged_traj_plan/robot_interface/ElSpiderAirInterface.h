@@ -149,7 +149,7 @@ public:
     Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index)
     {
         Eigen::Vector3d footendpos;
-        robot_kin.forwardKinConstraint(q, footendpos, index);
+        robot_kin.forwardKin(q, footendpos, index);
         return footendpos;
     }
 
