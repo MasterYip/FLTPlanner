@@ -1,8 +1,8 @@
 resolution: 0.025
 min_height: 0.0
 max_height: 0.8
-min_height_ceiling: 2.0
-max_height_ceiling: 1.0
+min_height_ceiling: 0.23
+max_height_ceiling: 1.3
 elevation_layer: elevation_inpainted
 ceiling_layer: ceiling
 map_position_x: 1.0
