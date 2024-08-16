@@ -144,6 +144,7 @@ struct ElSpiderAirStateSequencePlannerConfig
     int navExtrapolateSamplesNum;
 
     bool swingTrajPreOpt;
+    bool execOnKeyboardCmd;
 
     std::string demoPath;
     bool savePlannedStates;
@@ -160,6 +161,7 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/navExtrapolateSamplesNum", navExtrapolateSamplesNum);
 
         check_digit &= nh.getParam(ns + "/swingTrajPreOpt", swingTrajPreOpt);
+        check_digit &= nh.getParam(ns + "/execOnKeyboardCmd", execOnKeyboardCmd);
 
         check_digit &= nh.getParam(ns + "/demoPath", demoPath);
         check_digit &= nh.getParam(ns + "/savePlannedStates", savePlannedStates);
@@ -573,6 +575,10 @@ public:
                 robot_interface_->setBodyPoseCmd(odom_interp);
             }
 
+            // Wait Key
+            if (t == 0.0)
+                waitKey("Press any key with Enter to execute.");
+
             // State recording
             RobotProfile profile;
             profile.time = ros::Time::now().toSec() - init_time_;
@@ -706,6 +712,16 @@ public:
         {
             ROS_WARN("Failed to open record states file.");
         }
+    }
+
+    char waitKey(std::string info = "Press any key with Enter to continue.")
+    {
+        if (config_.execOnKeyboardCmd)
+        {
+            std::cout << info << std::endl;
+            return getchar();
+        }
+        return 0;
     }
 
     void run()

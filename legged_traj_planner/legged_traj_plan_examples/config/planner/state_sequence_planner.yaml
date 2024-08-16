@@ -1,12 +1,13 @@
 StateSequencePlanner:
   rosRate: 100
-  cmdMctsSearchNodeNum: 100
+  cmdMctsSearchNodeNum: 300
   navMctsSearchNodeNum: 600
   cmdExtrapolatePointNum: 50
   cmdExtrapolateDeltaT: 0.01
   navExtrapolateSamplesNum: 100
 
-  swingTrajPreOpt: true
+  swingTrajPreOpt: false
+  execOnKeyboardCmd: true
   # Demo select
   # demoPath: # NOTE: offered by launch file
   savePlannedStates: false

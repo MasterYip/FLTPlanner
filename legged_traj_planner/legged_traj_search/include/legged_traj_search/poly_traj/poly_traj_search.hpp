@@ -98,6 +98,7 @@ public:
 
     // Data
     GridPolyLine getBorder() const { return border_; }
+    GridPolyLine getFullResBorder() const;
     GridPoints getConcavePts() const { return concave_pts_; }
     GridPolyLine getGridTraj() const { return grid_traj_; }
     VisibilityGraph getVisGraph() const { return vis_graph_; }

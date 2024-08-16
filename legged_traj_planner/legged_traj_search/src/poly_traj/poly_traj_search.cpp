@@ -292,3 +292,19 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
     benchmark_.end();
     return true;
 }
+
+GridPolyLine PolyTrajSearch::getFullResBorder() const
+{
+    GridPolyLine fullResBorder;
+    fullResBorder.emplace_back(border_.front());
+    for (uint i = 1; i < border_.size(); i++)
+    {
+        auto delta = border_[i] - border_[i - 1];
+        int num = std::max(abs(delta[0]), abs(delta[1]));
+        for (int j = 1; j <= num; j++)
+        {
+            fullResBorder.emplace_back(border_[i - 1] + j * delta / num);
+        }
+    }
+    return fullResBorder;
+}

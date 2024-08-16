@@ -122,7 +122,7 @@ bool FLTPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         visualizer_->visSphere(p0, 0.02);
         visualizer_->visSphere(p1, 0.02);
         // Border
-        GridPolyLine border = poly_traj_search.getBorder();
+        GridPolyLine border = poly_traj_search.getFullResBorder();
         std::vector<Point3D> border_pos;
         for (uint i = 0; i < border.size(); i++)
         {
@@ -304,7 +304,7 @@ std::shared_ptr<MincoTrajectory> FLTCfgPlanner::getDefaultCfgTraj(const pinocchi
     return std::make_shared<MincoTrajectory>(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
 }
 
-bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
+bool FLTCfgPlanner::searchPolyTrajWithKin(std::vector<Point3D> &poly_traj,
                                    const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
                                    const Eigen::Vector3d p0, const Eigen::Vector3d p1,
                                    uint index, bool verbose)
@@ -313,15 +313,6 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     gridmap_interface_->lockMapUpdate();
     std::unique_ptr<PolyTrajSearch> poly_traj_search;
 
-    // Use CorridorBorderCheck
-    // Eigen::Matrix3Xd hull = robot_interface_->getFootPolyhedra(index).getVRep();
-    // std::vector<Polyhedra> hulls;
-    // hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0.inverse(), hull))));
-    // hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose1.inverse(), hull))));
-    // PolyCorridor corridor(hulls, p0, p1);
-    // poly_traj_search = std::make_unique<PolyTrajSearch>(corridor, gridmap_interface_->getMap(),
-    //                                                     gridmap_interface_->getGroundLayerName(),
-    //                                                     gridmap_interface_->getCeilingLayerName(), true, false);
     // Use LeggedBorderCheck
     LeggedBorderCheckConfig config;
     config.ground_layer = gridmap_interface_->getGroundLayerName();
@@ -336,7 +327,6 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     PolyTrajSearchConfig cfg;
     cfg.enable_benchmark = false;
     poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
-    //////
 
     bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
     bool ret_reachable = poly_traj_search->reachable(p0, p1);
@@ -362,7 +352,97 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
         visualizer_->visSphere(p0, 0.02);
         visualizer_->visSphere(p1, 0.02);
         // Border
-        GridPolyLine border = poly_traj_search->getBorder();
+        GridPolyLine border = poly_traj_search->getFullResBorder();
+        std::vector<Point3D> border_pos;
+        for (uint i = 0; i < border.size(); i++)
+        {
+            Point3D pos;
+            Eigen::Vector2d posxy = poly_traj_search->getIndexRemap().grid2Pos(border.at(i));
+            pos[2] = poly_traj_search->getBorderCheck()->queryHeight(border.at(i));
+            pos[0] = posxy.x();
+            pos[1] = posxy.y();
+            border_pos.emplace_back(pos);
+        }
+        if (border_pos.size() > 0)
+        {
+            border_pos.push_back(border_pos.front());
+            visualizer_->visCurve(border_pos, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.01));
+        }
+        // // Vis Graph
+        // VisibilityGraph vis_graph = poly_traj_search->getVisGraph();
+        // CorridorBorderCheck border_check = poly_traj_search->getBorderCheck();
+        // std::vector<Point3D> mesh;
+        // uint size = vis_graph.size();
+        // Point3D pos1, pos2;
+        // for (uint i = 0; i < 1; i++)
+        // {
+        //     for (uint j = 0; j < size; j++)
+        //     {
+        //         if (i != j && vis_graph.isVisibile(i, j))
+        //         {
+        //             // pos1.head(2) = getPos(vis_graph.getPt(i));
+        //             // pos2.head(2) = getPos(vis_graph.getPt(j));
+        //             pos1.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(i));
+        //             pos2.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(j));
+        //             pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
+        //             pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
+        //             mesh.push_back(pos1);
+        //             mesh.push_back(pos2);
+        //         }
+        //     }
+        // }
+        // visualizer_->visMesh(mesh, ros_visualizer::VisStyle(0.3, 0.3, 0.9, 0.6, 0.005));
+        // Poly Path
+        visualizer_->visCurve(poly_traj, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.02));
+    }
+
+    return ret_endpoint && ret_reachable && ret_search;
+}
+
+bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
+                                   const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
+                                   const Eigen::Vector3d p0, const Eigen::Vector3d p1,
+                                   uint index, bool verbose)
+{
+    poly_traj.clear();
+    gridmap_interface_->lockMapUpdate();
+    std::unique_ptr<PolyTrajSearch> poly_traj_search;
+
+    // Use CorridorBorderCheck
+    Eigen::Matrix3Xd hull = robot_interface_->getFootPolyhedra(index).getVRep();
+    std::vector<Polyhedra> hulls;
+    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0.inverse(), hull))));
+    hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose1.inverse(), hull))));
+    PolyCorridor corridor(hulls, p0, p1);
+    poly_traj_search = std::make_unique<PolyTrajSearch>(corridor, gridmap_interface_->getMap(),
+                                                        gridmap_interface_->getGroundLayerName(),
+                                                        gridmap_interface_->getCeilingLayerName(), true, false);
+
+    bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
+    bool ret_reachable = poly_traj_search->reachable(p0, p1);
+    bool ret_search = poly_traj_search->search(p0, p1, poly_traj);
+    gridmap_interface_->unlockMapUpdate();
+
+    if (verbose)
+    {
+        if (!ret_endpoint)
+            std::cout << "Warning: poly_traj_search->endpointValid failed (leg " << index << ")" << std::endl;
+        if (!ret_reachable)
+            std::cout << "Warning: poly_traj_search->reachable failed" << std::endl;
+        if (!ret_search)
+            std::cout << "Warning: poly_traj_search->search failed" << std::endl;
+        // BUG: if is reachable then it must be able to find a path, this failure should not happen
+    }
+
+    if (config_.enableVis)
+    {
+        // Polytope
+        visualizer_->setIdGroup(1);
+        visualizer_->visPolytope(corridor.getCorridor());
+        visualizer_->visSphere(p0, 0.02);
+        visualizer_->visSphere(p1, 0.02);
+        // Border
+        GridPolyLine border = poly_traj_search->getFullResBorder();
         std::vector<Point3D> border_pos;
         for (uint i = 0; i < border.size(); i++)
         {
@@ -416,7 +496,8 @@ bool FLTCfgPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
 {
     cfg_poly_traj.clear();
     std::vector<Point3D> poly_path;
-    if (!searchPolyTraj(poly_path, pose0, pose1, p0, p1, index))
+    if ((!config_.useLeggedBorderCheck && !searchPolyTraj(poly_path, pose0, pose1, p0, p1, index)) ||
+        (config_.useLeggedBorderCheck && !searchPolyTrajWithKin(poly_path, pose0, pose1, p0, p1, index)))
         return false;
     // Convert to config space
     Eigen::VectorXd t_vec = getTrajTimeVec(poly_path, 1.0);
