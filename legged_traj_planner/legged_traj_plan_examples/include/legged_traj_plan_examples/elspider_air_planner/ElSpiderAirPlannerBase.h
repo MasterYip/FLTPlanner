@@ -42,8 +42,6 @@
 // #include <tf2_ros/transform_listener.h>
 // #include <tf2_eigen/tf2_eigen.h>
 
-
-
 class ElSpiderAirPlannerBase
 {
 protected:
@@ -110,7 +108,7 @@ public:
         }
         else if (swing_traj_planner_config_.plannerID == 2)
         {
-            swing_traj_planner_ = std::make_shared<SwingCfgTrajPlannerRRT>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
+            swing_traj_planner_ = std::make_shared<RRTCfgPlanner>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
         }
         else if (swing_traj_planner_config_.plannerID == 3)
         {

@@ -48,17 +48,17 @@ public:
                      int index);
 };
 
-class SwingCfgTrajPlannerRRT : public SwingTrajPlannerBase
+class RRTCfgPlanner : public SwingTrajPlannerBase
 {
 private:
     ros::NodeHandle nh_;
     SwingCfgTrajOptRRT swing_traj_opt_;
 
 public:
-    SwingCfgTrajPlannerRRT(SwingTrajPlannerConfig config,
-                           std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                           std::shared_ptr<GridMapInterface> gridmap_interface);
-    ~SwingCfgTrajPlannerRRT() = default;
+    RRTCfgPlanner(SwingTrajPlannerConfig config,
+                  std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                  std::shared_ptr<GridMapInterface> gridmap_interface);
+    ~RRTCfgPlanner() = default;
 
     std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                     Eigen::Vector3d p0, Eigen::Vector3d p1,

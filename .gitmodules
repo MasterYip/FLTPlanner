@@ -12,3 +12,6 @@
 	path = ros_visualizer
 	url = https://github.com/MasterYip/ros_visualizer
 	branch = master
+[submodule "stomp"]
+	path = stomp
+	url = https://github.com/ros-industrial/stomp.git

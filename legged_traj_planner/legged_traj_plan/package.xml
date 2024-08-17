@@ -53,6 +53,7 @@
   <build_depend>ompl</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>stomp</build_depend>
   <build_depend>message_generation</build_depend>
   <build_depend>legged_traj_search</build_depend>
   <build_depend>ros_visualizer</build_depend>

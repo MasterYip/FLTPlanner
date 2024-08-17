@@ -23,7 +23,7 @@ StateSequencePlanner::StateSequencePlanner(SwingTrajPlannerConfig swing_traj_pla
     }
     else if (swing_traj_planner_config.plannerID == 2)
     {
-        swing_traj_planner_ = std::make_shared<SwingCfgTrajPlannerRRT>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
+        swing_traj_planner_ = std::make_shared<RRTCfgPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_);
     }
     else
     {
