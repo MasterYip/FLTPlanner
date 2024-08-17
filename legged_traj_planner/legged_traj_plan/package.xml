@@ -62,6 +62,7 @@
   <build_export_depend>ompl</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>stomp</build_export_depend>
   <build_export_depend>legged_traj_search</build_export_depend>
   <build_export_depend>ros_visualizer</build_export_depend>
   <build_export_depend>third_party</build_export_depend>
@@ -69,6 +70,7 @@
   <exec_depend>ompl</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>stomp</exec_depend>
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>legged_traj_search</exec_depend>
   <exec_depend>ros_visualizer</exec_depend>

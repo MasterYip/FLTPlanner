@@ -53,8 +53,6 @@ Eigen::VectorXd cubic_evaluate(const Eigen::MatrixXd &para_mat, const Eigen::Mat
 
 class SplineBase : public TrajectoryBase
 {
-private:
-    Eigen::MatrixXd params_;
 
 public:
     // Methods
@@ -113,6 +111,81 @@ public:
         printf("Warning: get_end() not implemented in derived class\n");
         return Eigen::VectorXd::Zero(get_dimen());
     };
+};
+
+class LinearTrajectory : public SplineBase
+{
+private:
+    int n;                              // Node count
+    int dimen_;                         // Dimension of the spline
+    Eigen::MatrixXd params_;            // Parameters of the spline(nodes in rows)
+    std::pair<double, double> t_range_; // Range of parameter t
+public:
+    LinearTrajectory(const Eigen::MatrixXd &params)
+    {
+        set(params);
+    }
+
+    void set(const Eigen::MatrixXd &params) override
+    {
+        this->params_ = params;
+        n = params.rows();
+        dimen_ = params.cols();
+        t_range_ = std::make_pair(0, n - 1);
+    }
+
+    Eigen::MatrixXd get() const override
+    {
+        return params_;
+    }
+
+    virtual Eigen::VectorXd evaluate(double t, int d_order = 0, bool normalized = false) override
+    {
+        // convert normalized t to real t
+        if (normalized)
+        {
+            t = t * (t_range_.second - t_range_.first) + t_range_.first;
+        }
+
+        if (t < t_range_.first || t > t_range_.second)
+        {
+            std::cerr << "Warning: Parameter t out of range" << std::endl;
+            // Saturation
+            if (t < t_range_.first)
+                t = t_range_.first;
+            if (t > t_range_.second)
+                t = t_range_.second;
+        }
+
+        if (d_order != 0)
+        {
+            std::cerr << "Warning: LinearTrajectory only supports position evaluation" << std::endl;
+        }
+
+        int i = floor(t);
+        double ratio = t - i;
+        return (1 - ratio) * params_.row(i) + ratio * params_.row(i + 1);
+    }
+
+    std::pair<double, double> get_range() const override
+    {
+        return t_range_;
+    }
+
+    int get_dimen() const override
+    {
+        return dimen_;
+    }
+
+    Eigen::VectorXd get_start() const override
+    {
+        return params_.row(0);
+    }
+
+    Eigen::VectorXd get_end() const override
+    {
+        return params_.row(n - 1);
+    }
 };
 
 /**

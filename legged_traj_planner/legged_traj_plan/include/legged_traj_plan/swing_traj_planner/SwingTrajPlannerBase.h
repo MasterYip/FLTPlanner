@@ -119,6 +119,33 @@ struct SwingTrajPlannerConfig
     // double joint3PosMin;
     // double joint3PosMax;
 
+    //// ID[3] HeightClearPlannerSettings
+
+    //// ID[4] StompCfgPlannerSettings
+    double stompNumTimesteps;
+    double stompStdDev;
+    int stompNumIters;
+    int stompNumItersAfterValid;
+    double stompCtrlCostWeight;
+    //// Penalty
+    // double smoothingFactor;
+    // double joint1PosMin;
+    // double joint1PosMax;
+    // double joint2PosMin;
+    // double joint2PosMax;
+    // double joint3PosMin;
+    // double joint3PosMax;
+    // double jointPosWeight;
+    // // Collision Cost
+    // double CollBall1Rad;
+    // double CollBall2Rad;
+    // double CollBall3Rad;
+    // double CollBall1Weight;
+    // double CollBall2Weight;
+    // double CollBall3Weight;
+    // double FootCollExcludeBallRad;
+    // double FootCollExcludeBallSmoothRad;
+
     void loadParams(ros::NodeHandle &nh)
     {
         bool check_digit = true;
@@ -128,7 +155,7 @@ struct SwingTrajPlannerConfig
         check_digit *= nh.getParam("trajInit/hLift", hLift);
         check_digit *= nh.getParam("trajInit/trajTime", trajTime);
         check_digit *= nh.getParam("trajInit/vLiftNormalRandomize", vLiftNormalRandomize);
-        
+
         check_digit *= nh.getParam("misc/enableOptimizer", enableOptimizer);
         check_digit *= nh.getParam("misc/reOptimize", reOptimize);
         check_digit *= nh.getParam("misc/useCfgSpace", useCfgSpace);
@@ -206,7 +233,32 @@ struct SwingTrajPlannerConfig
         //// ID[3] HeightClearPlannerSettings
         else if (plannerID == 3)
         {
+        }
+        else if (plannerID == 4)
+        {
+            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumTimesteps", stompNumTimesteps);
+            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev", stompStdDev);
+            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumIters", stompNumIters);
+            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumItersAfterValid", stompNumItersAfterValid);
+            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompCtrlCostWeight", stompCtrlCostWeight);
             
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/smoothingFactor", smoothingFactor);
+
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/joint1PosMin", joint1PosMin);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/joint1PosMax", joint1PosMax);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/joint2PosMin", joint2PosMin);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/joint2PosMax", joint2PosMax);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/joint3PosMin", joint3PosMin);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/jointPosWeight", jointPosWeight);
+
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/CollBall1Rad", CollBall1Rad);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/CollBall2Rad", CollBall2Rad);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/CollBall3Rad", CollBall3Rad);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/CollBall1Weight", CollBall1Weight);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/CollBall2Weight", CollBall2Weight);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/CollBall3Weight", CollBall3Weight);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/FootCollExcludeBallRad", FootCollExcludeBallRad);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/FootCollExcludeBallSmoothRad", FootCollExcludeBallSmoothRad);
         }
         if (!check_digit)
         {

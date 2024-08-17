@@ -24,6 +24,7 @@ set(MSG_DEP_SET
 
 find_package(Eigen3 REQUIRED)
 find_package(pinocchio REQUIRED)
+find_package(stomp REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   ${MSG_DEP_SET}
   grid_map_core
@@ -153,6 +154,7 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
   ${PINOCCHIO_INCLUDE_DIRS}
   ${OMPL_INCLUDE_DIRS}
+  ${STOMP_INCLUDE_DIRS}
   )
   
 file(GLOB_RECURSE SOURCES "src/*.cpp")
