@@ -224,8 +224,7 @@ public:
             if (enable_vis_)
             {
                 visualizer_->setIdGroup(3);
-                visualizer_->visArrow(pos, pos + weight_(2) * gradPcoll * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
-                // visualizer_->visArrow(posCfg, posCfg + dg * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+                visualizer_->visSphere(pos, collBallRadius_(2), ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
             }
         }
 
@@ -239,7 +238,6 @@ public:
             if (enable_vis_)
             {
                 visualizer_->setIdGroup(3);
-                visualizer_->visArrow(pos, pos + weight_(1) * gradPcoll * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
                 visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 1)), collBallRadius_(0),
                                        ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
                 visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 2)), collBallRadius_(1),

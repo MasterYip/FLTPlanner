@@ -10,6 +10,7 @@
  */
 
 #include "legged_traj_plan/swing_traj_planner/stomp_planner/StompPlanner.h"
+#include <stomp/stomp.h>
 
 StompCfgPlanner::StompCfgPlanner(SwingTrajPlannerConfig config,
                                  std::shared_ptr<ElSpiderAirInterface> robot_interface,
@@ -38,14 +39,6 @@ std::shared_ptr<TrajectoryBase> StompCfgPlanner::getInitTrajHook(pinocchio::SE3 
     // knots.row(2) = p1;
 
     return std::make_shared<MincoTrajectory>(poly_path, Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), config_.trajTime);
-
-    // if (config_.enableVis)
-    // {
-    //     std::vector<Eigen::Vector3d> traj_points;
-    //     unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
-    //     visualizer_->visCurve(traj_points);
-    // }
-    // return unib_traj;
 }
 
 bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
@@ -95,15 +88,6 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 
     if (config_.enableVis && ret)
     {
-        // Discrete
-        // std::vector<Eigen::Vector3d> rrt_poly_traj;
-        // Eigen::MatrixXd knots = minco_traj->get();
-        // for (int i = 0; i < knots.rows(); i++)
-        // {
-        //     rrt_poly_traj.push_back(knots.row(i));
-        // }
-        // visualizer_->visCurve(rrt_poly_traj, ros_visualizer::VisStyle(0.3, 0.7, 0.3, 0.7, 0.01));
-
         // MincoTrajectory
         std::vector<Point3D> cfg_path_opt;
         std::vector<Point3D> path_opt;

@@ -53,6 +53,8 @@ Eigen::VectorXd cubic_evaluate(const Eigen::MatrixXd &para_mat, const Eigen::Mat
 
 class SplineBase : public TrajectoryBase
 {
+private:
+    Eigen::MatrixXd params_; // Parameters of the spline(nodes in rows)
 
 public:
     // Methods

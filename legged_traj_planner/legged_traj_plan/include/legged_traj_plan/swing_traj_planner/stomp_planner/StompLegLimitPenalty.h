@@ -56,14 +56,14 @@ public:
             violaPos = posBd_(idx, 0) - pos(idx);
             if (smoothedL1(violaPos, mu_, violaPosPena, violaPosPenaD))
             {
-                pena += weight_(0) * violaPosPena;
+                pena += weight_ * violaPosPena;
                 outLimitFlag = true;
             }
             // If pos > max_pos
             violaPos = pos(idx) - posBd_(idx, 1);
             if (smoothedL1(violaPos, mu_, violaPosPena, violaPosPenaD))
             {
-                pena += weight_(0) * violaPosPena;
+                pena += weight_ * violaPosPena;
                 outLimitFlag = true;
             }
         }

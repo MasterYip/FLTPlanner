@@ -50,6 +50,7 @@
 #include "legged_traj_plan/swing_traj_planner/SwingTrajPlannerBase.h"
 #include "legged_traj_plan/utils/Geometry.h"
 #include "StompCollisionPenalty.h"
+#include "StompLegLimitPenalty.h"
 #include <stomp/task.h>
 
 //! [CfgStompTask Inherit]
@@ -67,7 +68,7 @@ protected:
 
   StompLegCollisionPenalty collision_penalty_;
   StompLegLimitPenalty leglimit_penalty_;
-  Eigne::Vector3d p0_, p1_; // Cartesian position
+  Eigen::Vector3d p0_, p1_; // Cartesian position
   pinocchio::SE3 pose0_, pose1_;
   int index_;
 
@@ -83,7 +84,7 @@ public:
                std::shared_ptr<GridMapInterface> gridmap_interface,
                std::shared_ptr<GCSVisualizer> visualizer = nullptr)
       : config_(config), robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),
-        collision_penalty_(config, robot_interface, gridmap_interface, visualizer),
+        collision_penalty_(robot_interface, gridmap_interface, visualizer),
         visualizer_(visualizer)
   {
     if (visualizer != nullptr)
@@ -105,7 +106,7 @@ public:
     p0_ = p0;
     p1_ = p1;
     index_ = index;
-    coolision_penalty_.setExcludeBall(p0, p1);
+    collision_penalty_.setExcludeBall(p0, p1);
   }
 
   void setupVis(std::shared_ptr<GCSVisualizer> visualizer)
@@ -203,7 +204,7 @@ public:
       cost = 0;
       validity &= !collision_penalty_.attachPena(poseLinearInterp(pose0_, pose1_, (double)t / num_timesteps),
                                                  parameters.col(t), index_, cost);
-      validity &= !leglimit_penalty_.attachPena(arameters.col(t), cost);
+      validity &= !leglimit_penalty_.attachPena(parameters.col(t), cost);
       costs(t) = cost;
     }
 

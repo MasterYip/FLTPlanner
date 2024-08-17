@@ -137,9 +137,9 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES legged_traj_plan 
+ LIBRARIES ${PROJECT_NAME}
  CATKIN_DEPENDS grid_map_core roscpp std_msgs third_party
- DEPENDS pinocchio
+ DEPENDS pinocchio stomp
 )
 
 ###########
@@ -154,17 +154,18 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
   ${PINOCCHIO_INCLUDE_DIRS}
   ${OMPL_INCLUDE_DIRS}
-  ${STOMP_INCLUDE_DIRS}
+  ${stomp_INCLUDE_DIRS}
   )
   
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE TESTS "test/**/test_*.cpp")
 file(GLOB_RECURSE GTESTS "test/**/gtest_*.cpp")
 
+
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 # FIXME: this project depend on catkin, but it is not a catkin package
 target_include_directories(${PROJECT_NAME} PUBLIC include ${catkin_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${OMPL_LIBRARIES} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PINOCCHIO_LIBRARIES} ${OMPL_LIBRARIES} ${catkin_LIBRARIES} stomp::stomp)
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 

@@ -27,7 +27,7 @@ class StompCfgPlanner : public SwingTrajPlannerBase
 {
 private:
     ros::NodeHandle nh_;
-    TaskPtr swing_traj_opt_;
+    std::shared_ptr<CfgStompTask> swing_traj_opt_;
 
 public:
     StompCfgPlanner(SwingTrajPlannerConfig config,
