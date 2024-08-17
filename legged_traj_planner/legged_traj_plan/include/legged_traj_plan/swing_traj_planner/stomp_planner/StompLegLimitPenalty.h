@@ -21,7 +21,7 @@
 #include <Eigen/Dense>
 /* internal project header files */
 #include "legged_traj_plan/swing_traj_planner/SwingTrajPlannerBase.h"
-#include "Utils.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/Utils.h"
 
 class StompLegLimitPenalty
 {

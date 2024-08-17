@@ -24,8 +24,13 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 StompCfgPlanner:
-  stompNumTimesteps: 50
-  stompStdDev: 1.0
+  optimizer:
+    smoothingFactor: 1.0e-2
+    stompNumTimesteps: 50
+    stompStdDev: 1.0
+    stompNumIters: 100
+    stompNumItersAfterValid: 10
+    stompCtrlCostWeight: 1.0
   penalty:
     smoothingFactor: 5.0e-2
     joint1PosMin: -0.785

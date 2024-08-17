@@ -249,6 +249,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("StompCfgPlanner/penalty/joint2PosMin", joint2PosMin);
             check_digit *= nh.getParam("StompCfgPlanner/penalty/joint2PosMax", joint2PosMax);
             check_digit *= nh.getParam("StompCfgPlanner/penalty/joint3PosMin", joint3PosMin);
+            check_digit *= nh.getParam("StompCfgPlanner/penalty/joint3PosMax", joint3PosMax);
             check_digit *= nh.getParam("StompCfgPlanner/penalty/jointPosWeight", jointPosWeight);
 
             check_digit *= nh.getParam("StompCfgPlanner/penalty/CollBall1Rad", CollBall1Rad);

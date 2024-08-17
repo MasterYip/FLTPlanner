@@ -23,8 +23,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/utils/Geometry.h"
-
-#include "Utils.h"
+#include "legged_traj_plan/swing_traj_planner/flt_planner/Utils.h"
 
 /**
  * @brief Collision Penalty for cartesian space (foot)
@@ -47,7 +46,7 @@ private:
 
 public:
     StompCollisionPenalty(std::shared_ptr<GridMapInterface> gridmap_interface,
-                     std::shared_ptr<GCSVisualizer> visualizer = nullptr)
+                          std::shared_ptr<GCSVisualizer> visualizer = nullptr)
         : gridmap_interface_(gridmap_interface)
     {
         if (visualizer != nullptr)
@@ -140,8 +139,8 @@ private:
 
 public:
     StompLegCollisionPenalty(std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                        std::shared_ptr<GridMapInterface> gridmap_interface,
-                        std::shared_ptr<GCSVisualizer> visualizer = nullptr)
+                             std::shared_ptr<GridMapInterface> gridmap_interface,
+                             std::shared_ptr<GCSVisualizer> visualizer = nullptr)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface)
     {
         if (visualizer != nullptr)
@@ -186,12 +185,13 @@ public:
         return 0.5 * (1 + std::sin(M_PI * (t - 0.5)));
     }
     /**
-     * @brief Attach penalty to position, velocity and acceleration
+     * @brief Attach penalty to position
      *
      * @param pose Pose of base
      * @param posCfg Position in config space
-     * @param gradPosCfg Gradient of position in config space
+     * @param index Foot index
      * @param pena Penalty
+     * @return if collision happens
      */
     bool attachPena(const pinocchio::SE3 &pose,
                     const Eigen::Vector3d &posCfg,

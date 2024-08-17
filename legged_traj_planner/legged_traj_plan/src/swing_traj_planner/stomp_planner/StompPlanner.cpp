@@ -54,8 +54,8 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::Vector3d p1cfg = traj->evaluate(1, 0, true);
     Eigen::Vector3d p0 = point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(p0cfg, index));
     Eigen::Vector3d p1 = point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(p1cfg, index));
-    std::vector<double> p0cfg_vec = {p0(0), p0(1), p0(2)};
-    std::vector<double> p1cfg_vec = {p1(0), p1(1), p1(2)};
+    std::vector<double> p0cfg_vec = {p0cfg[0], p0cfg[1], p0cfg[2]};
+    std::vector<double> p1cfg_vec = {p1cfg[0], p1cfg[1], p1cfg[2]};
 
     swing_traj_opt_->setup(pose0, pose1, p0, p1, index);
     stomp::StompConfiguration c;
