@@ -72,6 +72,8 @@ protected:
   pinocchio::SE3 pose0_, pose1_;
   int index_;
 
+  Eigen::Matrix<double, 3, 2> posBd_;
+
   // Visualizer
   ros::NodeHandle nh_;
   ros::Rate rate_ = ros::Rate(5);
@@ -94,9 +96,12 @@ public:
 
     collision_penalty_.setupParams(config_);
     leglimit_penalty_.setupParams(config_);
+    posBd_ << config_.joint1PosMin, config_.joint1PosMax,
+        config_.joint2PosMin, config_.joint2PosMax,
+        config_.joint3PosMin, config_.joint3PosMax;
     // generate smoothing matrix
     std_dev_ = {config_.stompStdDev1, config_.stompStdDev2, config_.stompStdDev3};
-    stomp::generateSmoothingMatrix(config_.stompNumTimesteps, 1.0, smoothing_M_);
+    stomp::generateSmoothingMatrix(config_.stompNumTimesteps, config_.trajTime / (config_.stompNumTimesteps - 1), smoothing_M_);
     srand(time(0));
   };
 
@@ -197,16 +202,15 @@ public:
                          bool &validity) override
   {
     costs.setZero(num_timesteps);
-    double diff;
     double cost = 0.0;
     validity = true;
 
     for (std::size_t t = 0u; t < num_timesteps; t++)
     {
       cost = 0;
-      validity &= !collision_penalty_.attachPena(poseLinearInterp(pose0_, pose1_, (double)t / num_timesteps),
+      validity &= !collision_penalty_.attachPena(poseLinearInterp(pose0_, pose1_, (double)t / (num_timesteps - 1)),
                                                  parameters.col(t), index_, cost);
-      validity &= !leglimit_penalty_.attachPena(parameters.col(t), cost);
+      // validity &= !leglimit_penalty_.attachPena(parameters.col(t), cost);
       costs(t) = cost;
     }
     // std::cout << "Costs: " << costs.transpose() << std::endl;
@@ -236,6 +240,28 @@ public:
                               Eigen::MatrixXd &updates) override
   {
     return smoothParameterUpdates(start_timestep, num_timesteps, iteration_number, updates);
+  }
+
+  bool filterNoisyParameters(std::size_t start_timestep,
+                             std::size_t num_timesteps,
+                             int iteration_number,
+                             int rollout_number,
+                             Eigen::MatrixXd &parameters,
+                             bool &filtered) override
+  {
+    // TODO: performance improve
+    filtered = true;
+    for (int i = 0; i < num_timesteps; i++)
+    {
+      for (int j = 0; j < parameters.rows(); j++)
+      {
+        if (parameters(j, i) < posBd_(j, 0))
+          parameters(j, i) = posBd_(j, 0);
+        else if (parameters(j, i) > posBd_(j, 1))
+          parameters(j, i) = posBd_(j, 1);
+      }
+    }
+    return true;
   }
 
 protected:

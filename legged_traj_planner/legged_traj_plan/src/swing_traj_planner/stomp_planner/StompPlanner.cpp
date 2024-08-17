@@ -54,8 +54,6 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     Eigen::Vector3d p1cfg = traj->evaluate(1, 0, true);
     Eigen::Vector3d p0 = point_SE3Act(pose0.inverse(), robot_interface_->FK_foot(p0cfg, index));
     Eigen::Vector3d p1 = point_SE3Act(pose1.inverse(), robot_interface_->FK_foot(p1cfg, index));
-    std::vector<double> p0cfg_vec = {p0cfg[0], p0cfg[1], p0cfg[2]};
-    std::vector<double> p1cfg_vec = {p1cfg[0], p1cfg[1], p1cfg[2]};
 
     if (config_.enableVis)
     {
@@ -71,14 +69,14 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     c.num_dimensions = 3;
     c.delta_t = config_.trajTime / (config_.stompNumTimesteps - 1);
     c.control_cost_weight = config_.stompCtrlCostWeight;
-    c.initialization_method = stomp::TrajectoryInitializations::LINEAR_INTERPOLATION;
+    c.initialization_method = stomp::TrajectoryInitializations::MININUM_CONTROL_COST;
     c.num_iterations_after_valid = config_.stompNumItersAfterValid;
-    c.num_rollouts = 20;
-    c.max_rollouts = 20;
+    c.num_rollouts = config_.stompNumRollouts;
+    c.max_rollouts = config_.stompMaxRollouts;
     stomp::Stomp stomp(c, swing_traj_opt_);
 
     Eigen::MatrixXd opt_traj;
-    if (stomp.solve(p0cfg_vec, p1cfg_vec, opt_traj))
+    if (stomp.solve(p0cfg, p1cfg, opt_traj))
         ret = true;
     else
     {
@@ -95,7 +93,7 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 
     traj = std::make_shared<MincoTrajectory>(cfg_path_opt, Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), config_.trajTime);
 
-    if (config_.enableVis && ret)
+    if (config_.enableVis)
     {
         // MincoTrajectory
         std::vector<Point3D> cfg_path_opt;
@@ -110,7 +108,10 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
             t += ts;
         }
         visualizer_->setIdGroup(1);
-        visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
+        if (ret)
+            visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
+        else
+            visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.01));
     }
     return ret;
 }
