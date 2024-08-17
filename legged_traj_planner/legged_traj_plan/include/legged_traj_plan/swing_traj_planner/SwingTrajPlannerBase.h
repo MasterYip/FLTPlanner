@@ -123,7 +123,9 @@ struct SwingTrajPlannerConfig
 
     //// ID[4] StompCfgPlannerSettings
     double stompNumTimesteps;
-    double stompStdDev;
+    double stompStdDev1;
+    double stompStdDev2;
+    double stompStdDev3;
     int stompNumIters;
     int stompNumItersAfterValid;
     double stompCtrlCostWeight;
@@ -237,7 +239,9 @@ struct SwingTrajPlannerConfig
         else if (plannerID == 4)
         {
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumTimesteps", stompNumTimesteps);
-            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev", stompStdDev);
+            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev1", stompStdDev1);
+            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev2", stompStdDev2);
+            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev3", stompStdDev3);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumIters", stompNumIters);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumItersAfterValid", stompNumItersAfterValid);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompCtrlCostWeight", stompCtrlCostWeight);

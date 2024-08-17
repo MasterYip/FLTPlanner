@@ -90,10 +90,12 @@ public:
     if (visualizer != nullptr)
       enable_vis_ = true;
 
+    rate_ = ros::Rate(config.optVisRate);
+
     collision_penalty_.setupParams(config_);
     leglimit_penalty_.setupParams(config_);
     // generate smoothing matrix
-    std_dev_ = {config_.stompStdDev, config_.stompStdDev, config_.stompStdDev};
+    std_dev_ = {config_.stompStdDev1, config_.stompStdDev2, config_.stompStdDev3};
     stomp::generateSmoothingMatrix(config_.stompNumTimesteps, 1.0, smoothing_M_);
     srand(time(0));
   };
@@ -207,7 +209,12 @@ public:
       validity &= !leglimit_penalty_.attachPena(parameters.col(t), cost);
       costs(t) = cost;
     }
-
+    // std::cout << "Costs: " << costs.transpose() << std::endl;
+    if (config_.enableOptVis)
+    {
+      rate_.sleep();
+      visualizer_->delGroup(3);
+    }
     return true;
   }
 

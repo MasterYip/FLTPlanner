@@ -57,6 +57,13 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     std::vector<double> p0cfg_vec = {p0cfg[0], p0cfg[1], p0cfg[2]};
     std::vector<double> p1cfg_vec = {p1cfg[0], p1cfg[1], p1cfg[2]};
 
+    if (config_.enableVis)
+    {
+        visualizer_->setIdGroup(1);
+        visualizer_->visSphere(p0);
+        visualizer_->visSphere(p1);
+    }
+
     swing_traj_opt_->setup(pose0, pose1, p0, p1, index);
     stomp::StompConfiguration c;
     c.num_timesteps = config_.stompNumTimesteps;
@@ -79,10 +86,12 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
         ret = false;
     }
     std::vector<Point3D> cfg_path_opt;
+    cfg_path_opt.emplace_back(p0cfg);
     for (int i = 0; i < opt_traj.cols(); i++)
     {
         cfg_path_opt.emplace_back(opt_traj.col(i));
     }
+    cfg_path_opt.emplace_back(p1cfg);
 
     traj = std::make_shared<MincoTrajectory>(cfg_path_opt, Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), config_.trajTime);
 

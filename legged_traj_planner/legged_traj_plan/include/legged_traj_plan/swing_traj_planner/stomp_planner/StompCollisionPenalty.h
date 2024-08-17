@@ -143,11 +143,7 @@ public:
                              std::shared_ptr<GCSVisualizer> visualizer = nullptr)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface)
     {
-        if (visualizer != nullptr)
-        {
-            enable_vis_ = true;
-            visualizer_ = visualizer;
-        }
+        setupVis(visualizer);
     }
 
     void setupVis(std::shared_ptr<GCSVisualizer> visualizer)
@@ -224,7 +220,7 @@ public:
             if (enable_vis_)
             {
                 visualizer_->setIdGroup(3);
-                visualizer_->visSphere(pos, collBallRadius_(2), ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
+                visualizer_->visSphere(pos, collBallRadius_(2), ros_visualizer::VisStyle(0.5, 0.1, 0.1, 0.3, 0.005));
             }
         }
 
@@ -239,13 +235,21 @@ public:
             {
                 visualizer_->setIdGroup(3);
                 visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 1)), collBallRadius_(0),
-                                       ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
+                                       ros_visualizer::VisStyle(0.8, 0.1, 0.1, 0.3, 0.005));
                 visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 2)), collBallRadius_(1),
-                                       ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
+                                       ros_visualizer::VisStyle(0.8, 0.1, 0.1, 0.3, 0.005));
                 visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index)), collBallRadius_(2),
-                                       ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
+                                       ros_visualizer::VisStyle(0.8, 0.1, 0.1, 0.3, 0.005));
             }
         }
+
+        if (enable_vis_ && !collFlag)
+        {
+            visualizer_->setIdGroup(3);
+            // visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 1)), collBallRadius_(0), ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.1, 0.005));
+            visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index)), collBallRadius_(2), ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.18, 0.005));
+        }
+
         return collFlag;
     }
 
