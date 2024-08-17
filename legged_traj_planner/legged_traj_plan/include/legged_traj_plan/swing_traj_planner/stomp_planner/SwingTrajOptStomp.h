@@ -122,7 +122,7 @@ public:
     {
       enable_vis_ = true;
       visualizer_ = visualizer;
-      collision_penalty_.setupVis(visualizer);
+      // collision_penalty_.setupVis(visualizer);
     }
   }
 
@@ -179,6 +179,17 @@ public:
                     Eigen::VectorXd &costs,
                     bool &validity) override
   {
+    if (config_.enableOptVis)
+    {
+      rate_.sleep();
+      visualizer_->delGroup(3);
+      visualizer_->setIdGroup(3);
+      std::vector<Eigen::Vector3d> traj;
+      for (int i = 0; i < num_timesteps; i++)
+        traj.emplace_back(point_SE3Act(poseLinearInterp(pose0_, pose1_, (double)i / (num_timesteps - 1)).inverse(),
+                                       robot_interface_->FK_foot(parameters.col(i), index_)));
+      visualizer_->visCurve(traj, ros_visualizer::VisStyle(0.1, 0.7, 0.1, 0.5, 0.01));
+    }
     return computeNoisyCosts(parameters, start_timestep, num_timesteps, iteration_number, -1, costs, validity);
   }
 
@@ -213,12 +224,7 @@ public:
       // validity &= !leglimit_penalty_.attachPena(parameters.col(t), cost);
       costs(t) = cost;
     }
-    // std::cout << "Costs: " << costs.transpose() << std::endl;
-    if (config_.enableOptVis)
-    {
-      rate_.sleep();
-      visualizer_->delGroup(3);
-    }
+
     return true;
   }
 

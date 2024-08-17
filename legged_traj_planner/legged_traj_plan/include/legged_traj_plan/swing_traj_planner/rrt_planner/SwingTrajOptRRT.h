@@ -185,8 +185,8 @@ public:
 
         // Planner setup
         // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
-        // auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
-        auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
+        auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
+        // auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
         planner->setRange(0.1); // max step size
         ss.setPlanner(planner);
 
@@ -344,8 +344,8 @@ public:
 
         // Planner setup
         // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
-        // auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
-        auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
+        auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
+        // auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
         planner->setRange(0.4); // max step size
         ss.setPlanner(planner);
 
