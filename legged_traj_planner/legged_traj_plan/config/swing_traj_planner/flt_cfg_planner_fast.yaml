@@ -13,7 +13,7 @@ misc:
   reOptimize: true
   useCfgSpace: true # Do not change this (this file is for cfg space)
   useCfgCommand: true
-  enableVis: true
+  enableVis: false
   enableOptVis: false # Visualize the optimization process
   optVisRate: 10
   enableBenchmark: true
@@ -27,9 +27,9 @@ LFTPlanner:
   searcher:
     useLeggedBorderCheck: true
   optimizer:
-    lengthPerPiece: 0.4 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+    lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization
-    relCostTol: 1.0e-3
+    relCostTol: 4.0e-4
     smoothingFactor: 5.0e-2
     integralResolution: 8
     enableSpaceDeform: false
