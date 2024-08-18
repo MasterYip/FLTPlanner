@@ -35,6 +35,7 @@
 
 /* external project header files */
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -144,6 +145,7 @@ struct ElSpiderAirStateSequencePlannerConfig
     int navExtrapolateSamplesNum;
 
     bool swingTrajPreOpt;
+    bool shutdownAfterPreOpt;
     bool execOnKeyboardCmd;
 
     std::string demoPath;
@@ -163,6 +165,7 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/navExtrapolateSamplesNum", navExtrapolateSamplesNum);
 
         check_digit &= nh.getParam(ns + "/swingTrajPreOpt", swingTrajPreOpt);
+        check_digit &= nh.getParam(ns + "/shutdownAfterPreOpt", shutdownAfterPreOpt);
         check_digit &= nh.getParam(ns + "/execOnKeyboardCmd", execOnKeyboardCmd);
 
         check_digit &= nh.getParam(ns + "/demoPath", demoPath);
@@ -204,10 +207,11 @@ private:
     // Status
     bool motion_lock_ = false;
 
-    // Robot profile
+    // Benchmarking
     double init_time_ = 0.0;
     std::vector<RobotProfile> robot_profile_;
     Benchmark benchmark_;
+    ros::Publisher benchmark_progress_pub_;
 
     // Visualizer
     GCSVisualizer visualizer_;
@@ -225,6 +229,7 @@ public:
         config_.loadParams(nh_);
         rate_ = ros::Rate(config_.rosRate);
         init_time_ = ros::Time::now().toSec();
+        benchmark_progress_pub_ = nh_.advertise<std_msgs::Bool>("/benchmark_progress", 1);
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirStateSequencePlanner::cmd_callback, this);
         nav_sub_ = nh_.subscribe("/move_base_simple/goal", 1, &ElSpiderAirStateSequencePlanner::nav_callback, this);
         state_sequence_planner_.enableRecordStates(config_.savePlannedStates);
@@ -546,7 +551,14 @@ public:
             state_sequence_planner_.optSwingTraj();
             benchmark_.record("swing traj optimization");
             benchmark_.end();
-            benchmark_.save(config_.benchmarkSavePath);
+            if (config_.shutdownAfterPreOpt)
+            {
+                std_msgs::Bool msg;
+                msg.data = true;
+                benchmark_progress_pub_.publish(msg);
+                ros::shutdown();
+                return;
+            }
         }
 
         MCTStateTransfer &state_traj = state_sequence_planner_.get_state_traj(0);
@@ -740,6 +752,7 @@ public:
         {
             std::cout << "Save benchmark results..." << std::endl;
             state_sequence_planner_.saveBenchmarkResults();
+            benchmark_.save(config_.benchmarkSavePath);
             std::cout << "Save robot profile..." << std::endl;
             saveRobotProfile();
             std::cout << "Benchmark results and robot profile saved." << std::endl;

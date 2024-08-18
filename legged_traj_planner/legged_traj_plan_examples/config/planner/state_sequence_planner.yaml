@@ -15,6 +15,7 @@ StateSequencePlanner:
   navExtrapolateSamplesNum: 100
 
   swingTrajPreOpt: true
+  shutdownAfterPreOpt: true
   execOnKeyboardCmd: false
   # Demo select
   # demoPath: # NOTE: offered by launch file

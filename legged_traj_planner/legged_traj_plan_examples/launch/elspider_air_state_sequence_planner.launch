@@ -24,9 +24,9 @@
     <!-- Optitrack -->
     <arg name="use_optitrack" default="false" />
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="with_ceiling" value="false"/>
+    <arg name="with_ceiling" default="false"/>
     <!-- ROS bag record (under ~/.ros) -->
-    <arg name="rosbag_record" value="false" />
+    <arg name="rosbag_record" default="false" />
 
     <!-- Launch -->
     <!-- Config -->
