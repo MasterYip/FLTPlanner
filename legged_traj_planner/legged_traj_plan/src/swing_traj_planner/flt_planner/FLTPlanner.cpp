@@ -530,7 +530,7 @@ std::shared_ptr<TrajectoryBase> FLTCfgPlanner::getInitTrajHook(pinocchio::SE3 po
                                                                uint index)
 {
     std::vector<Point3D> cfg_poly_traj;
-    if (!getCfgPolyTraj(cfg_poly_traj, pose0, pose1, p0, p1, index))
+    if (!config_.enablePolyPathSearch || !getCfgPolyTraj(cfg_poly_traj, pose0, pose1, p0, p1, index))
     {
         return getDefaultCfgTraj(pose0, pose1, p0, p1, index);
     }

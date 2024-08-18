@@ -54,12 +54,12 @@ struct SwingTrajPlannerConfig
 
     //// ID[0] LFTPlannerSettings
     //// GCS TrajSearch & MINCO optimization
-    // Enable
+    // Seacher Settings
+    bool enablePolyPathSearch;
     bool useLeggedBorderCheck;
-    // Minco Init
+    // Optimizer Settings
     double lengthPerPiece;
     double allocSpeed;
-    // Optimizer Settings
     double relCostTol;
     double smoothingFactor;
     int integralResolution;
@@ -175,6 +175,7 @@ struct SwingTrajPlannerConfig
         //// ID[0] LFTPlannerSettings
         if (plannerID == 0)
         {
+            check_digit *= nh.getParam("LFTPlanner/searcher/enablePolyPathSearch", enablePolyPathSearch);
             check_digit *= nh.getParam("LFTPlanner/searcher/useLeggedBorderCheck", useLeggedBorderCheck);
             check_digit *= nh.getParam("LFTPlanner/optimizer/lengthPerPiece", lengthPerPiece);
             check_digit *= nh.getParam("LFTPlanner/optimizer/allocSpeed", allocSpeed);
