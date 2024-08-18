@@ -272,6 +272,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumRollouts", stompNumRollouts);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompMaxRollouts", stompMaxRollouts);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompCtrlCostWeight", stompCtrlCostWeight);
+            check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompExpCostSensitivity", stompExpCostSensitivity);
 
             check_digit *= nh.getParam("StompCfgPlanner/penalty/smoothingFactor", smoothingFactor);
 

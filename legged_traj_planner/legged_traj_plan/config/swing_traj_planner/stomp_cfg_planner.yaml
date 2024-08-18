@@ -15,7 +15,7 @@ misc:
   useCfgCommand: true
   enableVis: true
   enableOptVis: true # Visualize the optimization process
-  optVisRate: 20
+  optVisRate: 10
   enableBenchmark: true
   # Benchmark result save path
   # benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/optBenchmark.csv
@@ -25,16 +25,16 @@ misc:
 
 StompCfgPlanner:
   optimizer:
-    stompNumTimesteps: 10
-    stompStdDev1: 0.3
-    stompStdDev2: 1.0
-    stompStdDev3: 0.8
-    stompNumIters: 60
+    stompNumTimesteps: 20
+    stompStdDev1: 0.4
+    stompStdDev2: 1.4
+    stompStdDev3: 1.0
+    stompNumIters: 100
     stompNumItersAfterValid: 0
     stompNumRollouts: 10
     stompMaxRollouts: 100
-    stompCtrlCostWeight: 1.0
-    stompExpCostSensitivity: 1.0
+    stompCtrlCostWeight: 0.3
+    stompExpCostSensitivity: 6.0
   penalty:
     smoothingFactor: 1.0e-2
     joint1PosMin: -0.785
@@ -45,10 +45,10 @@ StompCfgPlanner:
     joint3PosMax: 3.925
     jointPosWeight: 0.4
     CollBall1Rad: 0.06
-    CollBall2Rad: 0.00
-    CollBall3Rad: 0.02
+    CollBall2Rad: 0.06
+    CollBall3Rad: 0.03
     CollBall1Weight: 0.0
-    CollBall2Weight: 2.0
-    CollBall3Weight: 2.0
+    CollBall2Weight: 20.0
+    CollBall3Weight: 20.0
     FootCollExcludeBallRad: 0.06
-    FootCollExcludeBallSmoothRad: 0.02
+    FootCollExcludeBallSmoothRad: 0.01

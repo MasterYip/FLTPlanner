@@ -165,8 +165,8 @@ public:
         if (config_.enableOptVis)
         {
             rate_.sleep();
-            visualizer_->delGroup(3);
-            visualizer_->setIdGroup(3);
+            visualizer_->delGroup(2);
+            visualizer_->setIdGroup(2);
             std::vector<Eigen::Vector3d> traj;
             for (int i = 0; i < num_timesteps; i++)
                 traj.emplace_back(parameters.col(i));
@@ -198,7 +198,8 @@ public:
         costs.setZero(num_timesteps);
         double cost = 0.0;
         validity = true;
-
+        if (config_.enableOptVis)
+            visualizer_->delGroup(3);
         for (std::size_t t = 0u; t < num_timesteps; t++)
         {
             cost = 0;
@@ -398,8 +399,8 @@ public:
         if (config_.enableOptVis)
         {
             rate_.sleep();
-            visualizer_->delGroup(3);
-            visualizer_->setIdGroup(3);
+            visualizer_->delGroup(2);
+            visualizer_->setIdGroup(2);
             std::vector<Eigen::Vector3d> traj;
             for (int i = 0; i < num_timesteps; i++)
                 traj.emplace_back(point_SE3Act(poseLinearInterp(pose0_, pose1_, (double)i / (num_timesteps - 1)).inverse(),
