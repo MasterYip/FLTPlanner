@@ -1,3 +1,11 @@
+
+# NOTE: Planner benchmark settings override 
+misc:
+  enableBenchmark: true
+  benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv
+  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
+
+
 StateSequencePlanner:
   rosRate: 100
   cmdMctsSearchNodeNum: 300
@@ -6,10 +14,13 @@ StateSequencePlanner:
   cmdExtrapolateDeltaT: 0.01
   navExtrapolateSamplesNum: 100
 
-  swingTrajPreOpt: false
-  execOnKeyboardCmd: true
+  swingTrajPreOpt: true
+  execOnKeyboardCmd: false
   # Demo select
   # demoPath: # NOTE: offered by launch file
   savePlannedStates: false
   # Executing saved states on startup
-  execSavedStates: true
+  execSavedStates: true 
+
+  # Benchmark
+  benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.csv

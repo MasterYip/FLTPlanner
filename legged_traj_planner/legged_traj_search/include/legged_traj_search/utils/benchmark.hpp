@@ -18,6 +18,7 @@
 /* c++ standard library header files */
 #include <iostream>
 #include <vector>
+
 /* external project header files */
 
 /* internal project header files */
@@ -85,6 +86,12 @@ private:
 public:
     Benchmark(std::string name = "Benchmark", bool enabled = true);
     ~Benchmark();
+
+    void enable(bool enable)
+    {
+        enabled_ = enable;
+    }
+
     void reset();
 
     // Reset timer for the next record
@@ -117,4 +124,7 @@ public:
     {
         return records_;
     }
+
+    bool save(const std::string &file_path);
+
 };

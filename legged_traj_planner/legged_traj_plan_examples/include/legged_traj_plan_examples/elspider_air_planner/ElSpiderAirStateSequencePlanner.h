@@ -150,6 +150,8 @@ struct ElSpiderAirStateSequencePlannerConfig
     bool savePlannedStates;
     bool execSavedStates;
 
+    std::string benchmarkSavePath;
+
     void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
     {
         bool check_digit = true;
@@ -166,6 +168,8 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/demoPath", demoPath);
         check_digit &= nh.getParam(ns + "/savePlannedStates", savePlannedStates);
         check_digit &= nh.getParam(ns + "/execSavedStates", execSavedStates);
+
+        check_digit &= nh.getParam(ns + "/benchmarkSavePath", benchmarkSavePath);
         if (!check_digit)
         {
             ROS_ERROR("Failed to load ElSpiderAirStateSequencePlannerConfig.");
@@ -215,7 +219,8 @@ public:
                                         state_sequence_planner_(swing_traj_planner_, gridmap_interface_, robot_interface_),
                                         visualizer_(nh_, "odom", "visualizer_markers"),
                                         visualizer_base_(nh_, "base", "visualizer_markers_base"),
-                                        rate_(100), benchmark_("ElSpiderAirStateSequencePlannerBenchmark")
+                                        rate_(100), benchmark_("ElSpiderAirStateSequencePlannerBenchmark",
+                                                               swing_traj_planner_config_.enableBenchmark)
     {
         config_.loadParams(nh_);
         rate_ = ros::Rate(config_.rosRate);
@@ -541,6 +546,7 @@ public:
             state_sequence_planner_.optSwingTraj();
             benchmark_.record("swing traj optimization");
             benchmark_.end();
+            benchmark_.save(config_.benchmarkSavePath);
         }
 
         MCTStateTransfer &state_traj = state_sequence_planner_.get_state_traj(0);
