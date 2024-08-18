@@ -107,7 +107,7 @@ public:
         {
             sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
             gradPos += -df * sdfGrad / sdfGrad.norm();
-            pena += weight_ * f;
+            pena += weight_ * f; // FIXME: velnorm, the gradient is not right
             if (enable_vis_)
             {
                 visualizer_->setIdGroup(3);

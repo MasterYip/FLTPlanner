@@ -238,7 +238,28 @@ struct SwingTrajPlannerConfig
         else if (plannerID == 3)
         {
         }
+        //// ID[4] StompPlannerSettings
         else if (plannerID == 4)
+        {
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompNumTimesteps", stompNumTimesteps);
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompStdDev1", stompStdDev1);
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompStdDev2", stompStdDev2);
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompStdDev3", stompStdDev3);
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompNumIters", stompNumIters);
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompNumItersAfterValid", stompNumItersAfterValid);
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompNumRollouts", stompNumRollouts);
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompMaxRollouts", stompMaxRollouts);
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompCtrlCostWeight", stompCtrlCostWeight);
+
+            check_digit *= nh.getParam("StompPlanner/penalty/smoothingFactor", smoothingFactor);
+
+            check_digit *= nh.getParam("StompPlanner/penalty/CollBall3Rad", CollBall3Rad);
+            check_digit *= nh.getParam("StompPlanner/penalty/CollBall3Weight", CollBall3Weight);
+            check_digit *= nh.getParam("StompPlanner/penalty/FootCollExcludeBallRad", FootCollExcludeBallRad);
+            // check_digit *= nh.getParam("StompPlanner/penalty/FootCollExcludeBallSmoothRad", FootCollExcludeBallSmoothRad);
+        }
+        //// ID[5] StompCfgPlannerSettings
+        else if (plannerID == 5)
         {
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumTimesteps", stompNumTimesteps);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev1", stompStdDev1);
@@ -249,7 +270,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumRollouts", stompNumRollouts);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompMaxRollouts", stompMaxRollouts);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompCtrlCostWeight", stompCtrlCostWeight);
-            
+
             check_digit *= nh.getParam("StompCfgPlanner/penalty/smoothingFactor", smoothingFactor);
 
             check_digit *= nh.getParam("StompCfgPlanner/penalty/joint1PosMin", joint1PosMin);

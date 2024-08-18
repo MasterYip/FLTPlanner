@@ -1,4 +1,4 @@
-plannerID: 5
+plannerID: 4
 
 trajInit:
   # perpendicular to the ground (avoid collision detection)
@@ -23,7 +23,7 @@ misc:
   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/optBenchmark2.csv
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
-StompCfgPlanner:
+StompPlanner:
   optimizer:
     stompNumTimesteps: 10
     stompStdDev1: 0.5
@@ -36,18 +36,7 @@ StompCfgPlanner:
     stompCtrlCostWeight: 0.3
   penalty:
     smoothingFactor: 1.0e-1
-    joint1PosMin: -0.785
-    joint1PosMax: 0.785
-    joint2PosMin: -0.5233
-    joint2PosMax: 3.14
-    joint3PosMin: -0.6978
-    joint3PosMax: 3.925
-    jointPosWeight: 0.4
-    CollBall1Rad: 0.06
-    CollBall2Rad: 0.00
     CollBall3Rad: 0.02
-    CollBall1Weight: 0.0
-    CollBall2Weight: 0.0
     CollBall3Weight: 2000.0
     FootCollExcludeBallRad: 0.06
-    FootCollExcludeBallSmoothRad: 0.02
+    # FootCollExcludeBallSmoothRad: 0.02

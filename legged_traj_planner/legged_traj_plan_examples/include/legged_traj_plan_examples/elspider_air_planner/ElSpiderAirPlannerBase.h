@@ -117,6 +117,10 @@ public:
         }
         else if (swing_traj_planner_config_.plannerID == 4)
         {
+            swing_traj_planner_ = std::make_shared<StompPlanner>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
+        }
+        else if (swing_traj_planner_config_.plannerID == 5)
+        {
             swing_traj_planner_ = std::make_shared<StompCfgPlanner>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
         }
         else

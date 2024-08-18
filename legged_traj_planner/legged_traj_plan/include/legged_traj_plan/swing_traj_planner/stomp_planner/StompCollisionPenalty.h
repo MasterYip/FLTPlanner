@@ -89,11 +89,10 @@ public:
      * @brief Attach penalty to position, velocity and acceleration
      * FIXME: This gradient is not correct
      * @param pos Position in world frame
-     * @param gradPos Gradient of position in world frame
      * @param pena Penalty
+     * @return if collision happens
      */
-    void attachPena(const Eigen::Vector3d &pos,
-                    Eigen::Vector3d &gradPos,
+    bool attachPena(const Eigen::Vector3d &pos,
                     double &pena)
     {
         // WORLD frame
@@ -104,15 +103,10 @@ public:
             (pos - endExcludeBall_).norm() > endCollExcludeRadius_ &&
             smoothedL1(collBallRadius_ - sdf, mu_, f, df))
         {
-            sdfGrad = gridmap_interface_->sdfDerivative(pos, 0);
-            gradPos += -df * sdfGrad / sdfGrad.norm();
             pena += weight_ * f;
-            if (enable_vis_)
-            {
-                visualizer_->setIdGroup(3);
-                visualizer_->visArrow(pos, pos + gradPos * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
-            }
+            return true;
         }
+        return false;
     }
 };
 

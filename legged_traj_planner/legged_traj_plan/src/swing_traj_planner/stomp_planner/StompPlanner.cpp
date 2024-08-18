@@ -12,6 +12,95 @@
 #include "legged_traj_plan/swing_traj_planner/stomp_planner/StompPlanner.h"
 #include <stomp/stomp.h>
 
+StompPlanner::StompPlanner(SwingTrajPlannerConfig config,
+                           std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                           std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
+                                                                                  swing_traj_opt_(std::make_shared<CfgStompTask>(config, gridmap_interface_,
+                                                                                                                                 nullptr))
+{
+    visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
+    if (config_.enableOptVis)
+    {
+        swing_traj_opt_->setupVis(visualizer_);
+    }
+}
+
+std::shared_ptr<TrajectoryBase> StompPlanner::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                              Eigen::Vector3d p0, Eigen::Vector3d p1,
+                                                              uint index)
+{
+    double h_lift = config_.hLift;
+    double v_lift = config_.vLift;
+    std::vector<Point3D> poly_path{p0, (p0 + p1) / 2 + Eigen::Vector3d(0, 0, h_lift), p1};
+
+    return std::make_shared<MincoTrajectory>(poly_path, Eigen::Vector3d(0, 0, v_lift), Eigen::Vector3d(0, 0, -v_lift), config_.trajTime);
+}
+
+bool StompPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
+                               const pinocchio::SE3 &pose0,
+                               const pinocchio::SE3 &pose1,
+                               int index)
+{
+    bool ret = true;
+    if (!config_.enableOptimizer)
+        return true;
+
+    Eigen::Vector3d p0 = traj->evaluate(0, 0, true);
+    Eigen::Vector3d p1 = traj->evaluate(1, 0, true);
+
+    if (config_.enableVis)
+    {
+        visualizer_->setIdGroup(1);
+        visualizer_->visSphere(p0);
+        visualizer_->visSphere(p1);
+    }
+
+    swing_traj_opt_->setup(p0, p1);
+    stomp::StompConfiguration c;
+    c.num_timesteps = config_.stompNumTimesteps;
+    c.num_iterations = config_.stompNumIters;
+    c.num_dimensions = 3;
+    c.delta_t = config_.trajTime / (config_.stompNumTimesteps - 1);
+    c.control_cost_weight = config_.stompCtrlCostWeight;
+    c.initialization_method = stomp::TrajectoryInitializations::MININUM_CONTROL_COST;
+    c.num_iterations_after_valid = config_.stompNumItersAfterValid;
+    c.num_rollouts = config_.stompNumRollouts;
+    c.max_rollouts = config_.stompMaxRollouts;
+    stomp::Stomp stomp(c, swing_traj_opt_);
+
+    Eigen::MatrixXd opt_traj;
+    if (stomp.solve(p0, p1, opt_traj))
+        ret = true;
+    else
+    {
+        std::cout << "A valid solution was not found" << std::endl;
+        ret = false;
+    }
+    std::vector<Point3D> path_opt;
+    for (int i = 0; i < opt_traj.cols(); i++)
+    {
+        path_opt.emplace_back(opt_traj.col(i));
+    }
+
+    traj = std::make_shared<MincoTrajectory>(path_opt, Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), config_.trajTime);
+
+    if (config_.enableVis)
+    {
+        // MincoTrajectory
+        std::vector<Point3D> path_opt;
+        double ts = 0.01;
+        double t = 0;
+        std::dynamic_pointer_cast<MincoTrajectory>(traj)->getTrajSamples(path_opt, ts, true);
+        visualizer_->setIdGroup(1);
+        if (ret)
+            visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
+        else
+            visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.01));
+    }
+    return ret;
+}
+
+// StompCfgPlanner
 StompCfgPlanner::StompCfgPlanner(SwingTrajPlannerConfig config,
                                  std::shared_ptr<ElSpiderAirInterface> robot_interface,
                                  std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
@@ -84,12 +173,10 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
         ret = false;
     }
     std::vector<Point3D> cfg_path_opt;
-    cfg_path_opt.emplace_back(p0cfg);
     for (int i = 0; i < opt_traj.cols(); i++)
     {
         cfg_path_opt.emplace_back(opt_traj.col(i));
     }
-    cfg_path_opt.emplace_back(p1cfg);
 
     traj = std::make_shared<MincoTrajectory>(cfg_path_opt, Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), config_.trajTime);
 
