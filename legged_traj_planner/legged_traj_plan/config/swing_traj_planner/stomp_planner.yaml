@@ -11,11 +11,11 @@ trajInit:
 misc:
   enableOptimizer: true
   reOptimize: false
-  useCfgSpace: true # Do not change this (this file is for cfg space)
+  useCfgSpace: false # Do not change this (this file is for cfg space)
   useCfgCommand: true
   enableVis: true
   enableOptVis: true # Visualize the optimization process
-  optVisRate: 20
+  optVisRate: 6
   enableBenchmark: true
   # Benchmark result save path
   # benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/optBenchmark.csv
@@ -25,18 +25,19 @@ misc:
 
 StompPlanner:
   optimizer:
-    stompNumTimesteps: 10
-    stompStdDev1: 0.5
-    stompStdDev2: 1.0
-    stompStdDev3: 0.2
-    stompNumIters: 300
+    stompNumTimesteps: 20
+    stompStdDev1: 0.1
+    stompStdDev2: 0.3
+    stompStdDev3: 0.5
+    stompNumIters: 60
     stompNumItersAfterValid: 0
-    stompNumRollouts: 30
-    stompMaxRollouts: 30
-    stompCtrlCostWeight: 0.3
+    stompNumRollouts: 60
+    stompMaxRollouts: 60
+    stompCtrlCostWeight: 1.0
+    stompExpCostSensitivity: 1.0
   penalty:
-    smoothingFactor: 1.0e-1
-    CollBall3Rad: 0.02
-    CollBall3Weight: 2000.0
+    smoothingFactor: 1.0e-2
+    CollBall3Rad: 0.04
+    CollBall3Weight: 20.0
     FootCollExcludeBallRad: 0.06
     # FootCollExcludeBallSmoothRad: 0.02

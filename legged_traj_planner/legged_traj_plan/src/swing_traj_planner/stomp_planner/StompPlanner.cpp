@@ -15,8 +15,8 @@
 StompPlanner::StompPlanner(SwingTrajPlannerConfig config,
                            std::shared_ptr<ElSpiderAirInterface> robot_interface,
                            std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
-                                                                                  swing_traj_opt_(std::make_shared<CfgStompTask>(config, gridmap_interface_,
-                                                                                                                                 nullptr))
+                                                                                  swing_traj_opt_(std::make_shared<StompTask>(config, gridmap_interface_,
+                                                                                                                              nullptr))
 {
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
     if (config_.enableOptVis)
@@ -62,6 +62,7 @@ bool StompPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     c.num_dimensions = 3;
     c.delta_t = config_.trajTime / (config_.stompNumTimesteps - 1);
     c.control_cost_weight = config_.stompCtrlCostWeight;
+    c.exponentiated_cost_sensitivity = config_.stompExpCostSensitivity;
     c.initialization_method = stomp::TrajectoryInitializations::MININUM_CONTROL_COST;
     c.num_iterations_after_valid = config_.stompNumItersAfterValid;
     c.num_rollouts = config_.stompNumRollouts;
@@ -158,6 +159,7 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     c.num_dimensions = 3;
     c.delta_t = config_.trajTime / (config_.stompNumTimesteps - 1);
     c.control_cost_weight = config_.stompCtrlCostWeight;
+    c.exponentiated_cost_sensitivity = config_.stompExpCostSensitivity;
     c.initialization_method = stomp::TrajectoryInitializations::MININUM_CONTROL_COST;
     c.num_iterations_after_valid = config_.stompNumItersAfterValid;
     c.num_rollouts = config_.stompNumRollouts;

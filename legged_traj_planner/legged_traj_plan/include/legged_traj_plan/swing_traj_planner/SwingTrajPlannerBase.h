@@ -130,6 +130,7 @@ struct SwingTrajPlannerConfig
     int stompNumItersAfterValid;
     int stompNumRollouts;
     int stompMaxRollouts;
+    double stompExpCostSensitivity;
     double stompCtrlCostWeight;
     //// Penalty
     // double smoothingFactor;
@@ -250,6 +251,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("StompPlanner/optimizer/stompNumRollouts", stompNumRollouts);
             check_digit *= nh.getParam("StompPlanner/optimizer/stompMaxRollouts", stompMaxRollouts);
             check_digit *= nh.getParam("StompPlanner/optimizer/stompCtrlCostWeight", stompCtrlCostWeight);
+            check_digit *= nh.getParam("StompPlanner/optimizer/stompExpCostSensitivity", stompExpCostSensitivity);
 
             check_digit *= nh.getParam("StompPlanner/penalty/smoothingFactor", smoothingFactor);
 

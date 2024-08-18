@@ -30,10 +30,10 @@ private:
     std::shared_ptr<StompTask> swing_traj_opt_;
 
 public:
-    StompCfgPlanner(SwingTrajPlannerConfig config,
+    StompPlanner(SwingTrajPlannerConfig config,
                   std::shared_ptr<ElSpiderAirInterface> robot_interface,
                   std::shared_ptr<GridMapInterface> gridmap_interface);
-    ~StompCfgPlanner() = default;
+    ~StompPlanner() = default;
 
     std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                     Eigen::Vector3d p0, Eigen::Vector3d p1,

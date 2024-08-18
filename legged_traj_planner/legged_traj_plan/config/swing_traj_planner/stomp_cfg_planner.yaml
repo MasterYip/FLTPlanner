@@ -26,16 +26,17 @@ misc:
 StompCfgPlanner:
   optimizer:
     stompNumTimesteps: 10
-    stompStdDev1: 0.5
+    stompStdDev1: 0.3
     stompStdDev2: 1.0
-    stompStdDev3: 0.2
-    stompNumIters: 300
+    stompStdDev3: 0.8
+    stompNumIters: 60
     stompNumItersAfterValid: 0
-    stompNumRollouts: 30
-    stompMaxRollouts: 30
-    stompCtrlCostWeight: 0.3
+    stompNumRollouts: 10
+    stompMaxRollouts: 100
+    stompCtrlCostWeight: 1.0
+    stompExpCostSensitivity: 1.0
   penalty:
-    smoothingFactor: 1.0e-1
+    smoothingFactor: 1.0e-2
     joint1PosMin: -0.785
     joint1PosMax: 0.785
     joint2PosMin: -0.5233
@@ -47,7 +48,7 @@ StompCfgPlanner:
     CollBall2Rad: 0.00
     CollBall3Rad: 0.02
     CollBall1Weight: 0.0
-    CollBall2Weight: 0.0
-    CollBall3Weight: 2000.0
+    CollBall2Weight: 2.0
+    CollBall3Weight: 2.0
     FootCollExcludeBallRad: 0.06
     FootCollExcludeBallSmoothRad: 0.02

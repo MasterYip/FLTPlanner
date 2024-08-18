@@ -173,8 +173,6 @@ public:
             visualizer_->visCurve(traj, ros_visualizer::VisStyle(0.1, 0.7, 0.1, 0.5, 0.01));
         }
         bool ret = computeNoisyCosts(parameters, start_timestep, num_timesteps, iteration_number, -1, costs, validity);
-        // std::cout << "costs: " << costs.transpose() << std::endl;
-        std::cout << "cost: " << costs.sum() << std::endl;
         return ret;
     }
 
@@ -262,7 +260,8 @@ protected:
         {
             updates.row(d).transpose() = smoothing_M_ * (updates.row(d).transpose());
         }
-
+        updates.col(0) = Eigen::VectorXd::Zero(updates.rows());
+        updates.col(num_timesteps - 1) = Eigen::VectorXd::Zero(updates.rows());
         return true;
     }
 };
@@ -408,8 +407,6 @@ public:
             visualizer_->visCurve(traj, ros_visualizer::VisStyle(0.1, 0.7, 0.1, 0.5, 0.01));
         }
         bool ret = computeNoisyCosts(parameters, start_timestep, num_timesteps, iteration_number, -1, costs, validity);
-        // std::cout << "costs: " << costs.transpose() << std::endl;
-        std::cout << "cost: " << costs.sum() << std::endl;
         return ret;
     }
 
@@ -510,7 +507,8 @@ protected:
         {
             updates.row(d).transpose() = smoothing_M_ * (updates.row(d).transpose());
         }
-
+        updates.col(0) = Eigen::VectorXd::Zero(updates.rows());
+        updates.col(num_timesteps - 1) = Eigen::VectorXd::Zero(updates.rows());
         return true;
     }
 };
