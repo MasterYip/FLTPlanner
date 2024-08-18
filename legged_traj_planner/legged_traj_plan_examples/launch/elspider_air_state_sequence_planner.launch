@@ -8,10 +8,11 @@
     <arg name="demo_name" default="4_ushape_barrier" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
+    <!-- minco_planner -->
     <!-- flt_planner / flt_cfg_planner / flt_cfg_planner_fast-->
     <!-- rrt_planner / rrt_cfg_planner -->
     <!-- stomp_planner / stomp_cfg_planner -->
-    <arg name="planner_cfg" default="stomp_cfg_planner" />
+    <arg name="planner_cfg" default="minco_planner" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
@@ -77,13 +78,14 @@
         <param name="robotInterface" value="ElSpiderAirROS" if="$(eval fake_feedback == 0)"/>
         <param name="robotInterface" value="ElSpiderAirDummy" if="$(eval fake_feedback == 1)"/>
         <param name="ElSpiderAirROS/sim" value="$(arg sim)" />
-        <!-- Perception Interface -->
-        <rosparam command="load" file="$(find legged_traj_plan)/config/perception_interface.yaml"/>
         <!-- Planner Config -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/$(arg planner_cfg).yaml"/>
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/state_sequence_planner.yaml"/>
         <param name="StateSequencePlanner/demoPath" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/" />
-        <!-- Perception Config Override -->
+        <param name="StateSequencePlanner/execSavedStates" value="false" if="$(eval fake_feedback == 0)"/>
+        <!-- Perception Interface -->
+        <rosparam command="load" file="$(find legged_traj_plan)/config/perception_interface.yaml"/>
+        <!-- Perception Interface Config Override -->
         <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
     </node>
 
