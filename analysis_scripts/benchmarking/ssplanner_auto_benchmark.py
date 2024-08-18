@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-18 22:47:51
+LastEditTime: 2024-08-18 22:57:09
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -30,7 +30,7 @@ class TestCase:
     
     @property
     def to_dict(self):
-        return {"planner_name": self.planner_name, 
+        return {"planner_cfg": self.planner_name, 
                 "demo_name": self.demo_name, 
                 "with_ceiling": "true" if self.with_ceiling else "false", 
                 "rosbag_record": "true" if self.rosbag_record else "false", 
@@ -48,13 +48,15 @@ class SSPlannerAutoBenchmark:
     # launch_file = "key_teleop.launch"
     def __init__(self):
         rospy.init_node("ssplanner_auto_benchmark", anonymous=True)
+        self.is_done = False
+        self.test_cases = []
+        
         self.progress_sub = rospy.Subscriber("/benchmark_progress", 
                                              msg.Bool, 
                                              self.progress_callback)
         self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(self.uuid)
-        # self.launch = roslaunch.scriptapi.ROSLaunch()
-        # self.launch.start()
+        
         pass
 
     def run(self, testcase: TestCase, timeout=None):
@@ -71,9 +73,18 @@ class SSPlannerAutoBenchmark:
             self.parent.shutdown()
         else:
             rospy.spin()
+            
+    def run_tests(self, testcases, timeout=None):
+        self.is_done = False
+        self.test_cases = testcases
+        self.run(self.test_cases.pop(0))        
         
     def progress_callback(self, msg):
         self.parent.shutdown()
+        if self.test_cases:
+            self.run(self.test_cases.pop(0))
+        else:
+            rospy.signal_shutdown("Benchmark finished.")
 
 if __name__ == "__main__":
     benchmark = SSPlannerAutoBenchmark()
@@ -81,8 +92,11 @@ if __name__ == "__main__":
     #                 "demo_name": "2_stairs", 
     #                 "with_ceiling": "false", 
     #                 "rosbag_record": "false"})
-    testcase0 = TestCase("flt_cfg_planner", "2_stairs", False, False)
-    benchmark.run(testcase0)
+    testcases = []
+    # testcases.append(TestCase("flt_cfg_planner", "2_stairs", False, False))
+    testcases.append(TestCase("flt_cfg_planner", "4_ushape_barrier", False, False))
+    testcases.append(TestCase("rrt_cfg_planner", "2_stairs", False, False))
+    benchmark.run_tests(testcases)
     
 
 
