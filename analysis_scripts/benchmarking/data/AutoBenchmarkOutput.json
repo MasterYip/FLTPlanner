@@ -1,0 +1,318 @@
+{
+    "flt_cfg_planner_fast": {
+        "2_stairs": {
+            "OptNum": 97,
+            "Totaltime": 89.54938400000002,
+            "AvgTime": 0.923189525773196,
+            "MaxTime": 2.2764,
+            "MinTime": 0.405472,
+            "StdTime": 0.4610662391449631,
+            "SuccessRate": 1.0,
+            "AveLen": 1.47861,
+            "AveCtrl": 33.2085
+        },
+        "4_ushape_barrier": {
+            "OptNum": 33,
+            "Totaltime": 47.126186000000004,
+            "AvgTime": 1.4280662424242425,
+            "MaxTime": 6.00432,
+            "MinTime": 0.37827,
+            "StdTime": 1.4806968516703092,
+            "SuccessRate": 1.0,
+            "AveLen": 1.46978,
+            "AveCtrl": 32.3219
+        },
+        "3_quincuncial_piles": {
+            "OptNum": 125,
+            "Totaltime": 69.578186,
+            "AvgTime": 0.556625488,
+            "MaxTime": 1.90408,
+            "MinTime": 0.247948,
+            "StdTime": 0.2555841231581842,
+            "SuccessRate": 0.992,
+            "AveLen": 1.7136,
+            "AveCtrl": 41.6183
+        },
+        "4_barrier": {
+            "OptNum": 38,
+            "Totaltime": 35.69251,
+            "AvgTime": 0.9392765789473684,
+            "MaxTime": 2.95401,
+            "MinTime": 0.31898,
+            "StdTime": 0.7608454893762192,
+            "SuccessRate": 0.9473684210526315,
+            "AveLen": 1.80769,
+            "AveCtrl": 45.7943
+        },
+        "4_barrier_vague": {
+            "OptNum": 31,
+            "Totaltime": 39.458335000000005,
+            "AvgTime": 1.2728495161290325,
+            "MaxTime": 7.01588,
+            "MinTime": 0.316131,
+            "StdTime": 1.497124436370343,
+            "SuccessRate": 0.9032258064516129,
+            "AveLen": 3.54577,
+            "AveCtrl": 532.098
+        },
+        "5_channel": {
+            "OptNum": 36,
+            "Totaltime": 36.576248,
+            "AvgTime": 1.016006888888889,
+            "MaxTime": 3.862,
+            "MinTime": 0.279336,
+            "StdTime": 0.8009196676089786,
+            "SuccessRate": 1.0,
+            "AveLen": 1.65424,
+            "AveCtrl": 38.5009
+        },
+        "6_fractal": {
+            "OptNum": 144,
+            "Totaltime": 92.368758,
+            "AvgTime": 0.6414497083333334,
+            "MaxTime": 2.52337,
+            "MinTime": 0.212676,
+            "StdTime": 0.3617226993785908,
+            "SuccessRate": 0.9930555555555556,
+            "AveLen": 1.59866,
+            "AveCtrl": 37.7424
+        }
+    },
+    "minco_cfg_planner": {
+        "2_stairs": {
+            "OptNum": 99,
+            "Totaltime": 138.25925900000001,
+            "AvgTime": 1.3965581717171718,
+            "MaxTime": 4.23588,
+            "MinTime": 0.454142,
+            "StdTime": 0.6896918970959854,
+            "SuccessRate": 0.9797979797979798,
+            "AveLen": 3.23892,
+            "AveCtrl": 134.236
+        },
+        "4_ushape_barrier": {
+            "OptNum": 143,
+            "Totaltime": 494.68410299999994,
+            "AvgTime": 3.4593293916083914,
+            "MaxTime": 6.36732,
+            "MinTime": 0.513296,
+            "StdTime": 1.2908991463433812,
+            "SuccessRate": 0.23076923076923078,
+            "AveLen": 3.36061,
+            "AveCtrl": 143.555
+        },
+        "3_quincuncial_piles": {
+            "OptNum": 124,
+            "Totaltime": 146.57892799999996,
+            "AvgTime": 1.1820881290322578,
+            "MaxTime": 4.45632,
+            "MinTime": 0.587167,
+            "StdTime": 0.4909724262158453,
+            "SuccessRate": 1.0,
+            "AveLen": 2.0574,
+            "AveCtrl": 59.6375
+        },
+        "4_barrier": {
+            "OptNum": 39,
+            "Totaltime": 74.72578299999999,
+            "AvgTime": 1.9160457179487178,
+            "MaxTime": 8.05041,
+            "MinTime": 0.546088,
+            "StdTime": 1.543838160863272,
+            "SuccessRate": 0.9230769230769231,
+            "AveLen": 3.52445,
+            "AveCtrl": 148.804
+        },
+        "4_barrier_vague": {
+            "OptNum": 30,
+            "Totaltime": 60.39303399999999,
+            "AvgTime": 2.013101133333333,
+            "MaxTime": 9.03011,
+            "MinTime": 0.542443,
+            "StdTime": 1.8574454385558992,
+            "SuccessRate": 0.9333333333333333,
+            "AveLen": 2.45431,
+            "AveCtrl": 81.7974
+        },
+        "5_channel": {
+            "OptNum": 36,
+            "Totaltime": 70.213383,
+            "AvgTime": 1.9503717499999997,
+            "MaxTime": 5.02583,
+            "MinTime": 0.852704,
+            "StdTime": 1.0478499718637995,
+            "SuccessRate": 1.0,
+            "AveLen": 3.39006,
+            "AveCtrl": 139.712
+        },
+        "6_fractal": {
+            "OptNum": 143,
+            "Totaltime": 197.633039,
+            "AvgTime": 1.3820492237762239,
+            "MaxTime": 4.13424,
+            "MinTime": 0.54116,
+            "StdTime": 0.5461959265242887,
+            "SuccessRate": 1.0,
+            "AveLen": 3.36655,
+            "AveCtrl": 138.172
+        }
+    },
+    "rrt_cfg_planner": {
+        "2_stairs": {
+            "OptNum": 97,
+            "Totaltime": 151.441576,
+            "AvgTime": 1.5612533608247423,
+            "MaxTime": 3.6426,
+            "MinTime": 0.268749,
+            "StdTime": 0.760979148573408,
+            "SuccessRate": 1.0,
+            "AveLen": 1.775,
+            "AveCtrl": 174.151
+        },
+        "4_ushape_barrier": {
+            "OptNum": 33,
+            "Totaltime": 66.859261,
+            "AvgTime": 2.0260382121212124,
+            "MaxTime": 4.96211,
+            "MinTime": 0.398898,
+            "StdTime": 0.9755860518510651,
+            "SuccessRate": 1.0,
+            "AveLen": 1.91505,
+            "AveCtrl": 389.291
+        },
+        "3_quincuncial_piles": {
+            "OptNum": 124,
+            "Totaltime": 203.59963,
+            "AvgTime": 1.6419325,
+            "MaxTime": 3.09782,
+            "MinTime": 1.28294,
+            "StdTime": 0.2521269981468792,
+            "SuccessRate": 1.0,
+            "AveLen": 2.18712,
+            "AveCtrl": 473.301
+        },
+        "4_barrier": {
+            "OptNum": 36,
+            "Totaltime": 76.52822599999999,
+            "AvgTime": 2.125784055555555,
+            "MaxTime": 20.3354,
+            "MinTime": 0.374088,
+            "StdTime": 3.1933297098310245,
+            "SuccessRate": 1.0,
+            "AveLen": 2.10697,
+            "AveCtrl": 989.62
+        },
+        "4_barrier_vague": {
+            "OptNum": 28,
+            "Totaltime": 46.39535,
+            "AvgTime": 1.6569767857142856,
+            "MaxTime": 3.0243,
+            "MinTime": 1.2306,
+            "StdTime": 0.32340785487251206,
+            "SuccessRate": 1.0,
+            "AveLen": 3.20301,
+            "AveCtrl": 10359.1
+        },
+        "5_channel": {
+            "OptNum": 36,
+            "Totaltime": 56.96649,
+            "AvgTime": 1.5824025,
+            "MaxTime": 2.6053,
+            "MinTime": 1.40007,
+            "StdTime": 0.19329940399653764,
+            "SuccessRate": 1.0,
+            "AveLen": 2.40564,
+            "AveCtrl": 697.036
+        },
+        "6_fractal": {
+            "OptNum": 143,
+            "Totaltime": 235.279408,
+            "AvgTime": 1.6453105454545454,
+            "MaxTime": 2.7197,
+            "MinTime": 0.308995,
+            "StdTime": 0.40405972780189175,
+            "SuccessRate": 1.0,
+            "AveLen": 3.3422,
+            "AveCtrl": 2158.43
+        }
+    },
+    "stomp_cfg_planner": {
+        "2_stairs": {
+            "OptNum": 97,
+            "Totaltime": 83.87300700000002,
+            "AvgTime": 0.8646701752577322,
+            "MaxTime": 17.7664,
+            "MinTime": 0.191362,
+            "StdTime": 1.8820806294747092,
+            "SuccessRate": 1.0,
+            "AveLen": 1.17887,
+            "AveCtrl": 488.97
+        },
+        "4_ushape_barrier": {
+            "OptNum": 113,
+            "Totaltime": 1566.3085079999998,
+            "AvgTime": 13.861137238938051,
+            "MaxTime": 21.2336,
+            "MinTime": 0.196616,
+            "StdTime": 8.32627414110082,
+            "SuccessRate": 0.2920353982300885,
+            "AveLen": 1.08869,
+            "AveCtrl": 155.924
+        },
+        "3_quincuncial_piles": {
+            "OptNum": 124,
+            "Totaltime": 115.01791,
+            "AvgTime": 0.9275637903225806,
+            "MaxTime": 12.4065,
+            "MinTime": 0.193673,
+            "StdTime": 1.452087457499099,
+            "SuccessRate": 1.0,
+            "AveLen": 1.24252,
+            "AveCtrl": 211.763
+        },
+        "4_barrier": {
+            "OptNum": 0,
+            "Totaltime": 0,
+            "AvgTime": 0,
+            "MaxTime": 0,
+            "MinTime": 0,
+            "StdTime": 0,
+            "SuccessRate": 0,
+            "AveLen": 0,
+            "AveCtrl": 0
+        },
+        "4_barrier_vague": {
+            "OptNum": 0,
+            "Totaltime": 0,
+            "AvgTime": 0,
+            "MaxTime": 0,
+            "MinTime": 0,
+            "StdTime": 0,
+            "SuccessRate": 0,
+            "AveLen": 0,
+            "AveCtrl": 0
+        },
+        "5_channel": {
+            "OptNum": 0,
+            "Totaltime": 0,
+            "AvgTime": 0,
+            "MaxTime": 0,
+            "MinTime": 0,
+            "StdTime": 0,
+            "SuccessRate": 0,
+            "AveLen": 0,
+            "AveCtrl": 0
+        },
+        "6_fractal": {
+            "OptNum": 0,
+            "Totaltime": 0,
+            "AvgTime": 0,
+            "MaxTime": 0,
+            "MinTime": 0,
+            "StdTime": 0,
+            "SuccessRate": 0,
+            "AveLen": 0,
+            "AveCtrl": 0
+        }
+    }
+}

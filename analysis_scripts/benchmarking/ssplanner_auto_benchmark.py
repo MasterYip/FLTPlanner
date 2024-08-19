@@ -67,6 +67,7 @@ class TestCase:
         self.fake_feedback = True
         self.teleop_type = "keyboard"
         self.rviz_gui = False
+        self.auto_benchmark = True
         self.output = "log"  # screen, log
 
         # Benchmark
@@ -92,6 +93,7 @@ class TestCase:
                 "fake_feedback": "true" if self.fake_feedback else "false",
                 "teleop_type": self.teleop_type,
                 "rviz_gui": "true" if self.rviz_gui else "false",
+                "auto_benchmark": "true" if self.auto_benchmark else "false",
                 "output": self.output}
 
     @ property
