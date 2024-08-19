@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-19 16:01:17
+LastEditTime: 2024-08-19 16:59:58
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -17,8 +17,8 @@ import rospy
 import std_msgs.msg as msg
 import pandas as pd
 import numpy as np
-import json5
 import json
+import datetime
 
 # Directory Management
 try:
@@ -45,12 +45,12 @@ PLANNERS = [
 
 DEMOS = [
     ("2_stairs", False),
-    # ("3_quincuncial_piles", False),
-    # ("4_barrier", True),
-    # ("4_barrier_vague", True),
     ("4_ushape_barrier", True),
-    # ("5_channel", True),
-    # ("6_fractal", False),
+    ("3_quincuncial_piles", False),
+    ("4_barrier", True),
+    ("4_barrier_vague", True),
+    ("5_channel", True),
+    ("6_fractal", False),
 ]
 
 
@@ -118,8 +118,8 @@ class TestCase:
         success_list = swingtraj_benchmark["optRetType"]
         trajlen_list = swingtraj_benchmark["trajLen"]
         trajctrl_list = swingtraj_benchmark["trajCtrl"]
-        self.ave_len = np.mean(trajlen_list)
-        self.ave_ctrl = np.mean(trajctrl_list)
+        self.ave_len = np.mean(trajlen_list[success_list == 1])
+        self.ave_ctrl = np.mean(trajctrl_list[success_list == 1])
         self.tot_time = np.sum(opttime_list)
         self.opt_num = len(opttime_list)
         self.suc_rate = np.sum(success_list) / len(success_list)
@@ -139,6 +139,7 @@ class TestCase:
         print(f"Success Rate: {self.suc_rate}")
         print(f"Average Length: {self.ave_len}")
         print(f"Average Control: {self.ave_ctrl}")
+
 
 class SSPlannerAutoBenchmark:
     pkg_name = "legged_traj_plan_examples"
@@ -190,7 +191,7 @@ class SSPlannerAutoBenchmark:
         self.test_case_ptr = 0
         self.run(self.test_cases[self.test_case_ptr])
 
-    def save_benchmark(self, filename="AutoBenchmarkOutput.json"):
+    def save_benchmark(self, filename="AutoBenchmarkOutput", timestamp=True):
         benchmark = {}
         self.test_case_ptr = 0
         for planner in self.planners:
@@ -198,11 +199,13 @@ class SSPlannerAutoBenchmark:
             for demo in self.demos:
                 benchmark[planner][demo[0]] = self.test_cases[self.test_case_ptr].benchmark_dict
                 self.test_case_ptr += 1
+        if timestamp:
+            filename = filename + "_" + datetime.datetime.now().strftime("%Y%m%d") + ".json"
+        else:
+            filename = filename + ".json"
         abspath = os.path.join(ROOT_DIR, "data", filename)
         with open(abspath, "w") as f:
-            # json5.dump(benchmark, f, indent=4)
             json.dump(benchmark, f, indent=4)
-            
         return
 
     def progress_callback(self, msg):
