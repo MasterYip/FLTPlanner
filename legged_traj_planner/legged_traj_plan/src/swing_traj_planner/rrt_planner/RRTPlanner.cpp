@@ -27,18 +27,21 @@ std::shared_ptr<TrajectoryBase> RRTPlanner::getInitTrajHook(pinocchio::SE3 pose0
                                                             uint index)
 {
     double h_lift = config_.hLift;
-    Eigen::MatrixXd knots(3, 3);
-    knots.row(0) = p0;
-    knots.row(1) = (p0 + p1) / 2 + Eigen::Vector3d(0, 0, h_lift);
-    knots.row(2) = p1;
-    std::shared_ptr<UniBSpline> unib_traj = std::make_shared<UniBSpline>(knots);
+    double v_lift = config_.vLift;
+    Eigen::Vector3d start_vel = Eigen::Vector3d(0, 0, v_lift);
+    Eigen::Vector3d goal_vel = Eigen::Vector3d(0, 0, -v_lift);
+    std::vector<Point3D> poly_path;
+    poly_path.emplace_back(p0);
+    poly_path.emplace_back((p0 + p1) / 2 + Eigen::Vector3d(0, 0, h_lift));
+    poly_path.emplace_back(p1);
+    return std::make_shared<MincoTrajectory>(poly_path, start_vel, goal_vel, config_.trajTime);
+
     // if (config_.enableVis)
     // {
     //     std::vector<Eigen::Vector3d> traj_points;
     //     unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
     //     visualizer_->visCurve(traj_points);
     // }
-    return unib_traj;
 }
 
 bool RRTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,

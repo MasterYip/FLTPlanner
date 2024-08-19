@@ -5,11 +5,10 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-19 15:00:16
+LastEditTime: 2024-08-19 16:01:17
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
-from posixpath import abspath
 from typing import Tuple, List
 import os
 import yaml
@@ -19,6 +18,7 @@ import std_msgs.msg as msg
 import pandas as pd
 import numpy as np
 import json5
+import json
 
 # Directory Management
 try:
@@ -45,12 +45,12 @@ PLANNERS = [
 
 DEMOS = [
     ("2_stairs", False),
-    ("3_quincuncial_piles", False),
-    ("4_barrier", True),
+    # ("3_quincuncial_piles", False),
+    # ("4_barrier", True),
     # ("4_barrier_vague", True),
     ("4_ushape_barrier", True),
-    ("5_channel", True),
-    ("6_fractal", False),
+    # ("5_channel", True),
+    # ("6_fractal", False),
 ]
 
 
@@ -67,7 +67,7 @@ class TestCase:
         self.fake_feedback = True
         self.teleop_type = "keyboard"
         self.rviz_gui = False
-        self.output = "screen"  # screen, log
+        self.output = "log"  # screen, log
 
         # Benchmark
         self.opt_num = 0
@@ -78,7 +78,8 @@ class TestCase:
         self.std_time = 0
 
         self.suc_rate = 0
-        self.smoothness = 0
+        self.ave_len = 0
+        self.ave_ctrl = 0
 
     @ property
     def rl_args(self):
@@ -103,15 +104,23 @@ class TestCase:
             "MinTime": self.min_time,
             "StdTime": self.std_time,
             "SuccessRate": self.suc_rate,
-            "Smoothness": self.smoothness,
+            "AveLen": self.ave_len,
+            "AveCtrl": self.ave_ctrl,
         }
 
     def parse_planner_benchmark(self, planner_benchmark: dict):
-        self.tot_time = planner_benchmark["Totaltime"]
+        # self.tot_time = planner_benchmark["Totaltime"]
+        # NOTE: this will include benchmark data calculation time
+        pass
 
     def parse_swingtraj_benchmark(self, swingtraj_benchmark: dict):
         opttime_list = swingtraj_benchmark["totTime"]
         success_list = swingtraj_benchmark["optRetType"]
+        trajlen_list = swingtraj_benchmark["trajLen"]
+        trajctrl_list = swingtraj_benchmark["trajCtrl"]
+        self.ave_len = np.mean(trajlen_list)
+        self.ave_ctrl = np.mean(trajctrl_list)
+        self.tot_time = np.sum(opttime_list)
         self.opt_num = len(opttime_list)
         self.suc_rate = np.sum(success_list) / len(success_list)
         self.avg_time = np.mean(opttime_list)
@@ -123,12 +132,13 @@ class TestCase:
         print("=====================================")
         print(f"Planner: {self.planner_name}, Demo: {self.demo_name}")
         print(f"Total Time: {self.tot_time}")
-        print(f"Success Rate: {self.suc_rate}")
         print(f"Average Time: {self.avg_time}")
         print(f"Max Time: {self.max_time}")
         print(f"Min Time: {self.min_time}")
         print(f"Std Time: {self.std_time}")
-
+        print(f"Success Rate: {self.suc_rate}")
+        print(f"Average Length: {self.ave_len}")
+        print(f"Average Control: {self.ave_ctrl}")
 
 class SSPlannerAutoBenchmark:
     pkg_name = "legged_traj_plan_examples"
@@ -190,7 +200,9 @@ class SSPlannerAutoBenchmark:
                 self.test_case_ptr += 1
         abspath = os.path.join(ROOT_DIR, "data", filename)
         with open(abspath, "w") as f:
-            json5.dump(benchmark, f, indent=4)
+            # json5.dump(benchmark, f, indent=4)
+            json.dump(benchmark, f, indent=4)
+            
         return
 
     def progress_callback(self, msg):

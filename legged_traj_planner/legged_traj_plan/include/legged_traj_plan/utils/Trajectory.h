@@ -49,6 +49,18 @@ public:
         printf("getTotalDuration() not implemented\n");
         return 0;
     }
+
+    virtual double getTrajLength(int resolution = 100, bool normalized = true)
+    {
+        printf("getTrajLength() not implemented\n");
+        return 0;
+    }
+
+    virtual double getTrajControl(int resolution = 100, bool normalized = true)
+    {
+        printf("getTrajControl() not implemented\n");
+        return 0;
+    }
 };
 
 class MincoTrajectory : public TrajectoryBase
@@ -192,14 +204,17 @@ public:
         else if (t > traj_.getTotalDuration())
             t = traj_.getTotalDuration();
 
+        // Time scaling coefficient
+        double k = normalized ? traj_.getTotalDuration() : 1.0;
+
         if (d_order == 0)
             return space_deform_flag_ ? traj_.getPos(t).cwiseProduct(space_deform_) : traj_.getPos(t);
         else if (d_order == 1)
-            return space_deform_flag_ ? traj_.getVel(t).cwiseProduct(space_deform_) : traj_.getVel(t);
+            return (space_deform_flag_ ? traj_.getVel(t).cwiseProduct(space_deform_) : traj_.getVel(t)) * k;
         else if (d_order == 2)
-            return space_deform_flag_ ? traj_.getAcc(t).cwiseProduct(space_deform_) : traj_.getAcc(t);
+            return (space_deform_flag_ ? traj_.getAcc(t).cwiseProduct(space_deform_) : traj_.getAcc(t)) * k * k;
         else if (d_order == 3)
-            return space_deform_flag_ ? traj_.getJer(t).cwiseProduct(space_deform_) : traj_.getJer(t);
+            return (space_deform_flag_ ? traj_.getJer(t).cwiseProduct(space_deform_) : traj_.getJer(t)) * k * k * k;
         else
             throw std::runtime_error("Invalid derivative order");
     }
@@ -233,7 +248,19 @@ public:
         goal_vel = goal_vel_;
     }
 
-    // Test
+    void setSpaceDeform(const Eigen::Vector3d &space_deform)
+    {
+        space_deform_flag_ = true;
+        space_deform_ = space_deform;
+    }
+
+    void unsetSpaceDeform()
+    {
+        space_deform_flag_ = false;
+        space_deform_ = Eigen::Vector3d::Ones();
+    }
+
+    // Analysis
     bool getTrajSamples(std::vector<Point3D> &discrete_traj, double T = 0.01, bool normalized = true)
     {
         discrete_traj.clear();
@@ -245,15 +272,40 @@ public:
         return true;
     }
 
-    void setSpaceDeform(const Eigen::Vector3d &space_deform)
+    /**
+     * @brief Integrate norm of derivative of trajectory using trapezoidal rule
+     *
+     * @param d_order Order of derivative being integrated
+     * @param int_power Power of integration variable
+     * @param resolution
+     * @param normalized
+     * @return double
+     */
+    double getTrajNormIntegration(int d_order, int int_order,
+                                  int resolution = 100, bool normalized = true)
     {
-        space_deform_flag_ = true;
-        space_deform_ = space_deform;
+        double integral = 0;
+        Eigen::Vector3d var;
+        double total_duration = normalized ? 1.0 : traj_.getTotalDuration();
+        double step = total_duration / resolution;
+        integral += 0.5 * std::pow(evaluate(0, d_order, normalized).norm(), int_order) * step;
+        integral += 0.5 * std::pow(evaluate(total_duration, d_order, normalized).norm(), int_order) * step;
+        for (int i = 1; i < resolution; i++)
+        {
+            double t = i * step;
+            integral += std::pow(evaluate(t, d_order, normalized).norm(), int_order) * step;
+        }
+        return integral;
     }
 
-    void unsetSpaceDeform()
+    double getTrajLength(int resolution = 100, bool normalized = true) override
     {
-        space_deform_flag_ = false;
-        space_deform_ = Eigen::Vector3d::Ones();
+        return getTrajNormIntegration(1, 1, resolution, normalized);
+    }
+
+    double getTrajControl(int resolution = 100, bool normalized = true) override
+    {
+        // TODO: control should be v.dot(a)?
+        return getTrajNormIntegration(2, 2, resolution, normalized);
     }
 };

@@ -94,7 +94,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal
         }
         if (revisit_flag)
         {
-            std::cerr << "Warning: Revisit(" << revisit_idx[0] << " " << revisit_idx[1] << ")" << std::endl;
+            // std::cerr << "Warning: Revisit(" << revisit_idx[0] << " " << revisit_idx[1] << ")" << std::endl;
             turning_points.emplace_back(grid_ptr.getState());
             tmp_border.emplace_back(revisit_idx);
             grid_ptr.updateState(revisit_idx);
