@@ -295,6 +295,8 @@ bool PolyTrajSearch::searchStringStraining(const Point3D &start, const Point3D &
 
 GridPolyLine PolyTrajSearch::getFullResBorder() const
 {
+    if (!border_.size())
+        return GridPolyLine();
     GridPolyLine fullResBorder;
     fullResBorder.emplace_back(border_.front());
     for (uint i = 1; i < border_.size(); i++)

@@ -12,7 +12,7 @@
     <!-- flt_planner / flt_cfg_planner / flt_cfg_planner_fast-->
     <!-- rrt_planner / rrt_cfg_planner -->
     <!-- stomp_planner / stomp_cfg_planner -->
-    <arg name="planner_cfg" default="minco_planner" />
+    <arg name="planner_cfg" default="flt_cfg_planner" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
@@ -27,6 +27,10 @@
     <arg name="with_ceiling" default="false"/>
     <!-- ROS bag record (under ~/.ros) -->
     <arg name="rosbag_record" default="false" />
+    <!-- Rviz visualization -->
+    <arg name="rviz_gui" default="true" />
+    <!-- Output: screen / log -->
+    <arg name="output" default="screen" />
 
     <!-- Launch -->
     <!-- Config -->
@@ -35,17 +39,17 @@
     <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ceiling.png" />
     <!-- GridMap -->
     <group if="$(eval fake_feedback == 1)">
-        <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="screen">
+        <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="$(arg output)">
             <param name="image_path" value="$(arg grid_map_file)" />
             <param name="topic" value="~image" />
         </node>
         <group if="$(arg with_ceiling)">
-            <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
+            <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_ceiling_publisher" output="$(arg output)">
                 <param name="image_path" value="$(arg grid_map_file_ceiling)" />
                 <param name="topic" value="~image" />
             </node>
         </group>
-        <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="screen">
+        <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="$(arg output)">
             <param name="with_ceiling" value="$(arg with_ceiling)" />
             <param name="image_topic" value="/image_publisher/image" />
             <param name="image_ceiling_topic" value="/image_ceiling_publisher/image" />
@@ -72,7 +76,7 @@
     </group>
 
     <!-- State Sequence Planner -->
-    <node pkg="legged_traj_plan_examples" type="elspider_air_state_sequence_planner" name="elspider_air_state_sequence_planner" output="screen">
+    <node pkg="legged_traj_plan_examples" type="elspider_air_state_sequence_planner" name="elspider_air_state_sequence_planner" output="$(arg output)">
         <!-- Robot Interface -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/robot_interface.yaml"/>
         <param name="robotInterface" value="ElSpiderAirROS" if="$(eval fake_feedback == 0)"/>
@@ -93,17 +97,18 @@
     <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval fake_feedback == 1)"/>
     <!-- Load robot model if sim is False -->
     <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval sim == 0)"/>
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     <!-- Shadow Robot -->
     <group ns="shadow">
         <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro ns:=shadow"/>
-        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     </group>
 
     <!-- Rviz -->
-    <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner.rviz" output="screen" if="$(eval fake_feedback == 0)"/>
-    <node pkg="rviz" type="rviz" name="rviz_elspider_air_fake" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner_fake.rviz" output="screen" if="$(eval fake_feedback == 1)"/>
-
+    <group if="$(arg rviz_gui)">
+        <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner.rviz" output="$(arg output)" if="$(eval fake_feedback == 0)"/>
+        <node pkg="rviz" type="rviz" name="rviz_elspider_air_fake" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner_fake.rviz" output="$(arg output)" if="$(eval fake_feedback == 1)"/>
+    </group>
     <!-- Teleop -->
     <group if="$(eval teleop_type == 'keyboard')">
         <include file="$(find legged_traj_plan_examples)/launch/key_teleop.launch">
@@ -111,7 +116,7 @@
         </include>
     </group>
     <group if="$(eval teleop_type == 'PS5')">
-        <node pkg="joy" type="joy_node" name="joy_node" output="screen" clear_params="true" required="true">
+        <node pkg="joy" type="joy_node" name="joy_node" output="$(arg output)" clear_params="true" required="true">
             <param name="dev" value="/dev/input/js0"/>
             <!-- udevadm monitor -->
             <param name="dev_ff" value="/dev/input/event20"/>
@@ -120,7 +125,7 @@
             <param name="autorepeat_rate" value="100"/>
             <param name="default_trig_val" value="true"/>
         </node>
-        <node pkg="legged_traj_plan_examples" type="joy_teleop.py" name="joy_teleop" output="screen">
+        <node pkg="legged_traj_plan_examples" type="joy_teleop.py" name="joy_teleop" output="$(arg output)">
             <param name="cmd_topic" value="/cmd_vel" />
             <param name="joy_topic" value="/joy" />
         </node>
@@ -134,7 +139,7 @@
             /elspider_air_state_sequence_planner/grid_map_trav_test 
             /swing_traj_planner_vis 
             /hexapod/foot_state_fdb 
-            -o elspider_air-$(arg demo_name)-$(arg planner_cfg)" output="screen" />
+            -o elspider_air-$(arg demo_name)-$(arg planner_cfg)" output="$(arg output)" />
     </group>
 
 </launch>

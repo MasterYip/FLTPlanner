@@ -349,7 +349,7 @@ public:
             std::cerr << "Failed to open file: " << config_.benchmarkSavePath << std::endl;
             return;
         }
-        file << "normalTime, criticalTime, miscTime, totTime, optRetType, totTime" << std::endl;
+        file << "normalTime, criticalTime, miscTime, totTime, optRetType, trajTime" << std::endl;
         for (auto result : benchmark_results_)
         {
             file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
