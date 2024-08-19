@@ -5,10 +5,12 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-19 11:41:20
+LastEditTime: 2024-08-19 15:00:16
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
+from posixpath import abspath
+from typing import Tuple, List
 import os
 import yaml
 import roslaunch
@@ -16,7 +18,7 @@ import rospy
 import std_msgs.msg as msg
 import pandas as pd
 import numpy as np
-
+import json5
 
 # Directory Management
 try:
@@ -33,6 +35,25 @@ def csv2dict(filename):
     return df.to_dict(orient="list")
 
 
+PLANNERS = [
+    "flt_cfg_planner_fast",
+    "minco_cfg_planner",
+    "rrt_cfg_planner",
+    "stomp_cfg_planner",
+    # "height_clear_planner",
+]
+
+DEMOS = [
+    ("2_stairs", False),
+    ("3_quincuncial_piles", False),
+    ("4_barrier", True),
+    # ("4_barrier_vague", True),
+    ("4_ushape_barrier", True),
+    ("5_channel", True),
+    ("6_fractal", False),
+]
+
+
 class TestCase:
     def __init__(self, planner_name, demo_name,
                  with_ceiling=False, rosbag_record=False):
@@ -46,19 +67,22 @@ class TestCase:
         self.fake_feedback = True
         self.teleop_type = "keyboard"
         self.rviz_gui = False
-        self.output = "log"  # screen, log
+        self.output = "screen"  # screen, log
 
         # Benchmark
+        self.opt_num = 0
         self.tot_time = 0
-        self.suc_rate = 0
-        self.smoothness = 0
         self.avg_time = 0
         self.max_time = 0
         self.min_time = 0
         self.std_time = 0
 
-    @property
-    def to_dict(self):
+        self.suc_rate = 0
+        self.smoothness = 0
+
+    @ property
+    def rl_args(self):
+        """roslaunch arguments"""
         return {"planner_cfg": self.planner_name,
                 "demo_name": self.demo_name,
                 "with_ceiling": "true" if self.with_ceiling else "false",
@@ -69,12 +93,26 @@ class TestCase:
                 "rviz_gui": "true" if self.rviz_gui else "false",
                 "output": self.output}
 
+    @ property
+    def benchmark_dict(self):
+        return {
+            "OptNum": self.opt_num,
+            "Totaltime": self.tot_time,
+            "AvgTime": self.avg_time,
+            "MaxTime": self.max_time,
+            "MinTime": self.min_time,
+            "StdTime": self.std_time,
+            "SuccessRate": self.suc_rate,
+            "Smoothness": self.smoothness,
+        }
+
     def parse_planner_benchmark(self, planner_benchmark: dict):
         self.tot_time = planner_benchmark["Totaltime"]
 
     def parse_swingtraj_benchmark(self, swingtraj_benchmark: dict):
         opttime_list = swingtraj_benchmark["totTime"]
         success_list = swingtraj_benchmark["optRetType"]
+        self.opt_num = len(opttime_list)
         self.suc_rate = np.sum(success_list) / len(success_list)
         self.avg_time = np.mean(opttime_list)
         self.max_time = np.max(opttime_list)
@@ -109,22 +147,15 @@ class SSPlannerAutoBenchmark:
         self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(self.uuid)
 
-        self.is_done = False
         self.test_cases = []
         self.test_case_ptr = 0
         pass
 
     def run(self, testcase: TestCase, timeout=None):
-        """Run single test
-
-        Args:
-            testcase (TestCase): _description_
-            timeout (_type_, optional): _description_. Defaults to None.
-        """
+        """run single test"""
         cli_args = [self.pkg_name, self.launch_file]
-        for key, value in testcase.to_dict.items():
+        for key, value in testcase.rl_args.items():
             cli_args.append(key+":="+value)
-        print(cli_args)
         launch_file = roslaunch.rlutil.resolve_launch_arguments(cli_args)[0]
         launch_files = [(launch_file, cli_args)]
         self.parent = roslaunch.parent.ROSLaunchParent(self.uuid, launch_files)
@@ -134,25 +165,42 @@ class SSPlannerAutoBenchmark:
             self.parent.shutdown()
 
     def run_tests(self, testcases, timeout=None):
-        """Batch run tests
-
-        Args:
-            testcases (_type_): _description_
-            timeout (_type_, optional): _description_. Defaults to None.
-        """
-        self.is_done = False
+        """run tests list"""
         self.test_cases = testcases
         self.test_case_ptr = 0
         self.run(self.test_cases[self.test_case_ptr], timeout)
+
+    def run_benchmark(self, planners=PLANNERS, demos: List[Tuple[str, bool]] = DEMOS):
+        self.planners = planners
+        self.demos = demos
+        self.test_cases = []
+        for planner in planners:
+            for demo in demos:
+                self.test_cases.append(TestCase(planner, demo[0], demo[1], False))
+        self.test_case_ptr = 0
+        self.run(self.test_cases[self.test_case_ptr])
+
+    def save_benchmark(self, filename="AutoBenchmarkOutput.json"):
+        benchmark = {}
+        self.test_case_ptr = 0
+        for planner in self.planners:
+            benchmark[planner] = {}
+            for demo in self.demos:
+                benchmark[planner][demo[0]] = self.test_cases[self.test_case_ptr].benchmark_dict
+                self.test_case_ptr += 1
+        abspath = os.path.join(ROOT_DIR, "data", filename)
+        with open(abspath, "w") as f:
+            json5.dump(benchmark, f, indent=4)
+        return
 
     def progress_callback(self, msg):
         self.parent.shutdown()
         self.analyze()
         self.test_case_ptr += 1
+        rospy.sleep(0.5)
         if self.test_case_ptr < len(self.test_cases):
             self.run(self.test_cases[self.test_case_ptr])
         else:
-            self.summary()
             rospy.signal_shutdown("Benchmark finished.")
 
     def get_abs_path(self, filename):
@@ -175,11 +223,28 @@ class SSPlannerAutoBenchmark:
         pass
 
 
-if __name__ == "__main__":
+def run_benchmark():
+    benchmark = SSPlannerAutoBenchmark()
+    benchmark.run_benchmark(PLANNERS, DEMOS)
+    rospy.spin()
+    benchmark.save_benchmark()
+
+
+def run_tests():
     benchmark = SSPlannerAutoBenchmark()
     testcases = []
-    testcases.append(TestCase("flt_cfg_planner", "4_barrier", False, False))
-    testcases.append(TestCase("flt_cfg_planner", "4_ushape_barrier", False, False))
-    testcases.append(TestCase("rrt_cfg_planner", "2_stairs", False, False))
+    testcases.append(TestCase("flt_cfg_planner", "4_ushape_barrier", True, False))
+    testcases.append(TestCase("flt_cfg_planner_fast", "4_ushape_barrier", True, False))
+    testcases.append(TestCase("rrt_cfg_planner", "4_ushape_barrier", True, False))
+    testcases.append(TestCase("stomp_cfg_planner", "4_ushape_barrier", True, False))
+    # testcases.append(TestCase("flt_cfg_planner", "4_ushape_barrier", True, False))
+    # testcases.append(TestCase("rrt_cfg_planner", "2_stairs", False, False))
     benchmark.run_tests(testcases)
     rospy.spin()
+    benchmark.summary()
+
+
+if __name__ == "__main__":
+    run_benchmark()
+    # run_tests()
+    pass

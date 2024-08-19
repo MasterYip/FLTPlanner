@@ -1,6 +1,9 @@
 
 # NOTE: Planner benchmark settings override 
 misc:
+  reOptimize: true
+  enableVis: false
+  enableOptVis: false
   enableBenchmark: true
   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv

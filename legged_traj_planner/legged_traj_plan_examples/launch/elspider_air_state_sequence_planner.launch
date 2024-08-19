@@ -8,11 +8,11 @@
     <arg name="demo_name" default="4_ushape_barrier" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
-    <!-- minco_planner -->
+    <!-- minco_cfg_planner -->
     <!-- flt_planner / flt_cfg_planner / flt_cfg_planner_fast-->
     <!-- rrt_planner / rrt_cfg_planner -->
     <!-- stomp_planner / stomp_cfg_planner -->
-    <arg name="planner_cfg" default="flt_cfg_planner" />
+    <arg name="planner_cfg" default="minco_cfg_planner" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
@@ -24,7 +24,7 @@
     <!-- Optitrack -->
     <arg name="use_optitrack" default="false" />
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="with_ceiling" default="false"/>
+    <arg name="with_ceiling" default="true"/>
     <!-- ROS bag record (under ~/.ros) -->
     <arg name="rosbag_record" default="false" />
     <!-- Rviz visualization -->
@@ -104,31 +104,32 @@
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     </group>
 
-    <!-- Rviz -->
     <group if="$(arg rviz_gui)">
+        <!-- Rviz -->
         <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner.rviz" output="$(arg output)" if="$(eval fake_feedback == 0)"/>
         <node pkg="rviz" type="rviz" name="rviz_elspider_air_fake" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner_fake.rviz" output="$(arg output)" if="$(eval fake_feedback == 1)"/>
-    </group>
-    <!-- Teleop -->
-    <group if="$(eval teleop_type == 'keyboard')">
-        <include file="$(find legged_traj_plan_examples)/launch/key_teleop.launch">
-            <arg name="topic_name" value="/cmd_vel" />
-        </include>
-    </group>
-    <group if="$(eval teleop_type == 'PS5')">
-        <node pkg="joy" type="joy_node" name="joy_node" output="$(arg output)" clear_params="true" required="true">
-            <param name="dev" value="/dev/input/js0"/>
-            <!-- udevadm monitor -->
-            <param name="dev_ff" value="/dev/input/event20"/>
-            <!-- maintain a fixed send&receive frequency helps force feedback control (100Hz) -->
-            <param name="coalesce_interval" value="0.01"/>
-            <param name="autorepeat_rate" value="100"/>
-            <param name="default_trig_val" value="true"/>
-        </node>
-        <node pkg="legged_traj_plan_examples" type="joy_teleop.py" name="joy_teleop" output="$(arg output)">
-            <param name="cmd_topic" value="/cmd_vel" />
-            <param name="joy_topic" value="/joy" />
-        </node>
+
+        <!-- Teleop -->
+        <group if="$(eval teleop_type == 'keyboard')">
+            <include file="$(find legged_traj_plan_examples)/launch/key_teleop.launch">
+                <arg name="topic_name" value="/cmd_vel" />
+            </include>
+        </group>
+        <group if="$(eval teleop_type == 'PS5')">
+            <node pkg="joy" type="joy_node" name="joy_node" output="$(arg output)" clear_params="true" required="true">
+                <param name="dev" value="/dev/input/js0"/>
+                <!-- udevadm monitor -->
+                <param name="dev_ff" value="/dev/input/event20"/>
+                <!-- maintain a fixed send&receive frequency helps force feedback control (100Hz) -->
+                <param name="coalesce_interval" value="0.01"/>
+                <param name="autorepeat_rate" value="100"/>
+                <param name="default_trig_val" value="true"/>
+            </node>
+            <node pkg="legged_traj_plan_examples" type="joy_teleop.py" name="joy_teleop" output="$(arg output)">
+                <param name="cmd_topic" value="/cmd_vel" />
+                <param name="joy_topic" value="/joy" />
+            </node>
+        </group>
     </group>
 
     <!-- ROS bag record -->
