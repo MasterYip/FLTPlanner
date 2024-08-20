@@ -4,9 +4,9 @@
 Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
-FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-19 16:59:58
-LastEditors: HexLab-NUC12-MasterYip
+FilePath: /Fast-Legged-Planner-Test/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
+LastEditTime: 2024-08-19 21:17:00
+LastEditors: MasterYip
 '''
 
 from typing import Tuple, List
@@ -79,6 +79,7 @@ class TestCase:
         self.std_time = 0
 
         self.suc_rate = 0
+        self.suc_num = 0
         self.ave_len = 0
         self.ave_ctrl = 0
 
@@ -101,10 +102,11 @@ class TestCase:
         return {
             "OptNum": self.opt_num,
             "Totaltime": self.tot_time,
-            "AvgTime": self.avg_time,
+            "AveTime": self.avg_time,
             "MaxTime": self.max_time,
             "MinTime": self.min_time,
             "StdTime": self.std_time,
+            "SuccessNum": self.suc_num,
             "SuccessRate": self.suc_rate,
             "AveLen": self.ave_len,
             "AveCtrl": self.ave_ctrl,
@@ -124,6 +126,7 @@ class TestCase:
         self.ave_ctrl = np.mean(trajctrl_list[success_list == 1])
         self.tot_time = np.sum(opttime_list)
         self.opt_num = len(opttime_list)
+        self.suc_num = np.sum(success_list)
         self.suc_rate = np.sum(success_list) / len(success_list)
         self.avg_time = np.mean(opttime_list)
         self.max_time = np.max(opttime_list)
