@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /Fast-Legged-Planner-Test/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-19 21:17:00
+LastEditTime: 2024-08-20 10:57:29
 LastEditors: MasterYip
 '''
 
@@ -72,16 +72,27 @@ class TestCase:
 
         # Benchmark
         self.opt_num = 0
+        self.suc_num = 0
+        self.suc_rate = 0
         self.tot_time = 0
-        self.avg_time = 0
+
+        self.ave_time = 0
+        self.ave_time2 = 0
         self.max_time = 0
         self.min_time = 0
         self.std_time = 0
 
-        self.suc_rate = 0
-        self.suc_num = 0
         self.ave_len = 0
+        self.ave_len2 = 0
+        self.max_len = 0
+        self.min_len = 0
+        self.std_len = 0
+
         self.ave_ctrl = 0
+        self.ave_ctrl2 = 0
+        self.max_ctrl = 0
+        self.min_ctrl = 0
+        self.std_ctrl = 0
 
     @ property
     def rl_args(self):
@@ -97,19 +108,31 @@ class TestCase:
                 "auto_benchmark": "true" if self.auto_benchmark else "false",
                 "output": self.output}
 
-    @ property
+    @property
     def benchmark_dict(self):
         return {
             "OptNum": self.opt_num,
+            "SuccessNum": self.suc_num,
+            "SuccessRate": self.suc_rate,
             "Totaltime": self.tot_time,
-            "AveTime": self.avg_time,
+            # Times
+            "AveTime": self.ave_time,
+            "AveTime2": self.ave_time2,
             "MaxTime": self.max_time,
             "MinTime": self.min_time,
             "StdTime": self.std_time,
-            "SuccessNum": self.suc_num,
-            "SuccessRate": self.suc_rate,
+            # Lengths
             "AveLen": self.ave_len,
+            "AveLen2": self.ave_len2,
+            "MaxLen": self.max_len,
+            "MinLen": self.min_len,
+            "StdLen": self.std_len,
+            # Controls
             "AveCtrl": self.ave_ctrl,
+            "AveCtrl2": self.ave_ctrl2,
+            "MaxCtrl": self.max_ctrl,
+            "MinCtrl": self.min_ctrl,
+            "StdCtrl": self.std_ctrl,
         }
 
     def parse_planner_benchmark(self, planner_benchmark: dict):
@@ -122,22 +145,38 @@ class TestCase:
         success_list = swingtraj_benchmark["optRetType"]
         trajlen_list = swingtraj_benchmark["trajLen"]
         trajctrl_list = swingtraj_benchmark["trajCtrl"]
-        self.ave_len = np.mean(trajlen_list[success_list == 1])
-        self.ave_ctrl = np.mean(trajctrl_list[success_list == 1])
-        self.tot_time = np.sum(opttime_list)
+
         self.opt_num = len(opttime_list)
         self.suc_num = np.sum(success_list)
         self.suc_rate = np.sum(success_list) / len(success_list)
-        self.avg_time = np.mean(opttime_list)
+        self.tot_time = np.sum(opttime_list)
+
+        # Times (include failed cases)
+        self.ave_time = np.mean(opttime_list)
+        self.ave_time2 = np.mean(np.array(opttime_list) ** 2)  # to calculate total std
         self.max_time = np.max(opttime_list)
         self.min_time = np.min(opttime_list)
         self.std_time = np.std(opttime_list)
+
+        # Lengths (only successful cases)
+        self.ave_len = np.mean(trajlen_list[success_list == 1])
+        self.ave_len2 = np.mean(np.array(trajlen_list[success_list == 1]) ** 2)
+        self.max_len = np.max(trajlen_list[success_list == 1])
+        self.min_len = np.min(trajlen_list[success_list == 1])
+        self.std_len = np.std(trajlen_list[success_list == 1])
+
+        # Controls (only successful cases)
+        self.ave_ctrl = np.mean(trajctrl_list[success_list == 1])
+        self.ave_ctrl2 = np.mean(np.array(trajctrl_list[success_list == 1]) ** 2)
+        self.max_ctrl = np.max(trajctrl_list[success_list == 1])
+        self.min_ctrl = np.min(trajctrl_list[success_list == 1])
+        self.std_ctrl = np.std(trajctrl_list[success_list == 1])
 
     def print_benchmark(self):
         print("=====================================")
         print(f"Planner: {self.planner_name}, Demo: {self.demo_name}")
         print(f"Total Time: {self.tot_time}")
-        print(f"Average Time: {self.avg_time}")
+        print(f"Average Time: {self.ave_time}")
         print(f"Max Time: {self.max_time}")
         print(f"Min Time: {self.min_time}")
         print(f"Std Time: {self.std_time}")
