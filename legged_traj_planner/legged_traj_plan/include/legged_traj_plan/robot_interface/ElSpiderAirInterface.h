@@ -224,6 +224,11 @@ public:
         throw std::runtime_error("Not implemented");
     }
 
+    virtual void setBodyVelCmd(const pinocchio::Motion &body_vel)
+    {
+        throw std::runtime_error("Not implemented");
+    }
+
     virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos)
     {
         throw std::runtime_error("Not implemented");

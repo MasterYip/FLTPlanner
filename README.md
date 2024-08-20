@@ -98,7 +98,7 @@ teleop_type:=keyboard
 
 ```bash
 roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch \
-fake_feedback:=true \
+robot_interface_type:=ElSpiderAirDummy \
 sim:=true \
 teleop_type:=keyboard
 ```

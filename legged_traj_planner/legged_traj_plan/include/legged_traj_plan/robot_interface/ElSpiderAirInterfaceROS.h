@@ -187,21 +187,21 @@ public:
 
     // overrides
     // const sensor_msgs::JointState &getJointStateFdb() const { return joint_state_fdb_; }
-    const legged_traj_plan::FootState &getFootStateFdb() const override { return foot_state_fdb_; }
-    const pinocchio::SE3 &getBodyPoseFdb() const override { return body_pose_fdb_; }
-    const pinocchio::Motion &getBodyVelFdb() const override { return body_vel_fdb_; }
+    virtual const legged_traj_plan::FootState &getFootStateFdb() const override { return foot_state_fdb_; }
+    virtual const pinocchio::SE3 &getBodyPoseFdb() const override { return body_pose_fdb_; }
+    virtual const pinocchio::Motion &getBodyVelFdb() const override { return body_vel_fdb_; }
 
-    void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override {}; // Not used
-    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
+    virtual void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override {}; // Not used
+    virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
     {
         pub_footcmd_from_footendpos(footendpos);
     };
-    void setJointCmd(const std::vector<double> &q) override
+    virtual void setJointCmd(const std::vector<double> &q) override
     {
         pub_jointcmd_from_jointpos(q);
     };
 
-    void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
+    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
     {
         pub_jointcmd_from_jointpos(q);
     };

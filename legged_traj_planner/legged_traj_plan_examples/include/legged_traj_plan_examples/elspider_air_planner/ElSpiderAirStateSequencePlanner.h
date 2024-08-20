@@ -218,7 +218,6 @@ private:
     GCSVisualizer visualizer_base_;
 
 public:
-    // FIXME: use ros param to init gridmap_interface_
     ElSpiderAirStateSequencePlanner() : ElSpiderAirPlannerBase(),
                                         state_sequence_planner_(swing_traj_planner_, gridmap_interface_, robot_interface_),
                                         visualizer_(nh_, "odom", "visualizer_markers"),

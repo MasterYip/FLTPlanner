@@ -22,6 +22,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h" // Should be included first (pinocchio)
 #include "legged_traj_plan/robot_interface/DummyElSpiderAirInterfaceROS.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
+#include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROSVMC.h"
 
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 
@@ -74,6 +75,12 @@ public:
             ElSpiderAirInterfaceROSConfig config;
             config.loadParam(nh_, "ElSpiderAirROS");
             robot_interface_ = std::make_shared<ElSpiderAirInterfaceROS>(config);
+        }
+        else if (robot_interface_type == "ElSpiderAirROSVMC")
+        {
+            ElSpiderAirInterfaceROSVMCConfig config;
+            config.loadParam(nh_, "ElSpiderAirROSVMC");
+            robot_interface_ = std::make_shared<ElSpiderAirInterfaceROSVMC>(config);
         }
         else
         {
