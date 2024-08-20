@@ -4,9 +4,9 @@
 Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
-FilePath: /Fast-Legged-Planner-Test/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-20 10:57:29
-LastEditors: MasterYip
+FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
+LastEditTime: 2024-08-20 19:51:26
+LastEditors: HexLab-NUC12-MasterYip
 '''
 
 from typing import Tuple, List
@@ -45,12 +45,12 @@ PLANNERS = [
 
 DEMOS = [
     ("2_stairs", False),
-    ("4_ushape_barrier", True),
-    ("3_quincuncial_piles", False),
-    ("4_barrier", True),
-    ("4_barrier_vague", True),
-    ("5_channel", True),
-    ("6_fractal", False),
+    # ("4_ushape_barrier", True),
+    # ("3_quincuncial_piles", False),
+    # ("4_barrier", True),
+    # ("4_barrier_vague", True),
+    # ("5_channel", True),
+    # ("6_fractal", False),
 ]
 
 
@@ -144,10 +144,12 @@ class TestCase:
         opttime_list = swingtraj_benchmark["totTime"]
         success_list = swingtraj_benchmark["optRetType"]
         trajlen_list = swingtraj_benchmark["trajLen"]
+        trajlen_succ_only = np.array(trajlen_list)[np.array(success_list) == 1]
         trajctrl_list = swingtraj_benchmark["trajCtrl"]
-
+        trajctrl_succ_only = np.array(trajctrl_list)[np.array(success_list) == 1]
+        
         self.opt_num = len(opttime_list)
-        self.suc_num = np.sum(success_list)
+        self.suc_num = int(np.sum(success_list))
         self.suc_rate = np.sum(success_list) / len(success_list)
         self.tot_time = np.sum(opttime_list)
 
@@ -159,18 +161,18 @@ class TestCase:
         self.std_time = np.std(opttime_list)
 
         # Lengths (only successful cases)
-        self.ave_len = np.mean(trajlen_list[success_list == 1])
-        self.ave_len2 = np.mean(np.array(trajlen_list[success_list == 1]) ** 2)
-        self.max_len = np.max(trajlen_list[success_list == 1])
-        self.min_len = np.min(trajlen_list[success_list == 1])
-        self.std_len = np.std(trajlen_list[success_list == 1])
+        self.ave_len = np.mean(trajlen_succ_only)
+        self.ave_len2 = np.mean(trajlen_succ_only ** 2)
+        self.max_len = np.max(trajlen_succ_only)
+        self.min_len = np.min(trajlen_succ_only)
+        self.std_len = np.std(trajlen_succ_only)
 
         # Controls (only successful cases)
-        self.ave_ctrl = np.mean(trajctrl_list[success_list == 1])
-        self.ave_ctrl2 = np.mean(np.array(trajctrl_list[success_list == 1]) ** 2)
-        self.max_ctrl = np.max(trajctrl_list[success_list == 1])
-        self.min_ctrl = np.min(trajctrl_list[success_list == 1])
-        self.std_ctrl = np.std(trajctrl_list[success_list == 1])
+        self.ave_ctrl = np.mean(trajctrl_succ_only)
+        self.ave_ctrl2 = np.mean(trajctrl_succ_only** 2)
+        self.max_ctrl = np.max(trajctrl_succ_only)
+        self.min_ctrl = np.min(trajctrl_succ_only)
+        self.std_ctrl = np.std(trajctrl_succ_only)
 
     def print_benchmark(self):
         print("=====================================")
