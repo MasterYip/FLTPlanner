@@ -22,6 +22,31 @@ ElSpiderAirROS:
   jointKpHardware: [0.15, 0.15, 0.15]
   jointKdHardware: [1.0, 1.0, 1.0]
 
+ElSpiderAirROSVMC:
+  urdfParamPath: /robot_description
+  # Rviz
+  jointStateTopic: joint_states
+  jointNamePrefix: "" # empty
+  odomChildFrame: base
+  odomParentFrame: odom
+  enableVis: true
+  # Feedback & Command
+  jointStateFdbTopic: /hexapod/joint_state_fdb
+  footStateFdbTopic: /hexapod/foot_state_fdb
+  bodyStateFdbTopic: /base_odom
+  footCmdTopic: /hexapod/hlc/foot_cmd_track
+  jointCmdTopic: /hexapod/hlc/joint_cmd_track
+  # sim: true # IMPORTANT: load by launch file
+  # Control Params (not used in VMC)
+  jointKpSim: [1500, 3000, 3000]
+  jointKdSim: [5, 7.5, 7.5]
+  jointKpHardware: [0.15, 0.15, 0.15]
+  jointKdHardware: [1.0, 1.0, 1.0]
+  # VMC Params
+  expPoseTopicName: /exp_odom
+  expFootStateTopicName: /exp_foot_state
+
+
 ElSpiderAirDummy:
   urdfParamPath: /robot_description
   jointStateTopic: joint_states

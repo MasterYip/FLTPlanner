@@ -97,7 +97,7 @@ struct ElSpiderAirInterfaceROSConfig
 
 class ElSpiderAirInterfaceROS : public ElSpiderAirInterface
 {
-private:
+protected:
     ros::NodeHandle nh;
     ElSpiderAirInterfaceROSConfig config_; // New added
 

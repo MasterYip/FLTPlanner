@@ -18,7 +18,7 @@
 /* c++ standard library header files */
 
 /* external project header files */
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
 #include <ros/ros.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/Point.h>
@@ -62,19 +62,19 @@ private:
     nav_msgs::Odometry exp_body_state_;
 
 public:
-    ElSpiderAirInterfaceROSVMC(const ElSpiderAirInterfaceROSVMCConfig & config);
+    ElSpiderAirInterfaceROSVMC(const ElSpiderAirInterfaceROSVMCConfig &config);
     // Command Interface
-    virtual void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override;
+    void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override;
 
-    virtual void setBodyVelCmd(const pinocchio::Motion &body_vel) override;
+    void setBodyVelCmd(const pinocchio::Motion &body_vel) override;
 
-    virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override;
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override;
 
-    virtual void setJointCmd(const std::vector<double> &q) override
+    void setJointCmd(const std::vector<double> &q) override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
     {
         throw std::runtime_error("Not implemented");
     }

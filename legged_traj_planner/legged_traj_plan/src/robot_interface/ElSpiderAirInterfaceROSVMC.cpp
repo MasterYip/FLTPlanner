@@ -11,20 +11,18 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROSVMC.h"
 
 ElSpiderAirInterfaceROSVMC::ElSpiderAirInterfaceROSVMC(const ElSpiderAirInterfaceROSVMCConfig &config)
-    : config_(config), ElSpiderAirInterfaceROS(config)
+    : ElSpiderAirInterfaceROS(config), config_(config) 
 {
     exp_foot_state_pub_ = nh.advertise<legged_traj_plan::FootState>(config.expFootStateTopicName, 1);
     exp_body_state_pub_ = nh.advertise<nav_msgs::Odometry>(config.expPoseTopicName, 1);
 
-    exp_body_state_.header.frame_id = config_.odomParentFrame;
-    exp_body_state_.child_frame_id = config_.odomChildFrame;
     exp_foot_state_.position.resize(6);
     exp_foot_state_.velocity.resize(6);
     exp_foot_state_.effort.resize(6);
     exp_foot_state_.contact.resize(6);
 }
 
-virtual void ElSpiderAirInterfaceROSVMC::setBodyPoseCmd(const pinocchio::SE3 &body_pose)
+void ElSpiderAirInterfaceROSVMC::setBodyPoseCmd(const pinocchio::SE3 &body_pose)
 {
     exp_body_state_.header.stamp = ros::Time::now();
     exp_body_state_.pose.pose.position.x = body_pose.translation()[0];
@@ -38,7 +36,7 @@ virtual void ElSpiderAirInterfaceROSVMC::setBodyPoseCmd(const pinocchio::SE3 &bo
     exp_body_state_pub_.publish(exp_body_state_);
 }
 
-virtual void ElSpiderAirInterfaceROSVMC::setBodyVelCmd(const pinocchio::Motion &body_vel)
+void ElSpiderAirInterfaceROSVMC::setBodyVelCmd(const pinocchio::Motion &body_vel)
 {
     exp_body_state_.header.stamp = ros::Time::now();
     exp_body_state_.twist.twist.linear.x = body_vel.linear()[0];
@@ -50,7 +48,7 @@ virtual void ElSpiderAirInterfaceROSVMC::setBodyVelCmd(const pinocchio::Motion &
     exp_body_state_pub_.publish(exp_body_state_);
 }
 
-virtual void ElSpiderAirInterfaceROSVMC::setFootCmd(const std::vector<Eigen::Vector3d> &footendpos)
+void ElSpiderAirInterfaceROSVMC::setFootCmd(const std::vector<Eigen::Vector3d> &footendpos)
 {
     exp_foot_state_.header.stamp = ros::Time::now();
     exp_foot_state_.position.clear();
