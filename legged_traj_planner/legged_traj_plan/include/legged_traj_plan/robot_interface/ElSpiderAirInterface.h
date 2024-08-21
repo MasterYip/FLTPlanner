@@ -250,4 +250,8 @@ public:
     {
         throw std::runtime_error("Not implemented");
     }
+    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact)
+    {
+        throw std::runtime_error("Not implemented");
+    }
 };

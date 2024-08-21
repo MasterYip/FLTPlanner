@@ -1,4 +1,5 @@
 # sim: true # Loaded in launch file
+use_joint_cmd: false
 mu: 0.8
 mass: 45.0
 # inertia_diag: [1.0, 2.0, 2.4]
@@ -9,25 +10,29 @@ pidgrf_Kp: 50.0 # When this equals loop_rate, pid acts as pass-through
 pidgrf_lim: 60000.0
 # pidgrf_T: 0.005
 # pidgrf_tau: 0.0025
-exp_pose_topic_name: /exp_odom
 fdb_pose_topic_name: /base_odom # Hardware
-# fdb_pose_topic_name_sim: /torso_odom # gazebo (original data)
 fdb_pose_topic_name_sim: /base_odom # gazebo (sim sensor)
-exp_foot_state_topic_name: /exp_foot_state
+# fdb_pose_topic_name_sim: /torso_odom # gazebo (original data)
 fdb_foot_state_topic_name: /hexapod/foot_state_fdb
+
+exp_pose_topic_name: /exp_odom
+exp_foot_state_topic_name: /exp_foot_state
 footcmd_topic_name: /hexapod/hlc/foot_cmd_track
+exp_joint_state_topic_name: /exp_joint_state
+jointcmd_topic_name: /hexapod/hlc/joint_cmd_track
+
 body_frame: base
 world_frame: odom
 
-# # Soft PD + VMC
-# gravity: 9.81
-# loop_rate: 200.0
-# Kp: 9.0
-# Kd: 6.0 # kd = 2 \zeta \sqrt(kp)
-# joint_kp_sim_st: [80.0, 80.0, 80.0]
-# joint_kd_sim_st: [0.8, 0.8, 0.8]
-# joint_kp_sim_sw: [80.0, 80.0, 80.0]
-# joint_kd_sim_sw: [1, 1, 1]
+# Soft PD + VMC
+gravity: 9.81
+loop_rate: 200.0
+Kp: 9.0
+Kd: 6.0 # kd = 2 \zeta \sqrt(kp)
+joint_kp_sim_st: [80.0, 80.0, 80.0]
+joint_kd_sim_st: [0.8, 0.8, 0.8]
+joint_kp_sim_sw: [80.0, 80.0, 80.0]
+joint_kd_sim_sw: [1, 1, 1]
 
 # # Medium PD + VMC
 # gravity: 9.81
@@ -39,14 +44,14 @@ world_frame: odom
 # joint_kp_sim_sw: [150.0, 150.0, 150.0]
 # joint_kd_sim_sw: [2, 2, 2]
 
-# Position Ctrl
-gravity: 0
-loop_rate: 200.0
-Kp: 0.0
-Kd: 0.0 # kd = 2 \zeta \sqrt(kp)
-joint_kp_sim_st: [500.0, 500.0, 500.0]
-joint_kd_sim_st: [10, 10, 10]
-joint_kp_sim_sw: [500.0, 500.0, 500.0]
-joint_kd_sim_sw: [10, 10, 10]
+# # Position Ctrl
+# gravity: 0
+# loop_rate: 200.0
+# Kp: 0.0
+# Kd: 0.0 # kd = 2 \zeta \sqrt(kp)
+# joint_kp_sim_st: [500.0, 500.0, 500.0]
+# joint_kd_sim_st: [10, 10, 10]
+# joint_kp_sim_sw: [500.0, 500.0, 500.0]
+# joint_kd_sim_sw: [10, 10, 10]
 
 

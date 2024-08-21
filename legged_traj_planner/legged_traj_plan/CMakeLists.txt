@@ -84,6 +84,8 @@ add_message_files(
   FootState.msg
   Euler.msg
   BodyState.msg
+  # Hexapod Controller
+  JointState.msg
 )
 
 ## Generate services in the 'srv' folder

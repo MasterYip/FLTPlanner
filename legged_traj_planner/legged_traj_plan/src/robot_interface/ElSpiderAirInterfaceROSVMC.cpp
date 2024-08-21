@@ -13,6 +13,7 @@
 ElSpiderAirInterfaceROSVMC::ElSpiderAirInterfaceROSVMC(const ElSpiderAirInterfaceROSVMCConfig &config)
     : ElSpiderAirInterfaceROS(config), config_(config)
 {
+    exp_joint_state_pub_ = nh.advertise<legged_traj_plan::JointState>(config.expJointStateTopicName, 1);
     exp_foot_state_pub_ = nh.advertise<legged_traj_plan::FootState>(config.expFootStateTopicName, 1);
     exp_body_state_pub_ = nh.advertise<nav_msgs::Odometry>(config.expPoseTopicName, 1);
 
@@ -95,4 +96,36 @@ void ElSpiderAirInterfaceROSVMC::setFootCmd(const std::vector<Eigen::Vector3d> &
         exp_foot_state_.contact.emplace_back(contact[i]);
     }
     exp_foot_state_pub_.publish(exp_foot_state_);
+}
+
+void ElSpiderAirInterfaceROSVMC::setJointCmd(const std::vector<Eigen::Vector3d> &q)
+{
+    exp_joint_state_.header.stamp = ros::Time::now();
+    exp_joint_state_.joint_state.position.clear();
+    for (const auto &pos : q)
+    {
+        exp_joint_state_.joint_state.position.emplace_back(pos[0]);
+        exp_joint_state_.joint_state.position.emplace_back(pos[1]);
+        exp_joint_state_.joint_state.position.emplace_back(pos[2]);
+    }
+    exp_joint_state_.joint_state.velocity = std::vector<double>(18, 0);
+    exp_joint_state_.joint_state.effort = std::vector<double>(18, 0);
+    exp_joint_state_pub_.publish(exp_joint_state_);
+}
+
+void ElSpiderAirInterfaceROSVMC::setJointCmd(const std::vector<Eigen::Vector3d> &q,
+                                             const std::vector<bool> &contact)
+{
+    exp_joint_state_.header.stamp = ros::Time::now();
+    exp_joint_state_.joint_state.position.clear();
+    for (size_t i = 0; i < q.size(); ++i)
+    {
+        exp_joint_state_.joint_state.position.emplace_back(q[i][0]);
+        exp_joint_state_.joint_state.position.emplace_back(q[i][1]);
+        exp_joint_state_.joint_state.position.emplace_back(q[i][2]);
+        exp_joint_state_.contact_state.emplace_back(contact[i]);
+    }
+    exp_joint_state_.joint_state.velocity = std::vector<double>(18, 0);
+    exp_joint_state_.joint_state.effort = std::vector<double>(18, 0);
+    exp_joint_state_pub_.publish(exp_joint_state_);
 }

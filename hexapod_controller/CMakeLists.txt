@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf2_ros
   geometry_msgs
+  sensor_msgs
   message_generation
   qpoases_catkin
   ros_visualizer
@@ -56,6 +57,8 @@ add_message_files(
   FILES
   FootCmd.msg
   FootState.msg
+  JointCmd.msg
+  JointState.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -77,6 +80,7 @@ generate_messages(
   DEPENDENCIES
   std_msgs
   geometry_msgs
+  sensor_msgs
 )
 
 ################################################

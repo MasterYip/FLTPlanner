@@ -235,6 +235,11 @@ public:
         setJointCmd(q_vec);
     }
 
+    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact) override
+    {
+        setJointCmd(q);
+    }
+
     void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
     {
         for (int i = 0; i < 6; ++i)

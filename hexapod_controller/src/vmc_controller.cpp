@@ -208,6 +208,7 @@ bool getGroundReactionForce(const pinocchio::Force &exp_wrench,
 VMCController::VMCController(ros::NodeHandle &nh) : tfListener_(tfBuffer_), rosvis_(nh, "base", "visualizer_markers")
 {
     cfg_.loadParameters(nh);
+    exp_joint_state_sub_ = nh.subscribe(cfg_.exp_joint_state_topic_name, 1, &VMCController::expJointStateCallback, this);
     exp_foot_state_sub_ = nh.subscribe(cfg_.exp_foot_state_topic_name, 1, &VMCController::expFootStateCallback, this);
     fdb_foot_state_sub_ = nh.subscribe(cfg_.fdb_foot_state_topic_name, 1, &VMCController::fdbFootStateCallback, this);
     exp_pose_sub_ = nh.subscribe(cfg_.exp_pose_topic_name, 1, &VMCController::expPoseCallback, this);
@@ -216,7 +217,7 @@ VMCController::VMCController(ros::NodeHandle &nh) : tfListener_(tfBuffer_), rosv
     else
         fdb_pose_sub_ = nh.subscribe(cfg_.fdb_pose_topic_name, 1, &VMCController::fdbPoseCallback, this);
     foot_cmd_pub_ = nh.advertise<hexapod_controller::FootCmd>(cfg_.footcmd_topic_name, 1);
-
+    joint_cmd_pub_ = nh.advertise<hexapod_controller::JointCmd>(cfg_.jointcmd_topic_name, 1);
     // GRF filter
     for (uint i = 0; i < 6; i++)
     {
@@ -265,6 +266,12 @@ void VMCController::expFootStateCallback(const hexapod_controller::FootState &ms
 {
     exp_foot_state_ = msg;
     recv_exp_foot_state_ = true;
+}
+
+void VMCController::expJointStateCallback(const hexapod_controller::JointState &msg)
+{
+    exp_joint_state_ = msg;
+    recv_exp_joint_state_ = true;
 }
 
 /**
@@ -341,15 +348,67 @@ void VMCController::pubFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
     foot_cmd_pub_.publish(footcmd);
 }
 
+void VMCController::pubJointCmd(const std::vector<double> &joint_pos,
+                                const std::vector<double> &joint_vel,
+                                const std::vector<double> &joint_effort,
+                                const hex_contact_flag_t &contact_flag)
+{
+    std::vector<double> joint_kp_st, joint_kd_st, joint_kp_sw, joint_kd_sw;
+    if (!cfg_.sim) // Hardware
+    {
+        joint_kp_st = cfg_.joint_kp_st;
+        joint_kd_st = cfg_.joint_kd_st;
+        joint_kp_sw = cfg_.joint_kp_sw;
+        joint_kd_sw = cfg_.joint_kd_sw;
+    }
+    else // Gazebo
+    {
+        joint_kp_st = cfg_.joint_kp_sim_st;
+        joint_kd_st = cfg_.joint_kd_sim_st;
+        joint_kp_sw = cfg_.joint_kp_sim_sw;
+        joint_kd_sw = cfg_.joint_kd_sim_sw;
+    }
+
+    hexapod_controller::JointCmd jointcmd;
+    jointcmd.header.stamp = ros::Time::now();
+    jointcmd.position = joint_pos;
+    jointcmd.velocity = joint_vel;
+    jointcmd.torque = joint_effort;
+    for (int i = 0; i < 6; ++i)
+    {
+        if (contact_flag[i])
+        {
+            jointcmd.kp.emplace_back(joint_kp_st[0]);
+            jointcmd.kp.emplace_back(joint_kp_st[1]);
+            jointcmd.kp.emplace_back(joint_kp_st[2]);
+            jointcmd.kd.emplace_back(joint_kd_st[0]);
+            jointcmd.kd.emplace_back(joint_kd_st[1]);
+            jointcmd.kd.emplace_back(joint_kd_st[2]);
+        }
+        else
+        {
+            jointcmd.kp.emplace_back(joint_kp_sw[0]);
+            jointcmd.kp.emplace_back(joint_kp_sw[1]);
+            jointcmd.kp.emplace_back(joint_kp_sw[2]);
+            jointcmd.kd.emplace_back(joint_kd_sw[0]);
+            jointcmd.kd.emplace_back(joint_kd_sw[1]);
+            jointcmd.kd.emplace_back(joint_kd_sw[2]);
+        }
+    }
+
+    joint_cmd_pub_.publish(jointcmd);
+}
+
 void VMCController::controllLoop()
 {
-    if (!cfg_.sim)
-        fdbPoseLookup(); // FIXME: this do not consider robot velocity
+    // if (!cfg_.sim)
+    //     fdbPoseLookup(); // FIXME: this do not consider robot velocity
 
-    if (!(recv_exp_pose_ && recv_exp_foot_state_ && recv_fdb_foot_state_ && recv_fdb_pose_))
+    if (!(recv_exp_pose_ && recv_fdb_foot_state_ && recv_fdb_pose_ &&
+          (recv_exp_foot_state_ && !cfg_.use_joint_cmd || recv_exp_joint_state_ && cfg_.use_joint_cmd)))
     {
-        ROS_WARN("Not all states are received: ExpPose %d, ExpFootState %d, FdbFootState %d, FdbPose %d",
-                 recv_exp_pose_, recv_exp_foot_state_, recv_fdb_foot_state_, recv_fdb_pose_);
+        ROS_WARN("Not all states are received: ExpPose %d, ExpFootState(Joint) %d, FdbFootState %d, FdbPose %d",
+                 recv_exp_pose_, recv_exp_foot_state_ || recv_exp_joint_state_, recv_fdb_foot_state_, recv_fdb_pose_);
         ros::Duration(1.0).sleep();
         return;
     }
@@ -357,6 +416,7 @@ void VMCController::controllLoop()
     pinocchio::Force exp_wrench;
     hex_contact_flag_t contact_flag;
     std::vector<Eigen::Vector3d> exp_foot_pos(6);
+    std::vector<double> exp_joint_pos(18);
     std::vector<Eigen::Vector3d> fdb_foot_pos(6);
     std::vector<Eigen::Vector3d> foot_vel(6, Eigen::Vector3d::Zero());
     std::vector<Eigen::Vector3d> foot_effort(6, Eigen::Vector3d::Zero());
@@ -366,12 +426,25 @@ void VMCController::controllLoop()
     // Gravity compensation
     exp_acc.linear().z() += cfg_.gravity;
     getExpWrench(cfg_.mass, cfg_.inertia, fdb_pose_, fdb_vel_, exp_acc, exp_wrench);
+    if (cfg_.use_joint_cmd)
+    {
+        exp_joint_pos = exp_joint_state_.joint_state.position;
+        for (size_t i = 0; i < 6; ++i)
+            contact_flag[i] = exp_joint_state_.contact_state.at(i);
+    }
+    else
+    {
+        for (size_t i = 0; i < 6; ++i)
+        {
+            exp_foot_pos.at(i) << exp_foot_state_.position.at(i).x,
+                exp_foot_state_.position.at(i).y,
+                exp_foot_state_.position.at(i).z;
+            contact_flag[i] = exp_foot_state_.contact.at(i);
+        }
+    }
+
     for (size_t i = 0; i < 6; ++i)
     {
-        exp_foot_pos.at(i) << exp_foot_state_.position.at(i).x,
-            exp_foot_state_.position.at(i).y,
-            exp_foot_state_.position.at(i).z;
-        contact_flag[i] = exp_foot_state_.contact.at(i);
         fdb_foot_pos.at(i) << fdb_foot_state_.position.at(i).x,
             fdb_foot_state_.position.at(i).y,
             fdb_foot_state_.position.at(i).z;
@@ -387,8 +460,11 @@ void VMCController::controllLoop()
         else
             foot_effort.at(i).setZero();
     }
-    // Pub foot_cmd
-    pubFootCmd(exp_foot_pos, foot_vel, foot_effort, contact_flag);
+
+    if (cfg_.use_joint_cmd)
+        pubJointCmd(exp_joint_pos, std::vector<double>(18, 0), std::vector<double>(18, 0), contact_flag);
+    else
+        pubFootCmd(exp_foot_pos, foot_vel, foot_effort, contact_flag);
 
     // Visualization
     double vis_scale = 0.002;
