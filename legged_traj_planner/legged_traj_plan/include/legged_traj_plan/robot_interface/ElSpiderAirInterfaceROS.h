@@ -196,6 +196,15 @@ public:
     {
         pub_footcmd_from_footendpos(footendpos);
     };
+
+    virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                            const std::vector<Eigen::Vector3d> &footendvel,
+                            const std::vector<Eigen::Vector3d> &footendeffort,
+                            const std::vector<bool> &contact) override
+    {
+        setFootCmd(footendpos);
+    }
+
     virtual void setJointCmd(const std::vector<double> &q) override
     {
         pub_jointcmd_from_jointpos(q);

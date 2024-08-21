@@ -70,6 +70,11 @@ public:
 
     void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override;
 
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                    const std::vector<Eigen::Vector3d> &footendvel,
+                    const std::vector<Eigen::Vector3d> &footendeffort,
+                    const std::vector<bool> &contact) override;
+
     void setJointCmd(const std::vector<double> &q) override
     {
         throw std::runtime_error("Not implemented");

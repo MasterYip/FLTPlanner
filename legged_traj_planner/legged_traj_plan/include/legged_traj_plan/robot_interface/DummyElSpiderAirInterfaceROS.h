@@ -254,6 +254,14 @@ public:
             pub_joint_state_from_footendpos(footendpos);
     }
 
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                    const std::vector<Eigen::Vector3d> &footendvel,
+                    const std::vector<Eigen::Vector3d> &footendeffort,
+                    const std::vector<bool> &contact) override
+    {
+        setFootCmd(footendpos);
+    }
+
     // Interface extension
     void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
                     const std::vector<Eigen::Vector3d> &footendvel,

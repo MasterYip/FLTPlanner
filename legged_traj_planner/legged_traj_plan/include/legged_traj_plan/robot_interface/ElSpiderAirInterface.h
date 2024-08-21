@@ -233,6 +233,15 @@ public:
     {
         throw std::runtime_error("Not implemented");
     }
+
+    virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                            const std::vector<Eigen::Vector3d> &footendvel,
+                            const std::vector<Eigen::Vector3d> &footendeffort,
+                            const std::vector<bool> &contact)
+    {
+        throw std::runtime_error("Not implemented");
+    }
+
     virtual void setJointCmd(const std::vector<double> &q)
     {
         throw std::runtime_error("Not implemented");

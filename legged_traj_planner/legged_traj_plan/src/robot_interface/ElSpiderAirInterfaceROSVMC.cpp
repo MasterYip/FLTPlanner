@@ -11,7 +11,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROSVMC.h"
 
 ElSpiderAirInterfaceROSVMC::ElSpiderAirInterfaceROSVMC(const ElSpiderAirInterfaceROSVMCConfig &config)
-    : ElSpiderAirInterfaceROS(config), config_(config) 
+    : ElSpiderAirInterfaceROS(config), config_(config)
 {
     exp_foot_state_pub_ = nh.advertise<legged_traj_plan::FootState>(config.expFootStateTopicName, 1);
     exp_body_state_pub_ = nh.advertise<nav_msgs::Odometry>(config.expPoseTopicName, 1);
@@ -59,6 +59,40 @@ void ElSpiderAirInterfaceROSVMC::setFootCmd(const std::vector<Eigen::Vector3d> &
         point.y = pos[1];
         point.z = pos[2];
         exp_foot_state_.position.emplace_back(point);
+    }
+    exp_foot_state_pub_.publish(exp_foot_state_);
+}
+
+void ElSpiderAirInterfaceROSVMC::setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                                            const std::vector<Eigen::Vector3d> &footendvel,
+                                            const std::vector<Eigen::Vector3d> &footendeffort,
+                                            const std::vector<bool> &contact)
+{
+    exp_foot_state_.header.stamp = ros::Time::now();
+    exp_foot_state_.position.clear();
+    exp_foot_state_.velocity.clear();
+    exp_foot_state_.effort.clear();
+    exp_foot_state_.contact.clear();
+    for (size_t i = 0; i < footendpos.size(); ++i)
+    {
+        geometry_msgs::Point point;
+        point.x = footendpos[i][0];
+        point.y = footendpos[i][1];
+        point.z = footendpos[i][2];
+        exp_foot_state_.position.emplace_back(point);
+
+        geometry_msgs::Vector3 vec3;
+        vec3.x = footendvel[i][0];
+        vec3.y = footendvel[i][1];
+        vec3.z = footendvel[i][2];
+        exp_foot_state_.velocity.emplace_back(vec3);
+
+        vec3.x = footendeffort[i][0];
+        vec3.y = footendeffort[i][1];
+        vec3.z = footendeffort[i][2];
+        exp_foot_state_.effort.emplace_back(vec3);
+
+        exp_foot_state_.contact.emplace_back(contact[i]);
     }
     exp_foot_state_pub_.publish(exp_foot_state_);
 }

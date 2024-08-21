@@ -560,9 +560,12 @@ public:
             }
         }
 
+        // Auto opt next traj before exec
         MCTStateTransfer &state_traj = state_sequence_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
+        std::vector<Eigen::Vector3d> footend_interp_vel = state_traj.eval_foot_traj(0.0, 1);
+        std::vector<Eigen::Vector3d> footend_interp_acc = state_traj.eval_foot_traj(0.0, 2);
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
 
         do
@@ -582,13 +585,19 @@ public:
             {
                 // Footend position in world frame
                 footend_interp = state_traj.eval_foot_traj(sine_remap(t));
+                // footend_interp_vel = state_traj.eval_foot_traj(sine_remap(t), 1);
+                // footend_interp_acc = state_traj.eval_foot_traj(sine_remap(t), 2);
+                footend_interp_vel = std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero());
+                footend_interp_acc = std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero());
+
                 for (size_t k = 0; k < 6; ++k)
                 {
                     // Convert to BASE
                     footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
                 }
 
-                robot_interface_->setFootCmd(footend_interp);
+                robot_interface_->setFootCmd(footend_interp, footend_interp_vel, footend_interp_acc,
+                                             std::vector<bool>(support_state.begin(), support_state.end()));
                 robot_interface_->setBodyPoseCmd(odom_interp);
             }
 
@@ -628,7 +637,6 @@ public:
         } while (state_sequence_planner_.get_state_traj_length() > 0 && ros::ok());
 
         // Stance contact handling
-        // ros::Duration(0.4).sleep();
         stance_contact_handle();
     }
 
