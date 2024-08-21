@@ -379,6 +379,7 @@ void VMCController::pubJointCmd(const std::vector<double> &joint_pos,
         jointcmd.position[i * 3 + 1] = -jointcmd.position[i * 3 + 1] + 0.5 * M_PI;
         jointcmd.position[i * 3 + 2] -= M_PI;
         jointcmd.velocity[i * 3 + 1] = -jointcmd.velocity[i * 3 + 1];
+        jointcmd.torque[i * 3 + 1] = -jointcmd.torque[i * 3 + 1];
         if (contact_flag[i])
         {
             jointcmd.kp.emplace_back(joint_kp_st[0]);

@@ -638,8 +638,12 @@ public:
         } while (state_sequence_planner_.get_state_traj_length() > 0 && ros::ok());
 
         // Set all foot contact to true
-        robot_interface_->setFootCmd(footend_interp, footend_interp_vel, footend_interp_acc,
-                                     std::vector<bool>(6, true));
+        if (swing_traj_planner_config_.useCfgCommand)
+            robot_interface_->setJointCmd(footend_interp, std::vector<bool>(6, true));
+        else
+            robot_interface_->setFootCmd(footend_interp, footend_interp_vel, footend_interp_acc,
+                                         std::vector<bool>(6, true));
+        
 
         // Stance contact handling
         stance_contact_handle();
