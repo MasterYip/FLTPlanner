@@ -1,5 +1,5 @@
 # sim: true # Loaded in launch file
-use_joint_cmd: false
+use_joint_cmd: true
 mu: 0.8
 mass: 45.0
 # inertia_diag: [1.0, 2.0, 2.4]

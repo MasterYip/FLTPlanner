@@ -18,6 +18,7 @@
 /* c++ standard library header files */
 #include <vector>
 /* external project header files */
+#include "elspider_air_kin.h"
 #include <pinocchio/spatial/se3.hpp>
 #include <pinocchio/spatial/explog.hpp>
 #include <pinocchio/spatial/motion.hpp>
@@ -147,6 +148,8 @@ class VMCController
 
 private:
     VMCConfig cfg_;
+
+    ElSpiderKin kin_;
 
     // State Expected
     // pose

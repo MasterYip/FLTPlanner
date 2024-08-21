@@ -45,6 +45,7 @@ ElSpiderAirROSVMC:
   # VMC Params
   expPoseTopicName: /exp_odom
   expFootStateTopicName: /exp_foot_state
+  expJointStateTopicName: /exp_joint_state
 
 
 ElSpiderAirDummy:

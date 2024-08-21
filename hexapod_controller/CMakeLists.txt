@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   qpoases_catkin
   ros_visualizer
+  third_party
 )
 
 ## System dependencies are found with CMake's conventions

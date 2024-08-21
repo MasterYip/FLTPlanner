@@ -80,10 +80,8 @@ public:
                     const std::vector<Eigen::Vector3d> &footendeffort,
                     const std::vector<bool> &contact) override;
 
-    void setJointCmd(const std::vector<double> &q) override
-    {
-        throw std::runtime_error("Not implemented");
-    }
+    void setJointCmd(const std::vector<double> &q) override;
+    
     void setJointCmd(const std::vector<Eigen::Vector3d> &q) override;
 
     void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact) override;

@@ -67,7 +67,7 @@ struct DummyElSpiderAirInterfaceROSConfig
         check_digit &= initBodyPose.size() == 6;
         if (!check_digit)
         {
-            ROS_ERROR("Failed to load parameters");
+            ROS_ERROR("Failed to load DummyElSpiderAirInterfaceROSConfig");
         }
     }
 };

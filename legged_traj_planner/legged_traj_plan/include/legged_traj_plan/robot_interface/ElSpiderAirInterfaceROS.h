@@ -90,7 +90,7 @@ struct ElSpiderAirInterfaceROSConfig
 
         if (!check_digit)
         {
-            ROS_ERROR("Failed to load parameters");
+            ROS_ERROR("Failed to load ElSpiderAirInterfaceROSConfig");
         }
     }
 };

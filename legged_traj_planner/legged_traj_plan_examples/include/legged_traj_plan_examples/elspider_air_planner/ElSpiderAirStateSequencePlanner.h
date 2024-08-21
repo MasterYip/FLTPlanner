@@ -573,12 +573,13 @@ public:
             // Get Interpolated State
             odom_interp = state_traj.eval_torso_traj(sine_remap(t));
             support_state = state_traj.eval_support_state(sine_remap(t));
+            std::vector<bool> contact = std::vector<bool>(support_state.begin(), support_state.end());
 
             if (swing_traj_planner_config_.useCfgCommand)
             {
                 footend_interp = state_traj.eval_cfg_traj(sine_remap(t));
 
-                robot_interface_->setJointCmd(footend_interp, support_state);
+                robot_interface_->setJointCmd(footend_interp, contact);
                 robot_interface_->setBodyPoseCmd(odom_interp);
             }
             else
@@ -596,8 +597,8 @@ public:
                     footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
                 }
 
-                robot_interface_->setFootCmd(footend_interp, footend_interp_vel, footend_interp_acc,
-                                             std::vector<bool>(support_state.begin(), support_state.end()));
+                robot_interface_->setFootCmd(footend_interp, footend_interp_vel,
+                                             footend_interp_acc, contact);
                 robot_interface_->setBodyPoseCmd(odom_interp);
             }
 

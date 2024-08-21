@@ -376,6 +376,9 @@ void VMCController::pubJointCmd(const std::vector<double> &joint_pos,
     jointcmd.torque = joint_effort;
     for (int i = 0; i < 6; ++i)
     {
+        jointcmd.position[i * 3 + 1] = -jointcmd.position[i * 3 + 1] + 0.5 * M_PI;
+        jointcmd.position[i * 3 + 2] -= M_PI;
+        jointcmd.velocity[i * 3 + 1] = -jointcmd.velocity[i * 3 + 1];
         if (contact_flag[i])
         {
             jointcmd.kp.emplace_back(joint_kp_st[0]);
@@ -420,6 +423,7 @@ void VMCController::controllLoop()
     std::vector<Eigen::Vector3d> fdb_foot_pos(6);
     std::vector<Eigen::Vector3d> foot_vel(6, Eigen::Vector3d::Zero());
     std::vector<Eigen::Vector3d> foot_effort(6, Eigen::Vector3d::Zero());
+    std::vector<double> joint_effort(18, 0);
     std::vector<Eigen::Vector3d> grf(6);
 
     getExpAcc(fdb_pose_, fdb_vel_, exp_pose_, exp_vel_, cfg_.Kp, cfg_.Kd, exp_acc);
@@ -462,7 +466,20 @@ void VMCController::controllLoop()
     }
 
     if (cfg_.use_joint_cmd)
-        pubJointCmd(exp_joint_pos, std::vector<double>(18, 0), std::vector<double>(18, 0), contact_flag);
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            Eigen::Vector3d q;
+            q << exp_joint_pos[3 * i], exp_joint_pos[3 * i + 1], exp_joint_pos[3 * i + 2];
+            Eigen::Matrix3Xd jac;
+            kin_.getJacobian(q, jac, i);
+            Eigen::Vector3d joint_f = jac.transpose() * foot_effort[i];
+            joint_effort[3 * i] = joint_f[0];
+            joint_effort[3 * i + 1] = joint_f[1];
+            joint_effort[3 * i + 2] = joint_f[2];
+        }
+        pubJointCmd(exp_joint_pos, std::vector<double>(18, 0), joint_effort, contact_flag);
+    }
     else
         pubFootCmd(exp_foot_pos, foot_vel, foot_effort, contact_flag);
 

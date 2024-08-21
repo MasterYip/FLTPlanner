@@ -98,6 +98,15 @@ void ElSpiderAirInterfaceROSVMC::setFootCmd(const std::vector<Eigen::Vector3d> &
     exp_foot_state_pub_.publish(exp_foot_state_);
 }
 
+void ElSpiderAirInterfaceROSVMC::setJointCmd(const std::vector<double> &q)
+{
+    exp_joint_state_.header.stamp = ros::Time::now();
+    exp_joint_state_.joint_state.position = q;
+    exp_joint_state_.joint_state.velocity = std::vector<double>(18, 0);
+    exp_joint_state_.joint_state.effort = std::vector<double>(18, 0);
+    exp_joint_state_pub_.publish(exp_joint_state_);
+}
+
 void ElSpiderAirInterfaceROSVMC::setJointCmd(const std::vector<Eigen::Vector3d> &q)
 {
     exp_joint_state_.header.stamp = ros::Time::now();
@@ -118,6 +127,7 @@ void ElSpiderAirInterfaceROSVMC::setJointCmd(const std::vector<Eigen::Vector3d> 
 {
     exp_joint_state_.header.stamp = ros::Time::now();
     exp_joint_state_.joint_state.position.clear();
+    exp_joint_state_.contact_state.clear();
     for (size_t i = 0; i < q.size(); ++i)
     {
         exp_joint_state_.joint_state.position.emplace_back(q[i][0]);
