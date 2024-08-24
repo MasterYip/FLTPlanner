@@ -301,7 +301,9 @@ int GCS_Example::gcs_path_search_perf(std::vector<Polyhedra> polys, Point3D star
 {
     // Init
     PolyCorridor poly_corridor(polys, start3d, goal3d);
-    PolyTrajSearch poly_traj_search(poly_corridor, map_);
+    PolyTrajSearchConfig cfg;
+    cfg.enable_benchmark = true;
+    PolyTrajSearch poly_traj_search(poly_corridor, map_, cfg);
     std::vector<Point3D> path;
 
     // Check validity
@@ -636,19 +638,22 @@ void GCS_Example::perf_gcs_rand_corridor_demo()
     std::vector<Record> records;
     BenchmarkResult result;
 
+    int endpoint_invalid = 0;
+    int unreachable = 0;
     int astar_fail = 0;
-    int success_times = 0;
 
     // Settings
-    int try_num = 10000;
+    int try_num = 1000;
+    int cnt = 0;
 
+    // Gen Settings
     int poly_num = conf_.polyNum;
     int samples = 20;
     double poly_scale = 0.4;
     double poly_pos_scale_xy = 1.5;
     double poly_pos_scale_z = 0.5;
 
-    for (int i = 0; i < try_num; i++)
+    while (cnt < try_num)
     {
         gcs_visualizer_.delAll();
         std::vector<Polyhedra> polys;
@@ -668,16 +673,18 @@ void GCS_Example::perf_gcs_rand_corridor_demo()
         goal = polys.at(poly_num - 1).getInterior();
 
         int ret = gcs_path_search_perf(polys, start, goal, result, records, false);
-        if (ret == 3)
+        if (ret == 0)
         {
-            astar_fail++;
-        }
-        else if (ret == 0)
-        {
-            success_times++;
+            cnt++;
             records_list.push_back(records);
             result_list.push_back(result);
         }
+        else if (ret == 1)
+            endpoint_invalid++;
+        else if (ret == 2)
+            unreachable++;
+        else if (ret == 3)
+            astar_fail++;
     }
 
     // Output
