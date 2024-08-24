@@ -38,6 +38,7 @@ struct SwingTrajPlannerConfig
     // Misc
     bool enableOptimizer;
     bool reOptimize;
+    int reOptimizeMaxTry;
     bool useCfgSpace;
     bool useCfgCommand;
     bool enableVis;
@@ -163,6 +164,7 @@ struct SwingTrajPlannerConfig
 
         check_digit *= nh.getParam("misc/enableOptimizer", enableOptimizer);
         check_digit *= nh.getParam("misc/reOptimize", reOptimize);
+        check_digit *= nh.getParam("misc/reOptimizeMaxTry", reOptimizeMaxTry);
         check_digit *= nh.getParam("misc/useCfgSpace", useCfgSpace);
         check_digit *= nh.getParam("misc/useCfgCommand", useCfgCommand);
         check_digit *= nh.getParam("misc/enableVis", enableVis);
@@ -385,7 +387,7 @@ public:
         benchmark_.resetTimer();
         bool ret = optTrajHook(traj, pose0, pose1, index);
         benchmark_.record("optTraj");
-        benchmark_.addCustomData(ret);// Return Type
+        benchmark_.addCustomData(ret); // Return Type
         benchmark_.addCustomData(traj->getTrajLength());
         benchmark_.addCustomData(traj->getTrajControl());
         benchmark_.end();

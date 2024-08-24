@@ -11,6 +11,7 @@ trajInit:
 misc:
   enableOptimizer: true
   reOptimize: true
+  reOptimizeMaxTry: 100
   useCfgSpace: true # Do not change this (this file is for cfg space)
   useCfgCommand: true
   enableVis: true

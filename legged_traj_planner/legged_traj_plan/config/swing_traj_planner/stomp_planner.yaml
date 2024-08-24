@@ -11,10 +11,11 @@ trajInit:
 misc:
   enableOptimizer: true
   reOptimize: false
+  reOptimizeMaxTry: 100
   useCfgSpace: false # Do not change this (this file is for cfg space)
   useCfgCommand: true
   enableVis: true
-  enableOptVis: true # Visualize the optimization process
+  enableOptVis: false # Visualize the optimization process
   optVisRate: 6
   enableBenchmark: true
   # Benchmark result save path
