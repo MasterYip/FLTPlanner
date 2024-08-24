@@ -298,7 +298,7 @@ public:
     ob::Cost motionCost(const ob::State *s1, const ob::State *s2) const override
     {
         double max_cost = 100;
-        double transition = 0.05;
+        double transition = 0.1;
         double t1 = s1->as<ob::RealVectorStateSpace::StateType>()->values[3];
         double t2 = s2->as<ob::RealVectorStateSpace::StateType>()->values[3];
         double delta = t2 - t1;
@@ -366,7 +366,7 @@ public:
         ob::OptimizationObjectivePtr clearObj(new CfgClearanceObjective(si));
         ob::OptimizationObjectivePtr timeObj(new CfgTimeSequenceObjective(si));
         lengthObj->setCostThreshold(ob::Cost(4.0));
-        timeObj->setCostThreshold(ob::Cost(10.0));
+        timeObj->setCostThreshold(ob::Cost(0.2));
 
         return lengthObj + clearObj + timeObj;
     }
@@ -414,7 +414,6 @@ public:
 
         // SimpleSetup
         og::SimpleSetup ss(space_);
-        // ss.setStateValidityChecker(std::bind(&SwingCfgTrajOptRRT::isStateValid, this, std::placeholders::_1));
         ob::StateValidityCheckerPtr checker_ptr =
             std::make_shared<CfgValidityChecker>(ss.getSpaceInformation(),
                                                  config_, robot_interface_, gridmap_interface_,
