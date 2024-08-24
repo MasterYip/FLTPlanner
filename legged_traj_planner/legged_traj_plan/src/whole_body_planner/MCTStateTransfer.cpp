@@ -172,7 +172,6 @@ void MCTStateTransfer::opt_swing_traj(int index)
         pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
         pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
 
-
         // Init when opt
         swingtraj_[index] = swing_traj_planner_->getInitTraj(
             pose0, pose1, footpos_list0_[index], footpos_list1_[index], index);
@@ -180,17 +179,17 @@ void MCTStateTransfer::opt_swing_traj(int index)
         swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
             swingtraj_[index], pose0, pose1, index);
 
-        int reOptCnt = 0;
-        if (swing_traj_planner_->getConfig().reOptimize &&
-            reOptCnt < swing_traj_planner_->getConfig().reOptimizeMaxTry)
+        if (swing_traj_planner_->getConfig().reOptimize)
         {
-            reOptCnt++;
             // Normal randomization for replanning
             swing_traj_planner_->getConfig().enableLiftRandomize = true;
             bool enableVis = swing_traj_planner_->getConfig().enableVis;
             // swing_traj_planner_->getConfig().enableVis = false;
-            while (!opt_check(index))
+            int reOptCnt = 0;
+            while (!opt_check(index) &&
+                   reOptCnt < swing_traj_planner_->getConfig().reOptimizeMaxTry)
             {
+                reOptCnt++;
                 swingtraj_[index] = swing_traj_planner_->getInitTraj(
                     XYZRPY2SE3(state0_.base_Pose_Now), XYZRPY2SE3(state1_.base_Pose_Now),
                     footpos_list0_[index], footpos_list1_[index], index);

@@ -62,19 +62,6 @@ inline bool inExcludeCylinder(const Eigen::Vector3d &pos, const Eigen::Vector3d 
     return (pos.head(2) - center.head(2)).norm() < radius && pos(2) > center(2) - radius;
 }
 
-class ClearanceObjective : public ob::StateCostIntegralObjective
-{
-public:
-    ClearanceObjective(const ob::SpaceInformationPtr &si) : ob::StateCostIntegralObjective(si, true)
-    {
-    }
-
-    ob::Cost stateCost(const ob::State *s) const
-    {
-        return ob::Cost(1 / si_->getStateValidityChecker()->clearance(s));
-    }
-};
-
 class SwingTrajOptRRT
 {
 private:
@@ -214,6 +201,127 @@ public:
     }
 };
 
+class CfgValidityChecker : public ob::StateValidityChecker
+{
+private:
+    SwingTrajPlannerConfig config_;
+    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<GridMapInterface> gridmap_interface_;
+    Eigen::Vector3d start_exclude_cylinder_;
+    Eigen::Vector3d end_exclude_cylinder_;
+    pinocchio::SE3 pose0_;
+    pinocchio::SE3 pose1_;
+    int index_;
+
+public:
+    CfgValidityChecker(const ob::SpaceInformationPtr &si,
+                       SwingTrajPlannerConfig &config,
+                       std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                       std::shared_ptr<GridMapInterface> gridmap_interface,
+                       pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                       Eigen::Vector3d start_exclude_cylinder,
+                       Eigen::Vector3d end_exclude_cylinder,
+                       int index) : ob::StateValidityChecker(si),
+                                    config_(config),
+                                    robot_interface_(robot_interface),
+                                    gridmap_interface_(gridmap_interface),
+                                    pose0_(pose0),
+                                    pose1_(pose1),
+                                    start_exclude_cylinder_(start_exclude_cylinder),
+                                    end_exclude_cylinder_(end_exclude_cylinder),
+                                    index_(index)
+    {
+    };
+    bool isValid(const ob::State *state) const override
+    {
+        const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
+        Eigen::Vector3d pos_vec(point_SE3Act(poseLinearInterp(pose0_, pose1_, pos->values[3]).inverse(),
+                                             robot_interface_->FK_foot(Eigen::Vector3d(pos->values[0], pos->values[1], pos->values[2]), index_)));
+
+        double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
+        if (!inExcludeCylinder(pos_vec, start_exclude_cylinder_, config_.excludeRadius) &&
+            !inExcludeCylinder(pos_vec, end_exclude_cylinder_, config_.excludeRadius) &&
+            config_.collBallRadius > sdf - config_.collMargin)
+        {
+            return false;
+        }
+        if (pos->values[0] < config_.joint1PosMin || pos->values[0] > config_.joint1PosMax ||
+            pos->values[1] < config_.joint2PosMin || pos->values[1] > config_.joint2PosMax ||
+            pos->values[2] < config_.joint3PosMin || pos->values[2] > config_.joint3PosMax)
+            return false;
+        return true;
+    }
+
+    double clearance(const ob::State *state) const override
+    {
+        const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
+        Eigen::Vector3d pos_vec(point_SE3Act(poseLinearInterp(pose0_, pose1_, pos->values[3]).inverse(),
+                                             robot_interface_->FK_foot(Eigen::Vector3d(pos->values[0], pos->values[1], pos->values[2]), index_)));
+        if (inExcludeCylinder(pos_vec, start_exclude_cylinder_, config_.excludeRadius) ||
+            inExcludeCylinder(pos_vec, end_exclude_cylinder_, config_.excludeRadius))
+        {
+            return config_.excludeRadius;
+        }
+        return gridmap_interface_->sdfValue(pos_vec, "min");
+    }
+};
+
+class CfgClearanceObjective : public ob::StateCostIntegralObjective
+{
+public:
+    CfgClearanceObjective(const ob::SpaceInformationPtr &si) : ob::StateCostIntegralObjective(si, true)
+    {
+    }
+
+    ob::Cost stateCost(const ob::State *s) const
+    {
+        return ob::Cost(0.10 / si_->getStateValidityChecker()->clearance(s));
+    }
+};
+
+class CfgTimeSequenceObjective : public ob::OptimizationObjective
+{
+public:
+    CfgTimeSequenceObjective(const ob::SpaceInformationPtr &si) : ob::OptimizationObjective(si)
+    {
+    }
+
+    /** \brief Returns identity cost. */
+    ob::Cost stateCost(const ob::State *s) const override
+    {
+        return ob::Cost(0);
+    };
+
+    /** \brief Motion cost for this objective is defined as
+        the configuration space distance between \e s1 and \e
+        s2, using the method SpaceInformation::distance(). */
+    ob::Cost motionCost(const ob::State *s1, const ob::State *s2) const override
+    {
+        double max_cost = 100;
+        double transition = 0.05;
+        double t1 = s1->as<ob::RealVectorStateSpace::StateType>()->values[3];
+        double t2 = s2->as<ob::RealVectorStateSpace::StateType>()->values[3];
+        double delta = t2 - t1;
+        if (delta < 0)
+            return ob::Cost(max_cost);
+        else if (delta < transition)
+        {
+            return ob::Cost(max_cost * (transition - delta) / transition);
+        }
+        else
+            return ob::Cost(0);
+    };
+
+    /** \brief the motion cost heuristic for this objective is
+        simply the configuration space distance between \e s1
+        and \e s2, since this is the optimal cost between any
+        two states assuming no obstacles. */
+    ob::Cost motionCostHeuristic(const ob::State *s1, const ob::State *s2) const override
+    {
+        return motionCost(s1, s2);
+    };
+};
+
 class SwingCfgTrajOptRRT
 {
 private:
@@ -221,15 +329,10 @@ private:
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     SwingTrajPlannerConfig config_;
 
-    // RRT
-    double collball_radius_;
-    double exclude_radius_;
-    double coll_margin_;
-    int index_;
-
     Eigen::Vector3d start_exclude_cylinder_;
     Eigen::Vector3d end_exclude_cylinder_;
     std::shared_ptr<ob::RealVectorStateSpace> space_;
+    int index_;
     pinocchio::SE3 pose0_;
     pinocchio::SE3 pose1_;
 
@@ -255,44 +358,17 @@ public:
     {
         if (visualizer != nullptr)
             enable_vis_ = true;
-        setupParams(config);
     };
-
-    void setupParams(SwingTrajPlannerConfig &config)
-    {
-        collball_radius_ = config.collBallRadius;
-        exclude_radius_ = config.excludeRadius;
-        coll_margin_ = config.collMargin;
-    }
-
-    bool isStateValid(const ob::State *state)
-    {
-        const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
-        Eigen::Vector3d pos_vec(point_SE3Act(poseLinearInterp(pose0_, pose1_, pos->values[3]).inverse(),
-                                             robot_interface_->FK_foot(Eigen::Vector3d(pos->values[0], pos->values[1], pos->values[2]), index_)));
-
-        double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
-        if (!inExcludeCylinder(pos_vec, start_exclude_cylinder_, exclude_radius_) &&
-            !inExcludeCylinder(pos_vec, end_exclude_cylinder_, exclude_radius_) &&
-            collball_radius_ > sdf - coll_margin_)
-        {
-            return false;
-        }
-        if (pos->values[0] < config_.joint1PosMin || pos->values[0] > config_.joint1PosMax ||
-            pos->values[1] < config_.joint2PosMin || pos->values[1] > config_.joint2PosMax ||
-            pos->values[2] < config_.joint3PosMin || pos->values[2] > config_.joint3PosMax)
-            return false;
-        return true;
-    }
 
     ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr &si)
     {
         ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
-        // ob::OptimizationObjectivePtr clearObj(new ClearanceObjective(si));
-
-        // return 10.0 * lengthObj + 0.1 * clearObj;
+        ob::OptimizationObjectivePtr clearObj(new CfgClearanceObjective(si));
+        ob::OptimizationObjectivePtr timeObj(new CfgTimeSequenceObjective(si));
         lengthObj->setCostThreshold(ob::Cost(4.0));
-        return lengthObj;
+        timeObj->setCostThreshold(ob::Cost(10.0));
+
+        return lengthObj + clearObj + timeObj;
     }
 
     inline bool optimize(std::shared_ptr<TrajectoryBase> &traj,
@@ -338,7 +414,14 @@ public:
 
         // SimpleSetup
         og::SimpleSetup ss(space_);
-        ss.setStateValidityChecker(std::bind(&SwingCfgTrajOptRRT::isStateValid, this, std::placeholders::_1));
+        // ss.setStateValidityChecker(std::bind(&SwingCfgTrajOptRRT::isStateValid, this, std::placeholders::_1));
+        ob::StateValidityCheckerPtr checker_ptr =
+            std::make_shared<CfgValidityChecker>(ss.getSpaceInformation(),
+                                                 config_, robot_interface_, gridmap_interface_,
+                                                 pose0_, pose1_,
+                                                 start_exclude_cylinder_,
+                                                 end_exclude_cylinder_, index_);
+        ss.setStateValidityChecker(checker_ptr);
         ss.setStartAndGoalStates(start, goal);
         ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
 

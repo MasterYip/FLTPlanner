@@ -91,41 +91,10 @@ std::shared_ptr<TrajectoryBase> RRTCfgPlanner::getInitTrajHook(pinocchio::SE3 po
     std::vector<Point3D> poly_path;
     poly_path.push_back(robot_interface_->IKFast_foot(point_SE3Act(pose0, p0), index));
     poly_path.push_back(robot_interface_->IKFast_foot(point_SE3Act(pose1, p1), index));
-    // knots.row(0) = p0;
-    // knots.row(1) = (p0 + p1) / 2 + Eigen::Vector3d(0, 0, h_lift);
-    // knots.row(2) = p1;
 
-    return std::make_shared<MincoTrajectory>(poly_path, Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), config_.trajTime);
-
-    // if (config_.enableVis)
-    // {
-    //     std::vector<Eigen::Vector3d> traj_points;
-    //     unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
-    //     visualizer_->visCurve(traj_points);
-    // }
-    // return unib_traj;
+    return std::make_shared<MincoTrajectory>(poly_path, Eigen::Vector3d(0, 0, 0),
+                                             Eigen::Vector3d(0, 0, 0), config_.trajTime);
 }
-
-// void RRTCfgPlanner::visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1, int index,
-//                                              std::vector<Point3D> cfg_poly_traj,
-//                                              Eigen::Vector3d start_vel, Eigen::Vector3d goal_vel, double trajTime,
-//                                              int groupId)
-// {
-//     MincoTrajectory minco_traj(cfg_poly_traj, start_vel, goal_vel, trajTime);
-//     std::vector<Point3D> cfg_path_opt;
-//     std::vector<Point3D> path_opt;
-//     double ts = 0.01;
-//     double t = 0;
-//     minco_traj.getTrajSamples(cfg_path_opt, ts);
-//     for (auto pt : cfg_path_opt)
-//     {
-//         Point3D base_pt = robot_interface_->FK_foot(pt, index);
-//         path_opt.emplace_back(point_SE3Act(poseLinearInterp(pose0, pose1, t).inverse(), base_pt));
-//         t += ts;
-//     }
-//     visualizer_->setIdGroup(groupId);
-//     visualizer_->visCurve(path_opt);
-// }
 
 bool RRTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
                                 const pinocchio::SE3 &pose0,

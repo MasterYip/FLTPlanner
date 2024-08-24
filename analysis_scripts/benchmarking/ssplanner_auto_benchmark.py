@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-20 19:51:26
+LastEditTime: 2024-08-24 11:29:06
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -45,12 +45,12 @@ PLANNERS = [
 
 DEMOS = [
     ("2_stairs", False),
-    # ("4_ushape_barrier", True),
-    # ("3_quincuncial_piles", False),
-    # ("4_barrier", True),
-    # ("4_barrier_vague", True),
-    # ("5_channel", True),
-    # ("6_fractal", False),
+    ("4_ushape_barrier", True),
+    ("3_quincuncial_piles", False),
+    ("4_barrier", True),
+    ("4_barrier_vague", True),
+    ("5_channel", True),
+    ("6_fractal", False),
 ]
 
 
@@ -64,7 +64,7 @@ class TestCase:
 
         # Defaults
         self.sim = True
-        self.fake_feedback = True
+        self.robot_interface_type = "ElSpiderAirDummy"
         self.teleop_type = "keyboard"
         self.rviz_gui = False
         self.auto_benchmark = True
@@ -102,7 +102,7 @@ class TestCase:
                 "with_ceiling": "true" if self.with_ceiling else "false",
                 "rosbag_record": "true" if self.rosbag_record else "false",
                 "sim": "true" if self.sim else "false",
-                "fake_feedback": "true" if self.fake_feedback else "false",
+                "robot_interface_type": self.robot_interface_type,
                 "teleop_type": self.teleop_type,
                 "rviz_gui": "true" if self.rviz_gui else "false",
                 "auto_benchmark": "true" if self.auto_benchmark else "false",
