@@ -35,13 +35,6 @@ std::shared_ptr<TrajectoryBase> RRTPlanner::getInitTrajHook(pinocchio::SE3 pose0
     poly_path.emplace_back((p0 + p1) / 2 + Eigen::Vector3d(0, 0, h_lift));
     poly_path.emplace_back(p1);
     return std::make_shared<MincoTrajectory>(poly_path, start_vel, goal_vel, config_.trajTime);
-
-    // if (config_.enableVis)
-    // {
-    //     std::vector<Eigen::Vector3d> traj_points;
-    //     unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
-    //     visualizer_->visCurve(traj_points);
-    // }
 }
 
 bool RRTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
@@ -51,21 +44,16 @@ bool RRTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 {
     if (!config_.enableOptimizer)
         return true;
-    std::shared_ptr<UniBSpline> unib_traj = std::dynamic_pointer_cast<UniBSpline>(traj);
-    bool ret = swing_traj_opt_.optimize(*unib_traj, index);
+    std::shared_ptr<MincoTrajectory> minco_traj = std::dynamic_pointer_cast<MincoTrajectory>(traj);
+    bool ret = swing_traj_opt_.optimize(minco_traj, index);
     if (config_.enableVis && ret)
     {
         // Discrete
-        std::vector<Eigen::Vector3d> rrt_poly_traj;
-        Eigen::MatrixXd knots = unib_traj->get();
-        for (int i = 0; i < knots.rows(); i++)
-        {
-            rrt_poly_traj.push_back(knots.row(i));
-        }
+        std::vector<Eigen::Vector3d> rrt_poly_traj = minco_traj->getPolyPath();
         visualizer_->visCurve(rrt_poly_traj, ros_visualizer::VisStyle(0.3, 0.7, 0.3, 0.7, 0.01));
-        // UniBSpline
+        // Minco
         std::vector<Eigen::Vector3d> traj_points;
-        unib_traj->getTrajSamples<Eigen::Vector3d>(traj_points, 100);
+        minco_traj->getTrajSamples(traj_points);
         visualizer_->visCurve(traj_points, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 1, 0.01));
     }
     return ret;

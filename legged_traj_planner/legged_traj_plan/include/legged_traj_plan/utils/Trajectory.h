@@ -308,4 +308,9 @@ public:
         // TODO: control should be v.dot(a)?
         return getTrajNormIntegration(2, 2, resolution, normalized);
     }
+
+    std::vector<Point3D> getPolyPath() const
+    {
+        return poly_path_;
+    }
 };

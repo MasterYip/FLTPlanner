@@ -134,17 +134,22 @@ public:
         return lengthObj;
     }
 
-    inline bool optimize(UniBSpline &traj, int index)
+    inline bool optimize(std::shared_ptr<MincoTrajectory> &traj, int index)
     {
         // Setup Params
         index_ = index;
-        start_exclude_cylinder_ = traj.evaluate(0, 0, true);
-        end_exclude_cylinder_ = traj.evaluate(1, 0, true);
+        start_exclude_cylinder_ = traj->evaluate(0, 0, true);
+        end_exclude_cylinder_ = traj->evaluate(1, 0, true);
         double max_time = config_.maxTime;
 
         // Set Bounds
         ob::RealVectorBounds bounds(3);
-        Eigen::MatrixXd knots = traj.get();
+        std::vector<Eigen::Vector3d> traj_points = traj->getPolyPath();
+        Eigen::MatrixXd knots = Eigen::MatrixXd::Zero(traj_points.size(), 3);
+        for (size_t i = 0; i < traj_points.size(); i++)
+        {
+            knots.row(i) = traj_points[i];
+        }
         double margin = 0.1; // Margin of the bounding box
         for (int i = 0; i < 3; i++)
         {
@@ -184,13 +189,13 @@ public:
             ss.simplifySolution();
             std::cout << "Found solution:" << std::endl;
             ss.getSolutionPath().printAsMatrix(std::cout);
-            Eigen::MatrixXd new_knots(ss.getSolutionPath().getStateCount(), 3);
+            std::vector<Point3D> poly_path;
             for (std::size_t i = 0; i < ss.getSolutionPath().getStateCount(); ++i)
             {
                 const auto *pos = ss.getSolutionPath().getState(i)->as<ob::RealVectorStateSpace::StateType>();
-                new_knots.row(i) << pos->values[0], pos->values[1], pos->values[2];
+                poly_path.emplace_back(Point3D(pos->values[0], pos->values[1], pos->values[2]));
             }
-            traj.set(new_knots);
+            traj = std::make_shared<MincoTrajectory>(poly_path, Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 0), config_.trajTime);
             return true;
         }
         else
@@ -298,7 +303,7 @@ public:
     ob::Cost motionCost(const ob::State *s1, const ob::State *s2) const override
     {
         double max_cost = 100;
-        double transition = 0.1;
+        double transition = 0.05;
         double t1 = s1->as<ob::RealVectorStateSpace::StateType>()->values[3];
         double t2 = s2->as<ob::RealVectorStateSpace::StateType>()->values[3];
         double delta = t2 - t1;
@@ -318,7 +323,7 @@ public:
         two states assuming no obstacles. */
     ob::Cost motionCostHeuristic(const ob::State *s1, const ob::State *s2) const override
     {
-        return motionCost(s1, s2);
+        return ob::Cost(0);
     };
 };
 
@@ -360,6 +365,7 @@ public:
             enable_vis_ = true;
     };
 
+    // NOTE: not used by RRT-Connect (non optimal planner)
     ob::OptimizationObjectivePtr getBalancedObjective(const ob::SpaceInformationPtr &si)
     {
         ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
@@ -368,7 +374,7 @@ public:
         lengthObj->setCostThreshold(ob::Cost(4.0));
         timeObj->setCostThreshold(ob::Cost(0.2));
 
-        return lengthObj + clearObj + timeObj;
+        return lengthObj;
     }
 
     inline bool optimize(std::shared_ptr<TrajectoryBase> &traj,
