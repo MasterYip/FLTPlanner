@@ -44,8 +44,8 @@ bool RRTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 {
     if (!config_.enableOptimizer)
         return true;
+    bool ret = swing_traj_opt_.optimize(traj, index);
     std::shared_ptr<MincoTrajectory> minco_traj = std::dynamic_pointer_cast<MincoTrajectory>(traj);
-    bool ret = swing_traj_opt_.optimize(minco_traj, index);
     if (config_.enableVis && ret)
     {
         // Discrete

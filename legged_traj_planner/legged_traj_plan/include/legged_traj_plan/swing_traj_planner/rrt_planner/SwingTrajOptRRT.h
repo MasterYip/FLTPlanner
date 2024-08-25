@@ -134,7 +134,7 @@ public:
         return lengthObj;
     }
 
-    inline bool optimize(std::shared_ptr<MincoTrajectory> &traj, int index)
+    inline bool optimize(std::shared_ptr<TrajectoryBase> &traj, int index)
     {
         // Setup Params
         index_ = index;
@@ -144,7 +144,7 @@ public:
 
         // Set Bounds
         ob::RealVectorBounds bounds(3);
-        std::vector<Eigen::Vector3d> traj_points = traj->getPolyPath();
+        std::vector<Eigen::Vector3d> traj_points = std::dynamic_pointer_cast<MincoTrajectory>(traj)->getPolyPath();
         Eigen::MatrixXd knots = Eigen::MatrixXd::Zero(traj_points.size(), 3);
         for (size_t i = 0; i < traj_points.size(); i++)
         {
