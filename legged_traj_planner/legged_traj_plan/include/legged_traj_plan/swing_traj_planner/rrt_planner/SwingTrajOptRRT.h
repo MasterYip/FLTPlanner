@@ -456,8 +456,12 @@ public:
             for (std::size_t i = 1; i < ss.getSolutionPath().getStateCount(); ++i)
             {
                 ts(i - 1) = tvec.at(i) - tvec.at(i - 1);
+                if (ts(i - 1) < 0)
+                {
+                    std::cout << "Time sequence error" << std::endl;
+                    return false;
+                }
             }
-            // TODO
             traj = std::make_shared<MincoTrajectory>(points, ts);
             return true;
         }
