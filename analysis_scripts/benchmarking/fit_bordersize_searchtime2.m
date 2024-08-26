@@ -28,19 +28,9 @@ x = 0:1:150;
 % [intervals] = confint(fitresult)
 % plot(x, 0.08*exp(intervals(1)*x), "LineWidth",2)
 % plot(x, 0.08*exp(intervals(2)*x), "LineWidth",2)
-plot(x, fitresult.a*exp(fitresult.b*x), "LineWidth",2, "Color", [1, 0.7, 0.1])
+plot(x, fitresult.a*exp(fitresult.b*x), "LineWidth",3, "Color", [1, 0.6, 0.0])
 % plot( fitresult ,'predobs', 0.95);
-if en
-    legend(  'Time - Border Length', 'Exponential fit', 'Lower bound', 'Upper bound', 'Location', 'NorthWest', 'Interpreter', 'none' );
-    % 为坐标区加标签
-    xlabel( 'Border Length(unit)', 'Interpreter', 'none' );
-    % ylabel( 'Time(ms)', 'Interpreter', 'none' );
-else
-    legend(  '搜索时间-交线边界长度', '指数拟合曲线', '下界(指数拟合曲线)', '上界(指数拟合曲线)', 'Location', 'NorthWest', 'Interpreter', 'none' );
-    % 为坐标区加标签
-    xlabel( '边界交线长度(unit)', 'Interpreter', 'none' );
-    % ylabel( '搜索时间(ms)', 'Interpreter', 'none' );
-end
+
 hold off;
 
 

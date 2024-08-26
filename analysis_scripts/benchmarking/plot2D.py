@@ -143,6 +143,8 @@ class CVSPlot:
         # plt.title(title)
         return mean
 
+    def update_cfg(self, cfg):
+        rcParams.update(cfg)
 
 if __name__ == "__main__":
     # csv_file_f = "/home/lenovo/MarsSim_v2_ws/src/rover_control/data_identify/identify_02/0.5_2.46_0.62/slip_FL.csv"
