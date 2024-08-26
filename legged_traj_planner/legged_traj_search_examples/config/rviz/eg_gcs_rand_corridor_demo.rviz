@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Image2Gridmap_ground1
         - /MarkerArray1/Namespaces1
         - /Axes1
       Splitter Ratio: 0.5
@@ -108,7 +109,7 @@ Visualization Manager:
       Show Grid Lines: true
       Topic: /grid_map
       Unreliable: false
-      Use ColorMap: true
+      Use ColorMap: false
       Value: true
     - Alpha: 0.30000001192092896
       Autocompute Intensity Bounds: true
@@ -175,10 +176,7 @@ Visualization Manager:
       Marker Topic: /visualizer_markers
       Name: MarkerArray
       Namespaces:
-        curve: true
-        facet: true
-        mesh: true
-        sphere: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -218,7 +216,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.238211154937744
+      Distance: 4.9444966316223145
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -234,9 +232,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9047969579696655
+      Pitch: 0.7097967863082886
       Target Frame: <Fixed Frame>
-      Yaw: 2.294517755508423
+      Yaw: 2.0145177841186523
     Saved: ~
 Window Geometry:
   Displays:
