@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-24 20:59:53
+LastEditTime: 2024-08-26 10:31:10
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -41,16 +41,17 @@ PLANNERS = [
     "rrt_cfg_planner",
     "stomp_cfg_planner",
     # "height_clear_planner",
+    # "rrt_planner",
 ]
 
 DEMOS = [
-    # ("2_stairs", False),
+    ("2_stairs", False),
     ("4_ushape_barrier", True),
-    # ("3_quincuncial_piles", False),
-    # ("4_barrier", True),
-    # ("4_barrier_vague", True),
-    # ("5_channel", True),
-    # ("6_fractal", False),
+    ("3_quincuncial_piles", False),
+    ("4_barrier", True),
+    ("4_barrier_vague", True),
+    ("5_channel", True),
+    ("6_fractal", False),
 ]
 
 
