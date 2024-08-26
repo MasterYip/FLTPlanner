@@ -29,6 +29,7 @@ opts.StartPoint = [0.0519533690599368 0.0300635867225613];
 % 绘制数据拟合图。
 figure( 'Name', '搜索时间-交线边界长度关系图' );
 h = plot( fitresult, xData, yData );
+% h = plot( fitresult, xData, yData ,'predobs', 0.95);
 legend( h, '搜索时间-交线边界长度', '指数拟合曲线', 'Location', 'NorthEast', 'Interpreter', 'none' );
 % 为坐标区加标签
 xlabel( '边界交线长度(unit)', 'Interpreter', 'none' );
