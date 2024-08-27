@@ -1,11 +1,11 @@
 <launch>
     <!-- ElSpider Air State Sequence Planner -->
 
-    <!-- Demo Select (If sim = false, choose 2_stairs) -->
+    <!-- Demo Select (If sim = false, choose hardware) -->
     <!-- 1_stairs / 2_stairs / 3_quincuncial_piles 
     / 4_barrier / 4_barrier_vague / 4_ushape_barrier
     / 5_channel / 6_fractal-->
-    <arg name="demo_name" default="2_stairs" />
+    <arg name="demo_name" default="hardware" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
     <!-- minco_cfg_planner -->
