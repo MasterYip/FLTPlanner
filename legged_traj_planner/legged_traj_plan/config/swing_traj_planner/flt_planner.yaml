@@ -35,6 +35,7 @@ LFTPlanner:
     spaceDeform2: 1.0
     spaceDeform3: 1.0
   penalty:
+    energyWeight: 1.0
     timeWeight: 0.001 # PROBLEM: too large or too small will leads to max-try error
     joint1PosMin: -0.785
     joint1PosMax: 0.785

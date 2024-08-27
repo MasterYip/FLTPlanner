@@ -1,18 +1,18 @@
 <launch>
     <!-- ElSpider Air State Sequence Planner -->
 
-    <!-- Demo Select -->
+    <!-- Demo Select (If sim = false, choose 2_stairs) -->
     <!-- 1_stairs / 2_stairs / 3_quincuncial_piles 
     / 4_barrier / 4_barrier_vague / 4_ushape_barrier
     / 5_channel / 6_fractal-->
-    <arg name="demo_name" default="4_barrier_vague" />
+    <arg name="demo_name" default="2_stairs" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
     <!-- minco_cfg_planner -->
     <!-- flt_planner / flt_cfg_planner / flt_cfg_planner_fast-->
     <!-- rrt_planner / rrt_cfg_planner -->
     <!-- stomp_planner / stomp_cfg_planner -->
-    <arg name="planner_cfg" default="flt_cfg_planner_fast" />
+    <arg name="planner_cfg" default="flt_cfg_planner" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->

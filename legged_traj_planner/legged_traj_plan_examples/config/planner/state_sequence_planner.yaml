@@ -1,7 +1,9 @@
 
 # NOTE: Planner benchmark settings override 
-# misc:
-#   reOptimize: true
+misc:
+  useCfgCommand: true
+  reOptimize: false
+  reOptimizeMaxTry: 1000
 #   enableVis: false
 #   enableOptVis: false
 #   enableBenchmark: true
@@ -18,7 +20,7 @@ StateSequencePlanner:
   navExtrapolateSamplesNum: 100
 
   swingTrajPreOpt: true
-  shutdownAfterPreOpt: true
+  shutdownAfterPreOpt: false
   execOnKeyboardCmd: false
   # Demo select
   # demoPath: # NOTE: offered by launch file

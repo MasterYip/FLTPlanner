@@ -1,7 +1,8 @@
 
 # NOTE: Planner benchmark settings override 
 misc:
-  reOptimize: true
+  reOptimize: false
+  reOptimizeMaxTry: 3
   enableVis: false
   enableOptVis: false
   enableBenchmark: true

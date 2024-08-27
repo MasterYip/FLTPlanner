@@ -276,7 +276,8 @@ public:
                 ros::spinOnce();
                 // update robot state
                 update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
-                update_exp_path(cmd_);
+                // update_exp_path(cmd_);
+                update_exp_path_xlock();
                 // MCTS planning
                 gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
@@ -457,6 +458,19 @@ public:
         {
             Eigen::Vector3d trans = gridmap_extrapolator_.extrapolate(i * config_.cmdExtrapolateDeltaT).translation();
             exp_path_.push_back(Eigen::Vector3f(trans[0], trans[1], trans[2]));
+        }
+    }
+
+    void update_exp_path_xlock(void)
+    {
+        exp_path_.clear();
+        double height = 0.25;
+        exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x, robot_state_.pose.y, height));
+        for (int i = 0; i < config_.cmdExtrapolatePointNum; ++i)
+        {
+            exp_path_.push_back(Eigen::Vector3f(robot_state_.pose.x + cmd_.linear.x * config_.cmdExtrapolateDeltaT * i,
+                                                robot_state_.pose.y,
+                                                height));
         }
     }
 
