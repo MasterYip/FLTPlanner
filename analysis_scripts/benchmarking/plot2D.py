@@ -26,7 +26,7 @@ class CVSPlot:
     def __init__(self, cfg=defaultConfig):
         rcParams.update(cfg)
 
-    def plot(self, CSV_FILE, index_x, index_y, xlabel, ylabel, title, label, axes=None):
+    def plot(self, CSV_FILE, index_x, index_y, xlabel, ylabel, title, label, axes=None, linewidth = 2.0):
         df = pd.read_csv(CSV_FILE)
         Y = df.iloc[1:, index_y]
         if index_x is not None:
@@ -39,7 +39,7 @@ class CVSPlot:
             axes.set_ylabel(ylabel)
             axes.set_title(title)
         else:
-            plt.plot(X, Y, label=label)
+            plt.plot(X, Y, label=label, linewidth=linewidth)
             plt.xlabel(xlabel)
             plt.ylabel(ylabel)
             plt.title(title)
