@@ -45,18 +45,8 @@
             <param name="ceiling_layer" value="$(arg ceiling_layer)" />
         </node>
 
-        <!-- sdf_pub for SDF visualization (pointcloud) -->
-        <!-- <node pkg="legged_traj_plan_examples" type="sdf_pub" name="sdf_pub" output="screen"/>
-        <node pkg="grid_map_visualization" type="grid_map_visualization" name="grid_map_visualization" output="screen">
-            <rosparam command="load" file="$(find legged_traj_plan_examples)/config/mapVisual.yaml" />
-        </node> -->
     </group>
     <group if="$(eval fake_feedback == 0)">
-        <!-- HexapodSoftware -->
-        <!-- <include file="$(find user)/launch/main.launch">
-            <arg name="robot_name" value="elspider_air" />
-            <arg name="controller_type" value="hlc" />
-        </include> -->
         <!-- HexapodElevationMapping -->
         <include file="$(find hexapod_elevation_mapping)/launch/elspider_air_mapping.launch">
             <arg name="module_name" value="HexPercept3" />

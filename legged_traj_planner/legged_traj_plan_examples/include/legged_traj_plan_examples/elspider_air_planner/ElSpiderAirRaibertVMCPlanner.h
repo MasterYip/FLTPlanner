@@ -117,7 +117,7 @@ public:
         exp_foot_state_.effort.resize(6);
         exp_foot_state_.contact.resize(6);
 
-        timer_ = nh_.createTimer(ros::Duration(0.05), &ElSpiderAirRaibertVMCPlanner::timer_callback, this);
+        timer_ = nh_.createTimer(ros::Duration(0.01), &ElSpiderAirRaibertVMCPlanner::timer_callback, this);
         if (fake_estimation_)
         {
             body_pose_ = pinocchio::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d(0, 0, 0.25));

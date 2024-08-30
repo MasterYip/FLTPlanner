@@ -164,9 +164,9 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28 + 0.04, -0.28));
 
     PosList pose_sample_pts;
-    for (double x = -0.4; x <= 0.4; x += 0.2)
+    for (double x = -0.4; x <= 0.4; x += 0.1)
     {
-        for (double y = -0.4; y <= 0.4; y += 0.2)
+        for (double y = -0.4; y <= 0.4; y += 0.1)
         {
             pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
         }
