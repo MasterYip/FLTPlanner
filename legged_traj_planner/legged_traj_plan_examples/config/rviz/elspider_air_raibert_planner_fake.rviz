@@ -336,7 +336,10 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
       Namespaces:
-        {}
+        arrow: true
+        cube: true
+        curve: true
+        sphere: true
       Queue Size: 1
       Value: true
     - Alpha: 0.4000000059604645
@@ -399,17 +402,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.11397789418697357
-        Y: 0.0649789497256279
-        Z: -0.1940339356660843
+        X: 0.08153816312551498
+        Y: -0.06729178130626678
+        Z: -0.05344965308904648
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3397955596446991
+      Pitch: 0.45979565382003784
       Target Frame: base
-      Yaw: 5.854540824890137
+      Yaw: 3.4895412921905518
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

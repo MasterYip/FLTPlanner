@@ -2,16 +2,16 @@
 # NOTE: Planner benchmark settings override 
 misc:
   useCfgCommand: true
-  reOptimize: true
+  reOptimize: false
   reOptimizeMaxTry: 1000
   enableVis: true
   enableOptVis: false
-  optVisRate: 6
+  optVisRate: 300
 #   enableBenchmark: true
 #   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv
 #   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
 
 
-StateSequencePlanner:
+RaibertPlanner:
   rosRate: 100
   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml
