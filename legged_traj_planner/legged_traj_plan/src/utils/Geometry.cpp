@@ -10,6 +10,10 @@
  */
 pinocchio::SE3 poseLinearInterp(pinocchio::SE3 pose0, pinocchio::SE3 pose1, double t)
 {
+    if (pose0.isApprox(pose1))
+    {
+        return pose0;
+    }
     pinocchio::Motion err = pinocchio::log6(pose0.actInv(pose1));
     pinocchio::SE3 interp = pose0.act(pinocchio::exp6(err * t));
     return interp;
