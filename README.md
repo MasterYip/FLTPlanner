@@ -1,2 +1,3 @@
-# Fast-Legged-Planner
-Fast legged planner 
+# Fast Legged Trajectory Planner
+
+Source code is coming soon.
