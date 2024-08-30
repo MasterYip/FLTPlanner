@@ -90,15 +90,24 @@ catkin build legged_traj_plan_examples -DCMAKE_BUILD_TYPE=Release
 FakeFeedback | Planning:
 
 ```bash
-roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch \
-fake_feedback:=true \
+roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch \
+robot_interface_type:=ElSpiderAirDummy \
 sim:=true \
 teleop_type:=keyboard
 ```
 
 ```bash
-roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch \
+roslaunch legged_traj_plan_examples elspider_air_raibert_planner.launch \
 robot_interface_type:=ElSpiderAirDummy \
+sim:=true \
+teleop_type:=PS5
+```
+
+Legacy:
+
+```bash
+roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch \
+fake_feedback:=true \
 sim:=true \
 teleop_type:=keyboard
 ```
@@ -116,7 +125,6 @@ fake_feedback:=true \
 sim:=true \
 teleop_type:=PS5
 ```
-
 
 Simulation | Perception & Planning & Control:
 

@@ -147,8 +147,39 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
                                                  std::shared_ptr<GridMapInterface> gridmap_interface,
                                                  std::shared_ptr<ElSpiderAirInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
-      swing_traj_planner_(std::make_shared<FLTCfgPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_)),
-      use_cfg_space_(swing_traj_planner_config.useCfgSpace)
+      swing_traj_planner_(std::make_shared<FLTCfgPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_))
+{
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28 - 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34 - 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28 - 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28 + 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34 + 0.04, -0.28));
+    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28 + 0.04, -0.28));
+
+    PosList pose_sample_pts;
+    for (double x = -0.4; x <= 0.4; x += 0.1)
+    {
+        for (double y = -0.4; y <= 0.4; y += 0.1)
+        {
+            pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
+        }
+    }
+    cmd_vel_extrapolator_.init(gridmap_interface, pose_sample_pts);
+
+    leg_traj_.resize(6);
+}
+
+RaibertHeuristicPlanner::RaibertHeuristicPlanner(std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_,
+                                                 std::shared_ptr<GridMapInterface> gridmap_interface,
+                                                 std::shared_ptr<ElSpiderAirInterface> robot_interface)
+    : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
+      swing_traj_planner_(swing_traj_planner_)
 {
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));

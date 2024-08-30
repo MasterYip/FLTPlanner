@@ -275,14 +275,13 @@ class RaibertHeuristicPlanner
 private:
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
-    std::shared_ptr<FLTCfgPlanner> swing_traj_planner_;
+    std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
     GridMapCmdVelExtrapolator cmd_vel_extrapolator_;
     std::vector<std::vector<LegTraj>> leg_traj_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
 
     PosList nominal_foothold_base_;
     double update_time_ = 0;
-    bool use_cfg_space_; // TOOD: not used temporarily
 
     double interval_ = 1;
     double duty_ = 0.5;
@@ -290,6 +289,10 @@ private:
 
 public:
     RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+                            std::shared_ptr<GridMapInterface> gridmap_interface,
+                            std::shared_ptr<ElSpiderAirInterface> robot_interface);
+
+    RaibertHeuristicPlanner(std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_,
                             std::shared_ptr<GridMapInterface> gridmap_interface,
                             std::shared_ptr<ElSpiderAirInterface> robot_interface);
 
@@ -309,4 +312,9 @@ public:
     bool toCfgSpace(pinocchio::SE3 pose, Eigen::Vector3d pos, Eigen::Vector3d vel,
                     Eigen::Vector3d &pos_cfg, Eigen::Vector3d &vel_cfg,
                     int leg_index);
+
+    void saveBenchmarkResults()
+    {
+        swing_traj_planner_->saveBenchmarkResults();
+    };
 };

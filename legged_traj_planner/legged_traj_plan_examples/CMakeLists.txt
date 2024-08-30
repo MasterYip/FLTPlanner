@@ -161,14 +161,6 @@ target_link_libraries(image_to_gridmap
   ${PROJECT_NAME}
 )
 
-# ElSpiderAirSimplePlanner [Deprecated]
-add_executable(elspider_air_simple_planner src/elspider_air_simple_planner.cpp)
-target_link_libraries(elspider_air_simple_planner
-  ${catkin_LIBRARIES}
-  ${PROJECT_NAME}
-  mcts_planner
-)
-
 # ElSpiderAirStateSequencePlanner
 add_executable(elspider_air_state_sequence_planner src/elspider_air_state_sequence_planner.cpp)
 target_link_libraries(elspider_air_state_sequence_planner
@@ -176,6 +168,23 @@ target_link_libraries(elspider_air_state_sequence_planner
   ${PROJECT_NAME}
   mcts_planner
 )
+
+# ElSpiderAirRaibertPlanner
+add_executable(elspider_air_raibert_planner src/elspider_air_raibert_planner.cpp)
+target_link_libraries(elspider_air_raibert_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+## [Deprecated]
+# ElSpiderAirSimplePlanner 
+add_executable(elspider_air_simple_planner src/elspider_air_simple_planner.cpp)
+target_link_libraries(elspider_air_simple_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+  mcts_planner
+)
+
 
 # ElSpiderAirVMCPlanner
 add_executable(elspider_air_vmc_planner src/elspider_air_vmc_planner.cpp)
