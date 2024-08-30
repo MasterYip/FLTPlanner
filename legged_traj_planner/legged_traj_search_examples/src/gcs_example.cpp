@@ -222,7 +222,8 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
             std::cout << "Warning: Goal is not reachable" << std::endl;
         else
             std::cout << "Warning: String Straining Search failed" << std::endl;
-        return true;
+        gcs_visualizer_.delAll();
+        return false;
     }
     else
     {
@@ -230,7 +231,8 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
         if (!use_string_straining && !poly_traj_search.search(start3d, goal3d, path))
         {
             std::cout << "Warning: A star search failed" << std::endl;
-            return true;
+            gcs_visualizer_.delAll();
+            return false;
         }
         else
         {

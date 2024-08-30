@@ -2,10 +2,11 @@
 # NOTE: Planner benchmark settings override 
 misc:
   useCfgCommand: true
-  reOptimize: false
+  reOptimize: true
   reOptimizeMaxTry: 1000
-#   enableVis: false
-#   enableOptVis: false
+  enableVis: true
+  enableOptVis: true
+  optVisRate: 6
 #   enableBenchmark: true
 #   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv
 #   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
@@ -13,13 +14,13 @@ misc:
 
 StateSequencePlanner:
   rosRate: 100
-  cmdMctsSearchNodeNum: 300
+  cmdMctsSearchNodeNum: 100
   navMctsSearchNodeNum: 600
   cmdExtrapolatePointNum: 50
   cmdExtrapolateDeltaT: 0.01
   navExtrapolateSamplesNum: 100
 
-  swingTrajPreOpt: true
+  swingTrajPreOpt: false
   shutdownAfterPreOpt: false
   execOnKeyboardCmd: false
   # Demo select

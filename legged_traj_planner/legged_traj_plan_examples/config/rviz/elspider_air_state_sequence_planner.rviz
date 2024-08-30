@@ -205,153 +205,18 @@ Visualization Manager:
     - Alpha: 0.4000000059604645
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        shadowLB_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLB_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLB_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLB_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLF_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLF_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLF_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLF_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLM_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLM_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLM_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowLM_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRB_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRB_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRB_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRB_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRF_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRF_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRF_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRF_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRM_FOOT:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRM_HIP:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRM_SHANK:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowRM_THIGH:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowbase:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowimu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        shadowtrunk:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModelShadow
       Robot Description: shadow/robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: false
@@ -528,8 +393,7 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: swing_traj_planner_vis
       Namespaces:
-        curve: true
-        sphere: true
+        {}
       Queue Size: 1
       Value: true
     - Alpha: 0.4000000059604645
@@ -599,15 +463,15 @@ Visualization Manager:
         Value: false
       Invert Z Axis: false
       Name: Current View
-      Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5486089587211609
+      Near Clip Distance: 0.019999999552965164
+      Pitch: 0.17860904335975647
       Position:
-        X: 4.699999809265137
-        Y: 1.9509999752044678
-        Z: 1.5
+        X: 3.6500000953674316
+        Y: 2.25
+        Z: 0.550000011920929
       Roll: 0
       Target Frame: odom
-      Yaw: -2.361820936203003
+      Yaw: -1.9818180799484253
     Saved:
       - Class: rviz/ThirdPersonFollower
         Distance: 2.6462130546569824
@@ -653,23 +517,6 @@ Visualization Manager:
           Swap Stereo Eyes: false
           Value: false
         Invert Z Axis: false
-        Name: Demo2_Barrier_pad
-        Near Clip Distance: 0.009999999776482582
-        Pitch: 0.13860908150672913
-        Position:
-          X: 3.9000000953674316
-          Y: 2.259999990463257
-          Z: 0.550000011920929
-        Roll: 0
-        Target Frame: odom
-        Yaw: -2.0618185997009277
-      - Class: rviz/FPS
-        Enable Stereo Rendering:
-          Stereo Eye Separation: 0.05999999865889549
-          Stereo Focal Distance: 1
-          Swap Stereo Eyes: false
-          Value: false
-        Invert Z Axis: false
         Name: Demo2_Barrier_phone
         Near Clip Distance: 0.009999999776482582
         Pitch: 0.5436089634895325
@@ -680,6 +527,23 @@ Visualization Manager:
         Roll: 0
         Target Frame: odom
         Yaw: -2.521822452545166
+      - Class: rviz/FPS
+        Enable Stereo Rendering:
+          Stereo Eye Separation: 0.05999999865889549
+          Stereo Focal Distance: 1
+          Swap Stereo Eyes: false
+          Value: false
+        Invert Z Axis: false
+        Name: Demo2_Barrier_pad
+        Near Clip Distance: 0.019999999552965164
+        Pitch: 0.17860904335975647
+        Position:
+          X: 3.6500000953674316
+          Y: 2.25
+          Z: 0.550000011920929
+        Roll: 0
+        Target Frame: odom
+        Yaw: -1.9818180799484253
 Window Geometry:
   Displays:
     collapsed: true
