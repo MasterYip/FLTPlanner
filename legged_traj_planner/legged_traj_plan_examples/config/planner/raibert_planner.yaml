@@ -2,8 +2,8 @@
 # NOTE: Planner benchmark settings override 
 misc:
   useCfgCommand: true
-  reOptimize: false
-  reOptimizeMaxTry: 1000
+  reOptimize: true
+  reOptimizeMaxTry: 100
   enableVis: true
   enableOptVis: false
   optVisRate: 300

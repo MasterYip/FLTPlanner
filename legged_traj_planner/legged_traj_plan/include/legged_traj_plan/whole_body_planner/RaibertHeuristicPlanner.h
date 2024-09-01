@@ -273,12 +273,16 @@ public:
 class RaibertHeuristicPlanner
 {
 private:
+    ros::NodeHandle nh_;
+
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
     GridMapCmdVelExtrapolator cmd_vel_extrapolator_;
     std::vector<std::vector<LegTraj>> leg_traj_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
+
+    std::shared_ptr<GCSVisualizer> visualizer_;
 
     PosList nominal_foothold_base_;
     double update_time_ = 0;
@@ -288,7 +292,7 @@ private:
     double extrapolate_window_ = 3;
 
 public:
-    RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
+    [[deprecated]] RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                             std::shared_ptr<GridMapInterface> gridmap_interface,
                             std::shared_ptr<ElSpiderAirInterface> robot_interface);
 

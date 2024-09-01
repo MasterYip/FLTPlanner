@@ -149,6 +149,8 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       swing_traj_planner_(std::make_shared<FLTCfgPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_))
 {
+    visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "raibert_heuristic_planner_vis");
+
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
@@ -181,6 +183,8 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(std::shared_ptr<SwingTrajPlanne
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       swing_traj_planner_(swing_traj_planner_)
 {
+    visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "raibert_heuristic_planner_vis");
+
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
     switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
@@ -322,6 +326,32 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                     index++;
                 }
             }
+        }
+    }
+
+    // Visulization
+    if (swing_traj_planner_->getConfig().enableVis)
+    {
+        visualizer_->delAll();
+        std::vector<std::vector<Point3D>> foot_trajs(6);
+        double delta_t = 0.01;
+        int sample_points = 100;
+        pinocchio::SE3 pose;
+        PosList foot_pos_list;
+        std::array<bool, 6> support_state;
+        for (int i = 0; i < sample_points; i++)
+        {
+            double t = update_time_ + i * delta_t;
+            query(t, pose, foot_pos_list, support_state);
+            for (int j = 0; j < 6; j++)
+            {
+                foot_trajs[j].emplace_back(point_SE3Act(pose.inverse(), foot_pos_list[j]));
+            }
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            // visualizer_->visCurve(foot_trajs[i], ros_visualizer::VisStyle(0.3, 0.7, 0.3, 0.7, 0.01));
+            visualizer_->visCurve(foot_trajs[i]);
         }
     }
 }
