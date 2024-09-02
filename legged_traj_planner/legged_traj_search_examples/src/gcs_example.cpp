@@ -475,9 +475,9 @@ void GCS_Example::eg_guide_surface()
 
     for (int i = 0; i < poly_num; i++)
     {
-        Point3D randPos = randomPoint(1.0);
-        randPos[2] *= 2;
-        Eigen::Matrix3Xd tmp1 = randomPoly(20, 0.4);
+        Point3D randPos = randomPoint(2.0);
+        randPos[2] *= 1.5;
+        Eigen::Matrix3Xd tmp1 = randomPoly(20, 0.6);
         Eigen::Matrix3Xd tmp2 = (tmp1.array().colwise() + (randPos.array() + pos_shift.transpose().col(0).array())).eval();
         polys.emplace_back(Polyhedra(tmp2));
     }
@@ -492,6 +492,13 @@ void GCS_Example::eg_guide_surface()
     gcs_visualizer_.visPolytope(corridor.getCorridor());
     HarmonicGuideSurf guide_surf(key_points, 1);
     map_.add("guide_surf");
+    Eigen::Vector3d key_points_mean = Eigen::Vector3d::Zero();
+    for (auto pt : key_points)
+    {
+        key_points_mean += pt;
+    }
+    key_points_mean /= key_points.size();
+    map_.setPosition(key_points_mean.head(2));
     for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
     {
         grid_map::Position pos;
@@ -517,12 +524,13 @@ void GCS_Example::eg_guide_surface()
             Point3D pos;
             Eigen::Vector2d posxy;
             pos[2] = border_check->queryHeight(border.at(i));
-            map_.getPosition(border.at(i), posxy);
+            posxy = index_remap.grid2Pos(border.at(i));
             pos[0] = posxy.x();
             pos[1] = posxy.y();
-            border_pos.push_back(pos);
+            border_pos.emplace_back(pos);
         }
-        gcs_visualizer_.visCurve(border_pos, ros_visualizer::VisStyle(1.0, 0.3, 0.2, 1.0, 0.02));
+        border_pos.emplace_back(border_pos.front());
+        gcs_visualizer_.visCurve(border_pos, ros_visualizer::VisStyle(1.0, 0.6, 0.002, 1.0, 0.03));
     }
     else
     {
