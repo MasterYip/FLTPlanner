@@ -502,7 +502,8 @@ public:
         Eigen::Vector3d foot_force;
         auto foot_state_ = robot_interface_->getFootStateFdb();
         foot_force << foot_state_.effort[leg_idx].x, foot_state_.effort[leg_idx].y, foot_state_.effort[leg_idx].z;
-        return (foot_force.norm() > eps) || foot_state_.contact[leg_idx];
+        // return (foot_force.norm() > eps) || foot_state_.contact[leg_idx];
+        return (foot_force.norm() > eps);
     }
 
     void stance_contact_handle(void)
