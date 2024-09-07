@@ -112,7 +112,8 @@ void GridMapInterface::updateTravMap(void)
             bool valid = true;
             double normal_tan_ = std::sqrt(std::pow(map_.at(ground_norm_x_layer, *iterator), 2) + std::pow(map_.at(ground_norm_y_layer, *iterator), 2)) / map_.at(ground_norm_z_layer, *iterator);
             valid &= normal_tan_ < config_.normalTangentCrtic;
-            valid &= config_.enableHeightFilter ? map_.at(ground_layer, *iterator) < config_.maxHeight : true;
+            valid &= config_.enableHeightFilter ? map_.at(ground_layer, *iterator) < config_.maxHeight 
+                        && map_.at(ground_layer, *iterator) > config_.minHeight : true;
             if (!valid)
                 map_.at(ground_layer_trav, *iterator) = std::nan("");
         }

@@ -44,6 +44,7 @@ struct GridMapInterfaceConfig
     double normalTangentCrtic{0.5};
     bool enableHeightFilter{false};
     double maxHeight{0.0};
+    double minHeight{0.0};
 
     void loadParam(ros::NodeHandle &nh, std::string ns = "GridMapInterface")
     {
@@ -55,6 +56,7 @@ struct GridMapInterfaceConfig
         check_digit &= nh.getParam(ns + "/normalTangentCrtic", normalTangentCrtic);
         check_digit &= nh.getParam(ns + "/enableHeightFilter", enableHeightFilter);
         check_digit &= nh.getParam(ns + "/maxHeight", maxHeight);
+        check_digit &= nh.getParam(ns + "/minHeight", minHeight);
     }
 };
 
