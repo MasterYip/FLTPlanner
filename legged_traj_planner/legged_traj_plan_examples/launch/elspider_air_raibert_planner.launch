@@ -5,7 +5,7 @@
     <!-- 1_stairs / 2_stairs / 3_quincuncial_piles 
     / 4_barrier / 4_barrier_vague / 4_ushape_barrier
     / 5_channel / 6_fractal-->
-    <arg name="demo_name" default="4_ushape_barrier" />
+    <arg name="demo_name" default="6_fractal" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
     <!-- minco_cfg_planner -->
@@ -18,13 +18,13 @@
     <!-- Gazebo / Hardware -->
     <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
-    <arg name="teleop_type" default="keyboard" />
+    <arg name="teleop_type" default="PS5" />
     <!-- ElSpiderAirROS / ElSpiderAirROSVMC / ElSpiderAirDummy -->
-    <arg name="robot_interface_type" default="ElSpiderAirDummy" />
+    <arg name="robot_interface_type" default="ElSpiderAirROSVMC" />
     <!-- Optitrack -->
     <arg name="use_optitrack" default="false" />
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="with_ceiling" default="true"/>
+    <arg name="with_ceiling" default="false"/>
     <!-- ROS bag record (under ~/.ros) -->
     <arg name="rosbag_record" default="false" />
     <!-- Rviz visualization -->
@@ -126,7 +126,7 @@
             </include>
         </group>
         <group if="$(eval teleop_type == 'PS5')">
-            <node pkg="joy" type="joy_node" name="joy_node" output="$(arg output)" clear_params="true" required="true">
+            <node pkg="joy" type="joy_node" name="joy_node" output="$(arg output)" clear_params="true" required="true" if="$(eval sim == 1)">
                 <param name="dev" value="/dev/input/js0"/>
                 <!-- udevadm monitor -->
                 <param name="dev_ff" value="/dev/input/event20"/>

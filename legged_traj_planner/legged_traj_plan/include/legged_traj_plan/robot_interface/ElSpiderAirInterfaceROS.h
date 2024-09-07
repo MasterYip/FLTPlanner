@@ -213,9 +213,16 @@ public:
     virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact) override
     {
         pub_jointcmd_from_jointpos(q);
-    }
+    };
 
     virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
+    {
+        pub_jointcmd_from_jointpos(q);
+    };
+    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q, 
+                             const std::vector<Eigen::Vector3d> &v,
+                             const std::vector<Eigen::Vector3d> &tau,
+                             const std::vector<bool> &contact) override
     {
         pub_jointcmd_from_jointpos(q);
     };

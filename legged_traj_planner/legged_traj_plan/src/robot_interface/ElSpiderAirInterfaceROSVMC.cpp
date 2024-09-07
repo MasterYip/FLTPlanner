@@ -139,3 +139,32 @@ void ElSpiderAirInterfaceROSVMC::setJointCmd(const std::vector<Eigen::Vector3d> 
     exp_joint_state_.joint_state.effort = std::vector<double>(18, 0);
     exp_joint_state_pub_.publish(exp_joint_state_);
 }
+
+void ElSpiderAirInterfaceROSVMC::setJointCmd(const std::vector<Eigen::Vector3d> &q, 
+                            const std::vector<Eigen::Vector3d> &v,
+                            const std::vector<Eigen::Vector3d> &tau,
+                            const std::vector<bool> &contact)
+{
+    exp_joint_state_.header.stamp = ros::Time::now();
+    exp_joint_state_.joint_state.position.clear();
+    exp_joint_state_.joint_state.velocity.clear();
+    exp_joint_state_.joint_state.effort.clear();
+    exp_joint_state_.contact_state.clear();
+    for (size_t i = 0; i < q.size(); ++i)
+    {
+        exp_joint_state_.joint_state.position.emplace_back(q[i][0]);
+        exp_joint_state_.joint_state.position.emplace_back(q[i][1]);
+        exp_joint_state_.joint_state.position.emplace_back(q[i][2]);
+
+        exp_joint_state_.joint_state.velocity.emplace_back(v[i][0]);
+        exp_joint_state_.joint_state.velocity.emplace_back(v[i][1]);
+        exp_joint_state_.joint_state.velocity.emplace_back(v[i][2]);
+
+        exp_joint_state_.joint_state.effort.emplace_back(tau[i][0]);
+        exp_joint_state_.joint_state.effort.emplace_back(tau[i][1]);
+        exp_joint_state_.joint_state.effort.emplace_back(tau[i][2]);
+
+        exp_joint_state_.contact_state.emplace_back(contact[i]);
+    }
+    exp_joint_state_pub_.publish(exp_joint_state_);
+}

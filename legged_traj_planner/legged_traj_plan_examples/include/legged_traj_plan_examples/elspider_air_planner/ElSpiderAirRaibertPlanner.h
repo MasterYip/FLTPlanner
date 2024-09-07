@@ -142,18 +142,37 @@ public:
         pinocchio::SE3 exp_pose;
         PosList exp_foot_pos;
         std::array<bool, 6> contact_state;
-        if (raibert_planner_.query(ros::Time::now().toSec(), exp_pose, exp_foot_pos, contact_state))
+        if (swing_traj_planner_config_.useCfgCommand)
         {
-            robot_interface_->setBodyPoseCmd(exp_pose);
-            robot_interface_->setFootCmd(exp_foot_pos,
-                                         PosList(6, Eigen::Vector3d::Zero()),
-                                         PosList(6, Eigen::Vector3d::Zero()),
-                                         std::vector<bool>(contact_state.begin(), contact_state.end()));
-            robot_interface_shadow_->setBodyPoseCmd(exp_pose);
-            robot_interface_shadow_->setFootCmd(exp_foot_pos,
-                                                PosList(6, Eigen::Vector3d::Zero()),
-                                                PosList(6, Eigen::Vector3d::Zero()),
-                                                std::vector<bool>(contact_state.begin(), contact_state.end()));
+            if (raibert_planner_.queryCfg(ros::Time::now().toSec(), exp_pose, exp_foot_pos, contact_state))
+            {
+                robot_interface_->setBodyPoseCmd(exp_pose);
+                robot_interface_shadow_->setBodyPoseCmd(exp_pose);
+                robot_interface_->setJointCmd(exp_foot_pos,
+                                             PosList(6, Eigen::Vector3d::Zero()),
+                                             PosList(6, Eigen::Vector3d::Zero()),
+                                             std::vector<bool>(contact_state.begin(), contact_state.end()));
+                robot_interface_shadow_->setJointCmd(exp_foot_pos,
+                                                    PosList(6, Eigen::Vector3d::Zero()),
+                                                    PosList(6, Eigen::Vector3d::Zero()),
+                                                    std::vector<bool>(contact_state.begin(), contact_state.end()));
+            }
+        }
+        else
+        {
+            if (raibert_planner_.query(ros::Time::now().toSec(), exp_pose, exp_foot_pos, contact_state))
+            {
+                robot_interface_->setBodyPoseCmd(exp_pose);
+                robot_interface_shadow_->setBodyPoseCmd(exp_pose);
+                robot_interface_->setFootCmd(exp_foot_pos,
+                                             PosList(6, Eigen::Vector3d::Zero()),
+                                             PosList(6, Eigen::Vector3d::Zero()),
+                                             std::vector<bool>(contact_state.begin(), contact_state.end()));
+                robot_interface_shadow_->setFootCmd(exp_foot_pos,
+                                                    PosList(6, Eigen::Vector3d::Zero()),
+                                                    PosList(6, Eigen::Vector3d::Zero()),
+                                                    std::vector<bool>(contact_state.begin(), contact_state.end()));
+            }
         }
     }
 
