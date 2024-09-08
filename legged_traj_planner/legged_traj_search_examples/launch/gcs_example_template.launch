@@ -11,8 +11,8 @@
     <arg name="grid_map_topic" default="grid_map" />
     <arg name="grid_map_update_rate" default="5" />
     <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="grid_map_file" default="$(find legged_traj_plan_examples)/data/traj_opt_demo/2-Barrier-ground.png" />
-    <arg name="grid_map_file_ceiling" default="$(find legged_traj_plan_examples)/data/traj_opt_demo/2-Barrier-ceiling.png" />
+    <arg name="grid_map_file" default="$(find legged_traj_search_examples)/data/barrier_demo/2-Barrier-ground.png" />
+    <arg name="grid_map_file_ceiling" default="$(find legged_traj_search_examples)/data/barrier_demo/2-Barrier-ceiling.png" />
     <arg name="elevation_layer" default="elevation" />
     <arg name="ceiling_layer" default="ceiling" />
 
