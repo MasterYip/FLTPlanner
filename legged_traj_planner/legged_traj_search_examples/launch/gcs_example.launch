@@ -1,7 +1,7 @@
 <launch>
     <!-- eg_guide_surface_demo / eg_gcs_barrier_demo / eg_gcs_rand_corridor_demo / eg_gcs_rand_map_demo-->
     <!-- perf_gcs_rand_corridor_demo -->
-    <arg name="example_name" default="eg_gcs_rand_map_demo"/>
+    <arg name="example_name" default="eg_gcs_rand_corridor_demo"/>
     <!-- Gloabl Default Settings -->
     <arg name="with_robot" default="false" />
     <arg name="with_ceiling" default="false" />
@@ -77,7 +77,7 @@
             <arg name="test_rate" default="$(arg test_rate)" />
             <arg name="grid_map_topic" default="$(arg grid_map_topic)" />
             <arg name="grid_map_update_rate" default="$(arg grid_map_update_rate)" />
-            <arg name="grid_map_file" default="$(find legged_traj_search_examples)/data/randmap_60_60/map_00006.jpg" />
+            <arg name="grid_map_file" default="$(find legged_traj_search_examples)/data/randmap2_60_60/map_00012.jpg" />
             <arg name="grid_map_file_ceiling" default="$(find legged_traj_plan_examples)/data/traj_opt_demo/3-RandCorridor-ceiling.png" />
             <arg name="elevation_layer" default="elevation" />
             <arg name="ceiling_layer" default="ceiling" />
@@ -103,7 +103,7 @@
             <arg name="test_rate" default="$(arg test_rate)" />
             <arg name="grid_map_topic" default="$(arg grid_map_topic)" />
             <arg name="grid_map_update_rate" default="$(arg grid_map_update_rate)" />
-            <arg name="grid_map_file" default="$(find legged_traj_search_examples)/data/randmap_60_60/map_00006.jpg" />
+            <arg name="grid_map_file" default="$(find legged_traj_search_examples)/data/randmap2_60_60/map_00012.jpg" />
             <arg name="grid_map_file_ceiling" default="$(find legged_traj_plan_examples)/data/traj_opt_demo/3-RandCorridor-ceiling.png" />
             <arg name="elevation_layer" default="elevation" />
             <arg name="ceiling_layer" default="ceiling" />
