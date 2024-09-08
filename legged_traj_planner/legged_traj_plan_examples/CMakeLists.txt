@@ -284,18 +284,8 @@ target_link_libraries(test_visualizer
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/hit_spider_planner.py
-  scripts/elspider_air_swingtraj_planner.py
-
-  scripts/traj_opt_demo.py
-
   scripts/image_publisher.py
-  scripts/test_elspider_air.py
-  scripts/gridmap_sub.py
-  scripts/pointcloud_parser.py
-
   scripts/utils/joy_teleop.py
-
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

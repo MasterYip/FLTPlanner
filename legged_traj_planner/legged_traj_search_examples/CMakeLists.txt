@@ -108,7 +108,6 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 # Dynamic reconfigure
 set (DYNCFG_PATH 
-  config/cvx_trajopt.cfg
   config/gcs_example.cfg)
 execute_process(COMMAND chmod a+x ${DYNCFG_PATH}
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
