@@ -44,14 +44,25 @@ world_frame: odom
 # joint_kp_sw: [0.1, 0.15, 0.15]
 # joint_kd_sw: [2, 2, 2]
 
-# VMC with PD
+# # VMC with PD
+# gravity: 9.81
+# loop_rate: 200.0
+# Kp: 25.0
+# Kd: 10.0 # kd = 2 \zeta \sqrt(kp)
+# joint_kp_st: [0.06, 0.06, 0.06]
+# # joint_kp_st: [0.02, 0.03, 0.03]
+# # joint_kp_st: [0.005, 0.005, 0.005]
+# joint_kd_st: [0.4, 0.4, 0.4]
+# joint_kp_sw: [0.02, 0.02, 0.02]
+# joint_kd_sw: [0.4, 0.4, 0.4]
+
+
+# Soft PD + VMC
 gravity: 9.81
 loop_rate: 200.0
-Kp: 25.0
-Kd: 10.0 # kd = 2 \zeta \sqrt(kp)
-joint_kp_st: [0.06, 0.06, 0.06]
-# joint_kp_st: [0.02, 0.03, 0.03]
-# joint_kp_st: [0.005, 0.005, 0.005]
+Kp: 9.0
+Kd: 6.0 # kd = 2 \zeta \sqrt(kp)
+joint_kp_st: [0.02, 0.03, 0.03]
 joint_kd_st: [0.4, 0.4, 0.4]
-joint_kp_sw: [0.02, 0.02, 0.02]
+joint_kp_sw: [0.02, 0.03, 0.03]
 joint_kd_sw: [0.4, 0.4, 0.4]
