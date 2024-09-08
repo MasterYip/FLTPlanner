@@ -17,16 +17,16 @@
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
     <arg name="resolution" value="0.025" />
     <!-- Ground -->
-    <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain2-HalfSideSlope-ground.png" /> -->
-    <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ground.png" />
+    <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/test_terrains/Terrain2-HalfSideSlope-ground.png" /> -->
+    <!-- <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/test_terrains/Terrain1-DualBarrier-ground.png" />
     <arg name="min_height" value="0" />
     <arg name="max_height" value="0.35" /> -->
-    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain3-Stairs-ground.png" />
+    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/data/test_terrains/Terrain3-Stairs-ground.png" />
     <arg name="min_height" value="0" />
     <arg name="max_height" value="0.48" />
     <!-- Ceiling -->
     <arg name="with_ceiling" value="false" />
-    <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/data/hit_spider_walking_demo/Terrain1-DualBarrier-ceiling.png" />
+    <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/data/test_terrains/Terrain1-DualBarrier-ceiling.png" />
     <arg name="min_height_ceiling" value="0.0" />
     <arg name="max_height_ceiling" value="0.5" />
     <!-- Only used when fake_feedback=true -->

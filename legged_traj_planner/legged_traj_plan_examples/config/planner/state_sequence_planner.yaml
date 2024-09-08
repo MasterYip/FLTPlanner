@@ -5,7 +5,7 @@ misc:
   reOptimize: true
   reOptimizeMaxTry: 1000
   enableVis: true
-  enableOptVis: true
+  enableOptVis: false
   optVisRate: 6
 #   enableBenchmark: true
 #   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv

@@ -36,13 +36,15 @@
 
 /* external project header files */
 #include <ros/ros.h>
-// #include <geometry_msgs/Pose.h>
-// #include <geometry_msgs/Twist.h>
-// #include <geometry_msgs/PoseStamped.h>
-// #include <geometry_msgs/TransformStamped.h>
-// #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-// #include <tf2_ros/transform_listener.h>
-// #include <tf2_eigen/tf2_eigen.h>
+
+// BUG
+// IMPORTANT: Add this function to avoid Convex hull display error. (unknown reason)
+void AVOID_DISPLAY_ERROR(void)
+{
+    Eigen::Vector3d vec(1, 1, 1);
+    quickhull::QuickHull<double> qh;
+    const auto cvxHull = qh.getConvexHull(vec.data(), vec.cols(), false, false);
+}
 
 class ElSpiderAirPlannerBase
 {
