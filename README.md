@@ -15,8 +15,8 @@ Then change the folder name to `src`.
 
 A simple co-simulation for ElSpider Air.
 
-![Co-simulation Framework](legged_traj_plan_examples/doc/elspider_air_cosim_sch.png)
-![Cosimulation example](legged_traj_plan_examples/doc/eg_elspider_air_cosimulation.png)
+<!-- ![Co-simulation Framework](legged_traj_plan_examples/doc/elspider_air_cosim_sch.png)
+![Cosimulation example](legged_traj_plan_examples/doc/eg_elspider_air_cosimulation.png) -->
 
 #### Dependent Repos
 
@@ -53,14 +53,9 @@ A simple co-simulation for ElSpider Air.
 │   ├── build
 │   ├── devel
 │   └── src
-│       └── HexapodSoftware
-├── legged_ws
-│   ├── build
-│   ├── devel
-│   ├── logs
-│   └── src
 │       ├── hpp-fcl
-│       └── pinocchio
+│       ├── pinocchio
+│       └── HexapodSoftware
 ├── perception_ws
 │   ├── build
 │   ├── devel
@@ -106,20 +101,6 @@ teleop_type:=PS5
 Legacy:
 
 ```bash
-roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch \
-fake_feedback:=true \
-sim:=true \
-teleop_type:=keyboard
-```
-
-```bash
-roslaunch legged_traj_plan_examples elspider_air_raibert_vmc_planner.launch \
-fake_feedback:=true \
-sim:=true \
-teleop_type:=PS5
-```
-
-```bash
 roslaunch legged_traj_plan_examples elspider_air_simple_raibert_vmc_planner.launch \
 fake_feedback:=true \
 sim:=true \
@@ -138,10 +119,6 @@ gazebo_hang_up:=false \
 interface_type:=gazebo
 # Terminal2: start Planner & elevation mapping
 roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch sim:=true
-#or
-roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=true
-#or
-roslaunch legged_traj_plan_examples elspider_air_vmc_planner.launch sim:=true
 #or
 roslaunch legged_traj_plan_examples elspider_air_raibert_vmc_planner.launch sim:=true
 #or
@@ -166,10 +143,6 @@ roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch s
 #or
 roslaunch legged_traj_plan_examples elspider_air_raibert_planner.launch sim:=false use_optitrack:=true demo_name:=hardware
 #or
-roslaunch legged_traj_plan_examples elspider_air_simple_planner.launch sim:=false use_optitrack:=true
-#or
-roslaunch legged_traj_plan_examples elspider_air_vmc_planner.launch sim:=false use_optitrack:=true
-#or
 roslaunch legged_traj_plan_examples elspider_air_raibert_vmc_planner.launch sim:=false
 #or
 roslaunch legged_traj_plan_examples elspider_air_simple_raibert_vmc_planner.launch sim:=false
@@ -179,25 +152,13 @@ Settings are listed in `elspider_air_simple_planner.launch`.
 
 ROS bag recording:
 
-```bash
-rosbag record \
-/tf \
-/tf_static \
-/grid_map \
-/elspider_air_simple_planner/grid_map_trav_test \
-/swing_traj_planner_vis \
-/hexapod/foot_state_fdb \
--o elspider_air_planner.bag
-```
-
-Or you can set the `rosbag_record:=true` in the launch file.
+Set the `rosbag_record:=true` in the launch file.
 
 ROS bag playback:
 
 ```bash
-roslaunch legged_traj_plan_examples rosbag_playback.launch 
+roslaunch legged_traj_plan_examples rosbag_playback.launch
 ```
-
 
 ##### Usage
 

@@ -176,23 +176,6 @@ target_link_libraries(elspider_air_raibert_planner
   ${PROJECT_NAME}
 )
 
-## [Deprecated]
-# ElSpiderAirSimplePlanner 
-add_executable(elspider_air_simple_planner src/elspider_air_simple_planner.cpp)
-target_link_libraries(elspider_air_simple_planner
-  ${catkin_LIBRARIES}
-  ${PROJECT_NAME}
-  mcts_planner
-)
-
-
-# ElSpiderAirVMCPlanner
-add_executable(elspider_air_vmc_planner src/elspider_air_vmc_planner.cpp)
-target_link_libraries(elspider_air_vmc_planner
-  ${catkin_LIBRARIES}
-  ${PROJECT_NAME}
-  mcts_planner
-)
 
 # ElSpiderAirRaibertVMCPlanner
 add_executable(elspider_air_raibert_vmc_planner src/elspider_air_raibert_vmc_planner.cpp)
