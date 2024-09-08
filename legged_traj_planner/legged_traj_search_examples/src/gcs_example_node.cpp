@@ -10,7 +10,7 @@
  */
 
 /* related header files */
-#include "legged_traj_search_examples/gcs_example/gcs_example.hpp"
+#include "legged_traj_search_examples/gcs_example.hpp"
 
 int main(int argc, char **argv)
 {

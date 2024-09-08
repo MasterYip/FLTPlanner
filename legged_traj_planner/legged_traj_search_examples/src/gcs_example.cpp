@@ -10,7 +10,7 @@
  */
 
 /* related header files */
-#include "legged_traj_search_examples/gcs_example/gcs_example.hpp"
+#include "legged_traj_search_examples/gcs_example.hpp"
 /* c system header files */
 
 /* c++ standard library header files */
@@ -222,7 +222,6 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
             std::cout << "Warning: Goal is not reachable" << std::endl;
         else
             std::cout << "Warning: String Straining Search failed" << std::endl;
-        gcs_visualizer_.delAll();
         return false;
     }
     else
@@ -231,7 +230,6 @@ bool GCS_Example::gcs_path_search(std::vector<Polyhedra> polys, Point3D start3d,
         if (!use_string_straining && !poly_traj_search.search(start3d, goal3d, path))
         {
             std::cout << "Warning: A star search failed" << std::endl;
-            gcs_visualizer_.delAll();
             return false;
         }
         else
@@ -586,11 +584,11 @@ void GCS_Example::eg_gcs_rand_corridor_demo()
     std::cout << "Press any key to continue..." << std::endl;
     getchar();
 
-    gcs_visualizer_.delAll();
     std::vector<Polyhedra> polys;
     Point3D start, goal;
     do
     {
+        gcs_visualizer_.delAll();
         polys.clear();
         for (int i = 0; i < poly_num; i++)
         {
