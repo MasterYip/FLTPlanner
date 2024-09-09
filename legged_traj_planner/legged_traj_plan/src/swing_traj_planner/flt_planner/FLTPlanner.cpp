@@ -69,7 +69,7 @@ bool FLTPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
                                 uint index, bool verbose)
 {
     poly_traj.clear();
-    gridmap_interface_->lockMapUpdate();
+    // gridmap_interface_->lockMapUpdate();
     Eigen::Matrix3Xd hull = robot_interface_->getFootPolyhedra(index).getVRep();
     std::vector<Polyhedra> hulls;
     hulls.emplace_back(Polyhedra(Eigen::Matrix3Xd(points_SE3Act(pose0.inverse(), hull))));
@@ -104,7 +104,7 @@ bool FLTPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
             std::cout << "Warning: poly_traj_search.search failed" << std::endl;
         return false;
     }
-    gridmap_interface_->unlockMapUpdate();
+    // gridmap_interface_->unlockMapUpdate();
 
     if (config_.enableVis)
     {
@@ -303,7 +303,7 @@ bool FLTCfgPlanner::searchPolyTrajWithKin(std::vector<Point3D> &poly_traj,
                                    uint index, bool verbose)
 {
     poly_traj.clear();
-    gridmap_interface_->lockMapUpdate();
+    // gridmap_interface_->lockMapUpdate();
     std::unique_ptr<PolyTrajSearch> poly_traj_search;
 
     // Use LeggedBorderCheck
@@ -324,7 +324,7 @@ bool FLTCfgPlanner::searchPolyTrajWithKin(std::vector<Point3D> &poly_traj,
     bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
     bool ret_reachable = poly_traj_search->reachable(p0, p1);
     bool ret_search = poly_traj_search->search(p0, p1, poly_traj);
-    gridmap_interface_->unlockMapUpdate();
+    // gridmap_interface_->unlockMapUpdate();
 
     if (verbose)
     {
@@ -398,7 +398,7 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
                                    uint index, bool verbose)
 {
     poly_traj.clear();
-    gridmap_interface_->lockMapUpdate();
+    // gridmap_interface_->lockMapUpdate();
     std::unique_ptr<PolyTrajSearch> poly_traj_search;
 
     // Use CorridorBorderCheck
@@ -414,7 +414,7 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
     bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
     bool ret_reachable = poly_traj_search->reachable(p0, p1);
     bool ret_search = poly_traj_search->search(p0, p1, poly_traj);
-    gridmap_interface_->unlockMapUpdate();
+    // gridmap_interface_->unlockMapUpdate();
 
     if (verbose)
     {

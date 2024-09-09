@@ -68,7 +68,6 @@ void GridMapInterface::callback_ceiling(const grid_map_msgs::GridMap &msg)
     if (!map_update_lock_ && map_.exists(ground_layer))
     {
         grid_map::GridMapRosConverter::fromMessage(msg, map_ceiling_);
-
     }
 }
 

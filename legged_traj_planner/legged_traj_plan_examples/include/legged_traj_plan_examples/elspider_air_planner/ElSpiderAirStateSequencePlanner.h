@@ -257,6 +257,7 @@ public:
         else
         {
             motion_lock_ = true;
+            gridmap_interface_->lockMapUpdate();
             cmd_ = msg;
             state_sequence_planner_.visClear();
 
@@ -267,14 +268,12 @@ public:
                 ros::spinOnce();
                 // update robot state
                 update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
-                // update_exp_path(cmd_);
-                update_exp_path_xlock();
+                update_exp_path(cmd_);
+                // update_exp_path_xlock();
                 // MCTS planning
-                gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
                                                         gridmap_interface_->getMap(), true, config_.cmdMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
-                gridmap_interface_->unlockMapUpdate();
             }
 
             // Visualization
@@ -307,6 +306,7 @@ public:
             state_traj_replay(state_sequence_planner_.get_state_traj(0));
             traj_planner();
             motion_lock_ = false;
+            gridmap_interface_->unlockMapUpdate();
         }
     }
 
@@ -317,6 +317,8 @@ public:
         else
         {
             motion_lock_ = true;
+            gridmap_interface_->lockMapUpdate();
+
             nav_ = msg;
             state_sequence_planner_.visClear();
 
@@ -331,11 +333,9 @@ public:
                 planned_states_.clear();
 
                 // MCTS planning
-                gridmap_interface_->lockMapUpdate();
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, planned_states_, exp_path_,
                                                         gridmap_interface_->getMap(), config_.navMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
-                gridmap_interface_->unlockMapUpdate();
             }
 
             // Visualization
@@ -373,6 +373,7 @@ public:
             states_replay(state_sequence_planner_);
             traj_planner();
             motion_lock_ = false;
+            gridmap_interface_->unlockMapUpdate();
         }
     }
 
