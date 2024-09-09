@@ -131,6 +131,7 @@ Hardware | Perception & Planning & Control:
 # Terminal1: start HexapodSoftware Hardware
 # Get in to sudo mode
 sudo su
+source /home/user/HexLabCodeSpace/hexapod_ws/devel/setup.bash
 # Start HexapodSoftware (after source the workspace)
 roslaunch user main.launch \
 controller_type:=hlc \

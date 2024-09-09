@@ -68,8 +68,7 @@ void GridMapInterface::callback_ceiling(const grid_map_msgs::GridMap &msg)
     if (!map_update_lock_ && map_.exists(ground_layer))
     {
         grid_map::GridMapRosConverter::fromMessage(msg, map_ceiling_);
-        map_.add(ceiling_layer, map_ceiling_.get(ceiling_layer));
-        update();
+
     }
 }
 
@@ -82,6 +81,9 @@ void GridMapInterface::update(bool block, double sdf_margin)
         ros::spinOnce();
         ros::Duration(0.5).sleep();
     }
+    // Sensor ceiling map
+    if (map_ceiling_.exists(ceiling_layer) && !map_ceiling_.get(ceiling_layer).hasNaN())
+        map_.add(ceiling_layer, map_ceiling_.get(ceiling_layer));
     if (!map_recv_flag_)
     {
         map_recv_flag_ = true;
