@@ -35,6 +35,7 @@ struct GridMapInterfaceConfig
 {
     std::string topicName;
     std::string groundLayerName;
+    std::string topicNameCeiling;
     std::string ceilingLayerName;
 
     // SDF
@@ -51,6 +52,7 @@ struct GridMapInterfaceConfig
         bool check_digit = true;
         check_digit &= nh.getParam(ns + "/topicName", topicName);
         check_digit &= nh.getParam(ns + "/groundLayerName", groundLayerName);
+        check_digit &= nh.getParam(ns + "/topicNameCeiling", topicNameCeiling);
         check_digit &= nh.getParam(ns + "/ceilingLayerName", ceilingLayerName);
         check_digit &= nh.getParam(ns + "/sdfMargin", sdfMargin);
         check_digit &= nh.getParam(ns + "/normalTangentCrtic", normalTangentCrtic);
@@ -69,6 +71,8 @@ private:
 
     ros::Subscriber sub_;
     grid_map::GridMap map_;
+    ros::Subscriber sub_ceiling_;
+    grid_map::GridMap map_ceiling_;
     std::unique_ptr<grid_map::SignedDistanceField> sdf_[2];
     std::pair<Eigen::Vector3d, Eigen::Vector3d> sdf_range_[2];
 
@@ -101,6 +105,7 @@ public:
     GridMapInterface(ros::NodeHandle &nh, GridMapInterfaceConfig &config);
 
     void callback(const grid_map_msgs::GridMap &msg);
+    void callback_ceiling(const grid_map_msgs::GridMap &msg);
     void update(bool block = true, double sdf_margin = 0.3); // FIXME: this should larger than robot height?
     void updateTravMap(void);
     void updateSDF(const std::string &layer_name, uint index = 0, double margin = 0.2);

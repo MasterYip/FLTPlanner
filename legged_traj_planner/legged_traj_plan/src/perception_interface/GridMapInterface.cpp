@@ -36,11 +36,13 @@ GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
 GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
                                    GridMapInterfaceConfig &config) : nh_(nh),
                                                                      config_(config)
-
 {
     ground_layer = config_.groundLayerName;
     ceiling_layer = config_.ceilingLayerName;
     sub_ = nh_.subscribe(config_.topicName, 1, &GridMapInterface::callback, this);
+    if (config_.topicNameCeiling != config_.topicName)
+        sub_ceiling_ = nh_.subscribe(config_.topicNameCeiling, 1, &GridMapInterface::callback_ceiling, this);
+
     pub_ = nh_.advertise<grid_map_msgs::GridMap>("grid_map_trav_test", 1, true);
     pointcloudPublisher_ = nh_.advertise<sensor_msgs::PointCloud2>("sdf/full_sdf", 1);
     freespacePublisher_ = nh_.advertise<sensor_msgs::PointCloud2>("sdf/free_space", 1);
@@ -56,6 +58,16 @@ void GridMapInterface::callback(const grid_map_msgs::GridMap &msg)
     if (!map_update_lock_)
     {
         grid_map::GridMapRosConverter::fromMessage(msg, map_);
+        update();
+    }
+}
+
+void GridMapInterface::callback_ceiling(const grid_map_msgs::GridMap &msg)
+{
+    if (!map_update_lock_)
+    {
+        grid_map::GridMapRosConverter::fromMessage(msg, map_ceiling_);
+        map_.add(ceiling_layer, map_ceiling_.get(ceiling_layer));
         update();
     }
 }

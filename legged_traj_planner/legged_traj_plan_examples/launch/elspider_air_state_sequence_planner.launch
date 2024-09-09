@@ -36,6 +36,7 @@
     <!-- Config -->
     <arg name="auto_benchmark" default="false" />
     <arg name="grid_map_topic" value="/grid_map" />
+    <arg name="grid_map_topic_ceiling" value="/grid_map_ceiling" />
     <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ground.png" />
     <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ceiling.png" />
     <!-- GridMap -->
@@ -69,6 +70,7 @@
             <arg name="module_name" value="HexPercept3" if="$(eval use_optitrack == 0)"/>
             <arg name="sim" value="$(arg sim)" />
             <arg name="elevation_map_raw_topic_name" value="$(arg grid_map_topic)" />
+            <arg name="ceiling_elevation_map_raw_topic_name" value="$(arg grid_map_topic_ceiling)" />
             <arg name="rviz_gui" value="false" />
             <!-- FIXME: base name conflict with HexapodSoftware -->
             <arg name="world_frame_name" value="odom"/>

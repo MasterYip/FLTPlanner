@@ -1,6 +1,7 @@
 GridMapInterface:
   topicName: /grid_map
   groundLayerName: elevation_inpainted
+  topicNameCeiling: /grid_map
   ceilingLayerName: ceiling
   sdfMargin: 0.2
   normalTangentCrtic: 1.0

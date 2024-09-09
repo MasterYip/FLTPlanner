@@ -4,11 +4,15 @@ max_height: 0.0
 min_height_ceiling: 0.0
 max_height_ceiling: 0.0
 elevation_layer: elevation_inpainted
-ceiling_layer: ceiling
+ceiling_layer: elevation_inpainted
 map_position_x: 1.0
 map_position_y: 0.0
 
 GridMapInterface: # NOTE: this override config in perception_interface.yaml
+  topicName: /grid_map
+  groundLayerName: elevation_inpainted
+  topicNameCeiling: /grid_map_ceiling
+  ceilingLayerName: elevation_inpainted
   normalTangentCrtic: 0.5
   enableHeightFilter: false
   maxHeight: 0.8
