@@ -48,6 +48,7 @@ GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
     freespacePublisher_ = nh_.advertise<sensor_msgs::PointCloud2>("sdf/free_space", 1);
     occupiedPublisher_ = nh_.advertise<sensor_msgs::PointCloud2>("sdf/occupied_space", 1);
     map_.setFrameId("map");
+    map_ceiling_.setFrameId("map");
     ground_layer_trav = ground_layer + "_trav";
 
     update();
@@ -64,7 +65,7 @@ void GridMapInterface::callback(const grid_map_msgs::GridMap &msg)
 
 void GridMapInterface::callback_ceiling(const grid_map_msgs::GridMap &msg)
 {
-    if (!map_update_lock_)
+    if (!map_update_lock_ && map_.exists(ground_layer))
     {
         grid_map::GridMapRosConverter::fromMessage(msg, map_ceiling_);
         map_.add(ceiling_layer, map_ceiling_.get(ceiling_layer));
@@ -103,15 +104,15 @@ void GridMapInterface::update(bool block, double sdf_margin)
     pub_.publish(message);
 
     // SDF
-    sensor_msgs::PointCloud2 pointCloud2Msg;
-    grid_map::GridMapRosConverter::toPointCloud(*sdf_[0], pointCloud2Msg);
-    pointcloudPublisher_.publish(pointCloud2Msg);
-    grid_map::GridMapRosConverter::toPointCloud(*sdf_[0], pointCloud2Msg, 1, [](float sdfValue)
-                                                { return sdfValue > 0.0; });
-    freespacePublisher_.publish(pointCloud2Msg);
-    grid_map::GridMapRosConverter::toPointCloud(*sdf_[0], pointCloud2Msg, 1, [](float sdfValue)
-                                                { return sdfValue <= 0.0; });
-    occupiedPublisher_.publish(pointCloud2Msg);
+    // sensor_msgs::PointCloud2 pointCloud2Msg;
+    // grid_map::GridMapRosConverter::toPointCloud(*sdf_[0], pointCloud2Msg);
+    // pointcloudPublisher_.publish(pointCloud2Msg);
+    // grid_map::GridMapRosConverter::toPointCloud(*sdf_[0], pointCloud2Msg, 1, [](float sdfValue)
+    //                                             { return sdfValue > 0.0; });
+    // freespacePublisher_.publish(pointCloud2Msg);
+    // grid_map::GridMapRosConverter::toPointCloud(*sdf_[0], pointCloud2Msg, 1, [](float sdfValue)
+    //                                             { return sdfValue <= 0.0; });
+    // occupiedPublisher_.publish(pointCloud2Msg);
 }
 
 void GridMapInterface::updateTravMap(void)
