@@ -25,7 +25,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -346,7 +346,7 @@ Visualization Manager:
       Enabled: true
       Grid Cell Decimation: 2
       Grid Line Thickness: 0.10000000149011612
-      Height Layer: elevation_inpainted
+      Height Layer: ceiling_inpainted
       Height Transformer: Layer
       History Length: 1
       Invert ColorMap: false

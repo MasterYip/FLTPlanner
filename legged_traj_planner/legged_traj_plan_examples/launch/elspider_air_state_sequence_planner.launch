@@ -5,7 +5,7 @@
     <!-- 1_stairs / 2_stairs / 3_quincuncial_piles 
     / 4_barrier / 4_barrier_vague / 4_ushape_barrier
     / 5_channel / 6_fractal-->
-    <arg name="demo_name" default="4_ushape_barrier" />
+    <arg name="demo_name" default="hardware" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
     <!-- minco_cfg_planner -->
@@ -25,6 +25,7 @@
     <arg name="use_optitrack" default="false" />
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
     <arg name="with_ceiling" default="true"/>
+    <arg name="ground_ceiling_boundary" default="0.3" /> <!-- For real-time mapping -->
     <!-- ROS bag record (under ~/.ros) -->
     <arg name="rosbag_record" default="false" />
     <!-- Rviz visualization -->
@@ -69,6 +70,8 @@
             <arg name="module_name" value="HexPercept3_optitrack" if="$(eval use_optitrack == 1)"/>
             <arg name="module_name" value="HexPercept3" if="$(eval use_optitrack == 0)"/>
             <arg name="sim" value="$(arg sim)" />
+            <arg name="with_ceiling" value="$(arg with_ceiling)" />
+            <arg name="ground_ceiling_boundary" value="$(arg ground_ceiling_boundary)" />
             <arg name="elevation_map_raw_topic_name" value="$(arg grid_map_topic)" />
             <arg name="ceiling_elevation_map_raw_topic_name" value="$(arg grid_map_topic_ceiling)" />
             <arg name="rviz_gui" value="false" />
