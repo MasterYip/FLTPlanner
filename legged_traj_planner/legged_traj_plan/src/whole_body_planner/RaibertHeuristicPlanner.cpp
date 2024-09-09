@@ -97,7 +97,6 @@ void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_
     if (last_footholds.size() == 6) // Not empty
     {
         last_footholds_ = last_footholds;
-        // footpos_cache_ = last_footholds; // Update cache
     }
 }
 
@@ -451,7 +450,7 @@ bool RaibertHeuristicPlanner::queryCfg(double t, pinocchio::SE3 &pose,
             else
             {
                 ROS_WARN("No valid leg_traj found for leg %d at time %f", i, t);
-                foot_pos_list.emplace_back(nominal_foothold_base_[i]);
+                foot_pos_list.emplace_back(robot_interface_->IKFast_foot(nominal_foothold_base_[i], i));
             }
         }
     }
