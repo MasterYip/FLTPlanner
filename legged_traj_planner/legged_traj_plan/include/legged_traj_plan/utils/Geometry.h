@@ -80,6 +80,24 @@ inline double inZCylinderSoft(const Eigen::Vector3d &pos, const Eigen::Vector3d 
                             (center(2) - pos(2) - rmin) / (rmax - rmin)));
 }
 
+inline double inSphereCylinderSoft(const Eigen::Vector3d &pos, const Eigen::Vector3d &center,
+                                   const Eigen::Vector3d &dir, double rmin, double rmax)
+{
+    Eigen::Vector3d dir_norm = dir;
+    dir_norm.normalize();
+    double dist_r = (pos - center).norm();
+    double dist_axis = dir_norm.dot(pos - center);
+    double dist_perp = dir_norm.cross(pos - center).norm();
+    double dist = dist_axis > 0 ? dist_perp : dist_r;
+    if (dist < rmin)
+        return 1.0;
+    else if (dist > rmax)
+        return 0.0;
+    else
+        return 1 - sine_remap((dist - rmin) / (rmax - rmin));
+
+}
+
 inline bool inSphere(const Eigen::Vector3d &pos, const Eigen::Vector3d &center, double radius)
 {
     return (pos - center).norm() < radius;

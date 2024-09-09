@@ -210,8 +210,14 @@ public:
         // Foot Collision
         pos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
         sdf = gridmap_interface_->sdfValue(pos, sdf_mode);
-        double exclude_weight = std::min(1.0-inZCylinderSoft(pos, startExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
-                                         1.0-inZCylinderSoft(pos, endExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
+        sdfGrad = gridmap_interface_->minSdfDerivative(pos);
+        // FIXME: Which exclude method is better?
+        double exclude_weight = 1.0 - std::max(inSphereSoft(pos, startExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
+                                               inSphereSoft(pos, endExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
+        // double exclude_weight = std::min(1.0-inZCylinderSoft(pos, startExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
+        //                                  1.0-inZCylinderSoft(pos, endExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
+        // double exclude_weight = 1.0 - std::max(inSphereCylinderSoft(pos, startExcludeBall_, sdfGrad, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
+        //                                        inSphereCylinderSoft(pos, endExcludeBall_, sdfGrad, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
         if (exclude_weight > 0 &&
             smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
@@ -225,7 +231,7 @@ public:
             veldir.normalize();
             velnorm = vel.norm();
             kappa = 1 / (velnorm * velnorm) * (I - veldir * veldir.transpose()) * acc;
-            sdfGrad = gridmap_interface_->minSdfDerivative(pos);
+            
             gradPcoll = -df * sdfGrad / sdfGrad.norm();
             Eigen::Vector3d dg = weight_(2) * velnorm * J.transpose() *
                                  ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
