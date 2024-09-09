@@ -210,19 +210,13 @@ public:
         // Foot Collision
         pos = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index));
         sdf = gridmap_interface_->sdfValue(pos, sdf_mode);
-        double start_dis = (pos - startExcludeBall_).norm();
-        double end_dis = (pos - endExcludeBall_).norm();
-        double exclude_weight = 1;
-        if (start_dis > endCollExcludeRadius_ &&
-            end_dis > endCollExcludeRadius_ &&
+        double exclude_weight = std::min(1.0-inZCylinderSoft(pos, startExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
+                                         1.0-inZCylinderSoft(pos, endExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
+        if (exclude_weight > 0 &&
             smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
-            if (std::min(start_dis, end_dis) < endCollExcludeRadius_ + endCollExcludeSmooth_)
-            {
-                exclude_weight = sine_remap((std::min(start_dis, end_dis) - endCollExcludeRadius_) / endCollExcludeSmooth_);
-                f *= exclude_weight;
-                df *= exclude_weight;
-            }
+            f *= exclude_weight;
+            df *= exclude_weight;
             J = robot_interface_->getJacobian(posCfg, index);
             dJ = robot_interface_->getJacobianTimeVariation(posCfg, velCfg, index);
             vel = vec_SE3Act(pose.inverse(), J * velCfg);

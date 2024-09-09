@@ -46,22 +46,6 @@
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-/**
- * @brief Check if a point is in the exclude cylinder
- *
- * @note The exclude cylinder is defined by a center and a radius,
- * the top height is infinite, the bottom height is at the center height minus the radius
- * @param pos
- * @param center
- * @param radius
- * @return true
- * @return false
- */
-inline bool inExcludeCylinder(const Eigen::Vector3d &pos, const Eigen::Vector3d &center, double radius)
-{
-    return (pos.head(2) - center.head(2)).norm() < radius && pos(2) > center(2) - radius;
-}
-
 class SwingTrajOptRRT
 {
 private:
@@ -116,8 +100,8 @@ public:
         const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
         Eigen::Vector3d pos_vec(pos->values[0], pos->values[1], pos->values[2]);
         double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
-        if (!inExcludeCylinder(pos_vec, start_exclude_cylinder_, exclude_radius_) &&
-            !inExcludeCylinder(pos_vec, end_exclude_cylinder_, exclude_radius_) &&
+        if (!inZCylinder(pos_vec, start_exclude_cylinder_, exclude_radius_) &&
+            !inZCylinder(pos_vec, end_exclude_cylinder_, exclude_radius_) &&
             collball_radius_ > sdf - coll_margin_)
             return false;
         // if (robot_interface_->getFootPolyhedra(index).)
@@ -234,9 +218,8 @@ public:
                                     pose1_(pose1),
                                     start_exclude_cylinder_(start_exclude_cylinder),
                                     end_exclude_cylinder_(end_exclude_cylinder),
-                                    index_(index)
-    {
-    };
+                                    index_(index) {
+                                    };
     bool isValid(const ob::State *state) const override
     {
         const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
@@ -244,8 +227,8 @@ public:
                                              robot_interface_->FK_foot(Eigen::Vector3d(pos->values[0], pos->values[1], pos->values[2]), index_)));
 
         double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
-        if (!inExcludeCylinder(pos_vec, start_exclude_cylinder_, config_.excludeRadius) &&
-            !inExcludeCylinder(pos_vec, end_exclude_cylinder_, config_.excludeRadius) &&
+        if (!inZCylinder(pos_vec, start_exclude_cylinder_, config_.excludeRadius) &&
+            !inZCylinder(pos_vec, end_exclude_cylinder_, config_.excludeRadius) &&
             config_.collBallRadius > sdf - config_.collMargin)
         {
             return false;
@@ -262,8 +245,8 @@ public:
         const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
         Eigen::Vector3d pos_vec(point_SE3Act(poseLinearInterp(pose0_, pose1_, pos->values[3]).inverse(),
                                              robot_interface_->FK_foot(Eigen::Vector3d(pos->values[0], pos->values[1], pos->values[2]), index_)));
-        if (inExcludeCylinder(pos_vec, start_exclude_cylinder_, config_.excludeRadius) ||
-            inExcludeCylinder(pos_vec, end_exclude_cylinder_, config_.excludeRadius))
+        if (inZCylinder(pos_vec, start_exclude_cylinder_, config_.excludeRadius) ||
+            inZCylinder(pos_vec, end_exclude_cylinder_, config_.excludeRadius))
         {
             return config_.excludeRadius;
         }

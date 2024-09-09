@@ -35,11 +35,64 @@ pinocchio::SE3 poseLinearInterp(pinocchio::SE3 pose0, pinocchio::SE3 pose1, doub
 
 /**
  * @brief Fit a plane to a set of points
- * 
- * @param points 
- * @param plane (a, b, c, d) such that ax + by + cz + d = 0 
+ *
+ * @param points
+ * @param plane (a, b, c, d) such that ax + by + cz + d = 0
  * (normal vector is (a, b, c) and d is the distance from the origin to the plane
- * @return true 
- * @return false 
+ * @return true
+ * @return false
  */
 bool plane_fitting(const std::vector<Eigen::Vector3d> &points, Eigen::Vector3d &plane);
+
+inline double sine_remap(double t)
+{
+    return 0.5 * (1 + std::sin(M_PI * (t - 0.5)));
+}
+
+// Exclude Checks
+
+/**
+ * @brief Check if a point is in the Z-axis cylinder
+ *
+ * @note The exclude cylinder is defined by a center and a radius,
+ * the top height is infinite, the bottom height is at the center height minus the radius
+ * @param pos
+ * @param center
+ * @param radius
+ * @return true
+ * @return false
+ */
+inline bool inZCylinder(const Eigen::Vector3d &pos, const Eigen::Vector3d &center, double radius)
+{
+    return (pos.head(2) - center.head(2)).norm() < radius && pos(2) > center(2) - radius;
+}
+
+inline double inZCylinderSoft(const Eigen::Vector3d &pos, const Eigen::Vector3d &center,
+                              double rmin, double rmax)
+{
+    double dist = (pos.head(2) - center.head(2)).norm();
+    if (dist < rmin && pos(2) > center(2) - rmin)
+        return 1.0;
+    else if (dist > rmax || pos(2) < center(2) - rmax)
+        return 0.0;
+    else
+        return 1 - std::max(sine_remap((dist - rmin) / (rmax - rmin)),
+                            sine_remap((center(2) - pos(2) - rmin) / (rmax - rmin)));
+}
+
+inline bool inSphere(const Eigen::Vector3d &pos, const Eigen::Vector3d &center, double radius)
+{
+    return (pos - center).norm() < radius;
+}
+
+inline double inSphereSoft(const Eigen::Vector3d &pos, const Eigen::Vector3d &center,
+                           double rmin, double rmax)
+{
+    double dist = (pos - center).norm();
+    if (dist < rmin)
+        return 1.0;
+    else if (dist > rmax)
+        return 0.0;
+    else
+        return 1 - sine_remap((dist - rmin) / (rmax - rmin));
+}
