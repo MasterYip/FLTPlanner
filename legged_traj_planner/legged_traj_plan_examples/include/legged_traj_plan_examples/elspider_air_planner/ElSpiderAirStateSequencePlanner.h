@@ -127,6 +127,7 @@ namespace DemoFiles
 struct ElSpiderAirStateSequencePlannerConfig
 {
     int rosRate;
+    double stepTime;
 
     int cmdMctsSearchNodeNum;
     int navMctsSearchNodeNum;
@@ -149,6 +150,7 @@ struct ElSpiderAirStateSequencePlannerConfig
     {
         bool check_digit = true;
         check_digit &= nh.getParam(ns + "/rosRate", rosRate);
+        check_digit &= nh.getParam(ns + "/stepTime", stepTime);
         check_digit &= nh.getParam(ns + "/cmdMctsSearchNodeNum", cmdMctsSearchNodeNum);
         check_digit &= nh.getParam(ns + "/navMctsSearchNodeNum", navMctsSearchNodeNum);
         check_digit &= nh.getParam(ns + "/cmdExtrapolatePointNum", cmdExtrapolatePointNum);
@@ -549,7 +551,7 @@ public:
     void traj_planner()
     {
         double t = 0.0;
-        double delta = 0.005;
+        double delta = 1 / config_.stepTime / config_.rosRate;
 
         if (config_.swingTrajPreOpt)
         {

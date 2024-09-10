@@ -14,6 +14,7 @@ misc:
 
 StateSequencePlanner:
   rosRate: 100
+  stepTime: 4
   cmdMctsSearchNodeNum: 100
   navMctsSearchNodeNum: 600
   cmdExtrapolatePointNum: 50
