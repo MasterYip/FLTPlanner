@@ -212,12 +212,12 @@ public:
         sdf = gridmap_interface_->sdfValue(pos, sdf_mode);
         sdfGrad = gridmap_interface_->minSdfDerivative(pos);
         // FIXME: Which exclude method is better?
-        double exclude_weight = 1.0 - std::max(inSphereSoft(pos, startExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
-                                               inSphereSoft(pos, endExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
+        // double exclude_weight = 1.0 - std::max(inSphereSoft(pos, startExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
+        //                                        inSphereSoft(pos, endExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
         // double exclude_weight = std::min(1.0-inZCylinderSoft(pos, startExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
         //                                  1.0-inZCylinderSoft(pos, endExcludeBall_, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
-        // double exclude_weight = 1.0 - std::max(inSphereCylinderSoft(pos, startExcludeBall_, sdfGrad, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
-        //                                        inSphereCylinderSoft(pos, endExcludeBall_, sdfGrad, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
+        double exclude_weight = 1.0 - std::max(inSphereCylinderSoft(pos, startExcludeBall_, sdfGrad, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_),
+                                               inSphereCylinderSoft(pos, endExcludeBall_, sdfGrad, endCollExcludeRadius_, endCollExcludeRadius_ + endCollExcludeSmooth_));
         if (exclude_weight > 0 &&
             smoothedL1(collBallRadius_(2) - sdf, mu_, f, df))
         {
