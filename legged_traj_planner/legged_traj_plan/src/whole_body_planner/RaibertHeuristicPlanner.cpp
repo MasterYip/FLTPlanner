@@ -49,7 +49,6 @@ SimpleRaibertPlanner::SimpleRaibertPlanner(std::shared_ptr<GridMapInterface> gri
 
     last_footholds_.resize(6);
     next_footholds_.resize(6);
-    // footpos_cache_.resize(6);
 }
 
 void SimpleRaibertPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
@@ -69,8 +68,8 @@ void SimpleRaibertPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
     update(pose, geometry_msgs::Twist(), foot_pos_list);
 }
 
-void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
-                                  PosList last_footholds)
+void SimpleRaibertPlanner::update(const pinocchio::SE3 pose, const geometry_msgs::Twist cmd_vel,
+                                  const PosList last_footholds)
 {
     update_time_ = ros::Time::now().toSec();
     cmd_vel_extrapolator_.update(pose, cmd_vel);
@@ -93,9 +92,11 @@ void SimpleRaibertPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_
         }
     }
 
+    // Reset footholds
     if (last_footholds.size() == 6) // Not empty
     {
         last_footholds_ = last_footholds;
+        next_footholds_ = last_footholds;
     }
 }
 
@@ -128,11 +129,9 @@ bool SimpleRaibertPlanner::query(double t, pinocchio::SE3 &pose,
             hermite_knots.row(3) << 0, 0, -vLift_;
             foot_pos_list.emplace_back(cubic_evaluate(HERMITE_COE_MAT, hermite_knots, progress, 0));
             support_state[i] = false;
-            // footpos_cache_[i] = foot_pos_list.back();
         }
         else
         {
-            // foot_pos_list.emplace_back(footpos_cache_[i]);
             foot_pos_list.emplace_back(next_footholds_[i]);
         }
     }

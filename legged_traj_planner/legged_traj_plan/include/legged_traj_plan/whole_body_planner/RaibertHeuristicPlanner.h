@@ -268,8 +268,15 @@ public:
      */
     void start(pinocchio::SE3 pose, PosList foot_pos_list = PosList());
 
-    void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
-                PosList last_footholds = PosList());
+    /**
+     * @brief 
+     * 
+     * @param pose 
+     * @param cmd_vel 
+     * @param last_footholds Foot pos in WORLD frame
+     */
+    void update(const pinocchio::SE3 pose, const geometry_msgs::Twist cmd_vel,
+                const PosList last_footholds = PosList());
 
     bool query(double t, pinocchio::SE3 &pose, PosList &foot_pos_list,
                std::array<bool, 6> &support_state);

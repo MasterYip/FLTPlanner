@@ -111,6 +111,7 @@
             <rosparam command="load" file="$(find hexapod_controller)/config/vmc_config.yaml" if="$(eval sim==0)" />
             <rosparam command="load" file="$(find hexapod_controller)/config/vmc_config_sim.yaml" if="$(eval sim==1)" />
             <param name="sim" value="$(arg sim)" />
+            <param name="use_joint_cmd" value="false" />
         </node>
     </group>
 
