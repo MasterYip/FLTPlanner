@@ -77,28 +77,32 @@ public:
                                         rate_(loop_rate_)
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimpleRaibertPlanner::cmd_callback, this);
+        timer_ = nh_.createTimer(ros::Duration(1.0 / timer_loop_rate_), &ElSpiderAirSimpleRaibertPlanner::timer_callback, this);
+
 
         PosList pose_sample_pts;
         for (double x = -0.4; x <= 0.4; x += 0.2)
             for (double y = -0.4; y <= 0.4; y += 0.2)
                 pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
         cmd_extrapolator_.init(gridmap_interface_, pose_sample_pts);
-
-        timer_ = nh_.createTimer(ros::Duration(1.0 / timer_loop_rate_), &ElSpiderAirSimpleRaibertPlanner::timer_callback, this);
-
         
         // Planner Init
+        ros::Duration(1.0).sleep();
         update_fdb();
-        PosList foot_pos_list;
-        legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
-        for (size_t k = 0; k < 6; ++k)
-        {
-            Eigen::Vector3d pos;
-            pos << foot_state.position[k].x, foot_state.position[k].y, foot_state.position[k].z;
-            foot_pos_list.emplace_back(point_SE3Act(body_pose_.inverse(), pos));
-        }
-        whole_body_planner_.start(body_pose_, foot_pos_list);
+        whole_body_planner_.start(body_pose_, getFootPos());
+        cmd_extrapolator_.update(body_pose_);
+    }
 
+    PosList getFootPos()
+    {
+        legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
+        auto pose = robot_interface_->getBodyPoseFdb();
+        PosList foot_pos_list;
+        for (size_t i = 0; i < 6; ++i)
+        {
+            foot_pos_list.push_back(point_SE3Act(pose.inverse(), Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z)));
+        }
+        return foot_pos_list;
     }
 
     void update_fdb()
@@ -130,8 +134,6 @@ public:
     {
         // Update body state
         update_fdb();
-
-        cmd_extrapolator_.update(body_pose_);
         
         // Exp body state Publish
         pinocchio::SE3 exp_pose;

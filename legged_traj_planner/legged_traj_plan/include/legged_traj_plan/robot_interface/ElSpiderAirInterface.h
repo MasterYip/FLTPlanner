@@ -195,6 +195,7 @@ public:
     }
 
     // Feedback Interface
+    // Foot state in BASE frame
     virtual const legged_traj_plan::FootState &getFootStateFdb() const
     {
         throw std::runtime_error("Not implemented");

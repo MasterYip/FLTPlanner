@@ -264,7 +264,7 @@ public:
      * @brief Start the planner
      * 
      * @param pose 
-     * @param foot_pos_list World frame 
+     * @param foot_pos_list Foot pos in WORLD frame 
      */
     void start(pinocchio::SE3 pose, PosList foot_pos_list = PosList());
 

@@ -117,13 +117,15 @@ public:
         raibert_planner_.start(robot_interface_->getBodyPoseFdb(), getFootPos());
     }
 
+    // Foot pos in WORLD frame
     PosList getFootPos()
     {
         legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
+        auto pose = robot_interface_->getBodyPoseFdb();
         PosList foot_pos_list;
         for (size_t i = 0; i < 6; ++i)
         {
-            foot_pos_list.push_back(Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z));
+            foot_pos_list.push_back(point_SE3Act(pose.inverse(), Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z)));
         }
         return foot_pos_list;
     }
