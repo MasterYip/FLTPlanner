@@ -11,8 +11,7 @@
 
 #include "legged_traj_plan/whole_body_planner/RaibertHeuristicPlanner.h"
 
-SimpleRaibertPlanner::SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                                           std::shared_ptr<GridMapInterface> gridmap_interface,
+SimpleRaibertPlanner::SimpleRaibertPlanner(std::shared_ptr<GridMapInterface> gridmap_interface,
                                            std::shared_ptr<ElSpiderAirInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface)
 {

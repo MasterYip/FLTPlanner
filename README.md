@@ -98,6 +98,13 @@ sim:=true \
 teleop_type:=PS5
 ```
 
+```bash
+roslaunch legged_traj_plan_examples elspider_air_simple_raibert_planner.launch \
+robot_interface_type:=ElSpiderAirDummy \
+sim:=true \
+teleop_type:=PS5
+```
+
 Legacy:
 
 ```bash

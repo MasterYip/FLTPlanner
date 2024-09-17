@@ -257,10 +257,15 @@ private:
     double vLift_ = 0.3;
 
 public:
-    SimpleRaibertPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                         std::shared_ptr<GridMapInterface> gridmap_interface,
+    SimpleRaibertPlanner(std::shared_ptr<GridMapInterface> gridmap_interface,
                          std::shared_ptr<ElSpiderAirInterface> robot_interface);
 
+    /**
+     * @brief Start the planner
+     * 
+     * @param pose 
+     * @param foot_pos_list World frame 
+     */
     void start(pinocchio::SE3 pose, PosList foot_pos_list = PosList());
 
     void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,

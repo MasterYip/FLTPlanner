@@ -196,7 +196,7 @@ public:
                                        bool simulation = false) : nh_("~"),
                                                                   robot_interface_(std::make_shared<ElSpiderAirInterfaceROS>(nh_.param("/robot_description", std::string("")), simulation)),
                                                                   gridmap_interface_(std::make_shared<GridMapInterface>(nh_, "/grid_map")),
-                                                                  whole_body_planner_(swing_traj_planner_config, gridmap_interface_, robot_interface_),
+                                                                  whole_body_planner_(gridmap_interface_, robot_interface_),
                                                                   visualizer_(nh_, "base", "visualizer_marker"),
                                                                   rate_(loop_rate_), fake_feedback_(fake_feedback),
                                                                   simulation_(simulation)

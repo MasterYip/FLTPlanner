@@ -177,6 +177,13 @@ target_link_libraries(elspider_air_raibert_planner
 )
 
 
+# ElSpiderAirSimpleRaibertPlanner
+add_executable(elspider_air_simple_raibert_planner src/elspider_air_simple_raibert_planner.cpp)
+target_link_libraries(elspider_air_simple_raibert_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
 # ElSpiderAirRaibertVMCPlanner
 add_executable(elspider_air_raibert_vmc_planner src/elspider_air_raibert_vmc_planner.cpp)
 target_link_libraries(elspider_air_raibert_vmc_planner
