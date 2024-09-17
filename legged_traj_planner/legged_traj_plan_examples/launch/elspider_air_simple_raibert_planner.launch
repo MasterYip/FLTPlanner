@@ -138,10 +138,10 @@
             <node pkg="legged_traj_plan_examples" type="joy_teleop.py" name="joy_teleop" output="$(arg output)">
                 <param name="cmd_topic" value="/cmd_vel" />
                 <param name="joy_topic" value="/joy" />
-                <param name="pub_rate" value="10" />
-                <param name="max_linear_x" value="0.1" />
-                <param name="max_linear_y" value="0.05" />
-                <param name="max_angular_z" value="0.1" />
+                <param name="pub_rate" value="20" />
+                <param name="max_linear_x" value="0.3" />
+                <param name="max_linear_y" value="0.01" />
+                <param name="max_angular_z" value="0.2" />
             </node>
         </group>
     </group>

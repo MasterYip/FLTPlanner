@@ -40,13 +40,9 @@
 #include <tf2_ros/transform_listener.h>
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
-
 class ElSpiderAirSimpleRaibertPlanner : public ElSpiderAirPlannerBase
 {
 private:
-    ros::Rate rate_;
-    int loop_rate_ = 500;
-
     // Joystick cmd subscribe
     ros::Subscriber cmd_sub_;
     geometry_msgs::Twist cmd_;
@@ -73,21 +69,18 @@ public:
     ElSpiderAirSimpleRaibertPlanner() : ElSpiderAirPlannerBase(),
                                         whole_body_planner_(gridmap_interface_, robot_interface_),
                                         visualizer_(nh_, "odom", "visualizer_markers"),
-                                        visualizer_base_(nh_, "base", "visualizer_markers_base"),
-                                        rate_(loop_rate_)
+                                        visualizer_base_(nh_, "base", "visualizer_markers_base")
     {
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirSimpleRaibertPlanner::cmd_callback, this);
         timer_ = nh_.createTimer(ros::Duration(1.0 / timer_loop_rate_), &ElSpiderAirSimpleRaibertPlanner::timer_callback, this);
-
 
         PosList pose_sample_pts;
         for (double x = -0.4; x <= 0.4; x += 0.2)
             for (double y = -0.4; y <= 0.4; y += 0.2)
                 pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
         cmd_extrapolator_.init(gridmap_interface_, pose_sample_pts);
-        
+
         // Planner Init
-        ros::Duration(1.0).sleep();
         update_fdb();
         whole_body_planner_.start(body_pose_, getFootPos());
         cmd_extrapolator_.update(body_pose_);
@@ -134,7 +127,7 @@ public:
     {
         // Update body state
         update_fdb();
-        
+
         // Exp body state Publish
         pinocchio::SE3 exp_pose;
         // FIXME: how to handle ref pose
@@ -166,11 +159,10 @@ public:
                                          std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero()),
                                          std::vector<bool>(contact_state.begin(), contact_state.end()));
             robot_interface_shadow_->setFootCmd(exp_foot_pos,
-                                              std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero()),
-                                              std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero()),
-                                              std::vector<bool>(contact_state.begin(), contact_state.end()));
+                                                std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero()),
+                                                std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero()),
+                                                std::vector<bool>(contact_state.begin(), contact_state.end()));
         }
-
     }
 
     void cmd_callback(const geometry_msgs::Twist &msg)
@@ -191,7 +183,6 @@ public:
         while (ros::ok())
         {
             ros::spinOnce();
-            rate_.sleep();
         }
     }
 };

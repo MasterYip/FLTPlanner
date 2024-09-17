@@ -127,6 +127,8 @@ interface_type:=gazebo
 # Terminal2: start Planner & elevation mapping
 roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch sim:=true
 #or
+roslaunch legged_traj_plan_examples elspider_air_simple_raibert_planner.launch robot_interface_type:=ElSpiderAirROSVMC sim:=true teleop_type:=PS5
+#or
 roslaunch legged_traj_plan_examples elspider_air_raibert_vmc_planner.launch sim:=true
 #or
 roslaunch legged_traj_plan_examples elspider_air_simple_raibert_vmc_planner.launch sim:=true

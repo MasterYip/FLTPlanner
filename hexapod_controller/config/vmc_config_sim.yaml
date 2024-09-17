@@ -1,5 +1,5 @@
 # sim: true # Loaded in launch file
-use_joint_cmd: true
+use_joint_cmd: false
 mu: 0.8
 mass: 45.0
 # inertia_diag: [1.0, 2.0, 2.4]
@@ -30,7 +30,7 @@ loop_rate: 200.0
 Kp: 9.0
 Kd: 6.0 # kd = 2 \zeta \sqrt(kp)
 joint_kp_sim_st: [80.0, 80.0, 80.0]
-joint_kd_sim_st: [0.8, 0.8, 0.8]
+joint_kd_sim_st: [1.6, 1.6, 1.6]
 joint_kp_sim_sw: [80.0, 80.0, 80.0]
 joint_kd_sim_sw: [1, 1, 1]
 
