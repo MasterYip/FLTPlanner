@@ -63,6 +63,6 @@ loop_rate: 200.0
 Kp: 9.0
 Kd: 6.0 # kd = 2 \zeta \sqrt(kp)
 joint_kp_st: [0.02, 0.03, 0.03]
-joint_kd_st: [0.4, 0.4, 0.4]
+joint_kd_st: [0.8, 0.8, 0.8]
 joint_kp_sw: [0.02, 0.03, 0.03]
-joint_kd_sw: [0.4, 0.4, 0.4]
+joint_kd_sw: [0.8, 0.8, 0.8]

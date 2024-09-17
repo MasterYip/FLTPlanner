@@ -254,7 +254,7 @@ private:
     PosList nominal_foothold_base_;
     double interval_ = 0.8;
     double duty_ = 0.5; // Duty of stance phase
-    double vLift_ = 0.2;
+    double vLift_ = 0.3;
 
 public:
     SimpleRaibertPlanner(std::shared_ptr<GridMapInterface> gridmap_interface,

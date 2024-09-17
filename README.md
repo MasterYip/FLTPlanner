@@ -151,6 +151,8 @@ interface_type:=hardware
 # Terminal2: start Planner & elevation mapping
 roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch sim:=false use_optitrack:=true demo_name:=hardware
 #or
+roslaunch legged_traj_plan_examples elspider_air_simple_raibert_planner.launch sim:=false use_optitrack:=false demo_name:=hardware
+#or
 roslaunch legged_traj_plan_examples elspider_air_raibert_planner.launch sim:=false use_optitrack:=true demo_name:=hardware
 #or
 roslaunch legged_traj_plan_examples elspider_air_raibert_vmc_planner.launch sim:=false
