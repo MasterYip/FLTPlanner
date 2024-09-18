@@ -101,10 +101,10 @@ public:
                         const Eigen::Vector3d p0, const Eigen::Vector3d p1,
                         uint index, bool verbose = true);
 
-    bool searchPolyTrajWithKin(std::vector<Point3D> &poly_traj,
-                               const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
-                               const Eigen::Vector3d p0, const Eigen::Vector3d p1,
-                               uint index, bool verbose = true);
+    bool searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
+                            const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
+                            const Eigen::Vector3d p0, const Eigen::Vector3d p1,
+                            uint index, bool verbose = true);
 
     bool getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
                         pinocchio::SE3 pose0, pinocchio::SE3 pose1,
@@ -122,4 +122,20 @@ public:
                      const pinocchio::SE3 &pose0,
                      const pinocchio::SE3 &pose1,
                      int index) override;
+
+    /**
+     * @brief Filter out unreachable points (using PITD)
+     *
+     * @param pose0
+     * @param pose1
+     * @param p0
+     * @param[out] footholds
+     * @param index
+     * @return true
+     * @return false
+     */
+    bool reachableFilter(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                         Eigen::Vector3d p0,
+                         std::vector<Eigen::Vector3d> &footholds,
+                         uint index);
 };

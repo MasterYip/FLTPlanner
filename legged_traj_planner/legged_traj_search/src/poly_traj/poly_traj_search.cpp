@@ -53,7 +53,7 @@ bool PolyTrajSearch::endpointValid(const Point3D &start, const Point3D &goal)
            border_check_->isGoalValid(goal_2d);
 }
 
-bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
+bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool update_border)
 {
     if (reachable_ != 0)
         return reachable_ == 1;
@@ -66,12 +66,14 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
     }
 
     // Intersect Border
-    GridPt start_2d = index_remap_.pos2Grid(start.head(2));
-    GridPt goal_2d = index_remap_.pos2Grid(goal.head(2));
-    if (!intersect_border_.getIntersectBorder(start_2d, goal_2d, border_))
+    if (update_border)
     {
-        std::cout << "Warning: intersect_border_.getIntersectBorder failed" << std::endl;
-        return false;
+        GridPt start_2d = index_remap_.pos2Grid(start.head(2));
+        if (!intersect_border_.getIntersectBorder(start_2d, border_))
+        {
+            std::cout << "Warning: intersect_border_.getIntersectBorder failed" << std::endl;
+            return false;
+        }
     }
     if (border_.size() < 3)
     {
@@ -89,8 +91,11 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal)
     benchmark_.record(msg, RecordType::CRITICAL);
 
     // Concave Points
-    findConcavePoint(border_, concave_pts_);
-    benchmark_.record("Find Concave Points", RecordType::CRITICAL);
+    if (update_border)
+    {
+        findConcavePoint(border_, concave_pts_);
+        benchmark_.record("Find Concave Points", RecordType::CRITICAL);
+    }
 
     // Visiblity Graph Init
     // FIXME: is this appropriate?

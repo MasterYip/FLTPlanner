@@ -107,4 +107,6 @@ public:
     IntersectBorder(std::shared_ptr<BorderCheckBase> border_check);
 
     bool getIntersectBorder(const GridPt &start, const GridPt &goal, GridPolyLine &border, int max_iter = 2000);
+
+    bool getIntersectBorder(const GridPt &start, GridPolyLine &border, int max_iter = 2000);
 };

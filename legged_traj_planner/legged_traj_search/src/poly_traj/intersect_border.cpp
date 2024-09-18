@@ -16,8 +16,12 @@ IntersectBorder::IntersectBorder(std::shared_ptr<BorderCheckBase> border_check)
 {
 }
 
-bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal,
-                                         GridPolyLine &border, int max_iter)
+bool IntersectBorder::getIntersectBorder(const GridPt &start, const GridPt &goal, GridPolyLine &border, int max_iter)
+{
+    return getIntersectBorder(start, border, max_iter);
+}
+
+bool IntersectBorder::getIntersectBorder(const GridPt &start, GridPolyLine &border, int max_iter)
 {
     border.clear();
     // TODO: whether to remove revisited path? (it can also be handled in VisGraph)

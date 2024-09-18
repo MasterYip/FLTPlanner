@@ -297,10 +297,10 @@ std::shared_ptr<MincoTrajectory> FLTCfgPlanner::getDefaultCfgTraj(const pinocchi
     return std::make_shared<MincoTrajectory>(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
 }
 
-bool FLTCfgPlanner::searchPolyTrajWithKin(std::vector<Point3D> &poly_traj,
-                                   const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
-                                   const Eigen::Vector3d p0, const Eigen::Vector3d p1,
-                                   uint index, bool verbose)
+bool FLTCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
+                                       const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
+                                       const Eigen::Vector3d p0, const Eigen::Vector3d p1,
+                                       uint index, bool verbose)
 {
     poly_traj.clear();
     // gridmap_interface_->lockMapUpdate();
@@ -490,7 +490,7 @@ bool FLTCfgPlanner::getCfgPolyTraj(std::vector<Point3D> &cfg_poly_traj,
     cfg_poly_traj.clear();
     std::vector<Point3D> poly_path;
     if ((!config_.useLeggedBorderCheck && !searchPolyTraj(poly_path, pose0, pose1, p0, p1, index)) ||
-        (config_.useLeggedBorderCheck && !searchPolyTrajWithKin(poly_path, pose0, pose1, p0, p1, index)))
+        (config_.useLeggedBorderCheck && !searchPolyTrajPITD(poly_path, pose0, pose1, p0, p1, index)))
         return false;
     // Convert to config space
     Eigen::VectorXd t_vec = getTrajTimeVec(poly_path, 1.0);
@@ -606,4 +606,33 @@ bool FLTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
         visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
     }
     return ret;
+}
+
+bool FLTCfgPlanner::reachableFilter(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                    Eigen::Vector3d p0,
+                                    std::vector<Eigen::Vector3d> &footholds,
+                                    uint index)
+{
+    std::unique_ptr<PolyTrajSearch> poly_traj_search;
+
+    // Use LeggedBorderCheck
+    LeggedBorderCheckConfig config;
+    config.ground_layer = gridmap_interface_->getGroundLayerName();
+    config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
+    config.enable_ground = true;
+    config.enable_ceiling = false;
+    config.collBallRad1 = config_.CollBall1Rad;
+    config.collBallRad2 = config_.CollBall2Rad;
+    config.collBallRad3 = config_.CollBall3Rad;
+    auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
+                                                            pose0, pose1, p0, p0, index, config);
+    PolyTrajSearchConfig cfg;
+    cfg.enable_benchmark = false;
+    poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
+
+    for (int i = footholds.size() - 1; i >= 0; i--)
+    {
+        if (!poly_traj_search->endpointValid(p0, footholds.at(i)) || !poly_traj_search->reachable(p0, footholds.at(i)))
+            footholds.erase(footholds.begin()+i);
+    }
 }

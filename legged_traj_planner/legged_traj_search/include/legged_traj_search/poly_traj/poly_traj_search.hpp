@@ -84,7 +84,7 @@ public:
     ~PolyTrajSearch() = default;
     // Poly Traj Search
     bool endpointValid(const Point3D &start, const Point3D &goal);
-    bool reachable(const Point3D &start, const Point3D &goal);
+    bool reachable(const Point3D &start, const Point3D &goal, bool update_border = true);
     bool search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
     bool searchStringStraining(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
     // Traj Init
