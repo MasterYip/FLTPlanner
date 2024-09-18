@@ -608,6 +608,26 @@ bool FLTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     return ret;
 }
 
+std::unique_ptr<PolyTrajSearch> FLTCfgPlanner::getPolyTrajSearch(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                                                 Eigen::Vector3d p0,
+                                                                 uint index)
+{
+    // Use LeggedBorderCheck
+    LeggedBorderCheckConfig config;
+    config.ground_layer = gridmap_interface_->getGroundLayerName();
+    config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
+    config.enable_ground = true;
+    config.enable_ceiling = false;
+    config.collBallRad1 = config_.CollBall1Rad;
+    config.collBallRad2 = config_.CollBall2Rad;
+    config.collBallRad3 = config_.CollBall3Rad;
+    auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
+                                                            pose0, pose1, p0, p0, index, config);
+    PolyTrajSearchConfig cfg;
+    cfg.enable_benchmark = false;
+    return std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
+}
+
 bool FLTCfgPlanner::reachableFilter(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                     Eigen::Vector3d p0,
                                     std::vector<Eigen::Vector3d> &footholds,
@@ -629,10 +649,11 @@ bool FLTCfgPlanner::reachableFilter(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
     PolyTrajSearchConfig cfg;
     cfg.enable_benchmark = false;
     poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
+    poly_traj_search->reachable(p0, p0); // Update intersect border
 
     for (int i = footholds.size() - 1; i >= 0; i--)
     {
-        if (!poly_traj_search->endpointValid(p0, footholds.at(i)) || !poly_traj_search->reachable(p0, footholds.at(i)))
-            footholds.erase(footholds.begin()+i);
+        if (!poly_traj_search->endpointValid(p0, footholds.at(i)) || !poly_traj_search->reachable(p0, footholds.at(i), false))
+            footholds.erase(footholds.begin() + i);
     }
 }

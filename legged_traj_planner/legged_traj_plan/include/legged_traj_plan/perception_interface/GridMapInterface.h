@@ -117,6 +117,7 @@ public:
     std::pair<Eigen::Vector3d, Eigen::Vector3d> getSdfRange(size_t index = 0) const;
     grid_map::GridMap &getMap() { return map_; };
     std::string getGroundLayerName() { return ground_layer; };
+    std::string getTravLayerName() { return ground_layer_trav; };
     std::string getCeilingLayerName() { return ceiling_layer; };
     // Map Lock
     void lockMapUpdate() { map_update_lock_ = true; }

@@ -136,6 +136,9 @@ struct ElSpiderAirStateSequencePlannerConfig
     float cmdExtrapolateDeltaT;
     int navExtrapolateSamplesNum;
 
+    bool enableReachableFiltering;
+    std::string reachableTravLayerName;
+
     bool swingTrajPreOpt;
     bool shutdownAfterPreOpt;
     bool execOnKeyboardCmd;
@@ -156,6 +159,9 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/cmdExtrapolatePointNum", cmdExtrapolatePointNum);
         check_digit &= nh.getParam(ns + "/cmdExtrapolateDeltaT", cmdExtrapolateDeltaT);
         check_digit &= nh.getParam(ns + "/navExtrapolateSamplesNum", navExtrapolateSamplesNum);
+
+        check_digit &= nh.getParam(ns + "/enableReachableFiltering", enableReachableFiltering);
+        check_digit &= nh.getParam(ns + "/reachableTravLayerName", reachableTravLayerName);
 
         check_digit &= nh.getParam(ns + "/swingTrajPreOpt", swingTrajPreOpt);
         check_digit &= nh.getParam(ns + "/shutdownAfterPreOpt", shutdownAfterPreOpt);
@@ -251,8 +257,58 @@ public:
         }
     }
 
+    grid_map::GridMap &gridmapReachableFiltering(const geometry_msgs::Twist cmd_vel, double interp_dis = 0.1)
+    {
+        grid_map::GridMap &map = gridmap_interface_->getMap();
+        pinocchio::SE3 pose0 = robot_interface_.getBodyPoseFdb();
+        pinocchio::SE3 pose1 = pose0;
+        Eigen::Vector3d vel = Eigen::Vector3d(cmd_vel.linear.x, cmd_vel.linear.y, 0);
+        vel.normalize();
+        pose1.translation() += vel * interp_dis;
+
+        legged_traj_plan::FootState foot_state = robot_interface_.getFootStateFdb();
+        std::vector<std::unique_ptr<PolyTrajSearch>> polytraj_search;
+        std::vector<Eigen::Vector3d> p0s;
+        try
+        {
+            map.add(config_.reachableTravLayerName, map.get(gridmap_interface_->getTravLayerName()));
+
+            for (int index = 0; index < 6; index++)
+            {
+                Eigen::Vector3d p0 = foot_state.position[index];
+                polytraj_search.emplace_back(swing_traj_planner_->getPolyTrajSearch(pose0, pose1, p0, index));
+                polytraj_search.back()->reachable(p0, p0); // update intersection border
+                p0s.emplace_back(p0);
+            }
+
+            for (grid_map::GridMapIterator iterator(map); !iterator.isPastEnd(); ++iterator)
+            {
+                bool valid = true;
+                for (int index = 0; index < 6; index++)
+                {
+                    Eigen::Vector3d p0 = p0s[index];
+                    Eigen::Vector3d p1;
+                    map.getPosition3(config_.reachableTravLayerName, *iterator, p1);
+                    valid &= !isnan(p1[2]);
+                    if (valid)
+                        valid &= polytraj_search[index]->reachable(p0, p1, false);
+                    else
+                        break;
+                }
+                if (!valid)
+                    map.at(config_.reachableTravLayerName, *iterator) = std::nan("");
+            }
+        }
+        catch (const std::exception &e)
+        {
+            ROS_WARN_STREAM("Failed to update trav map!");
+        }
+        return map;
+    }
+
     // cmd_vel callback
-    void cmd_callback(const geometry_msgs::Twist &msg)
+    void
+    cmd_callback(const geometry_msgs::Twist &msg)
     {
         if (motion_lock_)
             ROS_WARN("Robot is in motion, ignore new command.");
@@ -274,7 +330,8 @@ public:
                 // update_exp_path_xlock();
                 // MCTS planning
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        gridmap_interface_->getMap(), true, config_.cmdMctsSearchNodeNum);
+                                                        config_.enableReachableFiltering ? gridmapReachableFiltering(cmd_) : gridmap_interface_->getMap(),
+                                                        true, config_.cmdMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
             }
 
@@ -652,12 +709,12 @@ public:
         else
             robot_interface_->setFootCmd(footend_interp, footend_interp_vel, footend_interp_acc,
                                          std::vector<bool>(6, true));
-        
 
         // Stance contact handling
         stance_contact_handle();
     }
 
+    //// Benchmarking
     void saveRobotProfile()
     {
         // Save to file
