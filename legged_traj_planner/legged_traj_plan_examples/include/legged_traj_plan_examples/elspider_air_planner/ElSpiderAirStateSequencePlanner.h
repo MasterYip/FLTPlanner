@@ -260,15 +260,19 @@ public:
     grid_map::GridMap &gridmapReachableFiltering(const geometry_msgs::Twist cmd_vel, double interp_dis = 0.1)
     {
         grid_map::GridMap &map = gridmap_interface_->getMap();
-        pinocchio::SE3 pose0 = robot_interface_.getBodyPoseFdb();
+        pinocchio::SE3 pose0 = robot_interface_->getBodyPoseFdb();
         pinocchio::SE3 pose1 = pose0;
         Eigen::Vector3d vel = Eigen::Vector3d(cmd_vel.linear.x, cmd_vel.linear.y, 0);
         vel.normalize();
         pose1.translation() += vel * interp_dis;
 
-        legged_traj_plan::FootState foot_state = robot_interface_.getFootStateFdb();
+        std::shared_ptr<FLTCfgPlanner> flt_planner = std::dynamic_pointer_cast<FLTCfgPlanner>(swing_traj_planner_);
+        legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
+        std::vector<Eigen::Vector3d> foot_pos;
         std::vector<Eigen::Vector3d> gridmap_points;
         std::vector<bool> gridmap_points_valid[6];
+        for (int i = 0; i < 6; i++)
+            foot_pos.emplace_back(Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z));
 
         try
         {
@@ -282,8 +286,8 @@ public:
 
             for (int i = 0; i < 6; i++)
             {
-                swing_traj_planner_->reachableFilter(pose0, pose1, foot_state.position[i], i,
-                                                     gridmap_points, gridmap_points_valid[i]);
+                flt_planner->reachableFilter(pose0, pose1, foot_pos[i], i,
+                                             gridmap_points, gridmap_points_valid[i]);
             }
 
             int i = 0;
@@ -328,7 +332,7 @@ public:
                 // update_exp_path_xlock();
                 // MCTS planning
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        config_.enableReachableFiltering ? gridmapReachableFiltering(cmd_) : gridmap_interface_->getMap(),
+                                                        config_.enableReachableFiltering && swing_traj_planner_config_.plannerID == 0 ? gridmapReachableFiltering(cmd_) : gridmap_interface_->getMap(),
                                                         true, config_.cmdMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
             }

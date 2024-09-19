@@ -20,6 +20,9 @@ StateSequencePlanner:
   cmdExtrapolatePointNum: 50
   cmdExtrapolateDeltaT: 0.01
   navExtrapolateSamplesNum: 100
+  # only for FLTCfgPlanner
+  enableReachableFiltering: false
+  reachableTravLayerName: "reachable_trav"
 
   swingTrajPreOpt: false
   shutdownAfterPreOpt: false
