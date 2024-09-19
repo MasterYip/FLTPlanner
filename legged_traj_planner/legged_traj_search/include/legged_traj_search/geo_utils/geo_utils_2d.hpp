@@ -198,7 +198,6 @@ namespace geo_utils_2d
     // Intersection
     /**
      * @brief segment intersect detection (CGAL)
-     * TODO: test needed
      * TODO: Optimization needed
      * @param p1
      * @param p2
