@@ -267,36 +267,34 @@ public:
         pose1.translation() += vel * interp_dis;
 
         legged_traj_plan::FootState foot_state = robot_interface_.getFootStateFdb();
-        std::vector<std::unique_ptr<PolyTrajSearch>> polytraj_search;
-        std::vector<Eigen::Vector3d> p0s;
+        std::vector<Eigen::Vector3d> gridmap_points;
+        std::vector<bool> gridmap_points_valid[6];
+
         try
         {
             map.add(config_.reachableTravLayerName, map.get(gridmap_interface_->getTravLayerName()));
-
-            for (int index = 0; index < 6; index++)
-            {
-                Eigen::Vector3d p0 = foot_state.position[index];
-                polytraj_search.emplace_back(swing_traj_planner_->getPolyTrajSearch(pose0, pose1, p0, index));
-                polytraj_search.back()->reachable(p0, p0); // update intersection border
-                p0s.emplace_back(p0);
-            }
-
             for (grid_map::GridMapIterator iterator(map); !iterator.isPastEnd(); ++iterator)
             {
-                bool valid = true;
+                Eigen::Vector3d p;
+                map.getPosition3(config_.reachableTravLayerName, *iterator, p);
+                gridmap_points.emplace_back(p);
+            }
+
+            for (int i = 0; i < 6; i++)
+            {
+                swing_traj_planner_->reachableFilter(pose0, pose1, foot_state.position[i], i,
+                                                     gridmap_points, gridmap_points_valid[i]);
+            }
+
+            int i = 0;
+            for (grid_map::GridMapIterator iterator(map); !iterator.isPastEnd(); ++iterator)
+            {
+                bool valid = false;
                 for (int index = 0; index < 6; index++)
-                {
-                    Eigen::Vector3d p0 = p0s[index];
-                    Eigen::Vector3d p1;
-                    map.getPosition3(config_.reachableTravLayerName, *iterator, p1);
-                    valid &= !isnan(p1[2]);
-                    if (valid)
-                        valid &= polytraj_search[index]->reachable(p0, p1, false);
-                    else
-                        break;
-                }
+                    valid |= gridmap_points_valid[index][i];
                 if (!valid)
                     map.at(config_.reachableTravLayerName, *iterator) = std::nan("");
+                i++;
             }
         }
         catch (const std::exception &e)

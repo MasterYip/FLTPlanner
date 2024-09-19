@@ -135,9 +135,9 @@ public:
      * @return false
      */
     bool reachableFilter(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                         Eigen::Vector3d p0,
+                         Eigen::Vector3d p0, uint index,
                          std::vector<Eigen::Vector3d> &footholds,
-                         uint index);
+                         std::vector<bool> &reachable);
 
     // std::unique_ptr<PolyTrajSearch> getPolyTrajSearch(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
     //                                                   Eigen::Vector3d p0,
