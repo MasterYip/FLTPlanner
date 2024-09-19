@@ -25,7 +25,6 @@
 
 using namespace geo_utils_2d;
 
-#ifdef USE_CGAL
 
 /**
  * @brief Check if two points are visible to each other
@@ -88,28 +87,6 @@ inline bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const G
         }
     }
     return true;
-}
-
-/**
- * @brief Path intersect detection
- * BUG: bugs exist, not used
- * @param path
- * @param p1
- * @param p2
- * @return int
- * if segment path(i,i+1) intersect with segment (p1,p2), return i;
- * else return -1
- */
-inline int pathIntersect(const GridPolyLine &path, const GridPt &p1, const GridPt &p2)
-{
-    for (uint i = 0; i < path.size() - 1; i++)
-    {
-        if (segmentIntersect(path.at(i), path.at(i + 1), p1, p2) != IntersectType::None)
-        {
-            return i;
-        }
-    }
-    return -1;
 }
 
 class VisibilityGraph
@@ -235,4 +212,3 @@ public:
     }
 };
 
-#endif // USE_CGAL

@@ -18,7 +18,7 @@
 #include <vector>
 /* external project header files */
 #include <Eigen/Eigen>
-#define USE_CGAL
+// #define USE_CGAL
 #ifdef USE_CGAL
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/intersections.h>
@@ -98,8 +98,6 @@ namespace geo_utils_2d
         return true;
     }
 
-#ifdef USE_CGAL
-
     enum class IntersectType
     {
         None,   // Not intersect
@@ -109,7 +107,7 @@ namespace geo_utils_2d
         EndMid, // Intersect at the end of segment p, and in the middle of segment q
         Overlap // Overlap
     };
-
+#ifdef USE_CGAL
     // Intersection
     /**
      * @brief segment intersect detection (CGAL)
@@ -170,6 +168,85 @@ namespace geo_utils_2d
         }
         return IntersectType::None;
     }
+#else
+
+    inline bool approx(double a, double b, double eps = 1e-6)
+    {
+        return std::abs(a - b) < eps;
+    }
+
+    /**
+     * @brief Construct a new in Section object
+     * 
+     * @param p1 
+     * @param p2 
+     * @param pt
+     * @return 1-in, 0-on, -1-out
+     */
+    inline int inSection(const Point &p1, const Point &p2, const Point &pt)
+    {
+        Point ub(std::max(p1[0], p2[0]), std::max(p1[1], p2[1]));
+        Point lb(std::min(p1[0], p2[0]), std::min(p1[1], p2[1]));
+        if (pt[0] < ub[0] && pt[0] > lb[0] || pt[1] < ub[1] && pt[1] > lb[1])
+            return 1;
+        else if ((approx(pt[0], ub[0]) || approx(pt[0], lb[0])) && (approx(pt[1], ub[1]) || approx(pt[1], lb[1])))
+            return 0;
+        else
+            return -1;
+    }
+
+    // Intersection
+    /**
+     * @brief segment intersect detection (CGAL)
+     * TODO: test needed
+     * TODO: Optimization needed
+     * @param p1
+     * @param p2
+     * @param q1
+     * @param q2
+     * @return IntersectType
+     */
+    inline IntersectType segmentIntersect(const Point &p1, const Point &p2,
+                                 const Point &q1, const Point &q2, const bool verbose = false)
+    {
+        // Judge if intersect at the end or overlap
+        uint tmp = 1;
+        if (p1.isApprox(q1) || p1.isApprox(q2))
+            tmp++;
+        if (p2.isApprox(q1) || p2.isApprox(q2))
+            tmp++;
+        if (tmp == 2)
+            return IntersectType::End;
+        else if (tmp == 3)
+            return IntersectType::Overlap;
+
+        // Calculate line equation in the form of Ax + By = C, A = y2 - y1, B = x1 - x2, C = A * x1 + B * y1
+        Eigen::Vector3d coef1(p2[1] - p1[1], p1[0] - p2[0], 0);
+        Eigen::Vector3d coef2(q2[1] - q1[1], q1[0] - q2[0], 0);
+        coef1[2] = coef1[0] * p1[0] + coef1[1] * p1[1];
+        coef2[2] = coef2[0] * q1[0] + coef2[1] * q1[1];
+
+        // parallel check
+        if (coef1[0] * coef2[1] == coef2[0] * coef1[1])
+            return IntersectType::None;
+
+        // find intersection point
+        Eigen::Vector2d pt;
+        pt[0] = (coef2[1] * coef1[2] - coef1[1] * coef2[2]) / (coef1[0] * coef2[1] - coef2[0] * coef1[1]);
+        pt[1] = (coef1[0] * coef2[2] - coef2[0] * coef1[2]) / (coef1[0] * coef2[1] - coef2[0] * coef1[1]);
+        int insec1 = inSection(p1, p2, pt);
+        int insec2 = inSection(q1, q2, pt);
+        if (insec1 == 1 && insec2 == 1)
+            return IntersectType::Middle;
+        else if (insec1 == 0 && insec2 == 1)
+            return IntersectType::EndMid;
+        else if (insec1 == 1 && insec2 == 0)
+            return IntersectType::MidEnd;
+        else
+            return IntersectType::None;
+    }
+
+#endif
 
     inline IntersectType segmentIntersect(const GridPt &p1, const GridPt &p2,
                                  const GridPt &q1, const GridPt &q2, const bool verbose = false)
@@ -178,6 +255,5 @@ namespace geo_utils_2d
                                 Point(q1[0], q1[1]), Point(q2[0], q2[1]), verbose);
     }
 
-#endif
 
 } // namespace geo_utils_2d
