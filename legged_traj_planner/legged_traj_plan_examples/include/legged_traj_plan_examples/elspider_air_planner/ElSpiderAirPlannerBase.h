@@ -53,6 +53,7 @@ protected:
 
     // Interface
     std::shared_ptr<GridMapInterface> gridmap_interface_;
+    std::string robot_interface_type_;
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<ElSpiderAirInterface> robot_interface_shadow_;
     std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
@@ -64,21 +65,20 @@ public:
     ElSpiderAirPlannerBase() : nh_("~")
     {
         // Robot Interface
-        std::string robot_interface_type;
-        nh_.getParam("robotInterface", robot_interface_type);
-        if (robot_interface_type == "ElSpiderAirDummy")
+        nh_.getParam("robotInterface", robot_interface_type_);
+        if (robot_interface_type_ == "ElSpiderAirDummy")
         {
             DummyElSpiderAirInterfaceROSConfig dummy_config;
             dummy_config.loadParam(nh_, "ElSpiderAirDummy");
             robot_interface_ = std::make_shared<DummyElSpiderAirInterfaceROS>(dummy_config);
         }
-        else if (robot_interface_type == "ElSpiderAirROS")
+        else if (robot_interface_type_ == "ElSpiderAirROS")
         {
             ElSpiderAirInterfaceROSConfig config;
             config.loadParam(nh_, "ElSpiderAirROS");
             robot_interface_ = std::make_shared<ElSpiderAirInterfaceROS>(config);
         }
-        else if (robot_interface_type == "ElSpiderAirROSVMC")
+        else if (robot_interface_type_ == "ElSpiderAirROSVMC")
         {
             ElSpiderAirInterfaceROSVMCConfig config;
             config.loadParam(nh_, "ElSpiderAirROSVMC");
@@ -86,7 +86,7 @@ public:
         }
         else
         {
-            ROS_ERROR("Unknown robot interface type: %s", robot_interface_type.c_str());
+            ROS_ERROR("Unknown robot interface type: %s", robot_interface_type_.c_str());
         }
 
         // Shadow Interface
