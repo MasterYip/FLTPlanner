@@ -22,7 +22,7 @@ StateSequencePlanner:
   navExtrapolateSamplesNum: 100
   # only for FLTCfgPlanner
   enableReachableFiltering: true
-  reachableFilterPoseMoveDis: 0.07
+  reachableFilterPoseMoveDis: 0.2
   reachableTravLayerName: "elevation_inpainted_trav"
 
   swingTrajPreOpt: false
