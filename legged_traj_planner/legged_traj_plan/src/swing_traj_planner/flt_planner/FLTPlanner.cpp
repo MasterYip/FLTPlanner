@@ -644,7 +644,7 @@ bool FLTCfgPlanner::reachableFilter(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
     config.collBallRad2 = config_.CollBall2Rad;
     config.collBallRad3 = config_.CollBall3Rad;
     auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-                                                            pose0, pose1, p0, p0, index, config);
+                                                            pose0, pose1, p0, p0 + pose1.translation() - pose0.translation(), index, config);
     PolyTrajSearchConfig cfg;
     cfg.enable_benchmark = false;
     poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);

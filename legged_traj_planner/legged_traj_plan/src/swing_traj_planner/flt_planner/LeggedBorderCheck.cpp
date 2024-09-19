@@ -53,6 +53,7 @@ double clamp(double val, double min, double max)
     return std::max(min, std::min(max, val));
 }
 
+// FIXME: this method has flaws
 double LeggedBorderCheck::projectInterp(const Eigen::Vector2d &pos2d)
 {
     if (p1_.isApprox(p0_))

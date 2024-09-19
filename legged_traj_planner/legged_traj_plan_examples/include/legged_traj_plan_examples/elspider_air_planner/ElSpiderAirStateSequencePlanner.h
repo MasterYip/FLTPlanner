@@ -280,7 +280,8 @@ public:
 
         try
         {
-            map.add(config_.reachableTravLayerName, map.get(gridmap_interface_->getTravLayerName()));
+            if (config_.reachableTravLayerName != gridmap_interface_->getTravLayerName())
+                map.add(config_.reachableTravLayerName, map.get(gridmap_interface_->getTravLayerName()));
             for (grid_map::GridMapIterator iterator(map); !iterator.isPastEnd(); ++iterator)
             {
                 Eigen::Vector3d p;
