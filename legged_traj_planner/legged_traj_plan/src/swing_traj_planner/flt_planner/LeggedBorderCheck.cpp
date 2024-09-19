@@ -55,6 +55,8 @@ double clamp(double val, double min, double max)
 
 double LeggedBorderCheck::projectInterp(const Eigen::Vector2d &pos2d)
 {
+    if (p1_.isApprox(p0_))
+        return 0.5;
     Eigen::Vector2d vec = p1_.head(2) - p0_.head(2);
     double len = vec.norm();
     vec.normalize();

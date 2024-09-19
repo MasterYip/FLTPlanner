@@ -137,6 +137,7 @@ struct ElSpiderAirStateSequencePlannerConfig
     int navExtrapolateSamplesNum;
 
     bool enableReachableFiltering;
+    double reachableFilterPoseMoveDis;
     std::string reachableTravLayerName;
 
     bool swingTrajPreOpt;
@@ -161,6 +162,7 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/navExtrapolateSamplesNum", navExtrapolateSamplesNum);
 
         check_digit &= nh.getParam(ns + "/enableReachableFiltering", enableReachableFiltering);
+        check_digit &= nh.getParam(ns + "/reachableFilterPoseMoveDis", reachableFilterPoseMoveDis);
         check_digit &= nh.getParam(ns + "/reachableTravLayerName", reachableTravLayerName);
 
         check_digit &= nh.getParam(ns + "/swingTrajPreOpt", swingTrajPreOpt);
@@ -215,6 +217,7 @@ private:
     // Visualizer
     GCSVisualizer visualizer_;
     GCSVisualizer visualizer_base_;
+    ros::Publisher gridmap_pub_;
 
 public:
     ElSpiderAirStateSequencePlanner() : ElSpiderAirPlannerBase(),
@@ -228,6 +231,7 @@ public:
         rate_ = ros::Rate(config_.rosRate);
         init_time_ = ros::Time::now().toSec();
         benchmark_progress_pub_ = nh_.advertise<std_msgs::Bool>("/benchmark_progress", 1);
+        gridmap_pub_ = nh_.advertise<grid_map_msgs::GridMap>("grid_map_trav_test2", 1, true);
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirStateSequencePlanner::cmd_callback, this);
         nav_sub_ = nh_.subscribe("/move_base_simple/goal", 1, &ElSpiderAirStateSequencePlanner::nav_callback, this);
         state_sequence_planner_.enableRecordStates(config_.savePlannedStates);
@@ -257,14 +261,14 @@ public:
         }
     }
 
-    grid_map::GridMap &gridmapReachableFiltering(const geometry_msgs::Twist cmd_vel, double interp_dis = 0.1)
+    grid_map::GridMap &gridmapReachableFiltering(const geometry_msgs::Twist cmd_vel, double move_dis = 0.0)
     {
         grid_map::GridMap &map = gridmap_interface_->getMap();
         pinocchio::SE3 pose0 = robot_interface_->getBodyPoseFdb();
         pinocchio::SE3 pose1 = pose0;
         Eigen::Vector3d vel = Eigen::Vector3d(cmd_vel.linear.x, cmd_vel.linear.y, 0);
         vel.normalize();
-        pose1.translation() += vel * interp_dis;
+        pose1.translation() += vel * move_dis;
 
         std::shared_ptr<FLTCfgPlanner> flt_planner = std::dynamic_pointer_cast<FLTCfgPlanner>(swing_traj_planner_);
         legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
@@ -272,7 +276,7 @@ public:
         std::vector<Eigen::Vector3d> gridmap_points;
         std::vector<bool> gridmap_points_valid[6];
         for (int i = 0; i < 6; i++)
-            foot_pos.emplace_back(Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z));
+            foot_pos.emplace_back(point_SE3Act(pose0.inverse(), Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z)));
 
         try
         {
@@ -295,7 +299,9 @@ public:
             {
                 bool valid = false;
                 for (int index = 0; index < 6; index++)
+                {
                     valid |= gridmap_points_valid[index][i];
+                }
                 if (!valid)
                     map.at(config_.reachableTravLayerName, *iterator) = std::nan("");
                 i++;
@@ -305,6 +311,9 @@ public:
         {
             ROS_WARN_STREAM("Failed to update trav map!");
         }
+        grid_map_msgs::GridMap msg;
+        grid_map::GridMapRosConverter::toMessage(map, msg);
+        gridmap_pub_.publish(msg);
         return map;
     }
 
@@ -332,7 +341,7 @@ public:
                 // update_exp_path_xlock();
                 // MCTS planning
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        config_.enableReachableFiltering && swing_traj_planner_config_.plannerID == 0 ? gridmapReachableFiltering(cmd_) : gridmap_interface_->getMap(),
+                                                        config_.enableReachableFiltering && swing_traj_planner_config_.plannerID == 0 ? gridmapReachableFiltering(cmd_, config_.reachableFilterPoseMoveDis) : gridmap_interface_->getMap(),
                                                         true, config_.cmdMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
             }

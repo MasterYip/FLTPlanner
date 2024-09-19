@@ -653,8 +653,9 @@ bool FLTCfgPlanner::reachableFilter(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
     reachable.resize(footholds.size(), false);
     for (size_t i = 0; i < footholds.size(); i++)
     {
-        if (isnan(footholds[i][2]))
+        if (isnan(footholds[i][2]) || isnan(footholds[i][0]) || isnan(footholds[i][1]))
             continue;
-        reachable[i] = poly_traj_search->reachable(footholds[i], footholds[i], false);
+        reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
     }
+    return true;
 }

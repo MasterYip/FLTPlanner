@@ -21,7 +21,8 @@ StateSequencePlanner:
   cmdExtrapolateDeltaT: 0.01
   navExtrapolateSamplesNum: 100
   # only for FLTCfgPlanner
-  enableReachableFiltering: false
+  enableReachableFiltering: true
+  reachableFilterPoseMoveDis: 0.05
   reachableTravLayerName: "reachable_trav"
 
   swingTrajPreOpt: false
@@ -31,7 +32,7 @@ StateSequencePlanner:
   # demoPath: # NOTE: offered by launch file
   savePlannedStates: false
   # Executing saved states on startup
-  execSavedStates: true 
+  execSavedStates: false 
 
   # Benchmark
   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml

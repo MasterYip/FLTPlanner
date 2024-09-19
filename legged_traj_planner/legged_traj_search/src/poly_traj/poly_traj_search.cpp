@@ -55,13 +55,13 @@ bool PolyTrajSearch::endpointValid(const Point3D &start, const Point3D &goal)
 
 bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool update_border)
 {
-    if (reachable_ != 0)
-        return reachable_ == 1;
+    // if (reachable_ != 0)
+    //     return reachable_ == 1;
 
     benchmark_.reset();
     if (!endpointValid(start, goal))
     {
-        std::cout << "Warning: endpointValid failed" << std::endl;
+        // std::cout << "Warning: endpointValid failed" << std::endl;
         return false;
     }
 
