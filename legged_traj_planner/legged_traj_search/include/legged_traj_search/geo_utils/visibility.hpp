@@ -54,9 +54,11 @@ inline bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const G
             end_overlap_cnt++;
         }
     }
+    // FIXME: is this nessary?
     // Handle Concave point on Revisit section
-    if (end_overlap_cnt >= 4 && (p1_idx == -1 || p2_idx == -1))
-        return false;
+    // if (end_overlap_cnt >= 4 && (p1_idx == -1 || p2_idx == -1))
+    //     return false;
+    
     // Judge if p1 and p2 are visible to each other from outside (should not be counted as visible)
     if (p1_idx != -1)
     {
