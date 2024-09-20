@@ -24,6 +24,8 @@ LFTPlanner:
   searcher:
     enablePolyPathSearch: true
     useLeggedBorderCheck: false
+    collBallCheckRad2: 0.05
+    collBallCheckRad3: 0.02
   optimizer:
     lengthPerPiece: 0.1 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.02

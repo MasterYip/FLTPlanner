@@ -58,6 +58,8 @@ struct SwingTrajPlannerConfig
     // Seacher Settings
     bool enablePolyPathSearch;
     bool useLeggedBorderCheck;
+    double collBallCheckRad2; // Knee
+    double collBallCheckRad3; // Foot
     // Optimizer Settings
     double lengthPerPiece;
     double allocSpeed;
@@ -179,6 +181,8 @@ struct SwingTrajPlannerConfig
         {
             check_digit *= nh.getParam("LFTPlanner/searcher/enablePolyPathSearch", enablePolyPathSearch);
             check_digit *= nh.getParam("LFTPlanner/searcher/useLeggedBorderCheck", useLeggedBorderCheck);
+            check_digit *= nh.getParam("LFTPlanner/searcher/collBallCheckRad2", collBallCheckRad2);
+            check_digit *= nh.getParam("LFTPlanner/searcher/collBallCheckRad3", collBallCheckRad3);
             check_digit *= nh.getParam("LFTPlanner/optimizer/lengthPerPiece", lengthPerPiece);
             check_digit *= nh.getParam("LFTPlanner/optimizer/allocSpeed", allocSpeed);
             check_digit *= nh.getParam("LFTPlanner/optimizer/relCostTol", relCostTol);
