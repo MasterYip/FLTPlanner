@@ -30,6 +30,10 @@ struct LeggedBorderCheckConfig
     bool enable_ground = true;
     bool enable_ceiling = false;
 
+    int interp_mode = 1;
+    // 0: progress =  <(p1 - p0), (p - p0)> / |p1 - p0|
+    // 1: progress =  <(nominal_pos1 - nominal_pos0), (p - nominal_pos0)> / |nominal_pos1 - nominal_pos0|
+
     double collBallRad1 = 0.0;
     double collBallRad2 = 0.0;
     double collBallRad3 = 0.0;
@@ -47,6 +51,9 @@ private:
 
     pinocchio::SE3 pose0_;
     pinocchio::SE3 pose1_;
+    Eigen::Vector3d nominal_joint_pos_{0, 1, 1};
+    Eigen::Vector3d nominal_pos0_;
+    Eigen::Vector3d nominal_pos1_;
     Eigen::Vector3d p0_;
     Eigen::Vector3d p1_;
     int index_;
@@ -67,6 +74,7 @@ public:
           config_(config), pose0_(pose0), pose1_(pose1),
           p0_(p0), p1_(p1), index_(index)
     {
+        // Guide Surf
         int samples = 3;
         Eigen::Vector3d pmid = (p0_ + p1_) / 2;
         double h = 0;
@@ -82,12 +90,23 @@ public:
         for (int i = 1; i < samples + 1; i++)
         {
             pmid[2] = std::max(pmid[2], gridmap_interface_->value(
-                                (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
-                                config_.ground_layer));
+                                            (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
+                                            config_.ground_layer));
         }
-
         std::vector<Point3D> key_points = {p0_, pmid, p1_};
         guide_surf_ = HarmonicGuideSurf(key_points);
+
+        // Nominal Pos
+        if (config_.interp_mode == 0)
+        {
+            nominal_pos0_ = p0_;
+            nominal_pos1_ = p1_;
+        }
+        else if (config_.interp_mode == 1)
+        {
+            nominal_pos0_ = point_SE3Act(pose0_.inverse(), robot_interface_->FK_foot(nominal_joint_pos_, index_));
+            nominal_pos1_ = point_SE3Act(pose1_.inverse(), robot_interface_->FK_foot(nominal_joint_pos_, index_));
+        }
     }
 
     double projectInterp(const Eigen::Vector2d &pos2d);

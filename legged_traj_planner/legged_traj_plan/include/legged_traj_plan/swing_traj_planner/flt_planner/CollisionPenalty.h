@@ -231,7 +231,7 @@ public:
             veldir.normalize();
             velnorm = vel.norm();
             kappa = 1 / (velnorm * velnorm) * (I - veldir * veldir.transpose()) * acc;
-            
+
             gradPcoll = -df * sdfGrad / sdfGrad.norm();
             Eigen::Vector3d dg = weight_(2) * velnorm * J.transpose() *
                                  ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
@@ -277,11 +277,11 @@ public:
             {
                 visualizer_->setIdGroup(3);
                 visualizer_->visArrow(pos, pos + weight_(1) * gradPcoll * 0.1, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.3, 0.005));
-                visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 1)), collBallRadius_(0),
+                visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 1)), collBallRadius_(0) * 2,
                                        ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
-                visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 2)), collBallRadius_(1),
+                visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index, 2)), collBallRadius_(1) * 2,
                                        ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
-                visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index)), collBallRadius_(2),
+                visualizer_->visSphere(point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index)), collBallRadius_(2) * 2,
                                        ros_visualizer::VisStyle(0.1, 0.8, 0.1, 0.3, 0.005));
             }
         }

@@ -319,8 +319,7 @@ public:
     }
 
     // cmd_vel callback
-    void
-    cmd_callback(const geometry_msgs::Twist &msg)
+    void cmd_callback(const geometry_msgs::Twist &msg)
     {
         if (motion_lock_)
             ROS_WARN("Robot is in motion, ignore new command.");
@@ -360,6 +359,20 @@ public:
                     exp_path_vis.emplace_back(Point3D(pt[0], pt[1], pt[2]));
                 }
                 visualizer_.visCurve(exp_path_vis);
+
+                // // Vis getAvailableFootholds
+                // MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds(next_planned_state_, gridmap_interface_->getMap());
+                // std::vector<Eigen::Vector3d> pts;
+                // for (int i = 0; i < 6; i++)
+                // {
+                //     if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
+                //         continue;
+                //     for (auto pt : available_points.position.leg[i])
+                //     {
+                //         pts.emplace_back(pt);
+                //     }
+                // }
+                // visualizer_.visSphere(pts, 0.01);
             }
 
             if (ret)
