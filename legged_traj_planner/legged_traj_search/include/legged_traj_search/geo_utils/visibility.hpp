@@ -28,7 +28,9 @@ using namespace geo_utils_2d;
 
 /**
  * @brief Check if two points are visible to each other
- * TODO: what if p1 p2 can be outside the border
+ * TODO: 
+ * 1. what if p1 p2 can be outside the border
+ * 2. Make it can go through overlapping border
  * IMPORTANT: Border should be clockwise, Border.at(0) != Border.at(-1)
  * @param Border
  * @param p1 Least one on or Inside the Border
@@ -39,7 +41,8 @@ using namespace geo_utils_2d;
 inline bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const GridPt &p2)
 {
     int p1_idx = -1, p2_idx = -1; // check if p1 and p2 are border point
-    int end_overlap_cnt = 0;
+    if (p1.isApprox(p2))
+        return true;
     for (uint i = 0; i < Border.size(); i++)
     {
         if (Border.at(i).isApprox(p1))
@@ -49,16 +52,8 @@ inline bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const G
         IntersectType intersect_type = segmentIntersect(Border.at(i), Border.at((i + 1) % Border.size()), p1, p2);
         if (intersect_type == IntersectType::Middle || intersect_type == IntersectType::EndMid || intersect_type == IntersectType::MidEnd)
             return false;
-        else if (intersect_type == IntersectType::End)
-        {
-            end_overlap_cnt++;
-        }
     }
-    // FIXME: is this nessary?
-    // Handle Concave point on Revisit section
-    // if (end_overlap_cnt >= 4 && (p1_idx == -1 || p2_idx == -1))
-    //     return false;
-    
+
     // Judge if p1 and p2 are visible to each other from outside (should not be counted as visible)
     if (p1_idx != -1)
     {

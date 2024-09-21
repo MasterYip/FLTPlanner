@@ -106,9 +106,14 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool u
     vis_graph_ = VisibilityGraph(border_, concave_pts_, start_grid, goal_grid);
     benchmark_.record("Visibility Graph Init", RecordType::CRITICAL);
 
+    bool reachable_goal = false, reachable_start = false;
     for (uint i = 0; i < vis_graph_.size(); i++)
     {
         if (i != 1 && vis_graph_.isVisibile(1, i))
+            reachable_goal = 1;
+        if (i != 0 && vis_graph_.isVisibile(0, i))
+            reachable_start = 1;
+        if (reachable_start && reachable_goal)
         {
             reachable_ = 1;
             return true;
@@ -315,3 +320,13 @@ GridPolyLine PolyTrajSearch::getFullResBorder() const
     }
     return fullResBorder;
 }
+
+// FeasiblePolyTrajSearch
+
+FeasiblePolyTrajSearch::FeasiblePolyTrajSearch(std::shared_ptr<BorderCheckBase> border_check,
+                                               const grid_map::GridMap &map,
+                                               const bool enable_benchmark) : map_(map),
+                                                                              index_remap_(map),
+                                                                              border_check_(border_check),
+                                                                              intersect_border_(border_check_),
+                                                                              benchmark_("FeasiblePolyTrajSearch", enable_benchmark) {}

@@ -49,6 +49,7 @@ struct PolyTrajSearchConfig
     bool enable_benchmark = false;
 };
 
+// Old fashion PolyTrajSearch
 class PolyTrajSearch
 {
 private:
@@ -68,16 +69,16 @@ private:
     GridPolyLine grid_traj_;
 
 public:
-    PolyTrajSearch(PolyCorridor &poly_corridor,
-                   const grid_map::GridMap &map,
-                   const std::string ground_layer,
-                   const std::string ceiling_layer,
-                   const bool enable_ground,
-                   const bool enable_ceiling,
-                   const bool enable_benchmark = false);
-    PolyTrajSearch(PolyCorridor &poly_corridor,
-                   const grid_map::GridMap &map,
-                   const PolyTrajSearchConfig config = PolyTrajSearchConfig());
+    [[deprecated]] PolyTrajSearch(PolyCorridor &poly_corridor,
+                                  const grid_map::GridMap &map,
+                                  const std::string ground_layer,
+                                  const std::string ceiling_layer,
+                                  const bool enable_ground,
+                                  const bool enable_ceiling,
+                                  const bool enable_benchmark = false);
+    [[deprecated]] PolyTrajSearch(PolyCorridor &poly_corridor,
+                                  const grid_map::GridMap &map,
+                                  const PolyTrajSearchConfig config = PolyTrajSearchConfig());
     PolyTrajSearch(std::shared_ptr<BorderCheckBase> border_check,
                    const grid_map::GridMap &map,
                    const PolyTrajSearchConfig config = PolyTrajSearchConfig());
@@ -106,4 +107,31 @@ public:
     // Benchmark
     std::vector<Record> getRecords() { return benchmark_.getRecords(); }
     BenchmarkResult getResult() { return benchmark_.getResult(); }
+};
+
+class FeasiblePolyTrajSearch
+{
+private:
+
+    const grid_map::GridMap map_;
+
+    // Objects
+    IndexRemap index_remap_;
+    std::shared_ptr<BorderCheckBase> border_check_;
+    IntersectBorder intersect_border_;
+    VisibilityGraph vis_graph_;
+
+    // Data
+    GridPolyLine border_;
+    GridPoints concave_pts_;
+    GridPolyLine grid_traj_;
+
+    // Misc
+    Benchmark benchmark_;
+
+public:
+    FeasiblePolyTrajSearch(std::shared_ptr<BorderCheckBase> border_check,
+                           const grid_map::GridMap &map,
+                           const bool enable_benchmark = false);
+    ~FeasiblePolyTrajSearch() = default;
 };

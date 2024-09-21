@@ -225,8 +225,8 @@ namespace geo_utils_2d
         coef1[2] = coef1[0] * p1[0] + coef1[1] * p1[1];
         coef2[2] = coef2[0] * q1[0] + coef2[1] * q1[1];
 
-        // parallel check
-        if (coef1[0] * coef2[1] == coef2[0] * coef1[1])
+        // parallel & overlap check
+        if (approx(coef1[0] * coef2[1], coef2[0] * coef1[1]))
             return IntersectType::None;
 
         // find intersection point
