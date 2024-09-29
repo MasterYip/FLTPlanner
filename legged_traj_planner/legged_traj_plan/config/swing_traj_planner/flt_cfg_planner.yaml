@@ -56,7 +56,7 @@ LFTPlanner:
     jointAccWeight: 0.1
     CollBall1Rad: 0.06
     CollBall2Rad: 0.06
-    CollBall3Rad: 0.04
+    CollBall3Rad: 0.06
     CollBall1Weight: 0.0
     CollBall2Weight: 16.0
     CollBall3Weight: 4.0
