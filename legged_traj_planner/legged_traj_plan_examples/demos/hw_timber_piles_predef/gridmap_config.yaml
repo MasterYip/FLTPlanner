@@ -1,0 +1,34 @@
+resolution: 0.025
+min_height: 0.0
+max_height: 1.0
+min_height_ceiling: 0.0
+max_height_ceiling: 0.0
+elevation_layer: elevation_inpainted
+ceiling_layer: ceiling_inpainted
+map_position_x: 1.0
+map_position_y: 0.0
+
+GridMapInterface: # NOTE: this override config in perception_interface.yaml
+  topicName: /grid_map
+  groundLayerName: elevation_inpainted
+  topicNameCeiling: /grid_map_ceiling
+  ceilingLayerName: ceiling_inpainted
+  normalTangentCrtic: 0.3
+  enableHeightFilter: false
+  maxHeight: 0.8
+  minHeight: 0.18
+
+grid_map_filters:
+  # Compute surface normals.
+  - 
+    name: surface_normals_area
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      input_layer: elevation_inpainted
+      algorithm: area
+      output_layers_prefix: normal_
+      radius: 0.05
+      normal_vector_positive_axis: z
+      parallelization_enabled: true
+      thread_number: 4
+      # thread_number: -1 doesn't limit the number of threads to be used
