@@ -27,7 +27,7 @@ grid_map_filters:
       input_layer: elevation_inpainted
       algorithm: area
       output_layers_prefix: normal_
-      radius: 0.05
+      radius: 0.08
       normal_vector_positive_axis: z
       parallelization_enabled: true
       thread_number: 4
