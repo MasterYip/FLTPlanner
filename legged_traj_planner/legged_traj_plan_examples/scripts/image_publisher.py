@@ -70,11 +70,13 @@ class ImageGridMapPub(object):
 
 class TimberPileGenPub(object):
 
-    def __init__(self, mapdef_path, topic, rate=1.0, resolution=0.025):
+    def __init__(self, mapdef_path, topic, rate=1.0, resolution=0.025, max_height=0.5, min_height=0.0):
 
         self.topic = topic
         self.rate = rate
         self.resolution = resolution
+        self.min_height = min_height
+        self.max_height = max_height
         self.publisher = rospy.Publisher(
             self.topic, sensor_msgs.msg.Image, queue_size=10)
         self.timer = rospy.Timer(rospy.Duration(1/self.rate), self.callback)
@@ -105,16 +107,18 @@ class TimberPileGenPub(object):
                 pile_i = int((pos[0] - self.pile_origin[0]) // self.Width[0])
                 pile_j = int((pos[1] - self.pile_origin[1]) // self.Width[1])
                 if pile_i >= 0 and pile_i < self.Size[0] and pile_j >= 0 and pile_j < self.Size[1]:
-                    img_arr[i, j] = self.Heights[pile_i, pile_j]
+                    img_arr[i, j] = self.Heights[pile_i, pile_j] * self.HeightsCoef
         return img_arr
 
     def callback(self, event):
         """ Convert a image to a ROS compatible message
             (sensor_msgs.Image).
         """
-        img = self.img_arr
+        img0 = np.array(np.clip((self.img_arr-self.min_height)/(self.max_height-self.min_height)*65535, 0, 65535), dtype=np.uint16)
+        img = np.zeros((img0.shape[0], img0.shape[1], 3), dtype=np.uint16)
+        for i in range(3):
+            img[:, :, i] = img0
         rosimage = sensor_msgs.msg.Image()
-        print(img.dtype.itemsize)
         if img.dtype.itemsize == 2:
             if len(img.shape) == 3:
                 if img.shape[2] == 3:
@@ -157,8 +161,10 @@ def timber_pile_generator():
     topicName = rospy.get_param('~topic')
     pubRate = rospy.get_param('~rate', 1)
     resolution = rospy.get_param('~resolution', 0.025)  # Use 0.025m as default resolution
+    min_height = rospy.get_param('~min_height', 0.0)  # Use 0.0m as default min height
+    max_height = rospy.get_param('~max_height', 0.5)  # Use 0.5m as default max height
 
-    image_pub = TimberPileGenPub(mapdef_path, topicName, pubRate, resolution)
+    image_pub = TimberPileGenPub(mapdef_path, topicName, pubRate, resolution, max_height, min_height)
     image_pub.run()
 
 
