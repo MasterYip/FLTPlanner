@@ -77,7 +77,7 @@ legged_traj_plan::hexapod_State transRobotState(const MDT::RobotState &state_)
 }
 
 // 初始化机器人状态,并赋初值
-MDT::RobotState initRobotState(const MDT::Pose &robotPoseW, MDT::Vector6b gaitToNow, float moveDirection)
+MDT::RobotState initRobotState(Parameters &param, const MDT::Pose &robotPoseW, MDT::Vector6b gaitToNow, float moveDirection)
 {
     MDT::RobotState state_;
     state_.initialize();
@@ -86,7 +86,7 @@ MDT::RobotState initRobotState(const MDT::Pose &robotPoseW, MDT::Vector6b gaitTo
     for (int i = 0; i < 6; i++)
     {
         // PLANNING::POINT pnt = {HexapodParameter::transList[i].x, HexapodParameter::transList[i].y, HexapodParameter::transList[i].z};
-        state_.feetPosition[i] = MDT::pointRotationAndTrans(HexapodParameter::norminalFoothold_B[i], robotPoseW.getT_W_B());
+        state_.feetPosition[i] = MDT::pointRotationAndTrans(param.norminalFoothold_B[i], robotPoseW.getT_W_B());
         state_.feetNormalVector[i] << 0, 0, 1; // 默认法向量竖直向上
         state_.gaitToNow[i] = gaitToNow[i];
         state_.maxNormalForce[i] = 1000.0f;
@@ -97,12 +97,12 @@ MDT::RobotState initRobotState(const MDT::Pose &robotPoseW, MDT::Vector6b gaitTo
     return state_;
 }
 
-MDT::RobotState getInitState(MDT::Pose robotPose = {0, 0, USER::norminalTrunkHeight, 0, 0, -1.5 * _PI_ / 6},
+MDT::RobotState getInitState(Parameters &param, MDT::Pose robotPose = {0, 0, USER::norminalTrunkHeight, 0, 0, -1.5 * _PI_ / 6},
                              float moveDir = 0)
 {
     MDT::Vector6b gaitToNow;
     gaitToNow << MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG, MDT::SUPPORT_FLAG;
-    return initRobotState(robotPose, gaitToNow, moveDir);
+    return initRobotState(param, robotPose, gaitToNow, moveDir);
 }
 
 // For robot state recording
@@ -329,8 +329,9 @@ public:
             gridmap_interface_->lockMapUpdate();
             cmd_ = msg;
             state_sequence_planner_.visClear();
-
+            Parameters param(swing_traj_planner_config_.plannerID == 0 ? gridmapReachableFiltering(cmd_, config_.reachableFilterPoseMoveDis) : gridmap_interface_->getMap());
             bool ret = false;
+
             while (!ret && ros::ok())
             {
                 // Fetch feedback
@@ -341,8 +342,7 @@ public:
                 // update_exp_path_xlock();
                 // MCTS planning
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        config_.enableReachableFiltering && swing_traj_planner_config_.plannerID == 0 ? gridmapReachableFiltering(cmd_, config_.reachableFilterPoseMoveDis) : gridmap_interface_->getMap(),
-                                                        true, config_.cmdMctsSearchNodeNum);
+                                                        param, config_.cmdMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
             }
 
@@ -385,7 +385,7 @@ public:
                 ROS_INFO("MCTS failed to plan, reset to nominal state.");
                 visualizer_base_.visPolytope(robot_interface_->getFootPolyhedra());
                 state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
-                                                            transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
+                                                            transRobotState(getInitState(param, robot_state_.pose, robot_state_.moveDirection)));
             }
             state_traj_replay(state_sequence_planner_.get_state_traj(0));
             traj_planner();
@@ -406,6 +406,8 @@ public:
             nav_ = msg;
             state_sequence_planner_.visClear();
 
+            Parameters param(gridmap_interface_->getMap());
+
             bool ret = false;
             while (!ret && ros::ok())
             {
@@ -418,7 +420,7 @@ public:
 
                 // MCTS planning
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, planned_states_, exp_path_,
-                                                        gridmap_interface_->getMap(), config_.navMctsSearchNodeNum);
+                                                        param, config_.navMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
             }
 
@@ -452,7 +454,7 @@ public:
                 ROS_INFO("MCTS failed to plan, reset to nominal state.");
                 visualizer_base_.visPolytope(robot_interface_->getFootPolyhedra());
                 state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
-                                                            transRobotState(getInitState(robot_state_.pose, robot_state_.moveDirection)));
+                                                            transRobotState(getInitState(param, robot_state_.pose, robot_state_.moveDirection)));
             }
             states_replay(state_sequence_planner_);
             traj_planner();
