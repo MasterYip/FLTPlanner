@@ -44,7 +44,8 @@
     <!-- Map Def (Timber Pile Generation) -->
     <arg name="grid_map_def" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/map_def.yaml" />
     <!-- GridMap -->
-    <group if="$(eval robot_interface_type == 'ElSpiderAirDummy')">
+    <arg name="use_fake_map" value="$(eval (robot_interface_type == 'ElSpiderAirDummy') or (demo_name == '3_timber_pile_hw'))" />
+    <group if="$(eval use_fake_map == 1)">
         <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="$(arg output)">
             <param name="image_path" value="$(arg grid_map_file)" />
             <param name="map_def_path" value="$(arg grid_map_def)" />
@@ -70,8 +71,6 @@
     </group>
 
     <group unless="$(eval robot_interface_type == 'ElSpiderAirDummy')">
-        <!-- Vrpn Client ROS -->
-        <include file="$(find vrpn_client_ros)/launch/sample.launch" if="$(eval use_optitrack == 1)"/>
         <!-- HexapodElevationMapping -->
         <include file="$(find hexapod_elevation_mapping)/launch/elspider_air_mapping.launch">
             <arg name="module_name" value="HexPercept3_optitrack" if="$(eval use_optitrack == 1)"/>
@@ -79,8 +78,8 @@
             <arg name="sim" value="$(arg sim)" />
             <arg name="with_ceiling" value="$(arg with_ceiling)" />
             <arg name="ground_ceiling_boundary" value="$(arg ground_ceiling_boundary)" />
-            <arg name="elevation_map_raw_topic_name" value="$(arg grid_map_topic)" />
-            <arg name="ceiling_elevation_map_raw_topic_name" value="$(arg grid_map_topic_ceiling)" />
+            <arg name="elevation_map_raw_topic_name" value="$(arg grid_map_topic)" unless="$(eval demo_name == '3_timber_pile_hw')"/>
+            <arg name="ceiling_elevation_map_raw_topic_name" value="$(arg grid_map_topic_ceiling)" unless="$(eval demo_name == '3_timber_pile_hw')"/>
             <arg name="rviz_gui" value="false" />
             <!-- FIXME: base name conflict with HexapodSoftware -->
             <arg name="world_frame_name" value="odom"/>
@@ -88,14 +87,15 @@
         </include>
     </group>
 
+    <!-- Vrpn Client ROS -->
+    <include file="$(find vrpn_client_ros)/launch/sample.launch" if="$(eval use_optitrack == 1)"/>
+
     <!-- State Sequence Planner -->
     <node pkg="legged_traj_plan_examples" type="elspider_air_state_sequence_planner" name="elspider_air_state_sequence_planner" output="$(arg output)">
         <!-- Robot Interface -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/robot_interface.yaml"/>
-        <param name="robotInterface" value="ElSpiderAirROS" if="$(eval robot_interface_type == 'ElSpiderAirROS')"/>
-        <param name="robotInterface" value="ElSpiderAirROSVMC" if="$(eval robot_interface_type == 'ElSpiderAirROSVMC')"/>
-        <param name="robotInterface" value="ElSpiderAirDummy" if="$(eval robot_interface_type == 'ElSpiderAirDummy')"/>
-        <param name="ElSpiderAirROS/sim" value="$(arg sim)" />
+        <param name="robotInterface" value="$(arg robot_interface_type)" />
+        <param name="$(arg robot_interface_type)/sim" value="$(arg sim)" />
         <!-- Planner Config -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/$(arg planner_cfg).yaml"/>
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/state_sequence_planner.yaml" if="$(eval auto_benchmark == 0)"/>
@@ -131,8 +131,8 @@
 
     <group if="$(arg rviz_gui)">
         <!-- Rviz -->
-        <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner.rviz" output="$(arg output)" unless="$(eval robot_interface_type == 'ElSpiderAirDummy')"/>
-        <node pkg="rviz" type="rviz" name="rviz_elspider_air_fake" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner_fake.rviz" output="$(arg output)" if="$(eval robot_interface_type == 'ElSpiderAirDummy')"/>
+        <node pkg="rviz" type="rviz" name="rviz_elspider_air" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner.rviz" output="$(arg output)" unless="$(eval use_fake_map)"/>
+        <node pkg="rviz" type="rviz" name="rviz_elspider_air_fake" args="-d $(find legged_traj_plan_examples)/config/rviz/elspider_air_state_sequence_planner_fake.rviz" output="$(arg output)" if="$(eval use_fake_map)"/>
 
         <!-- Teleop -->
         <group if="$(eval teleop_type == 'keyboard')">

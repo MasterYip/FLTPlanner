@@ -336,6 +336,8 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
       Namespaces:
+        arrow: true
+        cube: true
         curve: true
         sphere: true
       Queue Size: 1
@@ -360,7 +362,7 @@ Visualization Manager:
       Min Intensity: 0
       Name: TravMap
       Show Grid Lines: true
-      Topic: /elspider_air_state_sequence_planner/grid_map_trav_test2
+      Topic: /elspider_air_state_sequence_planner/grid_map_trav_test
       Unreliable: false
       Use ColorMap: false
       Value: true
@@ -400,17 +402,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.5574540495872498
-        Y: -0.11876323819160461
-        Z: -0.2160499393939972
+        X: 0.519596517086029
+        Y: -0.0240522138774395
+        Z: -0.16419270634651184
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5247954726219177
+      Pitch: 0.7997952699661255
       Target Frame: base
-      Yaw: 1.7163571119308472
+      Yaw: 5.909541130065918
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

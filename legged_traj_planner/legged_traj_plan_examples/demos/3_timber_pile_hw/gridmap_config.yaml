@@ -5,8 +5,8 @@ min_height_ceiling: 0.0
 max_height_ceiling: 0.0
 elevation_layer: elevation_inpainted
 ceiling_layer: ceiling_inpainted
-map_position_x: 1.5
-map_position_y: 0.0
+map_position_x: 3.762
+map_position_y: 0.291
 
 GridMapInterface: # NOTE: this override config in perception_interface.yaml
   topicName: /grid_map
