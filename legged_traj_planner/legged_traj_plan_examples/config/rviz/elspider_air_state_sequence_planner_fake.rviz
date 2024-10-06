@@ -354,7 +354,7 @@ Visualization Manager:
       Height Transformer: GridMapLayer
       History Length: 1
       Invert ColorMap: false
-      Max Color: 255; 255; 255
+      Max Color: 0; 0; 0
       Max Intensity: 10
       Min Color: 0; 0; 0
       Min Intensity: 0
@@ -392,7 +392,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.482020378112793
+      Distance: 1.859046220779419
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -400,9 +400,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.3666934072971344
-        Y: -0.16153624653816223
-        Z: -0.19074305891990662
+        X: 0.5574540495872498
+        Y: -0.11876323819160461
+        Z: -0.2160499393939972
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -410,7 +410,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 0.5247954726219177
       Target Frame: base
-      Yaw: 1.3663570880889893
+      Yaw: 1.7163571119308472
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

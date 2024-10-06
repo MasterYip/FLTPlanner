@@ -15,13 +15,13 @@ misc:
 StateSequencePlanner:
   rosRate: 100
   stepTime: 2
-  cmdMctsSearchNodeNum: 100
+  cmdMctsSearchNodeNum: 200
   navMctsSearchNodeNum: 600
   cmdExtrapolatePointNum: 50
   cmdExtrapolateDeltaT: 0.01
   navExtrapolateSamplesNum: 100
   # only for FLTCfgPlanner
-  enableReachableFiltering: true
+  enableReachableFiltering: false
   reachableFilterPoseMoveDis: 0.2
   reachableTravLayerName: "elevation_inpainted_trav"
 

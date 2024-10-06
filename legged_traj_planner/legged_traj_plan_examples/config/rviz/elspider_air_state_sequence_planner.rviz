@@ -57,16 +57,6 @@ Visualization Manager:
       Enabled: true
       Links:
         All Links Enabled: true
-        BPearl_Lidar:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        BPearl_Lidar_base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
@@ -196,49 +186,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        camera_accel_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_fisheye2_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_gyro_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_odom_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_pose_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        sensorSupport:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -320,7 +268,7 @@ Visualization Manager:
       Color Transformer: IntensityLayer
       ColorMap: terrain
       Enabled: true
-      Grid Cell Decimation: 2
+      Grid Cell Decimation: 1
       Grid Line Thickness: 0.10000000149011612
       Height Layer: elevation_inpainted
       Height Transformer: Layer
@@ -472,7 +420,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 2.328667402267456
+      Distance: 1.5640699863433838
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -480,17 +428,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.24858659505844116
-        Y: -0.3641878366470337
-        Z: -0.2816427946090698
+        X: 0.7420499324798584
+        Y: -0.14261466264724731
+        Z: -0.2816425561904907
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3447973430156708
+      Pitch: 0.4797973930835724
       Target Frame: base
-      Yaw: 3.9963555335998535
+      Yaw: 4.346355438232422
     Saved:
       - Class: rviz/ThirdPersonFollower
         Distance: 2.6462130546569824

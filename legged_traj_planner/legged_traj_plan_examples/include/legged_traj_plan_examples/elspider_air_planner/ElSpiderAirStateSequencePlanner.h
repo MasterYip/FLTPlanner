@@ -329,7 +329,7 @@ public:
             gridmap_interface_->lockMapUpdate();
             cmd_ = msg;
             state_sequence_planner_.visClear();
-            Parameters param(swing_traj_planner_config_.plannerID == 0 ? gridmapReachableFiltering(cmd_, config_.reachableFilterPoseMoveDis) : gridmap_interface_->getMap());
+            Parameters param(swing_traj_planner_config_.plannerID == 0 && config_.enableReachableFiltering ? gridmapReachableFiltering(cmd_, config_.reachableFilterPoseMoveDis) : gridmap_interface_->getMap());
             bool ret = false;
 
             while (!ret && ros::ok())
@@ -338,8 +338,8 @@ public:
                 ros::spinOnce();
                 // update robot state
                 update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
-                update_exp_path(cmd_);
-                // update_exp_path_xlock();
+                // update_exp_path(cmd_);
+                update_exp_path_xlock();
                 // MCTS planning
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
                                                         param, config_.cmdMctsSearchNodeNum);

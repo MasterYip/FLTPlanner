@@ -2,10 +2,10 @@
     <!-- ElSpider Air State Sequence Planner -->
 
     <!-- Demo Select (If sim = false, choose hardware) -->
-    <!-- 1_stairs / 2_stairs / 3_quincuncial_piles 
+    <!-- 1_stairs / 2_stairs / 3_quincuncial_piles / 3_timber_pile_hw
     / 4_barrier / 4_barrier_vague / 4_ushape_barrier
     / 5_channel / 6_fractal-->
-    <arg name="demo_name" default="hardware" />
+    <arg name="demo_name" default="3_timber_pile_hw" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
     <!-- minco_cfg_planner -->
@@ -38,18 +38,25 @@
     <arg name="auto_benchmark" default="false" />
     <arg name="grid_map_topic" value="/grid_map" />
     <arg name="grid_map_topic_ceiling" value="/grid_map_ceiling" />
+    <!-- Map File (Images) -->
     <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ground.png" />
     <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ceiling.png" />
+    <!-- Map Def (Timber Pile Generation) -->
+    <arg name="grid_map_def" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/map_def.yaml" />
     <!-- GridMap -->
     <group if="$(eval robot_interface_type == 'ElSpiderAirDummy')">
         <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="$(arg output)">
             <param name="image_path" value="$(arg grid_map_file)" />
+            <param name="map_def_path" value="$(arg grid_map_def)" />
             <param name="topic" value="~image" />
+            <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
         </node>
         <group if="$(arg with_ceiling)">
             <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_ceiling_publisher" output="$(arg output)">
                 <param name="image_path" value="$(arg grid_map_file_ceiling)" />
+                <param name="map_def_path" value="$(arg grid_map_def)" />
                 <param name="topic" value="~image" />
+                <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
             </node>
         </group>
         <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="$(arg output)">
