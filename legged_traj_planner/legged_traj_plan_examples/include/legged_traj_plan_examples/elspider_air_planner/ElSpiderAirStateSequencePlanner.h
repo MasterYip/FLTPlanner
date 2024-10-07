@@ -342,7 +342,7 @@ public:
                 update_exp_path_xlock();
                 // MCTS planning
                 ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        param, config_.cmdMctsSearchNodeNum);
+                                                        param, true, config_.cmdMctsSearchNodeNum);
                 // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
             }
 
@@ -387,7 +387,7 @@ public:
                 state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
                                                             transRobotState(getInitState(param, robot_state_.pose, robot_state_.moveDirection)));
             }
-            state_traj_replay(state_sequence_planner_.get_state_traj(0));
+            // state_traj_replay(state_sequence_planner_.get_state_traj(0));
             traj_planner();
             motion_lock_ = false;
             gridmap_interface_->unlockMapUpdate();
