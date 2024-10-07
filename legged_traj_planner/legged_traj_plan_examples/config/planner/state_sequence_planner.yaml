@@ -6,7 +6,7 @@ misc:
   reOptimizeMaxTry: 1000
   enableVis: true
   enableOptVis: false
-  optVisRate: 6
+  optVisRate: 12
 #   enableBenchmark: true
 #   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv
 #   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
@@ -15,7 +15,7 @@ misc:
 StateSequencePlanner:
   rosRate: 100
   stepTime: 2
-  cmdMctsSearchNodeNum: 200
+  cmdMctsSearchNodeNum: 300
   navMctsSearchNodeNum: 600
   cmdExtrapolatePointNum: 50
   cmdExtrapolateDeltaT: 0.01

@@ -1,6 +1,6 @@
 TimberPileGen:
   # X, Y
-  Width: [0.2, 0.2]         # Timber width (X, Y)
+  Width: [0.201, 0.201]         # Timber width (X, Y)
   Size: [9, 6]              # Timber pile size (X columns, Y rows)
   PaddingPlaneSize: [6, 2]  # Padding plane size (X length, Y length)
   PaddingHeight: 0.0        # Padding height
@@ -10,7 +10,7 @@ TimberPileGen:
   Heights: [1,1,1,1,1,1,
             1,2,1,1,2,1,
             2,3,2,3,3,2,
-            3,1,1,3,2,3,
+            3,2,1,3,2,3,
             4,2,3,2,3,4,
             3,3,2,1,2,3,
             3,2,3,2,3,2,

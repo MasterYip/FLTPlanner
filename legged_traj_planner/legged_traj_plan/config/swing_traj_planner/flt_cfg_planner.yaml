@@ -4,7 +4,7 @@ trajInit:
   # perpendicular to the ground (avoid collision detection)
   vLift: 0.014 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
-  vLiftNormalRandomize: 1.5 # Rand normal for RE-PLANNING (orthogonal disk randomization)
+  vLiftNormalRandomize: 1.8 # Rand normal for RE-PLANNING (orthogonal disk randomization)
   hLift: 0.1
   trajTime: 20
 
@@ -29,7 +29,7 @@ LFTPlanner:
     enablePolyPathSearch: true
     useLeggedBorderCheck: true
     collBallCheckRad2: 0.05
-    collBallCheckRad3: 0.025
+    collBallCheckRad3: 0.035
   optimizer:
     lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization
@@ -56,12 +56,12 @@ LFTPlanner:
     jointAccWeight: 0.1
     CollBall1Rad: 0.06
     CollBall2Rad: 0.06
-    CollBall3Rad: 0.06
+    CollBall3Rad: 0.05
     CollBall1Weight: 0.0
-    CollBall2Weight: 16.0
-    CollBall3Weight: 4.0
-    FootCollExcludeBallRad: 0.06
-    FootCollExcludeBallSmoothRad: 0.05
+    CollBall2Weight: 0.0
+    CollBall3Weight: 6.0
+    FootCollExcludeBallRad: 0.05
+    FootCollExcludeBallSmoothRad: 0.04
     primitivePos1: 0.0
     primitivePos2: 1.57
     primitivePos3: 3.14
