@@ -18,6 +18,16 @@ A simple co-simulation for ElSpider Air.
 <!-- ![Co-simulation Framework](legged_traj_plan_examples/doc/elspider_air_cosim_sch.png)
 ![Cosimulation example](legged_traj_plan_examples/doc/eg_elspider_air_cosimulation.png) -->
 
+#### Dependencies
+
+- ros_industrial_cmake_boilerplate
+
+```bash
+sudo apt install ros-$ROS_DISTRO-ros-industrial-cmake-boilerplate
+```
+
+- CGAL?
+
 #### Dependent Repos
 
 - [Qrpucp/HexapodSoftware](https://github.com/Qrpucp/HexapodSoftware): check out branch `feature/elspider_air_locomotion`

@@ -38,10 +38,10 @@ StompCfgPlanner:
     smoothingFactor: 1.0e-2
     joint1PosMin: -0.785
     joint1PosMax: 0.785
-    joint2PosMin: -0.5233
+    joint2PosMin: -0.349
     joint2PosMax: 3.14
     joint3PosMin: -0.6978
-    joint3PosMax: 3.925
+    joint3PosMax: 3.403
     jointPosWeight: 0.4
     CollBall1Rad: 0.06
     CollBall2Rad: 0.06

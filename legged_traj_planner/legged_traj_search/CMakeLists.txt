@@ -4,12 +4,15 @@ project(legged_traj_search)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CGAL_ENABLE 0)
 # set(CMAKE_BUILD_TYPE "Release")
 # disable -Wclass-memaccess
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC -Wno-class-memaccess")
 
 find_package(Eigen3 REQUIRED)
-find_package(CGAL REQUIRED)
+if (CGAL_ENABLE)
+  find_package(CGAL REQUIRED)
+endif()
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -131,18 +134,31 @@ include_directories(
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
-target_include_directories(${PROJECT_NAME}
-  PRIVATE
-  ${PROJECT_SOURCE_DIR}/include
-  ${EIGEN3_INCLUDE_DIR}
-  ${CGAL_INCLUDE_DIRS}
-  INTERFACE
-  ${PROJECT_SOURCE_DIR}/include
-)
-target_link_libraries(${PROJECT_NAME}
-  ${grid_map_core_LIBRARIES}
-  ${CGAL_LIBRARIES}
-)
+if(CGAL_ENABLE)
+  target_include_directories(${PROJECT_NAME}
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${EIGEN3_INCLUDE_DIR}
+    ${CGAL_INCLUDE_DIRS}
+    INTERFACE
+    ${PROJECT_SOURCE_DIR}/include
+  )
+  target_link_libraries(${PROJECT_NAME}
+    ${grid_map_core_LIBRARIES}
+    ${CGAL_LIBRARIES}
+  )
+else()
+  target_include_directories(${PROJECT_NAME}
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${EIGEN3_INCLUDE_DIR}
+    INTERFACE
+    ${PROJECT_SOURCE_DIR}/include
+  )
+  target_link_libraries(${PROJECT_NAME}
+    ${grid_map_core_LIBRARIES}
+  )
+endif()
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
