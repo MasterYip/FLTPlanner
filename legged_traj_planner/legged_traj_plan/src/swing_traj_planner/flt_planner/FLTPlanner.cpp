@@ -297,6 +297,7 @@ std::shared_ptr<MincoTrajectory> FLTCfgPlanner::getDefaultCfgTraj(const pinocchi
     return std::make_shared<MincoTrajectory>(cfg_poly_traj, start_vel, goal_vel, config_.trajTime);
 }
 
+// Interface to legged_traj_search
 bool FLTCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
                                        const pinocchio::SE3 pose0, const pinocchio::SE3 pose1,
                                        const Eigen::Vector3d p0, const Eigen::Vector3d p1,

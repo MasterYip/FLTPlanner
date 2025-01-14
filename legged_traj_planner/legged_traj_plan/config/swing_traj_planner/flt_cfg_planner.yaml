@@ -58,7 +58,7 @@ LFTPlanner:
     CollBall2Rad: 0.06
     CollBall3Rad: 0.05
     CollBall1Weight: 0.0
-    CollBall2Weight: 0.0
+    CollBall2Weight: 4.0
     CollBall3Weight: 6.0
     FootCollExcludeBallRad: 0.05
     FootCollExcludeBallSmoothRad: 0.04

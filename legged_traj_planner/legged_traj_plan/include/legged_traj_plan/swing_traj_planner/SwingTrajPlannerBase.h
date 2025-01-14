@@ -369,6 +369,7 @@ public:
         std::cout << "Benchmark results saved to: " << config_.benchmarkSavePath << std::endl;
     }
 
+    // Trajectory Init Interface
     std::shared_ptr<TrajectoryBase> getInitTraj(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                 Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                 uint index)
@@ -383,6 +384,7 @@ public:
                                                             Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                             uint index) = 0;
 
+    // Trajectory Optimization Interface
     bool optTraj(std::shared_ptr<TrajectoryBase> &traj,
                  const pinocchio::SE3 &pose0,
                  const pinocchio::SE3 &pose1,
@@ -403,4 +405,24 @@ public:
                              const pinocchio::SE3 &pose0,
                              const pinocchio::SE3 &pose1,
                              int index) = 0;
+
+    // Reachability Check Interface
+    bool reachableCheck(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                         Eigen::Vector3d p0, uint index,
+                         std::vector<Eigen::Vector3d> &footholds,
+                         std::vector<bool> &reachable)
+    {
+        benchmark_.reset();
+        bool ret = reachableCheckHook(pose0, pose1, p0, index, footholds, reachable);
+        benchmark_.record("reachableCheck");
+        return ret;
+    };
+
+    virtual bool reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                     Eigen::Vector3d p0, uint index,
+                                     std::vector<Eigen::Vector3d> &footholds,
+                                     std::vector<bool> &reachable)
+    {
+        return false;
+    };
 };
