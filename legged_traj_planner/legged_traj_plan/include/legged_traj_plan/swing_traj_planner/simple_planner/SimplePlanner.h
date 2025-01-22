@@ -79,15 +79,28 @@ public:
                      const pinocchio::SE3 &pose1,
                      int index) override
     {
+        if (config_.enableVis)
+        {
+            std::vector<Point3D> path;
+            double ts = 0.01;
+            double t = 0;
+            while (t < 1.0)
+            {
+                path.emplace_back(traj->evaluate(t, 0, true));
+                t += ts;
+            }
+            visualizer_->setIdGroup(1);
+            visualizer_->visCurve(path, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
+        }
         return true;
     }
 
     bool reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                    Eigen::Vector3d p0, uint index,
-                                    std::vector<Eigen::Vector3d> &footholds,
-                                    std::vector<bool> &reachable) override
+                            Eigen::Vector3d p0, uint index,
+                            std::vector<Eigen::Vector3d> &footholds,
+                            std::vector<bool> &reachable) override
     {
+
         return false;
     };
-
 };
