@@ -21,6 +21,7 @@
 #include <Eigen/Dense>
 /* internal project header files */
 #include "legged_traj_plan/utils/Spline.h"
+#include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
@@ -328,6 +329,20 @@ public:
                                                                                 benchmark_("SwingTrajPlannerBenchmark", config_.enableBenchmark) {};
     ~SwingTrajPlannerBase() = default;
 
+    bool ifEndPointKinValid(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
+                                                  const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
+                                                  int index)
+    {
+        auto robot_kin = robot_interface_->getRobotKin();
+        Eigen::Vector3d q_i;
+        if (!robot_kin.inverseKinConstraint(point_SE3Act(pose0, p0), q_i, index, false) ||
+            !robot_kin.inverseKinConstraint(point_SE3Act(pose1, p1), q_i, index, false))
+        {
+            return false;
+        }
+        return true;
+    }
+
     SwingTrajPlannerConfig &getConfig()
     {
         return config_;
@@ -430,7 +445,7 @@ public:
                 // else
                 //     unreachable_footholds.emplace_back(footholds[i]);
             }
-            visualizer_->visSphere(reachable_footholds);
+            visualizer_->visCube(reachable_footholds, Eigen::Vector4d(1, 0, 0, 0), ros_visualizer::VisStyle(0.6, 0.8, 1.0, 1.0, 0.02));
             // visualizer_->visSphere(reachable_footholds, ros_visualizer::VisStyle(0.5, 0.5, 1.0, 1.0, 0.02));
             // visualizer_->visSphere(unreachable_footholds, ros_visualizer::VisStyle(1.0, 0.7, 0.4, 1.0, 0.02));
         }

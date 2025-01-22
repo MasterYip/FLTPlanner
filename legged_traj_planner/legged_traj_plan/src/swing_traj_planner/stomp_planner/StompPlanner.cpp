@@ -115,28 +115,6 @@ StompCfgPlanner::StompCfgPlanner(SwingTrajPlannerConfig config,
     }
 }
 
-bool StompCfgPlanner::checkEndPointValid(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
-                                         const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
-                                         int index)
-{
-    auto robot_kin = robot_interface_->getRobotKin();
-    Eigen::Vector3d q_i;
-    try
-    {
-        if (!robot_kin.inverseKinConstraint(point_SE3Act(pose0, p0), q_i, index, false) ||
-            !robot_kin.inverseKinConstraint(point_SE3Act(pose1, p1), q_i, index, false))
-        {
-            return false;
-        }
-        return true;
-    }
-    catch (const std::exception &e)
-    {
-        std::cout << "Error: " << e.what() << std::endl;
-        return false;
-    }
-}
-
 std::shared_ptr<TrajectoryBase> StompCfgPlanner::getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                                  Eigen::Vector3d p0, Eigen::Vector3d p1,
                                                                  uint index)
@@ -235,9 +213,9 @@ bool StompCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 po
     reachable.resize(footholds.size());
     for (int i = 0; i < footholds.size(); i++)
     {
-        if (checkEndPointValid(pose0, pose1, p0, footholds.at(i), index))
+        if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
         {
-            auto traj = getInitTrajHook(pose0, pose1, p0, footholds[i], index);
+            auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
             if (optTrajHook(traj, pose0, pose1, index))
                 reachable[i] = true;
             else
