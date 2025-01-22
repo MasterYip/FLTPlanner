@@ -132,6 +132,7 @@ bool StompCfgPlanner::checkEndPointValid(const pinocchio::SE3 &pose0, const pino
     }
     catch (const std::exception &e)
     {
+        std::cout << "Error: " << e.what() << std::endl;
         return false;
     }
 }
@@ -234,7 +235,7 @@ bool StompCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 po
     reachable.resize(footholds.size());
     for (int i = 0; i < footholds.size(); i++)
     {
-        if (checkEndPointValid(pose0, pose1, p0, footholds[i], index))
+        if (checkEndPointValid(pose0, pose1, p0, footholds.at(i), index))
         {
             auto traj = getInitTrajHook(pose0, pose1, p0, footholds[i], index);
             if (optTrajHook(traj, pose0, pose1, index))
@@ -245,4 +246,5 @@ bool StompCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 po
         else
             reachable[i] = false;
     }
+    return true;
 }
