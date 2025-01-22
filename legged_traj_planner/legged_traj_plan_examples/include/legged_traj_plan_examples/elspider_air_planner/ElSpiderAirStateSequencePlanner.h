@@ -670,7 +670,7 @@ public:
         if (config_.visReachableCheck)
         {
             int index = 0;
-            int point_array_size = 20;
+            int point_array_size = 40;
             double interval = 0.05;
             pinocchio::SE3 pose0, pose1;
             pose0 = state_traj.eval_torso_traj(0.0);

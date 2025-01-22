@@ -6,7 +6,7 @@ add_compile_options(-std=c++14)
 # set(CMAKE_BUILD_TYPE "Release")
 # Settings
 # IMPORTANT Disable conda to use gtest, otherwise it will lead to unknown error.
-set(USE_GTEST "ON")
+set(USE_GTEST "OFF")
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 ## Find catkin macros and libraries

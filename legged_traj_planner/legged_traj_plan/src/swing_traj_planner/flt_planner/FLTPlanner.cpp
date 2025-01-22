@@ -659,23 +659,5 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
         reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
     }
 
-    if (config_.enableVis)
-    {
-        // Draw reachable footholds in green, unreachable in red
-        visualizer_->setIdGroup(1);
-        std::vector<Point3D> reachable_footholds;
-        std::vector<Point3D> unreachable_footholds;
-
-        for (size_t i = 0; i < footholds.size(); i++)
-        {
-            if (reachable[i])
-                reachable_footholds.emplace_back(footholds[i]);
-            else
-                unreachable_footholds.emplace_back(footholds[i]);
-        }
-        visualizer_->visSphere(reachable_footholds, ros_visualizer::VisStyle(0.5, 0.5, 1.0, 1.0, 0.02));
-        visualizer_->visSphere(unreachable_footholds, ros_visualizer::VisStyle(1.0, 0.7, 0.4, 1.0, 0.02));
-    }
-
     return true;
 }

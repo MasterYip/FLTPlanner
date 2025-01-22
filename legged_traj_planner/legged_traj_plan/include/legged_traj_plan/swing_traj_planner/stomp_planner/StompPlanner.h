@@ -1,12 +1,12 @@
 /**
  * @file STOMPPlanner.h
  * @author Master Yip (2205929492@qq.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-08-17
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #pragma once
@@ -31,8 +31,8 @@ private:
 
 public:
     StompPlanner(SwingTrajPlannerConfig config,
-                  std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                  std::shared_ptr<GridMapInterface> gridmap_interface);
+                 std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                 std::shared_ptr<GridMapInterface> gridmap_interface);
     ~StompPlanner() = default;
 
     std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
@@ -53,9 +53,13 @@ private:
 
 public:
     StompCfgPlanner(SwingTrajPlannerConfig config,
-                  std::shared_ptr<ElSpiderAirInterface> robot_interface,
-                  std::shared_ptr<GridMapInterface> gridmap_interface);
+                    std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                    std::shared_ptr<GridMapInterface> gridmap_interface);
     ~StompCfgPlanner() = default;
+
+    bool checkEndPointValid(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
+                            const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
+                            int index);
 
     std::shared_ptr<TrajectoryBase> getInitTrajHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                                     Eigen::Vector3d p0, Eigen::Vector3d p1,
@@ -65,4 +69,9 @@ public:
                      const pinocchio::SE3 &pose0,
                      const pinocchio::SE3 &pose1,
                      int index);
+
+    bool reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                            Eigen::Vector3d p0, uint index,
+                            std::vector<Eigen::Vector3d> &footholds,
+                            std::vector<bool> &reachable) override;
 };
