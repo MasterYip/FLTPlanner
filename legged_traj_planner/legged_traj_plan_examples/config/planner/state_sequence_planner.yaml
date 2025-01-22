@@ -25,6 +25,9 @@ StateSequencePlanner:
   reachableFilterPoseMoveDis: 0.2
   reachableTravLayerName: "elevation_inpainted_trav"
 
+  # Reachability Check vis
+  visReachableCheck: True
+
   swingTrajPreOpt: false
   shutdownAfterPreOpt: false
   execOnKeyboardCmd: false

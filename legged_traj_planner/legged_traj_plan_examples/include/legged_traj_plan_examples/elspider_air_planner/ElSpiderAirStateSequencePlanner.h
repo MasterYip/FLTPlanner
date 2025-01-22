@@ -140,6 +140,8 @@ struct ElSpiderAirStateSequencePlannerConfig
     double reachableFilterPoseMoveDis;
     std::string reachableTravLayerName;
 
+    bool visReachableCheck;
+
     bool swingTrajPreOpt;
     bool shutdownAfterPreOpt;
     bool execOnKeyboardCmd;
@@ -164,6 +166,8 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/enableReachableFiltering", enableReachableFiltering);
         check_digit &= nh.getParam(ns + "/reachableFilterPoseMoveDis", reachableFilterPoseMoveDis);
         check_digit &= nh.getParam(ns + "/reachableTravLayerName", reachableTravLayerName);
+
+        check_digit &= nh.getParam(ns + "/visReachableCheck", visReachableCheck);
 
         check_digit &= nh.getParam(ns + "/swingTrajPreOpt", swingTrajPreOpt);
         check_digit &= nh.getParam(ns + "/shutdownAfterPreOpt", shutdownAfterPreOpt);
@@ -291,8 +295,8 @@ public:
 
             for (int i = 0; i < 6; i++)
             {
-                flt_planner->reachableFilter(pose0, pose1, foot_pos[i], i,
-                                             gridmap_points, gridmap_points_valid[i]);
+                flt_planner->reachableCheckHook(pose0, pose1, foot_pos[i], i,
+                                                gridmap_points, gridmap_points_valid[i]);
             }
 
             int i = 0;
@@ -662,6 +666,30 @@ public:
         std::vector<Eigen::Vector3d> footend_interp_vel = state_traj.eval_foot_traj(0.0, 1);
         std::vector<Eigen::Vector3d> footend_interp_acc = state_traj.eval_foot_traj(0.0, 2);
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
+
+        if (config_.visReachableCheck)
+        {
+            int index = 0;
+            int point_array_size = 20;
+            double interval = 0.05;
+            pinocchio::SE3 pose0, pose1;
+            pose0 = state_traj.eval_torso_traj(0.0);
+            pose1 = state_traj.eval_torso_traj(1.0);
+            Point3D p0 = state_traj.eval_foot_traj(0.0)[index];
+            std::vector<Point3D> footholds;
+            for (int i = 0; i < point_array_size; i++)
+            {
+                for (int j = 0; j < point_array_size; j++)
+                {
+                    Point3D foothold = pose0.translation() +
+                                       Point3D((i - point_array_size / 2) * interval, (j - point_array_size / 2) * interval, 0);
+                    foothold[2] = gridmap_interface_->value(foothold.head(2));
+                    footholds.emplace_back(foothold);
+                }
+            }
+            std::vector<bool> reachable;
+            swing_traj_planner_->reachableCheck(pose0, pose1, p0, index, footholds, reachable);
+        }
 
         do
         {

@@ -70,13 +70,9 @@ PosList MCTStateTransfer::eval_foot_traj(double t, uint derivative, bool auto_op
         if (swingtraj_isneeded_[i])
         {
             if (!swingtraj_isopt_[i] && auto_opt)
-            {
                 opt_swing_traj(i);
-            }
             if (!use_cfg_space_)
-            {
                 footend_interp.emplace_back(swingtraj_[i]->evaluate(t, derivative, true));
-            }
             else
             {
                 Eigen::Vector3d base_pt = swing_traj_planner_->getRobotInterface()->FK_foot(swingtraj_[i]->evaluate(t, derivative, true), i);
@@ -104,19 +100,13 @@ PosList MCTStateTransfer::eval_cfg_traj(double t, uint derivative, bool auto_opt
         if (swingtraj_isneeded_[i])
         {
             if (!swingtraj_isopt_[i] && auto_opt)
-            {
                 opt_swing_traj(i);
-            }
 
             if (!use_cfg_space_)
-            {
                 cfg_interp.emplace_back(swing_traj_planner_->getRobotInterface()->IKFast_foot(
                     point_SE3Act(eval_torso_traj(t), swingtraj_[i]->evaluate(t, derivative, true)), i));
-            }
             else
-            {
                 cfg_interp.emplace_back(swingtraj_[i]->evaluate(t, derivative, true));
-            }
         }
         else
         {
@@ -172,13 +162,15 @@ void MCTStateTransfer::opt_swing_traj(int index)
         pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
         pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
 
-        // Init when opt
+        // Init Trajectory
         swingtraj_[index] = swing_traj_planner_->getInitTraj(
             pose0, pose1, footpos_list0_[index], footpos_list1_[index], index);
 
+        // Optimize Trajectory
         swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
             swingtraj_[index], pose0, pose1, index);
 
+        // Retry Optimization
         if (swing_traj_planner_->getConfig().reOptimize)
         {
             // Normal randomization for replanning

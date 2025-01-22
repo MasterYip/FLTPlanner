@@ -135,18 +135,9 @@ public:
      * @return true
      * @return false
      */
-    bool reachableFilter(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                         Eigen::Vector3d p0, uint index,
-                         std::vector<Eigen::Vector3d> &footholds,
-                         std::vector<bool> &reachable);
-
-
     bool reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                      Eigen::Vector3d p0, uint index,
                                      std::vector<Eigen::Vector3d> &footholds,
-                                     std::vector<bool> &reachable) override
-    {
-        return reachableFilter(pose0, pose1, p0, index, footholds, reachable);
-    };
+                                     std::vector<bool> &reachable) override;
 
 };
