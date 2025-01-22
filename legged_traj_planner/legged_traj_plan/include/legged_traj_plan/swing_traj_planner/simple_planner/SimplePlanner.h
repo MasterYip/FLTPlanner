@@ -81,4 +81,13 @@ public:
     {
         return true;
     }
+
+    bool reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                    Eigen::Vector3d p0, uint index,
+                                    std::vector<Eigen::Vector3d> &footholds,
+                                    std::vector<bool> &reachable) override
+    {
+        return false;
+    };
+
 };

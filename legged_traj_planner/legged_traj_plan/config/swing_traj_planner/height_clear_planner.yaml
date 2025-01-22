@@ -1,4 +1,4 @@
-plannerID: 3
+plannerID: 3 # i.e. simple planner
 
 trajInit:
   vLift: 0.2

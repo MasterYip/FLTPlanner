@@ -663,8 +663,10 @@ public:
         MCTStateTransfer &state_traj = state_sequence_planner_.get_state_traj(0);
         pinocchio::SE3 odom_interp = state_traj.eval_torso_traj(0.0);
         std::vector<Eigen::Vector3d> footend_interp = state_traj.eval_foot_traj(0.0);
-        std::vector<Eigen::Vector3d> footend_interp_vel = state_traj.eval_foot_traj(0.0, 1);
-        std::vector<Eigen::Vector3d> footend_interp_acc = state_traj.eval_foot_traj(0.0, 2);
+        // std::vector<Eigen::Vector3d> footend_interp_vel = state_traj.eval_foot_traj(0.0, 1);
+        // std::vector<Eigen::Vector3d> footend_interp_acc = state_traj.eval_foot_traj(0.0, 2);
+        std::vector<Eigen::Vector3d> footend_interp_vel = std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero());
+        std::vector<Eigen::Vector3d> footend_interp_acc = std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero());
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
 
         if (config_.visReachableCheck)

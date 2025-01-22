@@ -15,7 +15,7 @@ Eigen::VectorXd cubic_evaluate(const Eigen::MatrixXd &para_mat, const Eigen::Mat
     Eigen::VectorXd result;
     if (d_order > 1)
     {
-        throw std::invalid_argument("Invalid derivative order");
+        throw std::invalid_argument("Invalid derivative order: " + std::to_string(d_order));
     }
     if (t < 0 || t > 1)
     {

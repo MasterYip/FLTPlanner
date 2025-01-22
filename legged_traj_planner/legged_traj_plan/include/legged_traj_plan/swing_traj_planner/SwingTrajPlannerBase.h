@@ -427,6 +427,7 @@ public:
                         std::vector<Eigen::Vector3d> &footholds,
                         std::vector<bool> &reachable)
     {
+        reachable.resize(footholds.size());
         benchmark_.reset();
         bool ret = reachableCheckHook(pose0, pose1, p0, index, footholds, reachable);
         benchmark_.record("reachableCheck");

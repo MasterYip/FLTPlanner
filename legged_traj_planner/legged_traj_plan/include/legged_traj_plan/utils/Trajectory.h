@@ -216,7 +216,7 @@ public:
         else if (d_order == 3)
             return (space_deform_flag_ ? traj_.getJer(t).cwiseProduct(space_deform_) : traj_.getJer(t)) * k * k * k;
         else
-            throw std::runtime_error("Invalid derivative order");
+            throw std::runtime_error("Invalid derivative order: " + std::to_string(d_order));
     }
 
     double getTotalDuration() const override
