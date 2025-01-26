@@ -473,8 +473,8 @@ public:
         for (double t = 0.0; t < 1.01; t += 0.01)
         {
             // Get Interpolated State
-            auto odom_interp = state_traj.eval_torso_traj(t);
-            auto footend_interp = state_traj.eval_cfg_traj(t);
+            auto odom_interp = state_traj.eval_torso_traj(sine_remap(t);
+            auto footend_interp = state_traj.eval_cfg_traj(sine_remap(t);
             auto support_state = state_traj.eval_support_state(t);
 
             // Visualization
@@ -736,9 +736,9 @@ public:
             profile.time = ros::Time::now().toSec() - init_time_;
             profile.t = t;
             profile.pose = odom_interp;
-            profile.foot_pos_list = state_traj.eval_foot_traj(t);
-            profile.cfg_pos_list = state_traj.eval_cfg_traj(t, 0, false);
-            profile.cfg_vel_list = state_traj.eval_cfg_traj(t, 1, false);
+            profile.foot_pos_list = state_traj.eval_foot_traj(sine_remap(t);
+            profile.cfg_pos_list = state_traj.eval_cfg_traj(sine_remap(t, 0, false);
+            profile.cfg_vel_list = state_traj.eval_cfg_traj(sine_remap(t, 1, false);
             profile.support_state = support_state;
             for (size_t k = 0; k < 6; ++k)
             {
