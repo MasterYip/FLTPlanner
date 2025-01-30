@@ -51,8 +51,6 @@ struct SwingTrajPlannerConfig
 
     // Planner Select
     int plannerID;
-    // 0: LFTPlanner (TaskSpace & CfgSpace)
-    // 1: RRTPlanner (TaskSpace)
 
     //// ID[0] LFTPlannerSettings
     //// GCS TrajSearch & MINCO optimization
@@ -125,7 +123,24 @@ struct SwingTrajPlannerConfig
 
     //// ID[3] HeightClearPlannerSettings
 
-    //// ID[4] StompCfgPlannerSettings
+    //// ID[4] StompPlannerSettings
+    // double stompNumTimesteps;
+    // double stompStdDev1;
+    // double stompStdDev2;
+    // double stompStdDev3;
+    // int stompNumIters;
+    // int stompNumItersAfterValid;
+    // int stompNumRollouts;
+    // int stompMaxRollouts;
+    // double stompExpCostSensitivity;
+    // double stompCtrlCostWeight;
+    // Penalty
+    // double smoothingFactor;
+    // double CollBall3Rad;
+    // double CollBall3Weight;
+    // double FootCollExcludeBallRad;
+
+    //// ID[5] StompCfgPlannerSettings
     double stompNumTimesteps;
     double stompStdDev1;
     double stompStdDev2;
@@ -154,6 +169,12 @@ struct SwingTrajPlannerConfig
     // double CollBall3Weight;
     // double FootCollExcludeBallRad;
     // double FootCollExcludeBallSmoothRad;
+
+    //// ID[6] FECPlannerSettings
+    // double collBallCheckRad2; // Knee
+    // double collBallCheckRad3; // Foot
+    // double FootCollExcludeBallRad;
+    double FECCheckResolution;
 
     void loadParams(ros::NodeHandle &nh)
     {
@@ -301,6 +322,14 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("StompCfgPlanner/penalty/FootCollExcludeBallRad", FootCollExcludeBallRad);
             check_digit *= nh.getParam("StompCfgPlanner/penalty/FootCollExcludeBallSmoothRad", FootCollExcludeBallSmoothRad);
         }
+        //// ID[6] FECPlannerSettings
+        else if (plannerID == 6)
+        {
+            check_digit *= nh.getParam("FECPlanner/collBallCheckRad2", collBallCheckRad2);
+            check_digit *= nh.getParam("FECPlanner/collBallCheckRad3", collBallCheckRad3);
+            check_digit *= nh.getParam("FECPlanner/FootCollExcludeBallRad", FootCollExcludeBallRad);
+            check_digit *= nh.getParam("FECPlanner/FECCheckResolution", FECCheckResolution);
+        }
         if (!check_digit)
         {
             ROS_ERROR("Not all parameters loaded successfully!");
@@ -330,8 +359,8 @@ public:
     ~SwingTrajPlannerBase() = default;
 
     bool ifEndPointKinValid(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
-                                                  const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
-                                                  int index)
+                            const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
+                            int index)
     {
         auto robot_kin = robot_interface_->getRobotKin();
         Eigen::Vector3d q_i;
