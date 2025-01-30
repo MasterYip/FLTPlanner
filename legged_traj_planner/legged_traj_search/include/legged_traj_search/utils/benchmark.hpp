@@ -106,7 +106,7 @@ public:
     void record(std::string name, uint type = RecordType::NORMAL);
 
     // End up the benchmark and print the records
-    void end();
+    void end(bool summary=true);
 
     void addCustomData(double data)
     {

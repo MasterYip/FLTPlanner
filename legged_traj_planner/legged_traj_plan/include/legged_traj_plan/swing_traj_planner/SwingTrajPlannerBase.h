@@ -460,6 +460,7 @@ public:
         benchmark_.reset();
         bool ret = reachableCheckHook(pose0, pose1, p0, index, footholds, reachable);
         benchmark_.record("reachableCheck");
+        benchmark_.end(false);
 
         if (config_.enableVis && visualizer_)
         {

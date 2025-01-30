@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /Robot1
-        - /TravMap1
       Splitter Ratio: 0.49772727489471436
     Tree Height: 651
   - Class: rviz/Selection
@@ -328,7 +327,7 @@ Visualization Manager:
       Marker Topic: /elspider_air_state_sequence_planner/visualizer_markers
       Name: ros_viz
       Namespaces:
-        curve: true
+        {}
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -336,10 +335,7 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
       Namespaces:
-        arrow: true
-        cube: true
-        curve: true
-        sphere: true
+        {}
       Queue Size: 1
       Value: true
     - Alpha: 0.4000000059604645
@@ -349,7 +345,7 @@ Visualization Manager:
       Color Layer: elevation_inpainted_trav
       Color Transformer: GridMapLayer
       ColorMap: twilight
-      Enabled: true
+      Enabled: false
       Grid Cell Decimation: 1
       Grid Line Thickness: 0.10000000149011612
       Height Layer: elevation_inpainted_trav
@@ -365,7 +361,7 @@ Visualization Manager:
       Topic: /elspider_air_state_sequence_planner/grid_map_trav_test
       Unreliable: false
       Use ColorMap: false
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -402,17 +398,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.519596517086029
-        Y: -0.0240522138774395
-        Z: -0.16419270634651184
+        X: 0.7449603080749512
+        Y: 0.019879231229424477
+        Z: -0.04831811413168907
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7997952699661255
+      Pitch: 0.4347954988479614
       Target Frame: base
-      Yaw: 5.909541130065918
+      Yaw: 4.409536361694336
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

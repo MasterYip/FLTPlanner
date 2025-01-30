@@ -38,7 +38,7 @@ void Benchmark::record(std::string name, uint type)
     timer_.timerReset();
 }
 
-void Benchmark::end()
+void Benchmark::end(bool summary)
 {
     if (!enabled_)
         return;
@@ -50,44 +50,47 @@ void Benchmark::end()
     }
 
     // Summary
-    std::cout << "\033[1;31m"; // red
-    for (auto type : {RecordType::NORMAL, RecordType::CRITICAL, RecordType::MISC})
+    if (summary)
     {
+        std::cout << "\033[1;31m"; // red
+        for (auto type : {RecordType::NORMAL, RecordType::CRITICAL, RecordType::MISC})
+        {
+            double total_time = 0.0;
+            for (auto &record : records_)
+            {
+                if (record.type == type)
+                {
+                    total_time += record.time_record;
+                }
+            }
+            switch (type)
+            {
+            case RecordType::NORMAL:
+                printf("%s | ", name_.c_str());
+                std::cout << "Normal time:\t" << total_time << " ms" << std::endl;
+                result_.normal_tot_time = total_time;
+                break;
+            case RecordType::CRITICAL:
+                printf("%s | ", name_.c_str());
+                std::cout << "Critical time:\t" << total_time << " ms" << std::endl;
+                result_.critic_tot_time = total_time;
+                break;
+            case RecordType::MISC:
+                printf("%s | ", name_.c_str());
+                std::cout << "Misc time time:\t" << total_time << " ms" << std::endl;
+                result_.misc_tot_time = total_time;
+                break;
+            }
+        }
         double total_time = 0.0;
         for (auto &record : records_)
         {
-            if (record.type == type)
-            {
-                total_time += record.time_record;
-            }
+            total_time += record.time_record;
         }
-        switch (type)
-        {
-        case RecordType::NORMAL:
-            printf("%s | ", name_.c_str());
-            std::cout << "Normal time:\t" << total_time << " ms" << std::endl;
-            result_.normal_tot_time = total_time;
-            break;
-        case RecordType::CRITICAL:
-            printf("%s | ", name_.c_str());
-            std::cout << "Critical time:\t" << total_time << " ms" << std::endl;
-            result_.critic_tot_time = total_time;
-            break;
-        case RecordType::MISC:
-            printf("%s | ", name_.c_str());
-            std::cout << "Misc time time:\t" << total_time << " ms" << std::endl;
-            result_.misc_tot_time = total_time;
-            break;
-        }
+        printf("%s | ", name_.c_str());
+        std::cout << "Total time:\t" << total_time << " ms\033[0m" << std::endl;
+        result_.tot_time = total_time;
     }
-    double total_time = 0.0;
-    for (auto &record : records_)
-    {
-        total_time += record.time_record;
-    }
-    printf("%s | ", name_.c_str());
-    std::cout << "Total time:\t" << total_time << " ms\033[0m" << std::endl;
-    result_.tot_time = total_time;
 }
 
 bool Benchmark::save(const std::string &file_path)
