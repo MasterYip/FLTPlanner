@@ -34,7 +34,7 @@ struct FECCheckConfig
 
     int checkResolution = 100;
 
-    FECCheckConfig() {}
+    FECCheckConfig() = default;
 };
 
 class FECCheck
@@ -53,18 +53,24 @@ public:
     {
     }
 
+    bool setConfig(const FECCheckConfig &config)
+    {
+        config_ = config;
+        return true;
+    }
+
     bool checkLegFEC(const pinocchio::SE3 &pose, const Eigen::Vector3d &p,
                      const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index)
     {
         // Check if the leg state is valid according to FEC
         // 1. Check if the foot is in the task space
-        p = point_SE3Act(pose, p);
+        Eigen::Vector3d pos = point_SE3Act(pose, p);
         Eigen::Vector3d sol;
-        bool joint_limit_check = robot_interface_->getRobotKin().inverseKinConstraint(p, sol, index_, false);
+        bool joint_limit_check = robot_interface_->getRobotKin().inverseKinConstraint(pos, sol, index, false);
         if (!joint_limit_check)
             return false;
         // 2. Check if the leg is in the collision-free space
-        Eigen::Vector3d knee_pos = point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(sol, index_, 2));
+        Eigen::Vector3d knee_pos = point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(sol, index, 2));
         bool collision_check_knee = config_.collBallRad2 < gridmap_interface_->sdfValue(knee_pos, "min");
         if (!collision_check_knee)
             return false;
@@ -94,4 +100,4 @@ public:
         }
         return true;
     }
-}
+};

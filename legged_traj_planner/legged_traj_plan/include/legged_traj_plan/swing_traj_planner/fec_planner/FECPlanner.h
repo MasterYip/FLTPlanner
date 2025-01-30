@@ -34,9 +34,14 @@ public:
                std::shared_ptr<ElSpiderAirInterface> robot_interface,
                std::shared_ptr<GridMapInterface> gridmap_interface)
         : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
-          fec_check_(robot_interface, gridmap_interface,
-                     {config.CollBall2Rad, config.CollBall3Rad, config.FootCollExcludeBallRad, config.FECCheckResolution})
+          fec_check_(robot_interface, gridmap_interface)
     {
+        FECCheckConfig fec_check_config;
+        fec_check_config.collBallRad2 = config.collBallCheckRad2;
+        fec_check_config.collBallRad3 = config.collBallCheckRad3;
+        fec_check_config.FootCollExcludeBallRad = config.FootCollExcludeBallRad;
+        fec_check_config.checkResolution = config.FECCheckResolution;
+        fec_check_.setConfig(fec_check_config);
         visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
     }
 

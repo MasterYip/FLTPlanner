@@ -28,6 +28,7 @@
 
 #include "legged_traj_plan/swing_traj_planner/SwingTrajPlannerBase.h"
 #include "legged_traj_plan/swing_traj_planner/simple_planner/SimplePlanner.h"
+#include "legged_traj_plan/swing_traj_planner/fec_planner/FECPlanner.h"
 #include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
 #include "legged_traj_plan/swing_traj_planner/rrt_planner/RRTPlanner.h"
 #include "legged_traj_plan/swing_traj_planner/stomp_planner/StompPlanner.h"
@@ -131,6 +132,10 @@ public:
         else if (swing_traj_planner_config_.plannerID == 5)
         {
             swing_traj_planner_ = std::make_shared<StompCfgPlanner>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
+        }
+        else if (swing_traj_planner_config_.plannerID == 6)
+        {
+            swing_traj_planner_ = std::make_shared<FECPlanner>(swing_traj_planner_config_, robot_interface_, gridmap_interface_);
         }
         else
         {
