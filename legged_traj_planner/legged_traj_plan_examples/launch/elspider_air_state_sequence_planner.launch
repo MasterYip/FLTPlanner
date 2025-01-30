@@ -5,14 +5,15 @@
     <!-- 1_stairs / 2_stairs / 3_quincuncial_piles / 3_timber_pile_hw
     / 4_barrier / 4_barrier_vague / 4_ushape_barrier
     / 5_channel / 6_fractal-->
-    <arg name="demo_name" default="3_timber_pile_hw" />
+    <arg name="demo_name" default="4_barrier" />
     <!-- Planner Select -->
     <!-- height_clear_planner -->
+    <!-- fec_planner -->
     <!-- minco_cfg_planner -->
     <!-- flt_planner / flt_cfg_planner / flt_cfg_planner_fast-->
     <!-- rrt_planner / rrt_cfg_planner -->
     <!-- stomp_planner / stomp_cfg_planner -->
-    <arg name="planner_cfg" default="flt_cfg_planner" />
+    <arg name="planner_cfg" default="fec_planner" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
@@ -24,7 +25,7 @@
     <!-- Optitrack -->
     <arg name="use_optitrack" default="false" />
     <!-- GridMap -->    <!-- Ground & Ceiling (must be of the same size) -->
-    <arg name="with_ceiling" default="false"/>
+    <arg name="with_ceiling" default="true"/>
     <arg name="ground_ceiling_boundary" default="0.3" /> <!-- For real-time mapping -->
     <!-- ROS bag record (under ~/.ros) -->
     <arg name="rosbag_record" default="false" />
