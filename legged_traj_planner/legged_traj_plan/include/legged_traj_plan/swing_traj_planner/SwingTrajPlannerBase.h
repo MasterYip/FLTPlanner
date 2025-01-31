@@ -415,16 +415,17 @@ public:
             }
             file << std::endl;
         }
+        file.close();
         std::cout << "Opt Benchmark results saved to: " << config_.OptBenchmarkSavePath << std::endl;
 
         // Save Reachable Benchmark
         file.open(config_.ReachableBenchmarkSavePath);
         if (!file.is_open())
         {
-            std::cerr << "Failed to open file: " << config_.OptBenchmarkSavePath << std::endl;
+            std::cerr << "Failed to open file: " << config_.ReachableBenchmarkSavePath << std::endl;
             return;
         }
-        file << "normalTime, criticalTime, miscTime, totTime, totalFootholds, reachableFootholds" << std::endl;
+        file << "normalTime, criticalTime, miscTime, totTime, total, reachable, index" << std::endl;
         for (auto result : reachable_bm_results_)
         {
             file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
@@ -435,6 +436,7 @@ public:
             }
             file << std::endl;
         }
+        file.close();
         std::cout << "Reachable Benchmark results saved to: " << config_.ReachableBenchmarkSavePath << std::endl;
     }
 
@@ -487,6 +489,7 @@ public:
         benchmark_.record("reachableCheck");
         benchmark_.addCustomData(footholds.size());                                     // Total Footholds
         benchmark_.addCustomData(std::count(reachable.begin(), reachable.end(), true)); // Reachable Footholds
+        benchmark_.addCustomData(index);                                                // Index
         benchmark_.end();
         reachable_bm_results_.emplace_back(benchmark_.getResult());
 
