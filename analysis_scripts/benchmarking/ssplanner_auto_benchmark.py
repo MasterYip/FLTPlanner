@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2025-01-31 15:50:27
+LastEditTime: 2025-01-31 20:49:54
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -38,8 +38,9 @@ def csv2dict(filename):
 PLANNERS = [
     "flt_cfg_planner_fast",
     # "minco_cfg_planner",
-    "rrt_cfg_planner",
+    # "rrt_cfg_planner",
     "stomp_cfg_planner",
+    "fec_planenr",
     # "height_clear_planner",
     # "rrt_planner",
 ]
@@ -47,11 +48,11 @@ PLANNERS = [
 DEMOS = [
     ("2_stairs", False),
     ("4_ushape_barrier", True),
-    ("3_quincuncial_piles", False),
-    # ("4_barrier", True),
+    # ("3_quincuncial_piles", False),
+    ("4_barrier", True),
     # ("4_barrier_vague", True),
     # ("5_channel", True),
-    # ("6_fractal", False),
+    ("6_fractal", False),
 ]
 
 
@@ -71,12 +72,12 @@ class TestCase:
         self.auto_benchmark = True
         self.output = "log"  # screen, log
 
-        # Benchmark
+        # SwingTraj Optimization Benchmark
         self.opt_num = 0
         self.suc_num = 0
         self.suc_rate = 0
         self.tot_time = 0
-
+        # Statistics per trajectory
         self.ave_time = 0
         self.ave_time2 = 0
         self.max_time = 0
@@ -94,6 +95,18 @@ class TestCase:
         self.max_ctrl = 0
         self.min_ctrl = 0
         self.std_ctrl = 0
+        
+        # Reachability Check Benchmark
+        self.rc_totchecknum = 0  # points
+        self.rc_reachablenum = 0 # points
+        self.rc_tottime = 0      # seconds
+        # Statistics per leg
+        self.rc_avetime = 0     # per leg
+        self.rc_avetime2 = 0
+        self.rc_maxtime = 0
+        self.rc_mintime = 0
+        self.rc_stdtime = 0
+        
 
     @property
     def rl_args(self):
@@ -112,6 +125,7 @@ class TestCase:
     @property
     def benchmark_dict(self):
         return {
+            ## Trajectory Optimization Benchmark
             "OptNum": self.opt_num,
             "SuccessNum": self.suc_num,
             "SuccessRate": self.suc_rate,
@@ -134,11 +148,21 @@ class TestCase:
             "MaxCtrl": self.max_ctrl,
             "MinCtrl": self.min_ctrl,
             "StdCtrl": self.std_ctrl,
+            ## Reachability Check Benchmark
+            "RcTotCheckNum": self.rc_totchecknum,
+            "RcReachableNum": self.rc_reachablenum,
+            "RcTotTime": self.rc_tottime,
+            # Times (per leg)
+            "RcAveTime": self.rc_avetime,
+            "RcAveTime2": self.rc_avetime2,
+            "RcMaxTime": self.rc_maxtime,
+            "RcMinTime": self.rc_mintime,
+            "RcStdTime": self.rc_stdtime,
         }
 
     def parse_planner_benchmark(self, planner_benchmark: dict):
         # self.tot_time = planner_benchmark["Totaltime"]
-        # NOTE: this will include benchmark data calculation time
+        # NOTE: this will include benchmark data calculation time, do not use
         pass
 
     def parse_swingtraj_benchmark(self, swingtraj_benchmark: dict):
@@ -175,6 +199,24 @@ class TestCase:
         self.min_ctrl = np.min(trajctrl_succ_only)
         self.std_ctrl = np.std(trajctrl_succ_only)
 
+    def parse_reachable_benchmark(self, reachable_benchmark: dict):
+        tottime_list = reachable_benchmark["totTime"]
+        totnum_list = reachable_benchmark["total"]
+        reachablenum_list = reachable_benchmark["reachable"]
+        legindex_list = reachable_benchmark["index"]
+        
+        self.rc_totchecknum = np.sum(totnum_list)
+        self.rc_reachablenum = np.sum(reachablenum_list)
+        self.rc_tottime = np.sum(tottime_list)
+        
+        self.rc_avetime = np.mean(tottime_list)
+        self.rc_avetime2 = np.mean(np.array(tottime_list) ** 2)
+        self.rc_maxtime = np.max(tottime_list)
+        self.rc_mintime = np.min(tottime_list)
+        self.rc_stdtime = np.std(tottime_list)
+        pass
+
+
     def print_benchmark(self):
         print("=====================================")
         print(f"Planner: {self.planner_name}, Demo: {self.demo_name}")
@@ -195,6 +237,7 @@ class SSPlannerAutoBenchmark:
     # Benchmark
     planner_benchmark = "StateSequencePlannerBenchmark.yaml"
     swingtraj_benchmark = "OptBenchmark.csv"
+    reachable_benchmark = "ReachableBenchmark.csv"
     robot_profile = "RobotProfileRecord.csv"
 
     def __init__(self):
@@ -232,6 +275,7 @@ class SSPlannerAutoBenchmark:
         self.planners = planners
         self.demos = demos
         self.test_cases = []
+        # Generate test cases
         for planner in planners:
             for demo in demos:
                 self.test_cases.append(TestCase(planner, demo[0], demo[1], False))
@@ -275,6 +319,9 @@ class SSPlannerAutoBenchmark:
         with open(self.get_abs_path(self.swingtraj_benchmark), "r") as f:
             swingtraj_benchmark = csv2dict(f)
             self.test_cases[self.test_case_ptr].parse_swingtraj_benchmark(swingtraj_benchmark)
+        with open(self.get_abs_path(self.reachable_benchmark), "r") as f:
+            reachable_benchmark = csv2dict(f)
+            self.test_cases[self.test_case_ptr].parse_reachable_benchmark(reachable_benchmark)
         with open(self.get_abs_path(self.robot_profile), "r") as f:
             robot_profile = csv2dict(f)
         pass

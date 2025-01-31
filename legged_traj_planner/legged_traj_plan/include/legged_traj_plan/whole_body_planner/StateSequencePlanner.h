@@ -66,6 +66,14 @@ public:
         }
     };
 
+    void reachableCheck()
+    {
+        for (int i = 0; i < state_trajs.size(); ++i)
+        {
+            state_trajs[i].reachable_check();
+        }
+    };
+
     int get_state_traj_length();
 
     void saveBenchmarkResults(void)

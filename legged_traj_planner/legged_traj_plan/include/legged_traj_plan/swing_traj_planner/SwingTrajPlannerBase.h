@@ -385,6 +385,11 @@ public:
         return robot_interface_;
     }
 
+    std::shared_ptr<GridMapInterface> getGridMapInterface()
+    {
+        return gridmap_interface_;
+    }
+
     void visClear()
     {
         if (visualizer_)

@@ -640,14 +640,16 @@ public:
 
     void traj_planner()
     {
-        double t = 0.0;
-        double delta = 1 / config_.stepTime / config_.rosRate;
 
         if (config_.swingTrajPreOpt)
         {
             benchmark_.reset();
+            // Swing Traj Optimization
             state_sequence_planner_.optSwingTraj();
-            benchmark_.record("swing traj optimization");
+            benchmark_.record("SwingTrajOptimization");
+            // Reachability Check
+            state_sequence_planner_.reachableCheck();
+            benchmark_.record("ReachabilityCheck");
             benchmark_.end();
             if (config_.shutdownAfterPreOpt)
             {
@@ -658,6 +660,9 @@ public:
                 return;
             }
         }
+
+        double t = 0.0;
+        double delta = 1 / config_.stepTime / config_.rosRate;
 
         // Auto opt next traj before exec
         MCTStateTransfer &state_traj = state_sequence_planner_.get_state_traj(0);
@@ -671,28 +676,7 @@ public:
 
         if (config_.visReachableCheck)
         {
-            for (int index = 0; index < 6; index++)
-            {
-                int point_array_size = 30;
-                double interval = 0.05;
-                pinocchio::SE3 pose0, pose1;
-                pose0 = state_traj.eval_torso_traj(0.0);
-                pose1 = state_traj.eval_torso_traj(1.0);
-                Point3D p0 = state_traj.eval_foot_traj(0.0)[index];
-                std::vector<Point3D> footholds;
-                for (int i = 0; i < point_array_size; i++)
-                {
-                    for (int j = 0; j < point_array_size; j++)
-                    {
-                        Point3D foothold = pose0.translation() +
-                                           Point3D((i - point_array_size / 2) * interval, (j - point_array_size / 2) * interval, 0);
-                        foothold[2] = gridmap_interface_->value(foothold.head(2));
-                        footholds.emplace_back(foothold);
-                    }
-                }
-                std::vector<bool> reachable;
-                swing_traj_planner_->reachableCheck(pose0, pose1, p0, index, footholds, reachable);
-            }
+            state_traj.reachable_check();
         }
 
         do

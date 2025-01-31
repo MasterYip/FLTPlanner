@@ -38,7 +38,7 @@ MCTStateTransfer::MCTStateTransfer(hexapod_State state0, hexapod_State state1,
         swingtraj_isneeded_[i] = (state1.support_State_Now[i] == 0);
     }
 
-    // NOTE: Init when opt for now
+    // NOTE: Init trajectory when opt for now
     // Init swing trajectory
     // for (int i = 0; i < 6; ++i)
     // {
@@ -197,6 +197,40 @@ void MCTStateTransfer::opt_swing_traj(int index)
             swingtraj_isopt_[index] = true;
         }
     }
+}
+
+/**
+ * @brief Generate footholds for reachable check
+ * 
+ * @param size Point array size (size x size)
+ * @param interval 
+ * @return std::vector<Eigen::Vector3d> 
+ */
+std::vector<Eigen::Vector3d> MCTStateTransfer::generate_footholds(int size, double interval)
+{
+    pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
+    pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
+    std::vector<Point3D> footholds;
+    for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+        {
+            Point3D foothold = pose0.translation() +
+                               Point3D((i - size / 2) * interval, (j - size / 2) * interval, 0);
+            foothold[2] = swing_traj_planner_->getGridMapInterface()->value(foothold.head(2));
+            footholds.emplace_back(foothold);
+        }
+    }
+    return footholds;
+}
+
+void MCTStateTransfer::reachable_check(int index)
+{
+    auto footholds = generate_footholds();
+    std::vector<bool> reachable;
+    pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
+    pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
+    swing_traj_planner_->reachableCheck(pose0, pose1, footpos_list0_[index], index, footholds, reachable);
 }
 
 /**
