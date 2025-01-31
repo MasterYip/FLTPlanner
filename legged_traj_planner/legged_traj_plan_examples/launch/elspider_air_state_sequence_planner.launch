@@ -13,7 +13,7 @@
     <!-- flt_planner / flt_cfg_planner / flt_cfg_planner_fast-->
     <!-- rrt_planner / rrt_cfg_planner -->
     <!-- stomp_planner / stomp_cfg_planner -->
-    <arg name="planner_cfg" default="fec_planner" />
+    <arg name="planner_cfg" default="stomp_cfg_planner" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->

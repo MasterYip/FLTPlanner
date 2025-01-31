@@ -59,7 +59,7 @@ struct ElSpiderAirRaibertPlannerConfig
 
     std::string demoPath;
 
-    std::string benchmarkSavePath;
+    std::string OptBenchmarkSavePath;
 
     void loadParams(ros::NodeHandle &nh, std::string ns = "RaibertPlanner")
     {
@@ -68,7 +68,7 @@ struct ElSpiderAirRaibertPlannerConfig
 
         check_digit &= nh.getParam(ns + "/demoPath", demoPath);
 
-        check_digit &= nh.getParam(ns + "/benchmarkSavePath", benchmarkSavePath);
+        check_digit &= nh.getParam(ns + "/OptBenchmarkSavePath", OptBenchmarkSavePath);
         if (!check_digit)
         {
             ROS_ERROR("Failed to load ElSpiderAirRaibertPlannerConfig.");
@@ -142,13 +142,13 @@ public:
                 robot_interface_->setBodyPoseCmd(exp_pose);
                 robot_interface_shadow_->setBodyPoseCmd(exp_pose);
                 robot_interface_->setJointCmd(exp_foot_pos,
-                                             PosList(6, Eigen::Vector3d::Zero()),
-                                             PosList(6, Eigen::Vector3d::Zero()),
-                                             std::vector<bool>(contact_state.begin(), contact_state.end()));
+                                              PosList(6, Eigen::Vector3d::Zero()),
+                                              PosList(6, Eigen::Vector3d::Zero()),
+                                              std::vector<bool>(contact_state.begin(), contact_state.end()));
                 robot_interface_shadow_->setJointCmd(exp_foot_pos,
-                                                    PosList(6, Eigen::Vector3d::Zero()),
-                                                    PosList(6, Eigen::Vector3d::Zero()),
-                                                    std::vector<bool>(contact_state.begin(), contact_state.end()));
+                                                     PosList(6, Eigen::Vector3d::Zero()),
+                                                     PosList(6, Eigen::Vector3d::Zero()),
+                                                     std::vector<bool>(contact_state.begin(), contact_state.end()));
             }
         }
         else
@@ -252,7 +252,7 @@ public:
         {
             std::cout << "Save benchmark results..." << std::endl;
             raibert_planner_.saveBenchmarkResults();
-            benchmark_.save(config_.benchmarkSavePath);
+            benchmark_.save(config_.OptBenchmarkSavePath);
             std::cout << "Save robot profile..." << std::endl;
             saveRobotProfile();
             std::cout << "Benchmark results and robot profile saved." << std::endl;

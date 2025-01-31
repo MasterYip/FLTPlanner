@@ -17,7 +17,7 @@ misc:
   optVisRate: 10
   enableBenchmark: false
   # Benchmark result save path
-  benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/optBenchmark2.csv
+  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/optBenchmark2.csv
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 LFTPlanner:

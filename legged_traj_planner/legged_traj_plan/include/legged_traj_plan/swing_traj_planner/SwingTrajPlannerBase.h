@@ -46,7 +46,8 @@ struct SwingTrajPlannerConfig
     bool enableOptVis;
     double optVisRate;
     bool enableBenchmark;
-    std::string benchmarkSavePath;
+    std::string OptBenchmarkSavePath;
+    std::string ReachableBenchmarkSavePath;
     std::string robotProfilePath;
 
     // Planner Select
@@ -195,7 +196,8 @@ struct SwingTrajPlannerConfig
         check_digit *= nh.getParam("misc/enableOptVis", enableOptVis);
         check_digit *= nh.getParam("misc/optVisRate", optVisRate);
         check_digit *= nh.getParam("misc/enableBenchmark", enableBenchmark);
-        check_digit *= nh.getParam("misc/benchmarkSavePath", benchmarkSavePath);
+        check_digit *= nh.getParam("misc/OptBenchmarkSavePath", OptBenchmarkSavePath);
+        check_digit *= nh.getParam("misc/ReachableBenchmarkSavePath", ReachableBenchmarkSavePath);
         check_digit *= nh.getParam("misc/robotProfilePath", robotProfilePath);
 
         //// ID[0] LFTPlannerSettings
@@ -347,7 +349,8 @@ protected:
 
     std::shared_ptr<GCSVisualizer> visualizer_;
     Benchmark benchmark_;
-    std::vector<BenchmarkResult> benchmark_results_;
+    std::vector<BenchmarkResult> opt_bm_results_;
+    std::vector<BenchmarkResult> reachable_bm_results_;
 
 public:
     SwingTrajPlannerBase(SwingTrajPlannerConfig config,
@@ -392,15 +395,17 @@ public:
     {
         if (!config_.enableBenchmark)
             return;
+        
+        // Save Opt Benchmark
         std::ofstream file;
-        file.open(config_.benchmarkSavePath);
+        file.open(config_.OptBenchmarkSavePath);
         if (!file.is_open())
         {
-            std::cerr << "Failed to open file: " << config_.benchmarkSavePath << std::endl;
+            std::cerr << "Failed to open file: " << config_.OptBenchmarkSavePath << std::endl;
             return;
         }
         file << "normalTime, criticalTime, miscTime, totTime, optRetType, trajLen, trajCtrl" << std::endl;
-        for (auto result : benchmark_results_)
+        for (auto result : opt_bm_results_)
         {
             file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
                  << result.tot_time;
@@ -410,7 +415,27 @@ public:
             }
             file << std::endl;
         }
-        std::cout << "Benchmark results saved to: " << config_.benchmarkSavePath << std::endl;
+        std::cout << "Opt Benchmark results saved to: " << config_.OptBenchmarkSavePath << std::endl;
+
+        // Save Reachable Benchmark
+        file.open(config_.ReachableBenchmarkSavePath);
+        if (!file.is_open())
+        {
+            std::cerr << "Failed to open file: " << config_.OptBenchmarkSavePath << std::endl;
+            return;
+        }
+        file << "normalTime, criticalTime, miscTime, totTime, totalFootholds, reachableFootholds" << std::endl;
+        for (auto result : reachable_bm_results_)
+        {
+            file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
+                 << result.tot_time;
+            for (auto data : result.custom_data)
+            {
+                file << ", " << data;
+            }
+            file << std::endl;
+        }
+        std::cout << "Reachable Benchmark results saved to: " << config_.ReachableBenchmarkSavePath << std::endl;
     }
 
     // Trajectory Init Interface
@@ -441,7 +466,7 @@ public:
         benchmark_.addCustomData(traj->getTrajLength());
         benchmark_.addCustomData(traj->getTrajControl());
         benchmark_.end();
-        benchmark_results_.emplace_back(benchmark_.getResult());
+        opt_bm_results_.emplace_back(benchmark_.getResult());
         return ret;
     }
 
@@ -460,7 +485,10 @@ public:
         benchmark_.reset();
         bool ret = reachableCheckHook(pose0, pose1, p0, index, footholds, reachable);
         benchmark_.record("reachableCheck");
-        benchmark_.end(false);
+        benchmark_.addCustomData(footholds.size());                                     // Total Footholds
+        benchmark_.addCustomData(std::count(reachable.begin(), reachable.end(), true)); // Reachable Footholds
+        benchmark_.end();
+        reachable_bm_results_.emplace_back(benchmark_.getResult());
 
         if (config_.enableVis && visualizer_)
         {

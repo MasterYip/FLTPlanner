@@ -8,10 +8,10 @@ misc:
   enableOptVis: false
   optVisRate: 300
 #   enableBenchmark: true
-#   benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv
+#   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv
 #   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
 
 
 RaibertPlanner:
   rosRate: 100
-  benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml
+  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml

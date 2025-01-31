@@ -150,7 +150,7 @@ struct ElSpiderAirStateSequencePlannerConfig
     bool savePlannedStates;
     bool execSavedStates;
 
-    std::string benchmarkSavePath;
+    std::string OptBenchmarkSavePath;
 
     void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
     {
@@ -177,7 +177,7 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/savePlannedStates", savePlannedStates);
         check_digit &= nh.getParam(ns + "/execSavedStates", execSavedStates);
 
-        check_digit &= nh.getParam(ns + "/benchmarkSavePath", benchmarkSavePath);
+        check_digit &= nh.getParam(ns + "/OptBenchmarkSavePath", OptBenchmarkSavePath);
         if (!check_digit)
         {
             ROS_ERROR("Failed to load ElSpiderAirStateSequencePlannerConfig.");
@@ -893,7 +893,7 @@ public:
         {
             std::cout << "Save benchmark results..." << std::endl;
             state_sequence_planner_.saveBenchmarkResults();
-            benchmark_.save(config_.benchmarkSavePath);
+            benchmark_.save(config_.OptBenchmarkSavePath);
             std::cout << "Save robot profile..." << std::endl;
             saveRobotProfile();
             std::cout << "Benchmark results and robot profile saved." << std::endl;

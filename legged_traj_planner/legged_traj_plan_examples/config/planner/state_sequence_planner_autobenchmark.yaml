@@ -6,7 +6,8 @@ misc:
   enableVis: false
   enableOptVis: false
   enableBenchmark: true
-  benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv
+  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/SwingTrajPlannerBenchmark.csv
+  ReachableBenchmarkSavePath: null
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
 
 
@@ -29,4 +30,4 @@ StateSequencePlanner:
   execSavedStates: true 
 
   # Benchmark
-  benchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml
+  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml
