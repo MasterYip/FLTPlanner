@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2025-01-31 20:49:54
+LastEditTime: 2025-01-31 22:10:54
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -40,7 +40,7 @@ PLANNERS = [
     # "minco_cfg_planner",
     # "rrt_cfg_planner",
     "stomp_cfg_planner",
-    "fec_planenr",
+    "fec_planner",
     # "height_clear_planner",
     # "rrt_planner",
 ]
@@ -169,8 +169,12 @@ class TestCase:
         opttime_list = swingtraj_benchmark["totTime"]
         success_list = swingtraj_benchmark["optRetType"]
         trajlen_list = swingtraj_benchmark["trajLen"]
+        # NOTE: convert to float to avoid JSON serialization error
+        trajlen_list = [float(x) for x in trajlen_list]
         trajlen_succ_only = np.array(trajlen_list)[np.array(success_list) == 1]
         trajctrl_list = swingtraj_benchmark["trajCtrl"]
+        # NOTE: convert to float to avoid JSON serialization error
+        trajctrl_list = [float(x) for x in trajctrl_list]
         trajctrl_succ_only = np.array(trajctrl_list)[np.array(success_list) == 1]
 
         self.opt_num = len(opttime_list)
@@ -204,9 +208,9 @@ class TestCase:
         totnum_list = reachable_benchmark["total"]
         reachablenum_list = reachable_benchmark["reachable"]
         legindex_list = reachable_benchmark["index"]
-        
-        self.rc_totchecknum = np.sum(totnum_list)
-        self.rc_reachablenum = np.sum(reachablenum_list)
+        # NOTE: using int() to avoid JSON serialization error
+        self.rc_totchecknum = int(np.sum(totnum_list))
+        self.rc_reachablenum = int(np.sum(reachablenum_list))
         self.rc_tottime = np.sum(tottime_list)
         
         self.rc_avetime = np.mean(tottime_list)
