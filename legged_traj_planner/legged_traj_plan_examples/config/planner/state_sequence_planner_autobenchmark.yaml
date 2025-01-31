@@ -1,10 +1,12 @@
 
 # NOTE: Planner benchmark settings override 
 misc:
+  useCfgCommand: true
   reOptimize: false
   reOptimizeMaxTry: 3
   enableVis: false
   enableOptVis: false
+  optVisRate: 12
   enableBenchmark: true
   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/OptBenchmark.csv
   ReachableBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/ReachableBenchmark.csv
@@ -19,6 +21,13 @@ StateSequencePlanner:
   cmdExtrapolatePointNum: 50
   cmdExtrapolateDeltaT: 0.01
   navExtrapolateSamplesNum: 100
+  # only for FLTCfgPlanner
+  enableReachableFiltering: false
+  reachableFilterPoseMoveDis: 0.2
+  reachableTravLayerName: "elevation_inpainted_trav"
+
+  # Reachability Check vis
+  visReachableCheck: True
 
   swingTrajPreOpt: true
   shutdownAfterPreOpt: true
@@ -29,5 +38,5 @@ StateSequencePlanner:
   # Executing saved states on startup
   execSavedStates: true 
 
-  # Benchmark
+  # Benchmark for StateSequencePlanner
   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml

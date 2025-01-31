@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2024-08-26 10:31:10
+LastEditTime: 2025-01-31 15:50:27
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -37,7 +37,7 @@ def csv2dict(filename):
 
 PLANNERS = [
     "flt_cfg_planner_fast",
-    "minco_cfg_planner",
+    # "minco_cfg_planner",
     "rrt_cfg_planner",
     "stomp_cfg_planner",
     # "height_clear_planner",
@@ -48,10 +48,10 @@ DEMOS = [
     ("2_stairs", False),
     ("4_ushape_barrier", True),
     ("3_quincuncial_piles", False),
-    ("4_barrier", True),
-    ("4_barrier_vague", True),
-    ("5_channel", True),
-    ("6_fractal", False),
+    # ("4_barrier", True),
+    # ("4_barrier_vague", True),
+    # ("5_channel", True),
+    # ("6_fractal", False),
 ]
 
 
@@ -63,7 +63,7 @@ class TestCase:
         self.with_ceiling = with_ceiling
         self.rosbag_record = rosbag_record
 
-        # Defaults
+        # Default Parameters
         self.sim = True
         self.robot_interface_type = "ElSpiderAirDummy"
         self.teleop_type = "keyboard"
@@ -95,7 +95,7 @@ class TestCase:
         self.min_ctrl = 0
         self.std_ctrl = 0
 
-    @ property
+    @property
     def rl_args(self):
         """roslaunch arguments"""
         return {"planner_cfg": self.planner_name,
@@ -148,7 +148,7 @@ class TestCase:
         trajlen_succ_only = np.array(trajlen_list)[np.array(success_list) == 1]
         trajctrl_list = swingtraj_benchmark["trajCtrl"]
         trajctrl_succ_only = np.array(trajctrl_list)[np.array(success_list) == 1]
-        
+
         self.opt_num = len(opttime_list)
         self.suc_num = int(np.sum(success_list))
         self.suc_rate = np.sum(success_list) / len(success_list)
@@ -170,7 +170,7 @@ class TestCase:
 
         # Controls (only successful cases)
         self.ave_ctrl = np.mean(trajctrl_succ_only)
-        self.ave_ctrl2 = np.mean(trajctrl_succ_only** 2)
+        self.ave_ctrl2 = np.mean(trajctrl_succ_only ** 2)
         self.max_ctrl = np.max(trajctrl_succ_only)
         self.min_ctrl = np.min(trajctrl_succ_only)
         self.std_ctrl = np.std(trajctrl_succ_only)
@@ -194,7 +194,7 @@ class SSPlannerAutoBenchmark:
 
     # Benchmark
     planner_benchmark = "StateSequencePlannerBenchmark.yaml"
-    swingtraj_benchmark = "SwingTrajPlannerBenchmark.csv"
+    swingtraj_benchmark = "OptBenchmark.csv"
     robot_profile = "RobotProfileRecord.csv"
 
     def __init__(self):
