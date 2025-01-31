@@ -8,9 +8,9 @@ misc:
   enableOptVis: false
   optVisRate: 12
   enableBenchmark: false
-  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/optBenchmark2.yaml
-  ReachableBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/ReachableBenchmark2.yaml
-  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfile2.yaml
+  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/OptBenchmark.csv
+  ReachableBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/ReachableBenchmark.csv
+  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
 
 
 StateSequencePlanner:
