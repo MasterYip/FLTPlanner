@@ -66,6 +66,11 @@ public:
         }
     };
 
+    void reachableCheck(int leg_index, int index = 0)
+    {
+        state_trajs[index].reachable_check(leg_index);
+    };
+
     void reachableCheck()
     {
         for (int i = 0; i < state_trajs.size(); ++i)

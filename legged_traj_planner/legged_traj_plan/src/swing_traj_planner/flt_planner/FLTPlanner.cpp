@@ -654,9 +654,8 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     reachable.resize(footholds.size(), false);
     for (size_t i = 0; i < footholds.size(); i++)
     {
-        if (isnan(footholds[i][2]) || isnan(footholds[i][0]) || isnan(footholds[i][1]))
-            continue;
-        reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
+        if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
+            reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
     }
 
     return true;

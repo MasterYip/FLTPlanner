@@ -675,12 +675,11 @@ public:
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
 
         if (config_.visReachableCheck)
-        {
-            state_traj.reachable_check();
-        }
+            state_traj.reachable_check(0);
 
         do
         {
+
             // Get Interpolated State
             odom_interp = state_traj.eval_torso_traj(sine_remap(t));
             support_state = state_traj.eval_support_state(sine_remap(t));
@@ -742,6 +741,8 @@ public:
                 {
                     state_traj = state_sequence_planner_.get_state_traj(0);
                     state_sequence_planner_.visClear();
+                    if (config_.visReachableCheck)
+                        state_traj.reachable_check(0);
                 }
             }
             ros::spinOnce(); // Fetch feedback
