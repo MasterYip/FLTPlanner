@@ -120,3 +120,24 @@ bool RRTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     }
     return ret;
 }
+
+bool RRTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
+                                       Eigen::Vector3d p0, uint index,
+                                       std::vector<Eigen::Vector3d> &footholds,
+                                       std::vector<bool> &reachable)
+{
+    for (int i = 0; i < footholds.size(); i++)
+    {
+        if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
+        {
+            auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
+            if (optTrajHook(traj, pose0, pose1, index))
+                reachable[i] = true;
+            else
+                reachable[i] = false;
+        }
+        else
+            reachable[i] = false;
+    }
+    return true;
+}

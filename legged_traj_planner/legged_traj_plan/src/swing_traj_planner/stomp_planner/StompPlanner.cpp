@@ -210,7 +210,6 @@ bool StompCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 po
                                          std::vector<Eigen::Vector3d> &footholds,
                                          std::vector<bool> &reachable)
 {
-    reachable.resize(footholds.size());
     for (int i = 0; i < footholds.size(); i++)
     {
         if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))

@@ -354,6 +354,7 @@ public:
         ob::OptimizationObjectivePtr lengthObj(new ob::PathLengthOptimizationObjective(si));
         ob::OptimizationObjectivePtr clearObj(new CfgClearanceObjective(si));
         ob::OptimizationObjectivePtr timeObj(new CfgTimeSequenceObjective(si));
+        // Optimization termination condition
         lengthObj->setCostThreshold(ob::Cost(4.0));
         timeObj->setCostThreshold(ob::Cost(0.2));
 
