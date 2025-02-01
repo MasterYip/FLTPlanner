@@ -635,7 +635,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                                        std::vector<bool> &reachable)
 {
     std::unique_ptr<PolyTrajSearch> poly_traj_search;
-    // Use LeggedBorderCheck
+    // Config
     LeggedBorderCheckConfig config;
     config.ground_layer = gridmap_interface_->getGroundLayerName();
     config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
@@ -644,18 +644,38 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     config.collBallRad1 = config_.CollBall1Rad;
     config.collBallRad2 = config_.CollBall2Rad;
     config.collBallRad3 = config_.CollBall3Rad;
-    auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-                                                            pose0, pose1, p0, p0 + pose1.translation() - pose0.translation(), index, config);
     PolyTrajSearchConfig cfg;
     cfg.enable_benchmark = false;
-    poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
-    poly_traj_search->reachable(p0, p0); // Update intersect border
 
-    reachable.resize(footholds.size(), false);
-    for (size_t i = 0; i < footholds.size(); i++)
+    if (config_.updateGuideSurfInReachableCheck)
     {
-        if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
-            reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
+        for (size_t i = 0; i < footholds.size(); i++)
+        {
+            if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
+            {
+                auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
+                                                                        pose0, pose1, p0, footholds[i],
+                                                                        index, config);
+                poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
+                reachable[i] = poly_traj_search->reachable(p0, footholds[i], true);
+            }
+        }
+    }
+    else
+    {
+        // FIXME: Use Nominal Foothold as p1
+        auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
+                                                                pose0, pose1, p0, point_SE3Act(pose1.inverse(), robot_interface_->getNominalFoothold(index)),
+                                                                index, config);
+        poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
+        poly_traj_search->reachable(p0, p0); // Update intersect border
+
+        reachable.resize(footholds.size(), false);
+        for (size_t i = 0; i < footholds.size(); i++)
+        {
+            if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
+                reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
+        }
     }
 
     return true;

@@ -78,6 +78,7 @@ public:
         int samples = 3;
         Eigen::Vector3d pmid = (p0_ + p1_) / 2;
         double h = 0;
+        
         // Ave
         // for (int i = 1; i < samples + 1; i++)
         // {
@@ -86,6 +87,7 @@ public:
         //         config_.ground_layer);
         // }
         // pmid[2] = h / samples;
+
         // Max
         for (int i = 1; i < samples + 1; i++)
         {

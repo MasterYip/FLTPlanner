@@ -739,8 +739,10 @@ public:
                 state_sequence_planner_.dequeue_MCTsolution();
                 if (state_sequence_planner_.get_state_traj_length() > 0)
                 {
-                    state_traj = state_sequence_planner_.get_state_traj(0);
                     state_sequence_planner_.visClear();
+                    // Sleep to wait for vis clear
+                    ros::Duration(0.2).sleep();
+                    state_traj = state_sequence_planner_.get_state_traj(0);
                     if (config_.visReachableCheck)
                         state_traj.reachable_check(0);
                 }
