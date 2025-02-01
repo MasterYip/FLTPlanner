@@ -110,6 +110,13 @@ class ElSpiderAirInterface : public BaseRobotInterface
 {
 private:
     ElSpiderKin robot_kin;
+    std::vector<Eigen::Vector3d> nominal_footholds = {
+        Eigen::Vector3d(0.35, -0.23, -0.23),
+        Eigen::Vector3d(0.05, -0.29, -0.23),
+        Eigen::Vector3d(-0.35, -0.23, -0.23),
+        Eigen::Vector3d(0.35, 0.23, -0.23),
+        Eigen::Vector3d(0.05, 0.29, -0.23),
+        Eigen::Vector3d(-0.35, 0.23, -0.23)};
 
 public:
     ElSpiderAirInterface(const std::string &urdf, const std::vector<std::string> &package_dirs = {})
@@ -192,6 +199,11 @@ public:
     ElSpiderKin &getRobotKin()
     {
         return robot_kin;
+    }
+
+    Eigen::Vector3d getNominalFoothold(int index)
+    {
+        return nominal_footholds[index];
     }
 
     // Feedback Interface

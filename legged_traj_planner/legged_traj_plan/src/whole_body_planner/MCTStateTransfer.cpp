@@ -206,16 +206,18 @@ void MCTStateTransfer::opt_swing_traj(int index)
  * @param interval 
  * @return std::vector<Eigen::Vector3d> 
  */
-std::vector<Eigen::Vector3d> MCTStateTransfer::generate_footholds(int size, double interval)
+std::vector<Eigen::Vector3d> MCTStateTransfer::generate_footholds(int index, int size, double interval)
 {
     pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
     pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
+    auto nominal_foothold = swing_traj_planner_->getRobotInterface()->getNominalFoothold(index);
+    nominal_foothold = point_SE3Act(pose0.inverse(), nominal_foothold);
     std::vector<Point3D> footholds;
     for (int i = 0; i < size; i++)
     {
         for (int j = 0; j < size; j++)
         {
-            Point3D foothold = pose0.translation() +
+            Point3D foothold = nominal_foothold +
                                Point3D((i - size / 2) * interval, (j - size / 2) * interval, 0);
             foothold[2] = swing_traj_planner_->getGridMapInterface()->value(foothold.head(2));
             footholds.emplace_back(foothold);
@@ -226,7 +228,7 @@ std::vector<Eigen::Vector3d> MCTStateTransfer::generate_footholds(int size, doub
 
 void MCTStateTransfer::reachable_check(int index)
 {
-    auto footholds = generate_footholds();
+    auto footholds = generate_footholds(index);
     std::vector<bool> reachable;
     pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
     pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
