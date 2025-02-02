@@ -432,7 +432,12 @@ public:
             std::cerr << "Failed to open file: " << config_.ReachableBenchmarkSavePath << std::endl;
             return;
         }
-        file << "normalTime, criticalTime, miscTime, totTime, total, reachable, index" << std::endl;
+        file << "normalTime, criticalTime, miscTime, totTime, total, reachable, index";
+        for (int i = 0; i < reachable_bm_results_[0].custom_data.size() - 3; i++)
+        {
+            file << ", r" << i;
+        }
+        file << std::endl;
         for (auto result : reachable_bm_results_)
         {
             file << result.normal_tot_time << ", " << result.critic_tot_time << ", " << result.misc_tot_time << ", "
@@ -497,6 +502,11 @@ public:
         benchmark_.addCustomData(footholds.size());                                     // Total Footholds
         benchmark_.addCustomData(std::count(reachable.begin(), reachable.end(), true)); // Reachable Footholds
         benchmark_.addCustomData(index);                                                // Index
+        // FIXME: Reachable array
+        for (size_t i = 0; i < reachable.size(); i++)
+        {
+            benchmark_.addCustomData(reachable[i]);
+        }
         benchmark_.end();
         reachable_bm_results_.emplace_back(benchmark_.getResult());
 

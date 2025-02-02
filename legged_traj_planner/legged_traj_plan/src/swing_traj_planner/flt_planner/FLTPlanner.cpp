@@ -673,6 +673,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
         reachable.resize(footholds.size(), false);
         for (size_t i = 0; i < footholds.size(); i++)
         {
+            // NOTE: Kinematic Check takes a lot of time
             if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
                 reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
         }

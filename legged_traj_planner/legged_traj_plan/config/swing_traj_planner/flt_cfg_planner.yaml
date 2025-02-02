@@ -28,7 +28,7 @@ LFTPlanner:
   searcher:
     enablePolyPathSearch: true
     useLeggedBorderCheck: true
-    updateGuideSurfInReachableCheck: true
+    updateGuideSurfInReachableCheck: false
     collBallCheckRad2: 0.05
     collBallCheckRad3: 0.035
   optimizer:

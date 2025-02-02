@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2025-01-31 22:10:54
+LastEditTime: 2025-02-02 15:14:26
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -36,9 +36,10 @@ def csv2dict(filename):
 
 
 PLANNERS = [
-    "flt_cfg_planner_fast",
+    "flt_cfg_planner_fast", # As the ground truth for Reachable Evaluation
+    "flt_cfg_planner", 
     # "minco_cfg_planner",
-    # "rrt_cfg_planner",
+    "rrt_cfg_planner",
     "stomp_cfg_planner",
     "fec_planner",
     # "height_clear_planner",
@@ -95,10 +96,10 @@ class TestCase:
         self.max_ctrl = 0
         self.min_ctrl = 0
         self.std_ctrl = 0
-        
+
         # Reachability Check Benchmark
         self.rc_totchecknum = 0  # points
-        self.rc_reachablenum = 0 # points
+        self.rc_reachablenum = 0  # points
         self.rc_tottime = 0      # seconds
         # Statistics per leg
         self.rc_avetime = 0     # per leg
@@ -106,7 +107,9 @@ class TestCase:
         self.rc_maxtime = 0
         self.rc_mintime = 0
         self.rc_stdtime = 0
-        
+
+        # Reachable Array
+        self.reachable_array = []
 
     @property
     def rl_args(self):
@@ -125,7 +128,7 @@ class TestCase:
     @property
     def benchmark_dict(self):
         return {
-            ## Trajectory Optimization Benchmark
+            # Trajectory Optimization Benchmark
             "OptNum": self.opt_num,
             "SuccessNum": self.suc_num,
             "SuccessRate": self.suc_rate,
@@ -148,7 +151,7 @@ class TestCase:
             "MaxCtrl": self.max_ctrl,
             "MinCtrl": self.min_ctrl,
             "StdCtrl": self.std_ctrl,
-            ## Reachability Check Benchmark
+            # Reachability Check Benchmark
             "RcTotCheckNum": self.rc_totchecknum,
             "RcReachableNum": self.rc_reachablenum,
             "RcTotTime": self.rc_tottime,
@@ -212,14 +215,16 @@ class TestCase:
         self.rc_totchecknum = int(np.sum(totnum_list))
         self.rc_reachablenum = int(np.sum(reachablenum_list))
         self.rc_tottime = np.sum(tottime_list)
-        
+
         self.rc_avetime = np.mean(tottime_list)
         self.rc_avetime2 = np.mean(np.array(tottime_list) ** 2)
         self.rc_maxtime = np.max(tottime_list)
         self.rc_mintime = np.min(tottime_list)
         self.rc_stdtime = np.std(tottime_list)
-        pass
 
+        for i in range(totnum_list[0]):
+            self.reachable_array.append(reachable_benchmark[f"r{i}"])
+        self.reachable_array = np.array(self.reachable_array).transpose().tolist()
 
     def print_benchmark(self):
         print("=====================================")
@@ -303,6 +308,23 @@ class SSPlannerAutoBenchmark:
             json.dump(benchmark, f, indent=4)
         return
 
+    def save_reachable_array(self, filename="AutoBenchmarkReachableArray", timestamp=True):
+        benchmark = {}
+        self.test_case_ptr = 0
+        for planner in self.planners:
+            benchmark[planner] = {}
+            for demo in self.demos:
+                benchmark[planner][demo[0]] = self.test_cases[self.test_case_ptr].reachable_array
+                self.test_case_ptr += 1
+        if timestamp:
+            filename = filename + "_" + datetime.datetime.now().strftime("%Y%m%d") + ".json"
+        else:
+            filename = filename + ".json"
+        abspath = os.path.join(ROOT_DIR, "data", filename)
+        with open(abspath, "w") as f:
+            json.dump(benchmark, f, indent=4)
+        return
+
     def progress_callback(self, msg):
         self.parent.shutdown()
         self.analyze()
@@ -341,6 +363,7 @@ def run_benchmark():
     benchmark.run_benchmark(PLANNERS, DEMOS)
     rospy.spin()
     benchmark.save_benchmark()
+    benchmark.save_reachable_array()
 
 
 def run_tests():
