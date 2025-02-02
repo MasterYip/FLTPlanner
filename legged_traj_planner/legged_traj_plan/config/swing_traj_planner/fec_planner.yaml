@@ -24,4 +24,4 @@ FECPlanner:
   collBallCheckRad2: 0.05
   collBallCheckRad3: 0.03
   FootCollExcludeBallRad: 0.05
-  FECCheckResolution: 100 # points to check for FEC
+  FECCheckResolution: 50 # points to check for FEC

@@ -128,7 +128,7 @@ bool RRTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
 {
     for (int i = 0; i < footholds.size(); i++)
     {
-        if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
+        if (ifKinValid(pose1, footholds.at(i), index))
         {
             auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
             if (optTrajHook(traj, pose0, pose1, index))
