@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2025-02-02 15:14:26
+LastEditTime: 2025-02-02 20:23:53
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -39,7 +39,7 @@ PLANNERS = [
     "flt_cfg_planner_fast", # As the ground truth for Reachable Evaluation
     "flt_cfg_planner", 
     # "minco_cfg_planner",
-    "rrt_cfg_planner",
+    # "rrt_cfg_planner",
     "stomp_cfg_planner",
     "fec_planner",
     # "height_clear_planner",
@@ -100,7 +100,8 @@ class TestCase:
         # Reachability Check Benchmark
         self.rc_totchecknum = 0  # points
         self.rc_reachablenum = 0  # points
-        self.rc_tottime = 0      # seconds
+        self.rc_totlegchecknum = 0  # legs
+        self.rc_tottime = 0      # milliseconds
         # Statistics per leg
         self.rc_avetime = 0     # per leg
         self.rc_avetime2 = 0
@@ -154,6 +155,7 @@ class TestCase:
             # Reachability Check Benchmark
             "RcTotCheckNum": self.rc_totchecknum,
             "RcReachableNum": self.rc_reachablenum,
+            "RcTotLegCheckNum": self.rc_totlegchecknum,
             "RcTotTime": self.rc_tottime,
             # Times (per leg)
             "RcAveTime": self.rc_avetime,
@@ -214,6 +216,7 @@ class TestCase:
         # NOTE: using int() to avoid JSON serialization error
         self.rc_totchecknum = int(np.sum(totnum_list))
         self.rc_reachablenum = int(np.sum(reachablenum_list))
+        self.rc_totlegchecknum = int(len(legindex_list))
         self.rc_tottime = np.sum(tottime_list)
 
         self.rc_avetime = np.mean(tottime_list)

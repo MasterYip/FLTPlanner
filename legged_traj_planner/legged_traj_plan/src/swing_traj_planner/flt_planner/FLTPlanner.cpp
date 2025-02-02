@@ -641,6 +641,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
     config.enable_ground = true;
     config.enable_ceiling = false;
+    config.use_guide_surf = true;
     config.collBallRad1 = config_.CollBall1Rad;
     config.collBallRad2 = config_.CollBall2Rad;
     config.collBallRad3 = config_.CollBall3Rad;
@@ -663,18 +664,28 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     }
     else
     {
+        config.use_guide_surf = false;
         // FIXME: Use Nominal Foothold as p1
+        auto nominal_foothold = point_SE3Act(pose1.inverse(), robot_interface_->getNominalFoothold(index));
+        nominal_foothold[2] = gridmap_interface_->value(nominal_foothold.head(2), gridmap_interface_->getGroundLayerName());
         auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-                                                                pose0, pose1, p0, point_SE3Act(pose1.inverse(), robot_interface_->getNominalFoothold(index)),
+                                                                pose0, pose1, p0, nominal_foothold,
                                                                 index, config);
         poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
         poly_traj_search->reachable(p0, p0); // Update intersect border
 
-        reachable.resize(footholds.size(), false);
+        // FIXME: Fast Kinematic Check
+        // auto kinborder_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
+        //                                                            pose1, pose1, p0, nominal_foothold,
+        //                                                            index, config);
+        // auto kin_check = std::make_unique<PolyTrajSearch>(kinborder_check, gridmap_interface_->getMap(), cfg);
+        // kin_check->reachable(p0, nominal_foothold); // Update intersect border
+
         for (size_t i = 0; i < footholds.size(); i++)
         {
-            // NOTE: Kinematic Check takes a lot of time
-            if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
+            // FIXME: Kinematic Check takes a lot of time
+            // if (kin_check->reachable(p0, footholds[i], false))
+            if (ifKinValid(pose1, footholds.at(i), index))
                 reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
         }
     }

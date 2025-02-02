@@ -377,6 +377,12 @@ public:
         return true;
     }
 
+    bool ifKinValid(const pinocchio::SE3 &pose, const Eigen::Vector3d &p, int index)
+    {
+        Eigen::Vector3d q_i;
+        return robot_interface_->getRobotKin().inverseKinConstraint(point_SE3Act(pose, p), q_i, index, false);
+    }
+
     SwingTrajPlannerConfig &getConfig()
     {
         return config_;
@@ -495,7 +501,7 @@ public:
                         std::vector<Eigen::Vector3d> &footholds,
                         std::vector<bool> &reachable)
     {
-        reachable.resize(footholds.size());
+        reachable.resize(footholds.size(), false);
         benchmark_.reset();
         bool ret = reachableCheckHook(pose0, pose1, p0, index, footholds, reachable);
         benchmark_.record("reachableCheck");

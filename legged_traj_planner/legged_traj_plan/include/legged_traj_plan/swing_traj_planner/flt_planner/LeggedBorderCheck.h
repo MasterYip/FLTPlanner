@@ -29,6 +29,7 @@ struct LeggedBorderCheckConfig
     std::string ceiling_layer = "ceiling";
     bool enable_ground = true;
     bool enable_ceiling = false;
+    bool use_guide_surf = true;
 
     int interp_mode = 1;
     // 0: progress =  <(p1 - p0), (p - p0)> / |p1 - p0|
@@ -78,7 +79,7 @@ public:
         int samples = 3;
         Eigen::Vector3d pmid = (p0_ + p1_) / 2;
         double h = 0;
-        
+
         // Ave
         // for (int i = 1; i < samples + 1; i++)
         // {
@@ -112,7 +113,8 @@ public:
     }
 
     double projectInterp(const Eigen::Vector2d &pos2d);
-    // override
+    
+    // Override interfaces
     double queryHeight(const Eigen::Vector2d &pos2d) override;
 
     double queryHeight(const GridPt &grid2d) override;

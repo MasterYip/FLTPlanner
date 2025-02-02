@@ -17,7 +17,7 @@ double LeggedBorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
 {
     geo_utils_2d::Point pos;
     pos << pos2d(0), pos2d(1);
-    double query_height = guide_surf_.getHeight(pos);
+    double query_height = config_.use_guide_surf ? guide_surf_.getHeight(pos) : map_.atPosition(config_.ground_layer, pos2d);
     if (config_.enable_ground && query_height < map_.atPosition(config_.ground_layer, pos2d))
     {
         query_height = map_.atPosition(config_.ground_layer, pos2d);
@@ -36,7 +36,7 @@ double LeggedBorderCheck::queryHeight(const GridPt &grid2d)
     map_.getPosition(index, pos2d);
     geo_utils_2d::Point pos;
     pos << pos2d(0), pos2d(1);
-    double query_height = guide_surf_.getHeight(pos);
+    double query_height = config_.use_guide_surf ? guide_surf_.getHeight(pos) : map_.at(config_.ground_layer, index);
     if (config_.enable_ground && query_height < map_.at(config_.ground_layer, index))
     {
         query_height = map_.at(config_.ground_layer, index);
