@@ -672,11 +672,15 @@ public:
         // std::vector<Eigen::Vector3d> footend_interp_acc = state_traj.eval_foot_traj(0.0, 2);
         std::vector<Eigen::Vector3d> footend_interp_vel = std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero());
         std::vector<Eigen::Vector3d> footend_interp_acc = std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero());
-        std::array<bool, 6> support_state = state_traj.eval_support_state(0.0);
+        std::array<bool, 6> support_state = state_traj.eval_support_state(0.5);
+
+        if (config_.visReachableCheck)
+            for (int i = 0; i < 6; i++)
+                if (support_state[i] == false)
+                    state_traj.reachable_check(i);
 
         do
         {
-
             // Get Interpolated State
             odom_interp = state_traj.eval_torso_traj(sine_remap(t));
             support_state = state_traj.eval_support_state(sine_remap(t));

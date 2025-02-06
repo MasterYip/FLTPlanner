@@ -30,6 +30,13 @@ inline int general_mod(int a, int b)
     return (a % b + b) % b;
 }
 
+/**
+ * @brief IndexRemap class
+ * @note Index: index of the grid map, usually fixed to `world`
+ *       Grid: index of the grid map, usually fixed to `map`
+ * more details of the gridmap see
+ * https://github.com/ANYbotics/grid_map/raw/master/grid_map_core/doc/grid_map_conventions.png
+ */
 class IndexRemap
 {
 private:
@@ -37,7 +44,7 @@ private:
     grid_map::Size map_size_;
     grid_map::Position map_position_;
     double resolution_;
-    Eigen::Array2i map_shift_;
+    Eigen::Array2i map_shift_ = {0, 0};
 
 public:
     IndexRemap(const grid_map::GridMap &map)
@@ -46,8 +53,15 @@ public:
           map_position_(map.getPosition()),
           resolution_(map.getResolution())
     {
-        map_shift_[0] = (int)(map_position_[0] / resolution_);
-        map_shift_[1] = (int)(map_position_[1] / resolution_);
+        // IMPORTANT: If map.setPosition() is called, map_shift should be zero.
+        // map_shift_ is designed for map.move().
+        GridPt index;
+        map_.getIndex(map_position_, index);
+        if (!(index[0] * 2 == map_size_[0] && index[1] * 2 == map_size_[1]))
+        {
+            map_shift_[0] = (int)(map_position_[0] / resolution_);
+            map_shift_[1] = (int)(map_position_[1] / resolution_);
+        }
     }
 
     GridPt pos2Grid(const Eigen::Vector2d &pos) const
