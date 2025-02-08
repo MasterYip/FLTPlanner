@@ -276,6 +276,7 @@ target_link_libraries(test_visualizer
 catkin_install_python(PROGRAMS
   scripts/image_publisher.py
   scripts/utils/joy_teleop.py
+  scripts/utils/key_teleop.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
