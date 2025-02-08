@@ -90,7 +90,7 @@ public:
 
     void setupParams(SwingTrajPlannerConfig &config)
     {
-        collball_radius_ = config.collBallRadius;
+        collball_radius_ = config.CollBall3Rad;
         exclude_radius_ = config.excludeRadius;
         coll_margin_ = config.collMargin;
     }
@@ -190,6 +190,11 @@ public:
     }
 };
 
+
+/**
+ * @brief Configuration Space Validity Checker
+ * 
+ */
 class CfgValidityChecker : public ob::StateValidityChecker
 {
 private:
@@ -220,19 +225,32 @@ public:
                                     end_exclude_cylinder_(end_exclude_cylinder),
                                     index_(index) {
                                     };
+
     bool isValid(const ob::State *state) const override
     {
         const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
-        Eigen::Vector3d pos_vec(point_SE3Act(poseLinearInterp(pose0_, pose1_, pos->values[3]).inverse(),
-                                             robot_interface_->FK_foot(Eigen::Vector3d(pos->values[0], pos->values[1], pos->values[2]), index_)));
+        auto pose = poseLinearInterp(pose0_, pose1_, pos->values[3]);
+        Eigen::Vector3d posCfg(pos->values[0], pos->values[1], pos->values[2]);
 
+        // Foot
+        Eigen::Vector3d pos_vec = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index_));
         double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
         if (!inZCylinder(pos_vec, start_exclude_cylinder_, config_.excludeRadius) &&
             !inZCylinder(pos_vec, end_exclude_cylinder_, config_.excludeRadius) &&
-            config_.collBallRadius > sdf - config_.collMargin)
+            config_.CollBall3Rad > sdf - config_.collMargin)
         {
             return false;
         }
+
+        // Knee
+        pos_vec = point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(posCfg, index_, 2));
+        sdf = gridmap_interface_->sdfValue(pos_vec, "min");
+        if (config_.CollBall2Rad > sdf - config_.collMargin)
+        {
+            return false;
+        }
+
+        // Joint Limit
         if (pos->values[0] < config_.joint1PosMin || pos->values[0] > config_.joint1PosMax ||
             pos->values[1] < config_.joint2PosMin || pos->values[1] > config_.joint2PosMax ||
             pos->values[2] < config_.joint3PosMin || pos->values[2] > config_.joint3PosMax)
@@ -426,8 +444,8 @@ public:
         if (solved)
         {
             ss.simplifySolution();
-            std::cout << "Found solution:" << std::endl;
-            ss.getSolutionPath().printAsMatrix(std::cout);
+            // std::cout << "Found solution:" << std::endl;
+            // ss.getSolutionPath().printAsMatrix(std::cout);
             std::vector<Point3D> points(ss.getSolutionPath().getStateCount());
             std::vector<double> tvec(ss.getSolutionPath().getStateCount());
             Eigen::VectorXd ts(ss.getSolutionPath().getStateCount() - 1);

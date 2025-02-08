@@ -22,7 +22,7 @@ misc:
 
 RRTPlanner:
   maxTime: 2.0
-  collBallRadius: 0.02
+  CollBall3Rad: 0.02
   excludeRadius: 0.04 # exclude cylinder radius
   collMargin: 0.04
 

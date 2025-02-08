@@ -21,8 +21,9 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 RRTCfgPlanner:
-  maxTime: 0.5
-  collBallRadius: 0.03
+  maxTime: 0.05
+  CollBall2Rad: 0.05
+  CollBall3Rad: 0.03
   excludeRadius: 0.05 # exclude cylinder radius
   collMargin: 0.05
   joint1PosMin: -0.785
