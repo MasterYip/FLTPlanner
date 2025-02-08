@@ -1,15 +1,15 @@
 <launch>
     <arg name="topic_name" default="/cmd_vel" />
-    <!-- <node pkg="turtlesim" type="turtle_teleop_key" name="teleop_key" output="screen">
+    <node pkg="turtlesim" type="turtle_teleop_key" name="teleop_key" output="screen">
         <param name="scale_linear" value="0.5" type="double" />
         <param name="scale_angular" value="0.5" type="double" />
         <remap from="turtle1/cmd_vel" to="$(arg topic_name)" />
-    </node> -->
-    <node pkg="legged_traj_plan_examples" type="key_teleop.py" name="key_teleop" output="screen">
+    </node>
+    <!-- <node pkg="legged_traj_plan_examples" type="key_teleop.py" name="key_teleop" output="screen">
         <param name="cmd_topic" value="$(arg topic_name)" />
         <param name="pub_rate" value="10" />
         <param name="max_linear_x" value="0.2" />
         <param name="max_linear_y" value="0.2" />
         <param name="max_angular_z" value="0.1" />
-    </node>
+    </node> -->
 </launch>

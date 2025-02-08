@@ -27,6 +27,10 @@ class KeyTeleop:
         self.timer = rospy.Timer(rospy.Duration(1.0/self.pub_rate), self.timer_callback)
         self.cmd_vel_pub = rospy.Publisher(cmd_topic, Twist, queue_size=10)
         self.twist_cmd = Twist()
+        
+        # Save the old tty settings
+        self.old_tty_settings = termios.tcgetattr(sys.stdin)
+
 
     def timer_callback(self, event):
         self.update_cmd()
@@ -34,7 +38,7 @@ class KeyTeleop:
 
     def run(self):
         rospy.spin()
-    
+
     def read_key(self):
         tty.setcbreak(sys.stdin.fileno())
         rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
@@ -42,6 +46,10 @@ class KeyTeleop:
             key = sys.stdin.read(1)
             return key
         return None
+
+    def reset_tty(self):
+        # FIXME: input are not displayed on the screen, so reset the tty
+        termios.tcsetattr(sys.stdin, termios.TCSANOW, self.old_tty_settings)
 
     def update_cmd(self):
         key = self.read_key()
@@ -59,6 +67,7 @@ class KeyTeleop:
             self.twist_cmd.angular.z = -self.max_angular_z
         # ctrl + c
         elif key == '\x03':
+            self.reset_tty()
             rospy.signal_shutdown('shutdown')
 
 
