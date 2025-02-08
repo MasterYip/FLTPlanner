@@ -85,8 +85,8 @@
         <param name="ElSpiderAirROS/sim" value="$(arg sim)" />
         <!-- Planner Config -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/$(arg planner_cfg).yaml"/>
-        <!-- <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/raibert_planner.yaml"/>
-        <param name="RaibertPlanner/demoPath" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/" /> -->
+        <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/simple_raibert_planner.yaml"/>
+        <!-- <param name="RaibertPlanner/demoPath" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/" /> -->
         <!-- Perception Interface -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/perception_interface.yaml"/>
         <!-- Perception Interface Config Override -->

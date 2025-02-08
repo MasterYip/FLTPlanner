@@ -336,7 +336,7 @@ struct SwingTrajPlannerConfig
         }
         if (!check_digit)
         {
-            ROS_ERROR("Not all parameters loaded successfully!");
+            ROS_ERROR("Failed to load SwingTrajPlannerConfig.");
             throw std::exception();
         }
     }
