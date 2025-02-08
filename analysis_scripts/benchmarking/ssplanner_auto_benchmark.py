@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2025-02-02 20:23:53
+LastEditTime: 2025-02-06 22:29:02
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -39,7 +39,7 @@ PLANNERS = [
     "flt_cfg_planner_fast", # As the ground truth for Reachable Evaluation
     "flt_cfg_planner", 
     # "minco_cfg_planner",
-    # "rrt_cfg_planner",
+    "rrt_cfg_planner",
     "stomp_cfg_planner",
     "fec_planner",
     # "height_clear_planner",
@@ -51,8 +51,8 @@ DEMOS = [
     ("4_ushape_barrier", True),
     # ("3_quincuncial_piles", False),
     ("4_barrier", True),
-    # ("4_barrier_vague", True),
-    # ("5_channel", True),
+    ("4_barrier_vague", True),
+    ("5_channel", True),
     ("6_fractal", False),
 ]
 

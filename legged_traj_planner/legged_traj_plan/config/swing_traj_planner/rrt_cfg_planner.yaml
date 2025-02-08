@@ -22,8 +22,8 @@ misc:
 
 RRTCfgPlanner:
   maxTime: 0.5
-  collBallRadius: 0.02
-  excludeRadius: 0.04 # exclude cylinder radius
+  collBallRadius: 0.03
+  excludeRadius: 0.05 # exclude cylinder radius
   collMargin: 0.05
   joint1PosMin: -0.785
   joint1PosMax: 0.785

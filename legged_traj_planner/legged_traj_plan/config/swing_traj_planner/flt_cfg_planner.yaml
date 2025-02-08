@@ -30,7 +30,7 @@ LFTPlanner:
     useLeggedBorderCheck: true
     updateGuideSurfInReachableCheck: false
     collBallCheckRad2: 0.05
-    collBallCheckRad3: 0.035
+    collBallCheckRad3: 0.03
   optimizer:
     lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization

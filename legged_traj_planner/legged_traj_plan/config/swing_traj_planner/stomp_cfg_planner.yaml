@@ -44,7 +44,7 @@ StompCfgPlanner:
     joint3PosMax: 3.403
     jointPosWeight: 0.4
     CollBall1Rad: 0.06
-    CollBall2Rad: 0.06
+    CollBall2Rad: 0.05
     CollBall3Rad: 0.03
     CollBall1Weight: 0.0
     CollBall2Weight: 20.0
