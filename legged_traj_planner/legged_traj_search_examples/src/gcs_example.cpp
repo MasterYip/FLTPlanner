@@ -586,6 +586,7 @@ void GCS_Example::eg_keypoint_guide_surface()
     std::vector<Point3D> key_points = {p0, pmid, p1};
 
     HarmonicGuideSurf guide_surf(key_points);
+    gcs_visualizer_.visSphere(key_points, 0.1);
     map_.add("guide_surf");
     for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
     {
