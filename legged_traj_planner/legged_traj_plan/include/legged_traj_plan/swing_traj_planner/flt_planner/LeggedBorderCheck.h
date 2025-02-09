@@ -48,7 +48,7 @@ class LeggedBorderCheck : public BorderCheckBase
 private:
     const grid_map::GridMap &map_;
     IndexRemap index_remap_;
-    BaseGuideSurf guide_surf_;
+    std::unique_ptr<BaseGuideSurf> guide_surf_ptr_;
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     LeggedBorderCheckConfig config_;
@@ -78,7 +78,12 @@ public:
           config_(config), pose0_(pose0), pose1_(pose1),
           p0_(p0), p1_(p1), index_(index)
     {
-        if (config_.guide_surf_type == 1)
+        if (config_.guide_surf_type == 0)
+        {
+            // Grid Map Ground
+            guide_surf_ptr_ = std::make_unique<BaseGuideSurf>();
+        }
+        else if (config_.guide_surf_type == 1)
         {
             // Guide Surf
             int samples = 3;
@@ -102,12 +107,12 @@ public:
                                                 config_.ground_layer));
             }
             std::vector<Point3D> key_points = {p0_, pmid, p1_};
-            guide_surf_ = HarmonicGuideSurf(key_points);
+            guide_surf_ptr_ = std::make_unique<HarmonicGuideSurf>(key_points);
         }
         else if (config_.guide_surf_type == 2)
         {
             // Guide Surf
-            guide_surf_ = ConvolutedGuideSurf(map_, 3, 0.1, config_.ground_layer);
+            guide_surf_ptr_ = std::make_unique<ConvolutedGuideSurf>(map_, 3, 0.1, config_.ground_layer);
         }
 
         // Nominal Pos
