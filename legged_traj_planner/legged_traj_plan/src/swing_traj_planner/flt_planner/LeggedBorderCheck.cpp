@@ -17,7 +17,7 @@ double LeggedBorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
 {
     geo_utils_2d::Point pos;
     pos << pos2d(0), pos2d(1);
-    double query_height = config_.use_guide_surf ? guide_surf_.getHeight(pos) : map_.atPosition(config_.ground_layer, pos2d);
+    double query_height = config_.guide_surf_type ? guide_surf_.getHeight(pos) : map_.atPosition(config_.ground_layer, pos2d);
     if (config_.enable_ground && query_height < map_.atPosition(config_.ground_layer, pos2d))
     {
         query_height = map_.atPosition(config_.ground_layer, pos2d);
@@ -36,7 +36,7 @@ double LeggedBorderCheck::queryHeight(const GridPt &grid2d)
     map_.getPosition(index, pos2d);
     geo_utils_2d::Point pos;
     pos << pos2d(0), pos2d(1);
-    double query_height = config_.use_guide_surf ? guide_surf_.getHeight(pos) : map_.at(config_.ground_layer, index);
+    double query_height = config_.guide_surf_type ? guide_surf_.getHeight(pos) : map_.at(config_.ground_layer, index);
     if (config_.enable_ground && query_height < map_.at(config_.ground_layer, index))
     {
         query_height = map_.at(config_.ground_layer, index);
@@ -60,7 +60,7 @@ double LeggedBorderCheck::projectInterp(const Eigen::Vector2d &pos2d)
     Eigen::Vector2d vec = nominal_pos1_.head(2) - nominal_pos0_.head(2);
     double len = vec.norm();
     vec.normalize();
-    double len_proj = (pos2d - nominal_pos0_.head(2)).dot(vec);   
+    double len_proj = (pos2d - nominal_pos0_.head(2)).dot(vec);
     return clamp(len_proj, 0.0, len) / len;
 }
 

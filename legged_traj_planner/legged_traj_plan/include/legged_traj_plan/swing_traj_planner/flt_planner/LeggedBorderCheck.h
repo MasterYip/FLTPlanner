@@ -29,7 +29,10 @@ struct LeggedBorderCheckConfig
     std::string ceiling_layer = "ceiling";
     bool enable_ground = true;
     bool enable_ceiling = false;
-    bool use_guide_surf = true;
+    int guide_surf_type = 1;
+    // 0: grid map ground (not using guide surf)
+    // 1: harmonic guide surf
+    // 2: convoluted guide surf
 
     int interp_mode = 1;
     // 0: progress =  <(p1 - p0), (p - p0)> / |p1 - p0|
@@ -45,7 +48,7 @@ class LeggedBorderCheck : public BorderCheckBase
 private:
     const grid_map::GridMap &map_;
     IndexRemap index_remap_;
-    HarmonicGuideSurf guide_surf_;
+    BaseGuideSurf guide_surf_;
     std::shared_ptr<ElSpiderAirInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     LeggedBorderCheckConfig config_;
@@ -75,29 +78,37 @@ public:
           config_(config), pose0_(pose0), pose1_(pose1),
           p0_(p0), p1_(p1), index_(index)
     {
-        // Guide Surf
-        int samples = 3;
-        Eigen::Vector3d pmid = (p0_ + p1_) / 2;
-        double h = 0;
-
-        // Ave
-        // for (int i = 1; i < samples + 1; i++)
-        // {
-        //     h += gridmap_interface_->value(
-        //         (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
-        //         config_.ground_layer);
-        // }
-        // pmid[2] = h / samples;
-
-        // Max
-        for (int i = 1; i < samples + 1; i++)
+        if (config_.guide_surf_type == 1)
         {
-            pmid[2] = std::max(pmid[2], gridmap_interface_->value(
-                                            (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
-                                            config_.ground_layer));
+            // Guide Surf
+            int samples = 3;
+            Eigen::Vector3d pmid = (p0_ + p1_) / 2;
+            double h = 0;
+
+            // Ave
+            // for (int i = 1; i < samples + 1; i++)
+            // {
+            //     h += gridmap_interface_->value(
+            //         (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
+            //         config_.ground_layer);
+            // }
+            // pmid[2] = h / samples;
+
+            // Max
+            for (int i = 1; i < samples + 1; i++)
+            {
+                pmid[2] = std::max(pmid[2], gridmap_interface_->value(
+                                                (p0_ + (p1_ - p0_) * i / (samples + 1)).head(2),
+                                                config_.ground_layer));
+            }
+            std::vector<Point3D> key_points = {p0_, pmid, p1_};
+            guide_surf_ = HarmonicGuideSurf(key_points);
         }
-        std::vector<Point3D> key_points = {p0_, pmid, p1_};
-        guide_surf_ = HarmonicGuideSurf(key_points);
+        else if (config_.guide_surf_type == 2)
+        {
+            // Guide Surf
+            guide_surf_ = ConvolutedGuideSurf(map_, 3, 0.1, config_.ground_layer);
+        }
 
         // Nominal Pos
         if (config_.interp_mode == 0)
@@ -113,7 +124,7 @@ public:
     }
 
     double projectInterp(const Eigen::Vector2d &pos2d);
-    
+
     // Override interfaces
     double queryHeight(const Eigen::Vector2d &pos2d) override;
 
