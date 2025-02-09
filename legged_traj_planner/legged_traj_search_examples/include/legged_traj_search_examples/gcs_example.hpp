@@ -49,6 +49,10 @@ struct GCS_Example_Config
     // perf_gcs_rand_corridor_demo
     std::string data_file_path;
 
+    // Convoluted Guide Surf
+    int kernel_size;
+    double kernel_interval;
+
     inline void loadParameters(const ros::NodeHandle &nh_priv)
     {
         nh_priv.param<double>("testRate", testRate, 4);
@@ -58,6 +62,9 @@ struct GCS_Example_Config
         nh_priv.param<double>("polyNum", polyNum, 3);
 
         nh_priv.param<std::string>("data_file_path", data_file_path, "~/perf_gcs_rand_corridor.txt");
+
+        nh_priv.param<int>("kernel_size", kernel_size, 3);
+        nh_priv.param<double>("kernel_interval", kernel_interval, 0.1);
         return;
     }
 };
@@ -101,6 +108,7 @@ public:
     // Examples
     bool example_run(std::string name);
     void eg_guide_surface();
+    void eg_convoluted_guide_surface();
     void eg_gcs_barrier_demo();
     void eg_gcs_rand_corridor_demo();
     void eg_gcs_rand_map_demo();

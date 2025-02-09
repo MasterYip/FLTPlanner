@@ -440,6 +440,10 @@ bool GCS_Example::example_run(std::string name)
     {
         eg_guide_surface();
     }
+    else if (name == "eg_convoluted_guide_surface_demo")
+    {
+        eg_convoluted_guide_surface();
+    }
     else if (name == "eg_gcs_barrier_demo")
     {
         eg_gcs_barrier_demo();
@@ -534,6 +538,27 @@ void GCS_Example::eg_guide_surface()
     {
         std::cout << "Get intersecting border failed" << std::endl;
     }
+
+    std::cout << "Press any key to continue..." << std::endl;
+    getchar();
+    return;
+}
+
+void GCS_Example::eg_convoluted_guide_surface()
+{
+    gcs_visualizer_.delAll();
+
+    ConvolutedGuideSurf guide_surf(map_, conf_.kernel_size, conf_.kernel_interval, "elevation");
+    map_.add("guide_surf");
+    for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
+    {
+        grid_map::Position pos;
+        map_.getPosition(*iterator, pos);
+        map_.at("guide_surf", *iterator) = guide_surf.getHeight(pos);
+    }
+    grid_map_msgs::GridMap gm_message;
+    grid_map::GridMapRosConverter::toMessage(map_, gm_message);
+    map_pub_.publish(gm_message);
 
     std::cout << "Press any key to continue..." << std::endl;
     getchar();
