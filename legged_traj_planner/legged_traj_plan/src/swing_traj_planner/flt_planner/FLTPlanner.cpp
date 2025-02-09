@@ -664,7 +664,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     }
     else
     {
-        config.use_guide_surf = false;
+        config.use_guide_surf = true;
         // FIXME: Use Nominal Foothold as p1
         auto nominal_foothold = point_SE3Act(pose1.inverse(), robot_interface_->getNominalFoothold(index));
         nominal_foothold[2] = gridmap_interface_->value(nominal_foothold.head(2), gridmap_interface_->getGroundLayerName());
