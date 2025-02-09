@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /GridMap1
+        - /Guide Surf1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection

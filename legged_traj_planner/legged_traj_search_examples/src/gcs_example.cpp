@@ -444,6 +444,10 @@ bool GCS_Example::example_run(std::string name)
     {
         eg_convoluted_guide_surface();
     }
+    else if (name == "eg_keypoint_guide_surface_demo")
+    {
+        eg_keypoint_guide_surface();
+    }
     else if (name == "eg_gcs_barrier_demo")
     {
         eg_gcs_barrier_demo();
@@ -549,6 +553,39 @@ void GCS_Example::eg_convoluted_guide_surface()
     gcs_visualizer_.delAll();
 
     ConvolutedGuideSurf guide_surf(map_, conf_.kernel_size, conf_.kernel_interval, "elevation");
+    map_.add("guide_surf");
+    for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
+    {
+        grid_map::Position pos;
+        map_.getPosition(*iterator, pos);
+        map_.at("guide_surf", *iterator) = guide_surf.getHeight(pos);
+    }
+    grid_map_msgs::GridMap gm_message;
+    grid_map::GridMapRosConverter::toMessage(map_, gm_message);
+    map_pub_.publish(gm_message);
+
+    std::cout << "Press any key to continue..." << std::endl;
+    getchar();
+    return;
+}
+
+void GCS_Example::eg_keypoint_guide_surface()
+{
+    gcs_visualizer_.delAll();
+
+    Eigen::Vector3d p0(-0.7, 0, 0.0), p1(0.7, 0, 0.0);
+    // Guide Surf
+    int samples = 8;
+    Eigen::Vector3d pmid = (p0 + p1) / 2;
+    // Max
+    for (int i = 1; i < samples + 1; i++)
+    {
+        pmid[2] = std::max(pmid[2], (double)map_.atPosition("elevation",
+                                                            (p0 + (p1 - p0) * i / (samples + 1)).head(2)));
+    }
+    std::vector<Point3D> key_points = {p0, pmid, p1};
+
+    HarmonicGuideSurf guide_surf(key_points);
     map_.add("guide_surf");
     for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
     {

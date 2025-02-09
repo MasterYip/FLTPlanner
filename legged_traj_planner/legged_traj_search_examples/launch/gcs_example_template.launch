@@ -7,7 +7,7 @@
     <arg name="with_ceiling" default="true" />
     <arg name="max_height" default="1.0" />
     <arg name="test_rate" default="5" />
-
+    
     <arg name="grid_map_topic" default="grid_map" />
     <arg name="grid_map_update_rate" default="5" />
     <!-- Ground & Ceiling (must be of the same size) -->
@@ -17,11 +17,14 @@
     <arg name="map_def_path_ceiling" default="" />
     <arg name="elevation_layer" default="elevation" />
     <arg name="ceiling_layer" default="ceiling" />
+    <arg name="resolution" default="0.05" />
 
     <!-- GridMap -->
     <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="screen">
         <param name="image_path" value="$(arg grid_map_file)" />
         <param name="map_def_path" value="$(arg map_def_path)" />
+        <param name="resolution" value="$(arg resolution)" />
+        <param name="max_height" value="$(arg max_height)" />
         <param name="topic" value="~image" />
         <param name="rate" value="$(arg grid_map_update_rate)" />
     </node>
@@ -29,6 +32,8 @@
         <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_ceiling_publisher" output="screen">
             <param name="image_path" value="$(arg grid_map_file_ceiling)" />
             <param name="map_def_path" value="$(arg map_def_path_ceiling)" />
+            <param name="resolution" value="$(arg resolution)" />
+            <param name="max_height" value="$(arg max_height)" />
             <param name="topic" value="~image" />
             <param name="rate" value="$(arg grid_map_update_rate)" />
         </node>

@@ -109,6 +109,7 @@ public:
     bool example_run(std::string name);
     void eg_guide_surface();
     void eg_convoluted_guide_surface();
+    void eg_keypoint_guide_surface();
     void eg_gcs_barrier_demo();
     void eg_gcs_rand_corridor_demo();
     void eg_gcs_rand_map_demo();
