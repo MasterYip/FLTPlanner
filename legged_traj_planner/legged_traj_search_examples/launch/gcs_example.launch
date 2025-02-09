@@ -15,8 +15,8 @@
     <arg name="poly_num_gs" default="3" />
 
     <!-- eg_convoluted_guide_surface_demo -->
-    <arg name="kernel_size" default="3" />
-    <arg name="kernel_interval" default="0.1" />
+    <arg name="kernel_size" default="5" />
+    <arg name="kernel_interval" default="0.05" />
 
     <!-- eg_gcs_rand_corridor_demo -->
     <arg name="poly_num" default="3" />
@@ -57,8 +57,7 @@
             <arg name="test_rate" default="$(arg test_rate)" />
             <arg name="grid_map_topic" default="$(arg grid_map_topic)" />
             <arg name="grid_map_update_rate" default="$(arg grid_map_update_rate)" />
-            <arg name="grid_map_file" default="$(find legged_traj_search_examples)/data/barrier_demo/2-Barrier-ground.png" />
-            <arg name="grid_map_file_ceiling" default="$(find legged_traj_search_examples)/data/barrier_demo/2-Barrier-ceiling.png" />
+            <arg name="map_def_path" default="$(find legged_traj_search_examples)/data/demo_maps/timber_pile.yaml" />
             <arg name="elevation_layer" default="elevation" />
             <arg name="ceiling_layer" default="ceiling" />
         </include>
