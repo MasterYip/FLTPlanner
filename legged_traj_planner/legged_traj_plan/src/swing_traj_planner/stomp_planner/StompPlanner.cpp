@@ -205,6 +205,9 @@ bool StompCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
     config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
     config.enable_ground = true;
     config.enable_ceiling = false;
+    config.guide_surf_type = config_.guideSurfType;
+    config.guid_surf_conv_samples = config_.guideSurfConvKernelSize;
+    config.guid_surf_conv_interval = config_.guideSurfConvKernelInterval;
     config.collBallRad1 = config_.CollBall1Rad;
     config.collBallRad2 = config_.collBallCheckRad2;
     config.collBallRad3 = config_.collBallCheckRad3;

@@ -59,6 +59,9 @@ struct SwingTrajPlannerConfig
     bool enablePolyPathSearch;
     bool useLeggedBorderCheck;
     bool updateGuideSurfInReachableCheck;
+    int guideSurfType;
+    int guideSurfConvKernelSize;
+    double guideSurfConvKernelInterval;
     double collBallCheckRad2; // Knee
     double collBallCheckRad3; // Foot
     // Optimizer Settings
@@ -146,6 +149,9 @@ struct SwingTrajPlannerConfig
     //// ID[5] StompCfgPlannerSettings
     // Seacher Settings
     // bool enablePolyPathSearch;
+    // int guideSurfType;
+    // int guideSurfConvKernelSize;
+    // double guideSurfConvKernelInterval;
     // double collBallCheckRad2; // Knee
     // double collBallCheckRad3; // Foot
     // Reachability Check
@@ -216,6 +222,9 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("LFTPlanner/searcher/enablePolyPathSearch", enablePolyPathSearch);
             check_digit *= nh.getParam("LFTPlanner/searcher/useLeggedBorderCheck", useLeggedBorderCheck);
             check_digit *= nh.getParam("LFTPlanner/searcher/updateGuideSurfInReachableCheck", updateGuideSurfInReachableCheck);
+            check_digit *= nh.getParam("LFTPlanner/searcher/guideSurfType", guideSurfType);
+            check_digit *= nh.getParam("LFTPlanner/searcher/guideSurfConvKernelSize", guideSurfConvKernelSize);
+            check_digit *= nh.getParam("LFTPlanner/searcher/guideSurfConvKernelInterval", guideSurfConvKernelInterval);
             check_digit *= nh.getParam("LFTPlanner/searcher/collBallCheckRad2", collBallCheckRad2);
             check_digit *= nh.getParam("LFTPlanner/searcher/collBallCheckRad3", collBallCheckRad3);
             check_digit *= nh.getParam("LFTPlanner/optimizer/lengthPerPiece", lengthPerPiece);
@@ -307,6 +316,9 @@ struct SwingTrajPlannerConfig
         else if (plannerID == 5)
         {
             check_digit *= nh.getParam("StompCfgPlanner/searcher/enablePolyPathSearch", enablePolyPathSearch);
+            check_digit *= nh.getParam("StompCfgPlanner/searcher/guideSurfType", guideSurfType);
+            check_digit *= nh.getParam("StompCfgPlanner/searcher/guideSurfConvKernelSize", guideSurfConvKernelSize);
+            check_digit *= nh.getParam("StompCfgPlanner/searcher/guideSurfConvKernelInterval", guideSurfConvKernelInterval);
             check_digit *= nh.getParam("StompCfgPlanner/searcher/collBallCheckRad2", collBallCheckRad2);
             check_digit *= nh.getParam("StompCfgPlanner/searcher/collBallCheckRad3", collBallCheckRad3);
             check_digit *= nh.getParam("StompCfgPlanner/checker/enableReachableCheckRetry", enableReachableCheckRetry);

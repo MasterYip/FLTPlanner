@@ -279,6 +279,9 @@ bool FLTCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
     config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
     config.enable_ground = true;
     config.enable_ceiling = false;
+    config.guide_surf_type = config_.guideSurfType;
+    config.guid_surf_conv_samples = config_.guideSurfConvKernelSize;
+    config.guid_surf_conv_interval = config_.guideSurfConvKernelInterval;
     config.collBallRad1 = config_.CollBall1Rad;
     config.collBallRad2 = config_.collBallCheckRad2;
     config.collBallRad3 = config_.collBallCheckRad3;
@@ -607,7 +610,9 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
     config.enable_ground = true;
     config.enable_ceiling = false;
-    config.guide_surf_type = 1;
+    config.guide_surf_type = config_.guideSurfType;
+    config.guid_surf_conv_samples = config_.guideSurfConvKernelSize;
+    config.guid_surf_conv_interval = config_.guideSurfConvKernelInterval;
     config.collBallRad1 = config_.CollBall1Rad;
     config.collBallRad2 = config_.CollBall2Rad;
     config.collBallRad3 = config_.CollBall3Rad;
@@ -630,7 +635,6 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     }
     else
     {
-        config.guide_surf_type = 2;
         // FIXME: Use Nominal Foothold as p1
         auto nominal_foothold = point_SE3Act(pose1.inverse(), robot_interface_->getNominalFoothold(index));
         nominal_foothold[2] = gridmap_interface_->value(nominal_foothold.head(2), gridmap_interface_->getGroundLayerName());

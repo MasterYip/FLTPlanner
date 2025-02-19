@@ -33,6 +33,8 @@ struct LeggedBorderCheckConfig
     // 0: grid map ground (not using guide surf)
     // 1: harmonic guide surf
     // 2: convoluted guide surf
+    int guid_surf_conv_samples = 3;
+    double guid_surf_conv_interval = 0.1;
 
     int interp_mode = 1;
     // 0: progress =  <(p1 - p0), (p - p0)> / |p1 - p0|
@@ -112,7 +114,8 @@ public:
         else if (config_.guide_surf_type == 2)
         {
             // Guide Surf
-            guide_surf_ptr_ = std::make_unique<ConvolutedGuideSurf>(map_, 3, 0.1, config_.ground_layer);
+            guide_surf_ptr_ = std::make_unique<ConvolutedGuideSurf>(map_, config_.guid_surf_conv_samples,
+                                                                    config_.guid_surf_conv_interval, config_.ground_layer);
         }
 
         // Nominal Pos
