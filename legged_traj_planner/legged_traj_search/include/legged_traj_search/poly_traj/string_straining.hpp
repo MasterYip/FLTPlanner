@@ -37,7 +37,7 @@ using namespace geo_utils_2d;
 bool inline isInward(const GridPt &b1, const GridPt &b2,
                      const GridPt &p1, const GridPt &p2)
 {
-    return crossProd(b2 - b1, p2 - p1) <= 0;
+    return crossProd(GridPt(b2 - b1), GridPt(p2 - p1)) <= 0;
 }
 
 bool inline isInward(const GridPt &b1, const GridPt &b2, const GridPt &b3,

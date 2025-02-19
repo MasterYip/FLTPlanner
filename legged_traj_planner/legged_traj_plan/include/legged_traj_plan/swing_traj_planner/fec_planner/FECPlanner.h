@@ -111,8 +111,15 @@ public:
     {
         for (size_t i = 0; i < footholds.size(); i++)
         {
-            auto traj = getInitTrajHook(pose0, pose1, p0, footholds[i], index);
-            reachable[i] = fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds[i], index);
+            if (ifKinValid(pose1, footholds.at(i), index))
+            {
+                auto traj = getInitTrajHook(pose0, pose1, p0, footholds[i], index);
+                reachable[i] = fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds[i], index);
+            }
+            else
+            {
+                reachable[i] = false;
+            }
         }
         return true;
     };

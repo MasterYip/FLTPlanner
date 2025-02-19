@@ -71,6 +71,20 @@ public:
         return index2grid(index);
     }
 
+    // get the pos of the point under grid coordinate, but reserving the float part
+    Point pos2GridFloat(const Eigen::Vector2d &pos) const
+    {
+        GridPt grid = pos2Grid(pos);
+        GridPt grid_deltaA = {grid[0] + 1, grid[1]};
+        GridPt grid_deltaB = {grid[0], grid[1] + 1};
+        Eigen::Vector2d posG, posA, posB;
+        map_.getPosition(grid2Index(grid), posG);
+        map_.getPosition(grid2Index(grid_deltaA), posA);
+        map_.getPosition(grid2Index(grid_deltaB), posB);
+        return {grid[0] + (pos[0] - posG[0]) / (posA[0] - posG[0]),
+                grid[1] + (pos[1] - posG[1]) / (posB[1] - posG[1])};
+    }
+
     Eigen::Vector2d grid2Pos(const GridPt &grid) const
     {
         Eigen::Vector2d pos;

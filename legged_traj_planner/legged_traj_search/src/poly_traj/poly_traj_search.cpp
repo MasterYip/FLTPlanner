@@ -99,11 +99,13 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool u
 
     // Visiblity Graph Init
     // FIXME: is this appropriate?
-    GridPt start_grid = index_remap_.pos2Grid(start.head(2));
-    GridPt goal_grid = index_remap_.pos2Grid(goal.head(2));
+    // GridPt start_grid = index_remap_.pos2Grid(start.head(2));
+    // GridPt goal_grid = index_remap_.pos2Grid(goal.head(2));
+    Point start_gridf = index_remap_.pos2GridFloat(start.head(2));
+    Point goal_gridf = index_remap_.pos2GridFloat(goal.head(2));
 
     // FIXME: needs to improve the performance
-    vis_graph_ = VisibilityGraph(border_, concave_pts_, start_grid, goal_grid);
+    vis_graph_ = VisibilityGraph(border_, concave_pts_, start_gridf, goal_gridf);
     benchmark_.record("Visibility Graph Init", RecordType::CRITICAL);
 
     bool reachable_goal = false, reachable_start = false;

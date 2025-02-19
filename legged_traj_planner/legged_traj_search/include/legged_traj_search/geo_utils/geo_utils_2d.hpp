@@ -58,6 +58,16 @@ namespace geo_utils_2d
         return a[0] * b[0] + a[1] * b[1];
     }
 
+    inline double crossProd(const Point &a, const Point &b)
+    {
+        return a[0] * b[1] - a[1] * b[0];
+    }
+
+    inline double innerProd(const Point &a, const Point &b)
+    {
+        return a[0] * b[0] + a[1] * b[1];
+    }
+
     inline uint manhattanLength(const GridPt &start, const GridPt &goal)
     {
         // TODO: prevent using std::abs
