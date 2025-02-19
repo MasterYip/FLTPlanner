@@ -27,7 +27,7 @@ StateSequencePlanner:
   reachableTravLayerName: "elevation_inpainted_trav"
 
   # Reachability Check vis
-  visReachableCheck: True
+  enableReachableCheck: True
 
   swingTrajPreOpt: true
   shutdownAfterPreOpt: true

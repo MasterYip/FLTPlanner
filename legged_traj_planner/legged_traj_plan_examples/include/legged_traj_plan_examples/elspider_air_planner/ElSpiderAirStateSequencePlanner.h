@@ -140,7 +140,7 @@ struct ElSpiderAirStateSequencePlannerConfig
     double reachableFilterPoseMoveDis;
     std::string reachableTravLayerName;
 
-    bool visReachableCheck;
+    bool enableReachableCheck;
 
     bool swingTrajPreOpt;
     bool shutdownAfterPreOpt;
@@ -167,7 +167,7 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/reachableFilterPoseMoveDis", reachableFilterPoseMoveDis);
         check_digit &= nh.getParam(ns + "/reachableTravLayerName", reachableTravLayerName);
 
-        check_digit &= nh.getParam(ns + "/visReachableCheck", visReachableCheck);
+        check_digit &= nh.getParam(ns + "/enableReachableCheck", enableReachableCheck);
 
         check_digit &= nh.getParam(ns + "/swingTrajPreOpt", swingTrajPreOpt);
         check_digit &= nh.getParam(ns + "/shutdownAfterPreOpt", shutdownAfterPreOpt);
@@ -674,7 +674,7 @@ public:
         std::vector<Eigen::Vector3d> footend_interp_acc = std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero());
         std::array<bool, 6> support_state = state_traj.eval_support_state(0.5);
 
-        if (config_.visReachableCheck)
+        if (config_.enableReachableCheck)
             for (int i = 0; i < 6; i++)
                 if (support_state[i] == false)
                     state_traj.reachable_check(i);
@@ -745,7 +745,7 @@ public:
                     ros::Duration(0.2).sleep();
                     state_traj = state_sequence_planner_.get_state_traj(0);
                     support_state = state_traj.eval_support_state(0.5);
-                    if (config_.visReachableCheck)
+                    if (config_.enableReachableCheck)
                         for (int i = 0; i < 6; i++)
                             if (support_state[i] == false)
                                 state_traj.reachable_check(i);

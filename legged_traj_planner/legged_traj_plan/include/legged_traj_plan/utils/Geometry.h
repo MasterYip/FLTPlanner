@@ -114,3 +114,18 @@ inline double inSphereSoft(const Eigen::Vector3d &pos, const Eigen::Vector3d &ce
     else
         return 1 - sine_remap((dist - rmin) / (rmax - rmin));
 }
+
+/**
+ * @brief Orthogonal disk randomize
+ * @note Return a randomized vector \bar{r} given a normal vector \bar{n}, the \bar{r} is orthogonal to \bar{n}
+ * @param normal
+ * @param radius
+ * @return Eigen::Vector3d
+ */
+inline Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double radius)
+{
+    Eigen::Vector3d random = Eigen::Vector3d::Random();
+    random.normalize();
+    Eigen::Vector3d tangent = random - random.dot(normal) * normal;
+    return radius * tangent;
+}

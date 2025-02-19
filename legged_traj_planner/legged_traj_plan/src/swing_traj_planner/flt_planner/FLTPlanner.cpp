@@ -15,26 +15,6 @@
 #include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
-Eigen::VectorXd getTrajTimeVec(const std::vector<Point3D> &path, double total_time)
-{
-    if (path.size() > 2)
-    {
-        double path_length = 0;
-        Eigen::VectorXd ts(path.size() - 1);
-        for (size_t i = 1; i < path.size() - 1; i++)
-            path_length += (path[i] - path[i - 1]).norm();
-        path_length += (path.back() - path[path.size() - 2]).norm();
-        for (size_t i = 1; i < path.size(); i++)
-            ts[i - 1] = (path[i] - path[i - 1]).norm() / path_length * total_time;
-        return ts;
-    }
-    else
-    {
-        Eigen::VectorXd ts(1);
-        ts << total_time;
-        return ts;
-    }
-}
 
 ////////////////////
 // FLTPlanner
@@ -202,20 +182,6 @@ bool FLTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 ////////////////////
 // FLTCfgPlanner
 
-/**
- * @brief Orthogonal disk randomize
- * @note Return a randomized vector \bar{r} given a normal vector \bar{n}, the \bar{r} is orthogonal to \bar{n}
- * @param normal
- * @param radius
- * @return Eigen::Vector3d
- */
-Eigen::Vector3d orthogonalDiskRandomize(const Eigen::Vector3d &normal, double radius)
-{
-    Eigen::Vector3d random = Eigen::Vector3d::Random();
-    random.normalize();
-    Eigen::Vector3d tangent = random - random.dot(normal) * normal;
-    return radius * tangent;
-}
 
 FLTCfgPlanner::FLTCfgPlanner(SwingTrajPlannerConfig config,
                              std::shared_ptr<ElSpiderAirInterface> robot_interface,

@@ -144,6 +144,11 @@ struct SwingTrajPlannerConfig
     // double FootCollExcludeBallRad;
 
     //// ID[5] StompCfgPlannerSettings
+    // Seacher Settings
+    // bool enablePolyPathSearch;
+    // double collBallCheckRad2; // Knee
+    // double collBallCheckRad3; // Foot
+    // STOMP Config
     double stompNumTimesteps;
     double stompStdDev1;
     double stompStdDev2;
@@ -154,7 +159,7 @@ struct SwingTrajPlannerConfig
     int stompMaxRollouts;
     double stompExpCostSensitivity;
     double stompCtrlCostWeight;
-    //// Penalty
+    // Penalty
     // double smoothingFactor;
     // double joint1PosMin;
     // double joint1PosMax;
@@ -298,6 +303,9 @@ struct SwingTrajPlannerConfig
         //// ID[5] StompCfgPlannerSettings
         else if (plannerID == 5)
         {
+            check_digit *= nh.getParam("StompCfgPlanner/searcher/enablePolyPathSearch", enablePolyPathSearch);
+            check_digit *= nh.getParam("StompCfgPlanner/searcher/collBallCheckRad2", collBallCheckRad2);
+            check_digit *= nh.getParam("StompCfgPlanner/searcher/collBallCheckRad3", collBallCheckRad3);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumTimesteps", stompNumTimesteps);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev1", stompStdDev1);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev2", stompStdDev2);

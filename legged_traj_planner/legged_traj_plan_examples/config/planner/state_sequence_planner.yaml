@@ -5,7 +5,7 @@ misc:
   reOptimize: true
   reOptimizeMaxTry: 1000
   enableVis: true
-  enableOptVis: false
+  enableOptVis: true
   optVisRate: 12
   enableBenchmark: true
   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/OptBenchmark.csv
@@ -26,8 +26,8 @@ StateSequencePlanner:
   reachableFilterPoseMoveDis: 0.2
   reachableTravLayerName: "elevation_inpainted_trav"
 
-  # Reachability Check vis
-  visReachableCheck: True
+  # Enable Reachability Check (if envableVis is True, output will be visualized) 
+  enableReachableCheck: True
 
   swingTrajPreOpt: false
   shutdownAfterPreOpt: false
@@ -36,7 +36,7 @@ StateSequencePlanner:
   # demoPath: # NOTE: offered by launch file
   savePlannedStates: false
   # Executing saved states on startup
-  execSavedStates: false 
+  execSavedStates: true 
 
   # Benchmark for StateSequencePlanner
   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml

@@ -25,6 +25,27 @@
 
 using Point3D = geo_utils::Point3D;
 
+inline Eigen::VectorXd getTrajTimeVec(const std::vector<Point3D> &path, double total_time)
+{
+    if (path.size() > 2)
+    {
+        double path_length = 0;
+        Eigen::VectorXd ts(path.size() - 1);
+        for (size_t i = 1; i < path.size() - 1; i++)
+            path_length += (path[i] - path[i - 1]).norm();
+        path_length += (path.back() - path[path.size() - 2]).norm();
+        for (size_t i = 1; i < path.size(); i++)
+            ts[i - 1] = (path[i] - path[i - 1]).norm() / path_length * total_time;
+        return ts;
+    }
+    else
+    {
+        Eigen::VectorXd ts(1);
+        ts << total_time;
+        return ts;
+    }
+}
+
 class TrajectoryBase
 {
 public:

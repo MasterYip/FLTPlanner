@@ -23,14 +23,18 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 StompCfgPlanner:
+  searcher:
+    enablePolyPathSearch: true
+    collBallCheckRad2: 0.05
+    collBallCheckRad3: 0.03
   optimizer:
-    stompNumTimesteps: 20
-    stompStdDev1: 0.4
+    stompNumTimesteps: 20 # i.e. Traj resolution
+    stompStdDev1: 0.4     # Noise StdDev for stochastic rollouts
     stompStdDev2: 1.4
     stompStdDev3: 1.0
-    stompNumIters: 100
+    stompNumIters: 100    # Iterations for optimization
     stompNumItersAfterValid: 0
-    stompNumRollouts: 10
+    stompNumRollouts: 10  # Rollouts for one iteration
     stompMaxRollouts: 100
     stompCtrlCostWeight: 0.3
     stompExpCostSensitivity: 6.0
