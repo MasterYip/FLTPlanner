@@ -148,6 +148,9 @@ struct SwingTrajPlannerConfig
     // bool enablePolyPathSearch;
     // double collBallCheckRad2; // Knee
     // double collBallCheckRad3; // Foot
+    // Reachability Check
+    bool enableReachableCheckRetry;
+    int maxReachableCheckRetry;
     // STOMP Config
     double stompNumTimesteps;
     double stompStdDev1;
@@ -306,6 +309,8 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("StompCfgPlanner/searcher/enablePolyPathSearch", enablePolyPathSearch);
             check_digit *= nh.getParam("StompCfgPlanner/searcher/collBallCheckRad2", collBallCheckRad2);
             check_digit *= nh.getParam("StompCfgPlanner/searcher/collBallCheckRad3", collBallCheckRad3);
+            check_digit *= nh.getParam("StompCfgPlanner/checker/enableReachableCheckRetry", enableReachableCheckRetry);
+            check_digit *= nh.getParam("StompCfgPlanner/checker/maxReachableCheckRetry", maxReachableCheckRetry);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompNumTimesteps", stompNumTimesteps);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev1", stompStdDev1);
             check_digit *= nh.getParam("StompCfgPlanner/optimizer/stompStdDev2", stompStdDev2);

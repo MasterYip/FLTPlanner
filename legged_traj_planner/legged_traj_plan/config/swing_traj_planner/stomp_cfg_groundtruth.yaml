@@ -24,12 +24,12 @@ misc:
 
 StompCfgPlanner:
   searcher:
-    enablePolyPathSearch: false
+    enablePolyPathSearch: True
     collBallCheckRad2: 0.05
     collBallCheckRad3: 0.03
-  checker:
-    enableReachableCheckRetry: False
-    maxReachableCheckRetry: 1
+  checker: # For reachablility ground truth checker (slow)
+    enableReachableCheckRetry: True
+    maxReachableCheckRetry: 100
   optimizer:
     stompNumTimesteps: 20 # i.e. Traj resolution
     stompStdDev1: 0.4     # Noise StdDev for stochastic rollouts

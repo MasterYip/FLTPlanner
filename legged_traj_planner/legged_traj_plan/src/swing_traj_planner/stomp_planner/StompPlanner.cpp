@@ -120,11 +120,10 @@ StompCfgPlanner::StompCfgPlanner(SwingTrajPlannerConfig config,
     }
 }
 
-
 void StompCfgPlanner::visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1, int index,
-                                    std::vector<Point3D> cfg_poly_traj,
-                                    Eigen::Vector3d start_vel, Eigen::Vector3d goal_vel, double trajTime,
-                                    int groupId)
+                                      std::vector<Point3D> cfg_poly_traj,
+                                      Eigen::Vector3d start_vel, Eigen::Vector3d goal_vel, double trajTime,
+                                      int groupId)
 {
     MincoTrajectory minco_traj(cfg_poly_traj, start_vel, goal_vel, trajTime);
     std::vector<Point3D> cfg_path_opt;
@@ -142,9 +141,8 @@ void StompCfgPlanner::visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocch
     visualizer_->visCurve(path_opt);
 }
 
-
 std::shared_ptr<MincoTrajectory> StompCfgPlanner::getDefaultCfgTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
-                                                                  const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index)
+                                                                    const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index)
 {
     std::vector<Point3D> cfg_poly_traj;
     std::vector<Point3D> poly_path;
@@ -396,7 +394,14 @@ bool StompCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     stomp::Stomp stomp(c, swing_traj_opt_);
 
     Eigen::MatrixXd opt_traj;
-    if (stomp.solve(p0cfg, p1cfg, opt_traj))
+    Eigen::MatrixXd init_traj = Eigen::MatrixXd::Zero(3, config_.stompNumTimesteps);
+    for (int i = 0; i < config_.stompNumTimesteps; i++)
+    {
+        init_traj.col(i) = traj->evaluate(1.0 * i / (config_.stompNumTimesteps - 1), 0, true);
+    }
+    // if (stomp.solve(p0cfg, p1cfg, opt_traj))
+    //     ret = true;
+    if (stomp.solve(init_traj, opt_traj))
         ret = true;
     else
     {
@@ -443,11 +448,37 @@ bool StompCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 po
     {
         if (ifKinValid(pose1, footholds.at(i), index))
         {
-            auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
-            if (optTrajHook(traj, pose0, pose1, index))
-                reachable[i] = true;
-            else
+            if (config_.enableReachableCheckRetry)
+            {
                 reachable[i] = false;
+                auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
+                if (optTrajHook(traj, pose0, pose1, index))
+                    reachable[i] = true;
+                else
+                {
+                    int cnt = 0;
+                    config_.enableLiftRandomize = true;
+                    while (cnt < config_.maxReachableCheckRetry)
+                    {
+                        auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
+                        if (optTrajHook(traj, pose0, pose1, index))
+                        {
+                            reachable[i] = true;
+                            break;
+                        }
+                        cnt++;
+                    }
+                    config_.enableLiftRandomize = false;
+                }
+            }
+            else
+            {
+                auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
+                if (optTrajHook(traj, pose0, pose1, index))
+                    reachable[i] = true;
+                else
+                    reachable[i] = false;
+            }
         }
         else
             reachable[i] = false;
