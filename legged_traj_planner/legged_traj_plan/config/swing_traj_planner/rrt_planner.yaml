@@ -25,5 +25,6 @@ RRTPlanner:
   CollBall3Rad: 0.02
   excludeRadius: 0.04 # exclude cylinder radius
   collMargin: 0.04
+  rrtMaxStepSize: 0.1
 
 

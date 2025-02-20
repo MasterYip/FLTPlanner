@@ -115,6 +115,7 @@ struct SwingTrajPlannerConfig
     // double CollBall3Rad;
     double excludeRadius;
     double collMargin;
+    double rrtMaxStepSize;
 
     //// ID[2] RRTCfgPlannerSettings
     // double maxTime;
@@ -122,7 +123,8 @@ struct SwingTrajPlannerConfig
     // double CollBall3Rad;
     // double excludeRadius;
     // double collMargin;
-    // Same with above
+    // double rrtMaxStepSize;
+    // Joint limit
     // double joint1PosMin;
     // double joint1PosMax;
     // double joint2PosMin;
@@ -276,6 +278,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("RRTPlanner/CollBall3Rad", CollBall3Rad);
             check_digit *= nh.getParam("RRTPlanner/excludeRadius", excludeRadius);
             check_digit *= nh.getParam("RRTPlanner/collMargin", collMargin);
+            check_digit *= nh.getParam("RRTPlanner/rrtMaxStepSize", rrtMaxStepSize);
         }
         //// ID[2] RRTCfgPlannerSettings
         else if (plannerID == 2)
@@ -285,6 +288,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("RRTCfgPlanner/CollBall3Rad", CollBall3Rad);
             check_digit *= nh.getParam("RRTCfgPlanner/excludeRadius", excludeRadius);
             check_digit *= nh.getParam("RRTCfgPlanner/collMargin", collMargin);
+            check_digit *= nh.getParam("RRTCfgPlanner/rrtMaxStepSize", rrtMaxStepSize);
             check_digit *= nh.getParam("RRTCfgPlanner/joint1PosMin", joint1PosMin);
             check_digit *= nh.getParam("RRTCfgPlanner/joint1PosMax", joint1PosMax);
             check_digit *= nh.getParam("RRTCfgPlanner/joint2PosMin", joint2PosMin);

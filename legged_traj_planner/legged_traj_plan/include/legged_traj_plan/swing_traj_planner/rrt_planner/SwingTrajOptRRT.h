@@ -163,7 +163,7 @@ public:
         // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
         auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
         // auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
-        planner->setRange(0.1); // max step size
+        planner->setRange(config_.rrtMaxStepSize); // max step size
         ss.setPlanner(planner);
 
         ob::PlannerStatus solved = ss.solve(max_time);
@@ -436,7 +436,7 @@ public:
         // auto planner(std::make_shared<og::RRTstar>(ss.getSpaceInformation()));
         auto planner(std::make_shared<og::RRTConnect>(ss.getSpaceInformation())); // FIXME: error
         // auto planner(std::make_shared<og::InformedRRTstar>(ss.getSpaceInformation()));
-        planner->setRange(0.4); // max step size
+        planner->setRange(config_.rrtMaxStepSize); // max step size
         ss.setPlanner(planner);
 
         ob::PlannerStatus solved = ss.solve(max_time);

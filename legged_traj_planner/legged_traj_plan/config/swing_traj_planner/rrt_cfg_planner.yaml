@@ -25,7 +25,8 @@ RRTCfgPlanner:
   CollBall2Rad: 0.05
   CollBall3Rad: 0.03
   excludeRadius: 0.05 # exclude cylinder radius
-  collMargin: 0.05
+  collMargin: 0.00  # collision margin in the middle of the traj
+  rrtMaxStepSize: 0.4
   joint1PosMin: -0.785
   joint1PosMax: 0.785
   joint2PosMin: -0.349
