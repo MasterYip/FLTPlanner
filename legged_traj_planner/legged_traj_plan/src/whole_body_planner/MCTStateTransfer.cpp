@@ -211,7 +211,7 @@ std::vector<Eigen::Vector3d> MCTStateTransfer::generate_footholds(int index, int
     pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
     pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
     auto nominal_foothold = swing_traj_planner_->getRobotInterface()->getNominalFoothold(index);
-    nominal_foothold = point_SE3Act(pose0.inverse(), nominal_foothold);
+    nominal_foothold = point_SE3Act(pose1.inverse(), nominal_foothold);
     std::vector<Point3D> footholds;
     for (int i = 0; i < size; i++)
     {
