@@ -447,7 +447,7 @@ public:
             {
                 state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
                                                             transRobotState(planned_states_.at(0)));
-                for (size_t i = 1; i < planned_states_.size(); ++i)
+                for (size_t i = 1; i < planned_states_.size(); i++)
                 {
                     state_sequence_planner_.enqueue_MCTsolution(transRobotState(planned_states_.at(i - 1)),
                                                                 transRobotState(planned_states_.at(i)));

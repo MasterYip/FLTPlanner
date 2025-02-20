@@ -85,6 +85,10 @@ class TimberPileGenPub(object):
         with open(mapdef_path, 'r') as f:
             mapdef = yaml.safe_load(f)
         self.Width = np.array(mapdef['TimberPileGen']['Width'])
+        if (mapdef['TimberPileGen'].get('Interval') is not None):
+            self.Interval = np.array(mapdef['TimberPileGen']['Interval'])
+        else:
+            self.Interval = self.Width
         self.Size = np.array(mapdef['TimberPileGen']['Size'])
         self.PaddingPlaneSize = np.array(mapdef['TimberPileGen']['PaddingPlaneSize'])
         self.PaddingHeight = mapdef['TimberPileGen']['PaddingHeight']
@@ -99,14 +103,17 @@ class TimberPileGenPub(object):
         # coef
         self.image_size = np.array(self.PaddingPlaneSize//self.resolution + 1, dtype=int)
         self.image_origin = self.Origin - (self.image_size-1)*self.resolution/2
-        self.pile_origin = self.Origin - self.Size * self.Width / 2
+        self.pile_origin = self.Origin - self.Size * self.Interval / 2
         img_arr = self.PaddingHeight * np.ones(tuple(self.image_size))
         for i in range(self.image_size[0]):
             for j in range(self.image_size[1]):
                 pos = [self.image_origin[0] + i*self.resolution, self.image_origin[1] + j*self.resolution]
-                pile_i = int((pos[0] - self.pile_origin[0]) // self.Width[0])
-                pile_j = int((pos[1] - self.pile_origin[1]) // self.Width[1])
-                if pile_i >= 0 and pile_i < self.Size[0] and pile_j >= 0 and pile_j < self.Size[1]:
+                pile_i = int((pos[0] - self.pile_origin[0]) // self.Interval[0])
+                delta_i = (pos[0] - self.pile_origin[0]) % self.Interval[0] - 0.5*self.Interval[0]
+                pile_j = int((pos[1] - self.pile_origin[1]) // self.Interval[1])
+                delta_j = (pos[1] - self.pile_origin[1]) % self.Interval[1] - 0.5*self.Interval[1]
+                if pile_i >= 0 and pile_i < self.Size[0] and pile_j >= 0 and pile_j < self.Size[1] and \
+                        abs(delta_i) <= 0.5*self.Width[0] and abs(delta_j) <= 0.5*self.Width[1]:
                     img_arr[i, j] = self.Heights[pile_i, pile_j] * self.HeightsCoef
         return img_arr
 
