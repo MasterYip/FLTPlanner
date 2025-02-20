@@ -64,6 +64,9 @@ struct SwingTrajPlannerConfig
     double guideSurfConvKernelInterval;
     double collBallCheckRad2; // Knee
     double collBallCheckRad3; // Foot
+    // Checker
+    bool useTrajOptForReachableCheck;
+    int maxReachableCheckRetry;
     // Optimizer Settings
     double lengthPerPiece;
     double allocSpeed;
@@ -156,7 +159,7 @@ struct SwingTrajPlannerConfig
     // double collBallCheckRad3; // Foot
     // Reachability Check
     bool enableReachableCheckRetry;
-    int maxReachableCheckRetry;
+    // int maxReachableCheckRetry;
     // STOMP Config
     double stompNumTimesteps;
     double stompStdDev1;
@@ -227,6 +230,8 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("LFTPlanner/searcher/guideSurfConvKernelInterval", guideSurfConvKernelInterval);
             check_digit *= nh.getParam("LFTPlanner/searcher/collBallCheckRad2", collBallCheckRad2);
             check_digit *= nh.getParam("LFTPlanner/searcher/collBallCheckRad3", collBallCheckRad3);
+            check_digit *= nh.getParam("LFTPlanner/checker/useTrajOptForReachableCheck", useTrajOptForReachableCheck);
+            check_digit *= nh.getParam("LFTPlanner/checker/maxReachableCheckRetry", maxReachableCheckRetry);
             check_digit *= nh.getParam("LFTPlanner/optimizer/lengthPerPiece", lengthPerPiece);
             check_digit *= nh.getParam("LFTPlanner/optimizer/allocSpeed", allocSpeed);
             check_digit *= nh.getParam("LFTPlanner/optimizer/relCostTol", relCostTol);

@@ -2,11 +2,11 @@ plannerID: 0
 
 trajInit:
   # perpendicular to the ground (avoid collision detection)
-  vLift: 0.2 # For trajopt
+  vLift: 0.014 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
-  vLiftNormalRandomize: 2.0 # Rand normal for RE-PLANNING (orthogonal disk randomization)
+  vLiftNormalRandomize: 1.8 # Rand normal for RE-PLANNING (orthogonal disk randomization)
   hLift: 0.1
-  trajTime: 2
+  trajTime: 20
 
 misc:
   enableOptimizer: true
@@ -16,7 +16,7 @@ misc:
   useCfgCommand: true
   enableVis: true
   enableOptVis: false # Visualize the optimization process
-  optVisRate: 15
+  optVisRate: 10
   enableBenchmark: true
   # Benchmark result save path
   # OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/optBenchmark.csv
@@ -28,50 +28,50 @@ LFTPlanner:
   searcher:
     enablePolyPathSearch: true
     useLeggedBorderCheck: true
-    updateGuideSurfInReachableCheck: true
+    updateGuideSurfInReachableCheck: false
     guideSurfType: 2 # 0: ground, 1: keypoints, 2: convolution
     guideSurfConvKernelSize: 5
     guideSurfConvKernelInterval: 0.05
-    collBallCheckRad2: 0.05
+    collBallCheckRad2: 0.04
     collBallCheckRad3: 0.02
   checker:
-    useTrajOptForReachableCheck: false
-    maxReachableCheckRetry: 1
+    useTrajOptForReachableCheck: true
+    maxReachableCheckRetry: 20
   optimizer:
     lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
-    allocSpeed: 0.1 # NOTE: crucial for optimization
-    relCostTol: 1.0e-2
-    smoothingFactor: 10.0e-2 # IMPORTANT: smooth obstacle is good for optimization
+    allocSpeed: 0.018 # NOTE: crucial for optimization
+    relCostTol: 1.0e-4
+    smoothingFactor: 5.0e-2
     integralResolution: 8
     enableSpaceDeform: false
-    spaceDeform1: 1.0
-    spaceDeform2: 1.0
-    spaceDeform3: 1.0
+    spaceDeform1: 1.57
+    spaceDeform2: 3.66
+    spaceDeform3: 4.62
   penalty:
-    energyWeight: 0.1
-    timeWeight: 0.2 # PROBLEM: too large or too small will leads to max-try error
+    energyWeight: 1.0
+    timeWeight: 0.00026 # PROBLEM: too large or too small will leads to max-try error
     joint1PosMin: -0.785
     joint1PosMax: 0.785
     joint2PosMin: -0.349
     joint2PosMax: 3.14
     joint3PosMin: -0.6978
     joint3PosMax: 3.403
-    jointMaxVel: 100.0
-    jointMaxAcc: 500.0
+    jointMaxVel: 10.0
+    jointMaxAcc: 50.0
     jointPosWeight: 0.4
     jointVelWeight: 0.1
     jointAccWeight: 0.1
     CollBall1Rad: 0.06
-    CollBall2Rad: 0.06
-    CollBall3Rad: 0.04
+    CollBall2Rad: 0.05
+    CollBall3Rad: 0.03
     CollBall1Weight: 0.0
-    CollBall2Weight: 16.0
-    CollBall3Weight: 80.0
+    CollBall2Weight: 4.0
+    CollBall3Weight: 6.0
     FootCollExcludeBallRad: 0.05
-    FootCollExcludeBallSmoothRad: 0.05
+    FootCollExcludeBallSmoothRad: 0.04
     primitivePos1: 0.0
-    primitivePos2: 0.0
-    primitivePos3: 0.0
+    primitivePos2: 1.57
+    primitivePos3: 3.14
     primitiveWeight1: 0.0
-    primitiveWeight2: 0.0
-    primitiveWeight3: 0.0
+    primitiveWeight2: 0.0000 # 0.0005
+    primitiveWeight3: 0.0000 # 0.00002

@@ -34,6 +34,9 @@ LFTPlanner:
     guideSurfConvKernelInterval: 0.05
     collBallCheckRad2: 0.05
     collBallCheckRad3: 0.03
+  checker:
+    useTrajOptForReachableCheck: false
+    maxReachableCheckRetry: 1
   optimizer:
     lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization
@@ -59,8 +62,8 @@ LFTPlanner:
     jointVelWeight: 0.1
     jointAccWeight: 0.1
     CollBall1Rad: 0.06
-    CollBall2Rad: 0.06
-    CollBall3Rad: 0.04
+    CollBall2Rad: 0.05
+    CollBall3Rad: 0.03
     CollBall1Weight: 0.0
     CollBall2Weight: 16.0
     CollBall3Weight: 4.0

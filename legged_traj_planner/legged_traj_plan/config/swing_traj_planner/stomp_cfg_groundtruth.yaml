@@ -25,24 +25,24 @@ misc:
 StompCfgPlanner:
   searcher:
     enablePolyPathSearch: True
-    guideSurfType: 2 # 0: ground, 1: keypoints, 2: convolution
-    guideSurfConvKernelSize: 10
-    guideSurfConvKernelInterval: 0.03
+    guideSurfType: 1 # 0: ground, 1: keypoints, 2: convolution
+    guideSurfConvKernelSize: 5
+    guideSurfConvKernelInterval: 0.05
     collBallCheckRad2: 0.05
     collBallCheckRad3: 0.03
   checker: # For reachablility ground truth checker (slow)
     enableReachableCheckRetry: True
-    maxReachableCheckRetry: 100
+    maxReachableCheckRetry: 20
   optimizer:
     stompNumTimesteps: 20 # i.e. Traj resolution
     stompStdDev1: 0.4     # Noise StdDev for stochastic rollouts
     stompStdDev2: 1.4
-    stompStdDev3: 1.0
+    stompStdDev3: 2.0
     stompNumIters: 100    # Iterations for optimization
     stompNumItersAfterValid: 0
-    stompNumRollouts: 10  # Rollouts for one iteration
-    stompMaxRollouts: 100
-    stompCtrlCostWeight: 0.3
+    stompNumRollouts: 60  # Rollouts for one iteration
+    stompMaxRollouts: 200
+    stompCtrlCostWeight: 0.2
     stompExpCostSensitivity: 6.0
   penalty:
     smoothingFactor: 1.0e-2
