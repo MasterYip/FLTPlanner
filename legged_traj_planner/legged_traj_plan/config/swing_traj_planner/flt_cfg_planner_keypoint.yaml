@@ -4,7 +4,7 @@ trajInit:
   # perpendicular to the ground (avoid collision detection)
   vLift: 0.014 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
-  vLiftNormalRandomize: 1.8 # Rand normal for RE-PLANNING (orthogonal disk randomization)
+  vLiftNormalRandomize: 1.5 # Rand normal for RE-PLANNING (orthogonal disk randomization)
   hLift: 0.1
   trajTime: 20
 
@@ -14,7 +14,7 @@ misc:
   reOptimizeMaxTry: 100
   useCfgSpace: true # Do not change this (this file is for cfg space)
   useCfgCommand: true
-  enableVis: true
+  enableVis: false
   enableOptVis: false # Visualize the optimization process
   optVisRate: 10
   enableBenchmark: true
@@ -28,21 +28,21 @@ LFTPlanner:
   searcher:
     enablePolyPathSearch: true
     useLeggedBorderCheck: true
-    updateGuideSurfInReachableCheck: false
-    guideSurfType: 2 # 0: ground, 1: keypoints, 2: convolution
+    updateGuideSurfInReachableCheck: true
+    guideSurfType: 1 # 0: ground, 1: keypoints, 2: convolution
     guideSurfConvKernelSize: 5
     guideSurfConvKernelInterval: 0.05
-    collBallCheckRad2: 0.04
-    collBallCheckRad3: 0.02
+    collBallCheckRad2: 0.05
+    collBallCheckRad3: 0.03
   checker:
-    useTrajOptForReachableCheck: true
-    maxReachableCheckRetry: 20
+    useTrajOptForReachableCheck: false
+    maxReachableCheckRetry: 1
   optimizer:
     lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization
-    relCostTol: 1.0e-4
+    relCostTol: 4.0e-4
     smoothingFactor: 5.0e-2
-    integralResolution: 16
+    integralResolution: 6
     enableSpaceDeform: false
     spaceDeform1: 1.57
     spaceDeform2: 3.66
@@ -65,10 +65,10 @@ LFTPlanner:
     CollBall2Rad: 0.05
     CollBall3Rad: 0.03
     CollBall1Weight: 0.0
-    CollBall2Weight: 4.0
-    CollBall3Weight: 6.0
-    FootCollExcludeBallRad: 0.04
-    FootCollExcludeBallSmoothRad: 0.02
+    CollBall2Weight: 16.0
+    CollBall3Weight: 4.0
+    FootCollExcludeBallRad: 0.06
+    FootCollExcludeBallSmoothRad: 0.05
     primitivePos1: 0.0
     primitivePos2: 1.57
     primitivePos3: 3.14
