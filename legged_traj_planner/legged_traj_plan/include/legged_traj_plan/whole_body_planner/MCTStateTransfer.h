@@ -58,7 +58,7 @@ public:
             opt_swing_traj(i);
     }
     std::vector<Eigen::Vector3d> generate_footholds(int index, int size=30, double interval=0.025);
-    void reachable_check(int index);
+    void reachable_check(int index, int size=30, double interval=0.025);
     void reachable_check()
     {
         for (int i = 0; i < 6; ++i)

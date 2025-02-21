@@ -65,9 +65,9 @@ public:
         {
             double t = i / (samples - 1.0);
             Eigen::Vector2d p = p0.head(2) * (1 - t) + p1.head(2) * t;
-            if (gridmap_interface_->value(p) > pmid[2])
+            if ((gridmap_interface_->value(p) + config_.collBallCheckRad3) > pmid[2])
             {
-                pmid = Eigen::Vector3d(p[0], p[1], gridmap_interface_->value(p));
+                pmid = Eigen::Vector3d(p[0], p[1], gridmap_interface_->value(p) + config_.collBallCheckRad3);
             }
         }
         knots.row(2) = pmid;
@@ -80,7 +80,22 @@ public:
         normal.normalize();
         knots.row(5) = -normal * v_lift;
 
-        return std::make_shared<CubicHermiteSpline>(knots);
+        auto traj = std::make_shared<CubicHermiteSpline>(knots);
+        if (config_.enableVis)
+        {
+            std::vector<Point3D> path;
+            double ts = 0.01;
+            double t = 0;
+            while (t < 1.0)
+            {
+                path.emplace_back(traj->evaluate(t, 0, true));
+                t += ts;
+            }
+            visualizer_->setIdGroup(0);
+            visualizer_->visCurve(path, ros_visualizer::VisStyle(0.0, 0.0, 0.0, 0.2, 0.01));
+        }
+
+        return traj;
     }
 
     bool optTrajHook(std::shared_ptr<TrajectoryBase> &traj,

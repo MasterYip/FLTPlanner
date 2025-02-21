@@ -141,6 +141,7 @@ struct ElSpiderAirStateSequencePlannerConfig
     std::string reachableTravLayerName;
 
     bool enableReachableCheck;
+    int reachableCheckSize;
 
     bool swingTrajPreOpt;
     bool shutdownAfterPreOpt;
@@ -168,6 +169,7 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/reachableTravLayerName", reachableTravLayerName);
 
         check_digit &= nh.getParam(ns + "/enableReachableCheck", enableReachableCheck);
+        check_digit &= nh.getParam(ns + "/reachableCheckSize", reachableCheckSize);
 
         check_digit &= nh.getParam(ns + "/swingTrajPreOpt", swingTrajPreOpt);
         check_digit &= nh.getParam(ns + "/shutdownAfterPreOpt", shutdownAfterPreOpt);
@@ -677,7 +679,7 @@ public:
         if (config_.enableReachableCheck)
             for (int i = 0; i < 6; i++)
                 if (support_state[i] == false)
-                    state_traj.reachable_check(i);
+                    state_traj.reachable_check(i, config_.reachableCheckSize, 0.75 / config_.reachableCheckSize);
 
         do
         {
@@ -748,7 +750,7 @@ public:
                     if (config_.enableReachableCheck)
                         for (int i = 0; i < 6; i++)
                             if (support_state[i] == false)
-                                state_traj.reachable_check(i);
+                                state_traj.reachable_check(i, config_.reachableCheckSize, 0.75 / config_.reachableCheckSize);
                 }
             }
             ros::spinOnce(); // Fetch feedback

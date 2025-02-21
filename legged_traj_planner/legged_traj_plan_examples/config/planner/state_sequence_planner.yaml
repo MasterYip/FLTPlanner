@@ -2,10 +2,10 @@
 # NOTE: Planner settings override 
 misc:
   useCfgCommand: true
-  reOptimize: true
+  reOptimize: false
   reOptimizeMaxTry: 1000
   enableVis: true
-  enableOptVis: true
+  enableOptVis: false
   optVisRate: 12
   enableBenchmark: true
   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/OptBenchmark.csv
@@ -27,7 +27,8 @@ StateSequencePlanner:
   reachableTravLayerName: "elevation_inpainted_trav"
 
   # Enable Reachability Check (if envableVis is True, output will be visualized) 
-  enableReachableCheck: True
+  enableReachableCheck: true
+  reachableCheckSize: 15 # (size*size, in 0.75*0.75 area)
 
   swingTrajPreOpt: false
   shutdownAfterPreOpt: false

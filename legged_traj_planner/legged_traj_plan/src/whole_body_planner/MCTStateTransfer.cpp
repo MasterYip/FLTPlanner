@@ -226,9 +226,9 @@ std::vector<Eigen::Vector3d> MCTStateTransfer::generate_footholds(int index, int
     return footholds;
 }
 
-void MCTStateTransfer::reachable_check(int index)
+void MCTStateTransfer::reachable_check(int index, int size, double interval)
 {
-    auto footholds = generate_footholds(index);
+    auto footholds = generate_footholds(index, size, interval);
     std::vector<bool> reachable;
     pinocchio::SE3 pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
     pinocchio::SE3 pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
