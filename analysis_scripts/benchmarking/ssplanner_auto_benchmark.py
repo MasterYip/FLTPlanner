@@ -5,7 +5,7 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2025-02-20 11:48:47
+LastEditTime: 2025-02-21 14:42:22
 LastEditors: HexLab-NUC12-MasterYip
 '''
 
@@ -49,13 +49,13 @@ PLANNERS = [
 ]
 
 DEMOS = [
-    # ("2_stairs", False),
+    ("2_stairs", False),
+    ("3_quincuncial_piles", False),
     ("4_ushape_barrier", True),
-    # ("3_quincuncial_piles", False),
-    # ("4_barrier", True),
-    # ("4_barrier_vague", True),
-    # ("5_channel", True),
-    # ("6_fractal", False),
+    ("4_barrier", True),
+    ("4_barrier_vague", True),
+    ("5_channel", True),
+    ("6_fractal", False),
 ]
 
 
