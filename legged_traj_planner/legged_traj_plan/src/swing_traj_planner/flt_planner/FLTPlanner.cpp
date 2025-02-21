@@ -227,6 +227,7 @@ LeggedBorderCheckConfig getLeggedBorderCheckConfig(const std::shared_ptr<GridMap
     cfg.collBallRad1 = config.CollBall1Rad; // TODO: use checkrad
     cfg.collBallRad2 = config.collBallCheckRad2;
     cfg.collBallRad3 = config.collBallCheckRad3;
+    cfg.FootCollExcludeBallRad = config.FootCollExcludeBallRad;
     return cfg;
 }
 

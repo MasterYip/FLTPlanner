@@ -29,6 +29,7 @@ struct LeggedBorderCheckConfig
     std::string ceiling_layer = "ceiling";
     bool enable_ground = true;
     bool enable_ceiling = false;
+
     int guide_surf_type = 1;
     // 0: grid map ground (not using guide surf)
     // 1: harmonic guide surf
@@ -41,8 +42,9 @@ struct LeggedBorderCheckConfig
     // 1: progress =  <(nominal_pos1 - nominal_pos0), (p - nominal_pos0)> / |nominal_pos1 - nominal_pos0|
 
     double collBallRad1 = 0.0;
-    double collBallRad2 = 0.0;
-    double collBallRad3 = 0.0;
+    double collBallRad2 = 0.0; // Knee
+    double collBallRad3 = 0.0; // Foot
+    double FootCollExcludeBallRad = 0.0;
 };
 
 class LeggedBorderCheck : public BorderCheckBase

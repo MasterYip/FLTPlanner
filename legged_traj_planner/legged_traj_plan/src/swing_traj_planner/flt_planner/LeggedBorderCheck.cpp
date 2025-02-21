@@ -78,7 +78,10 @@ double LeggedBorderCheck::disInBorder(const Eigen::Vector2d &pos2d)
 {
     pinocchio::SE3 pose = poseLinearInterp(pose0_, pose1_, projectInterp(pos2d));
     // TODO: foot collision check
-    Eigen::Vector3d pos(pos2d(0), pos2d(1), queryHeight(pos2d) + config_.collBallRad3);
+    Eigen::Vector3d pos(pos2d(0), pos2d(1), queryHeight(pos2d));
+    // Don't use queryHeight+collBallRad3 near footholds
+    if ((pos - p0_).norm() > config_.FootCollExcludeBallRad && (pos - p1_).norm() > config_.FootCollExcludeBallRad)
+        pos[2] += config_.collBallRad3;
     pos = point_SE3Act(pose, pos);
     Eigen::Vector3d sol;
     bool joint_limit_check = robot_interface_->getRobotKin().inverseKinConstraint(pos, sol, index_, false);
