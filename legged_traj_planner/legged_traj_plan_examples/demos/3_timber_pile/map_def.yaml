@@ -2,18 +2,25 @@ TimberPileGen:
   # X, Y
   Width: [0.20, 0.20]         # Timber width (X, Y)
   Interval: [0.24, 0.24]      # Timber interval (X, Y)
-  Size: [9, 6]              # Timber pile size (X columns, Y rows)
-  PaddingPlaneSize: [6, 2]  # Padding plane size (X length, Y length)
+  Size: [16, 8]              # Timber pile size (X columns, Y rows)
+  PaddingPlaneSize: [7.5, 3]  # Padding plane size (X length, Y length)
   PaddingHeight: 0.0        # Padding height
   Origin: [0.0, 0.0]        # Origin position (X, Y) # NOTE:not in effect
   HeightsCoef: 0.1
   # x ↑ | y ← | Origin at center
-  Heights: [1,1,1,1,1,1,
-            1,2,1,1,2,1,
-            2,3,2,3,3,2,
-            3,2,1,3,2,3,
-            4,2,3,2,3,4,
-            3,3,2,1,2,3,
-            3,2,3,2,3,2,
-            2,2,1,2,2,2,
-            1,1,1,1,1,1]
+  Heights: [1,1,1,1,1,1,1,1,
+            1,2,1,1,2,1,2,1,
+            2,3,2,3,3,2,3,2,
+            3,2,1,3,2,3,2,1,
+            4,2,3,2,3,4,3,2,
+            3,3,2,1,2,3,2,1,
+            3,2,3,2,3,2,3,2,
+            2,2,1,2,2,2,1,2,
+            1,1,2,3,1,1,2,1,
+            1,4,3,1,2,1,2,1,
+            2,3,2,3,3,2,4,2,
+            3,2,1,3,3,1,2,1,
+            2,2,3,2,2,2,3,2,
+            3,3,2,1,2,1,2,1,
+            3,2,1,2,1,2,2,2,
+            1,1,1,1,1,1,1,1]

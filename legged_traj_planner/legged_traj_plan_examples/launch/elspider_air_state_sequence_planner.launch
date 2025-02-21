@@ -10,10 +10,11 @@
     <!-- height_clear_planner -->
     <!-- fec_planner -->
     <!-- minco_cfg_planner -->
-    <!-- flt_planner / flt_cfg_planner / flt_cfg_planner_fast-->
+    <!-- flt_planner / flt_cfg_planner / flt_cfg_planner_fast / flt_cfg_groundtruth-->
+    <!-- flt_cfg_planner_keypoint /  flt_cfg_planner_conv (for reahcability check benchmark)-->
     <!-- rrt_planner / rrt_cfg_planner -->
-    <!-- stomp_planner / stomp_cfg_planner -->
-    <arg name="planner_cfg" default="flt_cfg_planner" />
+    <!-- stomp_planner / stomp_cfg_planner / stomp_cfg_groundtruth-->
+    <arg name="planner_cfg" default="flt_cfg_planner_conv" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->

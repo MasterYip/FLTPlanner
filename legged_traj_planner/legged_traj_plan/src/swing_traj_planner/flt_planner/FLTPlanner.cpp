@@ -650,8 +650,10 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                                                                     pose0, pose1, p0, nominal_foothold,
                                                                     index, cfg_lbc);
             poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg_pts);
-            if (!poly_traj_search->updateBorder(p0)) // Update intersect border
-                std::cout << "Warning: poly_traj_search->updateBorder failed" << std::endl;
+            // FIXME: should update concave points too
+            // if (!poly_traj_search->updateBorder(p0)) // Update intersect border
+            //     std::cout << "Warning: poly_traj_search->updateBorder failed" << std::endl;
+            poly_traj_search->reachable(p0, p0);
 
             for (size_t i = 0; i < footholds.size(); i++)
             {
