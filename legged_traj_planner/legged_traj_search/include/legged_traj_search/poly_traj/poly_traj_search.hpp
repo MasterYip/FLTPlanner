@@ -85,6 +85,8 @@ public:
     ~PolyTrajSearch() = default;
     // Poly Traj Search
     bool endpointValid(const Point3D &start, const Point3D &goal);
+    bool updateBorder(const Point3D &start);
+    bool updateBorder(const GridPt &start);
     bool reachable(const Point3D &start, const Point3D &goal, bool update_border = true);
     bool search(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
     bool searchStringStraining(const Point3D &start, const Point3D &goal, std::vector<Point3D> &path);
@@ -112,7 +114,6 @@ public:
 class FeasiblePolyTrajSearch
 {
 private:
-
     const grid_map::GridMap map_;
 
     // Objects

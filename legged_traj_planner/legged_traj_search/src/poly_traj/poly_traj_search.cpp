@@ -53,6 +53,39 @@ bool PolyTrajSearch::endpointValid(const Point3D &start, const Point3D &goal)
            border_check_->isGoalValid(Eigen::Vector2d(goal.head(2)));
 }
 
+bool PolyTrajSearch::updateBorder(const GridPt &start)
+{
+    if (!intersect_border_.getIntersectBorder(start, border_))
+    {
+        std::cout << "Warning: intersect_border_.getIntersectBorder failed" << std::endl;
+        return false;
+    }
+    if (border_.size() < 3)
+    {
+        std::cout << "Warning: border_.size() < 3" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool PolyTrajSearch::updateBorder(const Point3D &start)
+{
+    GridPt start_grid = index_remap_.pos2Grid(start.head(2));
+    // NOTE: Fix start validation problem
+    if (!border_check_->isStartValid(start_grid))
+    {
+        GridPt s0 = index_remap_.pos2GridFloat(start.head(2)).cast<int>();
+        std::vector<GridPt> candidates = {s0, s0 + GridPt(1, 0), s0 + GridPt(0, 1), s0 + GridPt(1, 1)};
+        for (auto &candidate : candidates)
+            if (border_check_->isStartValid(candidate))
+            {
+                start_grid = candidate;
+                break;
+            }
+    }
+    return updateBorder(start_grid);
+}
+
 bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool update_border)
 {
     // if (reachable_ != 0)
@@ -84,21 +117,21 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool u
                 break;
             }
     }
+    if (!border_check_->isGoalValid(goal_grid))
+    {
+        GridPt g0 = index_remap_.pos2GridFloat(goal.head(2)).cast<int>();
+        std::vector<GridPt> candidates = {g0, g0 + GridPt(1, 0), g0 + GridPt(0, 1), g0 + GridPt(1, 1)};
+        for (auto &candidate : candidates)
+            if (border_check_->isGoalValid(candidate))
+            {
+                goal_grid = candidate;
+                break;
+            }
+    }
 
     // Intersect Border
-    if (update_border)
-    {
-        if (!intersect_border_.getIntersectBorder(start_grid, border_))
-        {
-            std::cout << "Warning: intersect_border_.getIntersectBorder failed" << std::endl;
-            return false;
-        }
-    }
-    if (border_.size() < 3)
-    {
-        std::cout << "Warning: border_.size() < 3" << std::endl;
+    if (update_border && !updateBorder(start_grid))
         return false;
-    }
     double border_length = 0;
     for (uint i = 0; i < border_.size() - 1; i++)
     {

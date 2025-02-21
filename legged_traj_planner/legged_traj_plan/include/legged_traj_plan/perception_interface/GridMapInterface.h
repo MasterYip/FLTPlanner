@@ -123,4 +123,5 @@ public:
     void lockMapUpdate() { map_update_lock_ = true; }
     void unlockMapUpdate() { map_update_lock_ = false; }
     bool isMapUpdateLocked() { return map_update_lock_; };
+    bool isCeilingLayerExist() { return map_.exists(ceiling_layer); };
 };

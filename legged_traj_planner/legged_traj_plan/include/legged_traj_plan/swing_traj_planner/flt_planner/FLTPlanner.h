@@ -83,6 +83,7 @@ public:
                          Eigen::Vector3d start_vel, Eigen::Vector3d goal_vel, double trajTime,
                          int groupId = 1);
 
+
     /**
      * @brief Search for a poly feasible trajectory
      *
@@ -136,8 +137,7 @@ public:
      * @return false
      */
     bool reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-                                     Eigen::Vector3d p0, uint index,
-                                     std::vector<Eigen::Vector3d> &footholds,
-                                     std::vector<bool> &reachable) override;
-
+                            Eigen::Vector3d p0, uint index,
+                            std::vector<Eigen::Vector3d> &footholds,
+                            std::vector<bool> &reachable) override;
 };

@@ -213,6 +213,23 @@ void FLTCfgPlanner::visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio
     visualizer_->visCurve(path_opt);
 }
 
+LeggedBorderCheckConfig getLeggedBorderCheckConfig(const std::shared_ptr<GridMapInterface> &gridmap_interface,
+                                                   const SwingTrajPlannerConfig &config)
+{
+    LeggedBorderCheckConfig cfg;
+    cfg.ground_layer = gridmap_interface->getGroundLayerName();
+    cfg.ceiling_layer = gridmap_interface->getCeilingLayerName();
+    cfg.enable_ground = true;
+    cfg.enable_ceiling = gridmap_interface->isCeilingLayerExist(); // TODO: enable ceiling
+    cfg.guide_surf_type = config.guideSurfType;
+    cfg.guid_surf_conv_samples = config.guideSurfConvKernelSize;
+    cfg.guid_surf_conv_interval = config.guideSurfConvKernelInterval;
+    cfg.collBallRad1 = config.CollBall1Rad; // TODO: use checkrad
+    cfg.collBallRad2 = config.collBallCheckRad2;
+    cfg.collBallRad3 = config.collBallCheckRad3;
+    return cfg;
+}
+
 std::shared_ptr<MincoTrajectory> FLTCfgPlanner::getDefaultCfgTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
                                                                   const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index)
 {
@@ -272,19 +289,8 @@ bool FLTCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
     std::unique_ptr<PolyTrajSearch> poly_traj_search;
 
     // Use LeggedBorderCheck
-    LeggedBorderCheckConfig config;
-    config.ground_layer = gridmap_interface_->getGroundLayerName();
-    config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
-    config.enable_ground = true;
-    config.enable_ceiling = false;
-    config.guide_surf_type = config_.guideSurfType;
-    config.guid_surf_conv_samples = config_.guideSurfConvKernelSize;
-    config.guid_surf_conv_interval = config_.guideSurfConvKernelInterval;
-    config.collBallRad1 = config_.CollBall1Rad;
-    config.collBallRad2 = config_.collBallCheckRad2;
-    config.collBallRad3 = config_.collBallCheckRad3;
     auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-                                                            pose0, pose1, p0, p1, index, config);
+                                                            pose0, pose1, p0, p1, index, getLeggedBorderCheckConfig(gridmap_interface_, config_));
     PolyTrajSearchConfig cfg;
     cfg.enable_benchmark = false;
     poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
@@ -576,26 +582,6 @@ bool FLTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     return ret;
 }
 
-// std::unique_ptr<PolyTrajSearch> FLTCfgPlanner::getPolyTrajSearch(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
-//                                                                  Eigen::Vector3d p0,
-//                                                                  uint index)
-// {
-//     // Use LeggedBorderCheck
-//     LeggedBorderCheckConfig config;
-//     config.ground_layer = gridmap_interface_->getGroundLayerName();
-//     config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
-//     config.enable_ground = true;
-//     config.enable_ceiling = false;
-//     config.collBallRad1 = config_.CollBall1Rad;
-//     config.collBallRad2 = config_.CollBall2Rad;
-//     config.collBallRad3 = config_.CollBall3Rad;
-//     auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-//                                                             pose0, pose1, p0, p0, index, config);
-//     PolyTrajSearchConfig cfg;
-//     cfg.enable_benchmark = false;
-//     return std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
-// }
-
 bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                                        Eigen::Vector3d p0, uint index,
                                        std::vector<Eigen::Vector3d> &footholds,
@@ -636,19 +622,9 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     {
         std::unique_ptr<PolyTrajSearch> poly_traj_search;
         // Config
-        LeggedBorderCheckConfig config;
-        config.ground_layer = gridmap_interface_->getGroundLayerName();
-        config.ceiling_layer = gridmap_interface_->getCeilingLayerName();
-        config.enable_ground = true;
-        config.enable_ceiling = false;
-        config.guide_surf_type = config_.guideSurfType;
-        config.guid_surf_conv_samples = config_.guideSurfConvKernelSize;
-        config.guid_surf_conv_interval = config_.guideSurfConvKernelInterval;
-        config.collBallRad1 = config_.CollBall1Rad;
-        config.collBallRad2 = config_.CollBall2Rad;
-        config.collBallRad3 = config_.CollBall3Rad;
-        PolyTrajSearchConfig cfg;
-        cfg.enable_benchmark = false;
+        LeggedBorderCheckConfig cfg_lbc = getLeggedBorderCheckConfig(gridmap_interface_, config_);
+        PolyTrajSearchConfig cfg_pts;
+        cfg_pts.enable_benchmark = false;
 
         if (config_.updateGuideSurfInReachableCheck) // Useful for Keypoint Guide Surface
         {
@@ -658,8 +634,8 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                 {
                     auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
                                                                             pose0, pose1, p0, footholds[i],
-                                                                            index, config);
-                    poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
+                                                                            index, cfg_lbc);
+                    poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg_pts);
                     reachable[i] = poly_traj_search->reachable(p0, footholds[i], true);
                 }
             }
@@ -671,21 +647,13 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
             nominal_foothold[2] = gridmap_interface_->value(nominal_foothold.head(2), gridmap_interface_->getGroundLayerName());
             auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
                                                                     pose0, pose1, p0, nominal_foothold,
-                                                                    index, config);
-            poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
-            poly_traj_search->reachable(p0, p0); // Update intersect border
-
-            // FIXME: Fast Kinematic Check
-            // auto kinborder_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-            //                                                            pose1, pose1, p0, nominal_foothold,
-            //                                                            index, config);
-            // auto kin_check = std::make_unique<PolyTrajSearch>(kinborder_check, gridmap_interface_->getMap(), cfg);
-            // kin_check->reachable(p0, nominal_foothold); // Update intersect border
+                                                                    index, cfg_lbc);
+            poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg_pts);
+            if (!poly_traj_search->updateBorder(p0)) // Update intersect border
+                std::cout << "Warning: poly_traj_search->updateBorder failed" << std::endl;
 
             for (size_t i = 0; i < footholds.size(); i++)
             {
-                // FIXME: Kinematic Check takes a lot of time
-                // if (kin_check->reachable(p0, footholds[i], false))
                 if (ifKinValid(pose1, footholds.at(i), index))
                     reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
             }
