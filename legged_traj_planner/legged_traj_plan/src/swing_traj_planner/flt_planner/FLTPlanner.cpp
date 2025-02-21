@@ -330,12 +330,12 @@ bool FLTCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
             visualizer_->visCurve(border_pos, ros_visualizer::VisStyle(0.1, 0.1, 0.1, 0.5, 0.01));
         }
         // // Vis Graph
-        // VisibilityGraph vis_graph = poly_traj_search->getVisGraph();
-        // CorridorBorderCheck border_check = poly_traj_search->getBorderCheck();
+        // auto vis_graph = poly_traj_search->getVisGraph();
+        // auto border_check = poly_traj_search->getBorderCheck();
         // std::vector<Point3D> mesh;
         // uint size = vis_graph.size();
         // Point3D pos1, pos2;
-        // for (uint i = 0; i < 1; i++)
+        // for (uint i = 0; i < 2; i++)
         // {
         //     for (uint j = 0; j < size; j++)
         //     {
@@ -343,10 +343,10 @@ bool FLTCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
         //         {
         //             // pos1.head(2) = getPos(vis_graph.getPt(i));
         //             // pos2.head(2) = getPos(vis_graph.getPt(j));
-        //             pos1.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(i));
-        //             pos2.head(2) = border_check.getIndexRemap().grid2Pos(vis_graph.getPt(j));
-        //             pos1[2] = border_check.queryHeight(vis_graph.getPt(i));
-        //             pos2[2] = border_check.queryHeight(vis_graph.getPt(j));
+        //             pos1.head(2) = poly_traj_search->getIndexRemap().grid2Pos(vis_graph.getPt(i));
+        //             pos2.head(2) = poly_traj_search->getIndexRemap().grid2Pos(vis_graph.getPt(j));
+        //             pos1[2] = border_check->queryHeight(vis_graph.getPt(i));
+        //             pos2[2] = border_check->queryHeight(vis_graph.getPt(j));
         //             mesh.push_back(pos1);
         //             mesh.push_back(pos2);
         //         }

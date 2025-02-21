@@ -65,11 +65,30 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool u
         return false;
     }
 
+    // Start and Goal Grid Initialization
+    // FIXME USING FLOAT: when start is at border, it is usually not reachable to any point using Float
+    // Point start_grid = index_remap_.pos2GridFloat(start.head(2));
+    // Point goal_grid = index_remap_.pos2GridFloat(goal.head(2));
+    // FIXME USING GRID: is this appropriate?
+    GridPt start_grid = index_remap_.pos2Grid(start.head(2));
+    GridPt goal_grid = index_remap_.pos2Grid(goal.head(2));
+    // NOTE: Fix start validation problem
+    if (!border_check_->isStartValid(start_grid))
+    {
+        GridPt s0 = index_remap_.pos2GridFloat(start.head(2)).cast<int>();
+        std::vector<GridPt> candidates = {s0, s0 + GridPt(1, 0), s0 + GridPt(0, 1), s0 + GridPt(1, 1)};
+        for (auto &candidate : candidates)
+            if (border_check_->isStartValid(candidate))
+            {
+                start_grid = candidate;
+                break;
+            }
+    }
+
     // Intersect Border
     if (update_border)
     {
-        GridPt start_2d = index_remap_.pos2Grid(start.head(2));
-        if (!intersect_border_.getIntersectBorder(start_2d, border_))
+        if (!intersect_border_.getIntersectBorder(start_grid, border_))
         {
             std::cout << "Warning: intersect_border_.getIntersectBorder failed" << std::endl;
             return false;
@@ -98,13 +117,6 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool u
     }
 
     // Visiblity Graph Init
-    // FIXME: is this appropriate?
-    GridPt start_grid = index_remap_.pos2Grid(start.head(2));
-    GridPt goal_grid = index_remap_.pos2Grid(goal.head(2));
-    // FIXME: when start is at border, it is usually not reachable to any point using Float
-    // Point start_grid = index_remap_.pos2GridFloat(start.head(2));
-    // Point goal_grid = index_remap_.pos2GridFloat(goal.head(2));
-
     vis_graph_ = VisibilityGraph(border_, concave_pts_, start_grid, goal_grid);
     benchmark_.record("Visibility Graph Init", RecordType::CRITICAL);
 
