@@ -444,7 +444,7 @@ public:
     {
         if (!config_.enableBenchmark)
             return;
-        
+
         // Save Opt Benchmark
         std::ofstream file;
         file.open(config_.OptBenchmarkSavePath);
@@ -539,7 +539,11 @@ public:
     {
         reachable.resize(footholds.size(), false);
         benchmark_.reset();
-        bool ret = reachableCheckHook(pose0, pose1, p0, index, footholds, reachable);
+        bool ret = false;
+        if (ifKinValid(pose0, p0, index))
+            ret &= reachableCheckHook(pose0, pose1, p0, index, footholds, reachable);
+        else
+            std::cout << "Warning: Initial point is not kinematically valid." << std::endl;
         benchmark_.record("reachableCheck");
         benchmark_.addCustomData(footholds.size());                                     // Total Footholds
         benchmark_.addCustomData(std::count(reachable.begin(), reachable.end(), true)); // Reachable Footholds

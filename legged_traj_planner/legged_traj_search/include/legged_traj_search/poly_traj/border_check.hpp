@@ -119,6 +119,10 @@ public:
     virtual bool isStartValid(const GridPt &start) = 0;
 
     virtual bool isGoalValid(const GridPt &goal) = 0;
+
+    virtual bool isStartValid(const Eigen::Vector2d &start) = 0;
+
+    virtual bool isGoalValid(const Eigen::Vector2d &goal) = 0;
 };
 
 class CorridorBorderCheck : public BorderCheckBase
@@ -158,6 +162,8 @@ private:
 
     int inPoly(const GridPt &grid2d, const int &poly_idx);
 
+    int inPoly(const Eigen::Vector2d &grid2df, const int &poly_idx);
+
 public:
     CorridorBorderCheck(PolyCorridor &poly_corridor,
                         const grid_map::GridMap &map,
@@ -176,6 +182,16 @@ public:
     }
 
     bool isGoalValid(const GridPt &goal) override
+    {
+        return inPoly(goal, poly_corridor_.getPolySize() - 1);
+    }
+
+    bool isStartValid(const Eigen::Vector2d &start) override
+    {
+        return inPoly(start, 0);
+    }
+
+    bool isGoalValid(const Eigen::Vector2d &goal) override
     {
         return inPoly(goal, poly_corridor_.getPolySize() - 1);
     }

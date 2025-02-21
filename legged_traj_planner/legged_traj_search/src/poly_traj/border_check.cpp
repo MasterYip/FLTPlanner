@@ -111,3 +111,8 @@ int CorridorBorderCheck::inPoly(const GridPt &grid2d, const int &poly_idx)
     map_.getPosition(index, pos2d);
     return poly_corridor_.isInPoly(Eigen::Vector3d(pos2d(0), pos2d(1), queryHeight(grid2d)), poly_idx);
 }
+
+int CorridorBorderCheck::inPoly(const Eigen::Vector2d &grid2df, const int &poly_idx)
+{
+    return poly_corridor_.isInPoly(Eigen::Vector3d(grid2df(0), grid2df(1), queryHeight(grid2df)), poly_idx);
+}

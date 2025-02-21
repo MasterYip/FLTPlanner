@@ -17,6 +17,15 @@ double LeggedBorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
 {
     geo_utils_2d::Point pos;
     pos << pos2d(0), pos2d(1);
+    // check if the position is out of the map
+    try
+    {
+        map_.atPosition(config_.ground_layer, pos2d);
+    }
+    catch (const std::out_of_range &e)
+    {
+        return guide_surf_ptr_->getHeight(pos);
+    }
     double query_height = config_.guide_surf_type ? guide_surf_ptr_->getHeight(pos) : map_.atPosition(config_.ground_layer, pos2d);
     if (config_.enable_ground && query_height < map_.atPosition(config_.ground_layer, pos2d))
     {
@@ -93,6 +102,16 @@ bool LeggedBorderCheck::isStartValid(const GridPt &start)
 }
 
 bool LeggedBorderCheck::isGoalValid(const GridPt &goal)
+{
+    return disInBorder(goal) > 0.0;
+}
+
+bool LeggedBorderCheck::isStartValid(const Eigen::Vector2d &start)
+{
+    return disInBorder(start) > 0.0;
+}
+
+bool LeggedBorderCheck::isGoalValid(const Eigen::Vector2d &goal)
 {
     return disInBorder(goal) > 0.0;
 }

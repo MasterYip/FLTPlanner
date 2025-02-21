@@ -47,10 +47,10 @@ PolyTrajSearch::PolyTrajSearch(std::shared_ptr<BorderCheckBase> border_check,
 
 bool PolyTrajSearch::endpointValid(const Point3D &start, const Point3D &goal)
 {
-    GridPt start_2d = index_remap_.pos2Grid(start.head(2));
-    GridPt goal_2d = index_remap_.pos2Grid(goal.head(2));
-    return border_check_->isStartValid(start_2d) &&
-           border_check_->isGoalValid(goal_2d);
+    // GridPt start_2d = index_remap_.pos2Grid(start.head(2));
+    // GridPt goal_2d = index_remap_.pos2Grid(goal.head(2));
+    return border_check_->isStartValid(Eigen::Vector2d(start.head(2))) &&
+           border_check_->isGoalValid(Eigen::Vector2d(goal.head(2)));
 }
 
 bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool update_border)
@@ -99,12 +99,12 @@ bool PolyTrajSearch::reachable(const Point3D &start, const Point3D &goal, bool u
 
     // Visiblity Graph Init
     // FIXME: is this appropriate?
-    // GridPt start_grid = index_remap_.pos2Grid(start.head(2));
-    // GridPt goal_grid = index_remap_.pos2Grid(goal.head(2));
-    Point start_grid = index_remap_.pos2GridFloat(start.head(2));
-    Point goal_grid = index_remap_.pos2GridFloat(goal.head(2));
+    GridPt start_grid = index_remap_.pos2Grid(start.head(2));
+    GridPt goal_grid = index_remap_.pos2Grid(goal.head(2));
+    // FIXME: when start is at border, it is usually not reachable to any point using Float
+    // Point start_grid = index_remap_.pos2GridFloat(start.head(2));
+    // Point goal_grid = index_remap_.pos2GridFloat(goal.head(2));
 
-    // FIXME: needs to improve the performance
     vis_graph_ = VisibilityGraph(border_, concave_pts_, start_grid, goal_grid);
     benchmark_.record("Visibility Graph Init", RecordType::CRITICAL);
 

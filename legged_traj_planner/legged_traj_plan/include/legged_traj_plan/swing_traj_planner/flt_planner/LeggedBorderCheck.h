@@ -145,4 +145,8 @@ public:
     bool isStartValid(const GridPt &start) override;
 
     bool isGoalValid(const GridPt &goal) override;
+
+    bool isStartValid(const Eigen::Vector2d &start) override;
+
+    bool isGoalValid(const Eigen::Vector2d &goal) override;
 };

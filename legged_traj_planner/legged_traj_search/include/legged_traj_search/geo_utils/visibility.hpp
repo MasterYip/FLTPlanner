@@ -45,13 +45,27 @@ inline bool visiblityCheck(const GridPolyLine &Border, const GridPt &p1, const G
     // Judge Intersection
     for (uint i = 0; i < Border.size(); i++)
     {
-        if (Border.at(i).isApprox(p1))
+        GridPt b1 = Border.at(i);
+        GridPt b2 = Border.at((i + 1) % Border.size());
+        if (b1.isApprox(p1))
             p1_idx = i;
-        if (Border.at(i).isApprox(p2))
+        if (b1.isApprox(p2))
             p2_idx = i;
-        IntersectType intersect_type = segmentIntersect(Border.at(i), Border.at((i + 1) % Border.size()), p1, p2);
-        if (intersect_type == IntersectType::Middle || intersect_type == IntersectType::EndMid || intersect_type == IntersectType::MidEnd)
+        IntersectType intersect_type = segmentIntersect(b1, b2, p1, p2);
+        if (intersect_type == IntersectType::Middle || intersect_type == IntersectType::EndMid)
             return false;
+        else if (intersect_type == IntersectType::MidEnd) // TODO: Verify if this is correct
+        {
+            GridPt vec_b = b2 - b1;
+            GridPt vec_p = p2 - p1;
+            Point pt;
+            findIntersectPoint(b1.cast<double>(), b2.cast<double>(), p1.cast<double>(), p2.cast<double>(), pt);
+            if (pt.isApprox(p1.cast<double>()) && crossProd(vec_b, vec_p) > 0 ||
+                pt.isApprox(p2.cast<double>()) && crossProd(vec_b, vec_p) < 0)
+            {
+                return false;
+            }
+        }
     }
 
     // Judge if p1 and p2 are visible to each other from outside (should not be counted as visible)
@@ -94,13 +108,27 @@ inline bool visiblityCheck(const GridPolyLine &Border, const Point &p1, const Po
     // Judge Intersection
     for (uint i = 0; i < Border.size(); i++)
     {
-        if (p1.isApprox(Border.at(i).cast<double>()))
+        Point b1 = Border.at(i).cast<double>();
+        Point b2 = Border.at((i + 1) % Border.size()).cast<double>();
+        if (p1.isApprox(b1))
             p1_idx = i;
-        if (p2.isApprox(Border.at(i).cast<double>()))
+        if (p2.isApprox(b1))
             p2_idx = i;
-        IntersectType intersect_type = segmentIntersect(Border.at(i).cast<double>(), Border.at((i + 1) % Border.size()).cast<double>(), p1, p2);
-        if (intersect_type == IntersectType::Middle || intersect_type == IntersectType::EndMid || intersect_type == IntersectType::MidEnd)
+        IntersectType intersect_type = segmentIntersect(b1, b2, p1, p2);
+        if (intersect_type == IntersectType::Middle || intersect_type == IntersectType::EndMid)
             return false;
+        else if (intersect_type == IntersectType::MidEnd) // TODO: Verify if this is correct
+        {
+            Point vec_b = b2 - b1;
+            Point vec_p = p2 - p1;
+            Point pt;
+            findIntersectPoint(b1, b2, p1, p2, pt);
+            if (pt.isApprox(p1) && crossProd(vec_b, vec_p) > 0 ||
+                pt.isApprox(p2) && crossProd(vec_b, vec_p) < 0)
+            {
+                return false;
+            }
+        }
     }
 
     // Judge if p1 and p2 are visible to each other from outside (should not be counted as visible)

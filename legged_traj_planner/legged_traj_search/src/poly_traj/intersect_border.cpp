@@ -36,7 +36,7 @@ bool IntersectBorder::getIntersectBorder(const GridPt &start, GridPolyLine &bord
         return false;
     }
 
-    // Find start border (x direction)
+    // Find start border (-x direction in grid map frame)
     // FIXME: This may find a start point in the middle of the corridor
     while (border_check_->disInBorder(idx) >= 0)
     {

@@ -130,7 +130,7 @@ namespace geo_utils_2d
      * @return IntersectType
      */
     inline IntersectType segmentIntersect(const Point &p1, const Point &p2,
-                                 const Point &q1, const Point &q2, const bool verbose = false)
+                                          const Point &q1, const Point &q2, const bool verbose = false)
     {
         // Judge if intersect at the end or overlap
         uint tmp = 1;
@@ -186,12 +186,12 @@ namespace geo_utils_2d
     }
 
     /**
-     * @brief Construct a new in Section object
-     * 
-     * @param p1 
-     * @param p2 
-     * @param pt
-     * @return 1-in, 0-on, -1-out
+     * @brief  in Section
+     *
+     * @param p1
+     * @param p2
+     * @param pt A point ON the line
+     * @return 1: in, 0: at end, -1: out
      */
     inline int inSection(const Point &p1, const Point &p2, const Point &pt)
     {
@@ -205,6 +205,23 @@ namespace geo_utils_2d
             return -1;
     }
 
+    inline bool findIntersectPoint(const Point &p1, const Point &p2,
+                                   const Point &q1, const Point &q2, Point &pt)
+    {
+        // Calculate line equation in the form of Ax + By = C, A = y2 - y1, B = x1 - x2, C = A * x1 + B * y1
+        Eigen::Vector3d coef1(p2[1] - p1[1], p1[0] - p2[0], 0);
+        Eigen::Vector3d coef2(q2[1] - q1[1], q1[0] - q2[0], 0);
+        coef1[2] = coef1[0] * p1[0] + coef1[1] * p1[1];
+        coef2[2] = coef2[0] * q1[0] + coef2[1] * q1[1];
+        // parallel & overlap check
+        if (approx(coef1[0] * coef2[1], coef2[0] * coef1[1]))
+            return false;
+        // find intersection point
+        pt[0] = (coef2[1] * coef1[2] - coef1[1] * coef2[2]) / (coef1[0] * coef2[1] - coef2[0] * coef1[1]);
+        pt[1] = (coef1[0] * coef2[2] - coef2[0] * coef1[2]) / (coef1[0] * coef2[1] - coef2[0] * coef1[1]);
+        return true;
+    }
+
     // Intersection
     /**
      * @brief segment intersect detection (CGAL)
@@ -216,7 +233,7 @@ namespace geo_utils_2d
      * @return IntersectType
      */
     inline IntersectType segmentIntersect(const Point &p1, const Point &p2,
-                                 const Point &q1, const Point &q2, const bool verbose = false)
+                                          const Point &q1, const Point &q2, const bool verbose = false)
     {
         // Judge if intersect at the end or overlap
         uint tmp = 1;
@@ -229,20 +246,11 @@ namespace geo_utils_2d
         else if (tmp == 3)
             return IntersectType::Overlap;
 
-        // Calculate line equation in the form of Ax + By = C, A = y2 - y1, B = x1 - x2, C = A * x1 + B * y1
-        Eigen::Vector3d coef1(p2[1] - p1[1], p1[0] - p2[0], 0);
-        Eigen::Vector3d coef2(q2[1] - q1[1], q1[0] - q2[0], 0);
-        coef1[2] = coef1[0] * p1[0] + coef1[1] * p1[1];
-        coef2[2] = coef2[0] * q1[0] + coef2[1] * q1[1];
-
-        // parallel & overlap check
-        if (approx(coef1[0] * coef2[1], coef2[0] * coef1[1]))
+        // Parallel check
+        Point pt;
+        if (!findIntersectPoint(p1, p2, q1, q2, pt))
             return IntersectType::None;
 
-        // find intersection point
-        Eigen::Vector2d pt;
-        pt[0] = (coef2[1] * coef1[2] - coef1[1] * coef2[2]) / (coef1[0] * coef2[1] - coef2[0] * coef1[1]);
-        pt[1] = (coef1[0] * coef2[2] - coef2[0] * coef1[2]) / (coef1[0] * coef2[1] - coef2[0] * coef1[1]);
         int insec1 = inSection(p1, p2, pt);
         int insec2 = inSection(q1, q2, pt);
         if (insec1 == 1 && insec2 == 1)
@@ -258,11 +266,10 @@ namespace geo_utils_2d
 #endif
 
     inline IntersectType segmentIntersect(const GridPt &p1, const GridPt &p2,
-                                 const GridPt &q1, const GridPt &q2, const bool verbose = false)
+                                          const GridPt &q1, const GridPt &q2, const bool verbose = false)
     {
         return segmentIntersect(Point(p1[0], p1[1]), Point(p2[0], p2[1]),
                                 Point(q1[0], q1[1]), Point(q2[0], q2[1]), verbose);
     }
-
 
 } // namespace geo_utils_2d
