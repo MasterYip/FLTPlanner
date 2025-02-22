@@ -826,7 +826,7 @@ void GCS_Example::eg_gcs_barrier_ani_demo()
                         mesh.push_back(pos2);
                     }
                 }
-                gcs_visualizer_.visMesh(mesh, ros_visualizer::VisStyle(0.0, 0.0, 0.0, 0.4, 0.005));
+                gcs_visualizer_.visMesh(mesh, ros_visualizer::VisStyle(1.0, 0.6, 0.002, 0.4, 0.005));
                 ros::Duration(short_sleep_time*3).sleep();
                 mesh.clear();
             }
@@ -834,7 +834,7 @@ void GCS_Example::eg_gcs_barrier_ani_demo()
             ros::Duration(sleep_time).sleep();
 
             // Draw grid_traj
-            gcs_visualizer_.visCurve(path, ros_visualizer::VisStyle(1.0, 0.6, 0.002, 1.0, 0.015));
+            gcs_visualizer_.visCurve(path, ros_visualizer::VisStyle(1.0, 0.3, 0.3, 0.7, 0.02));
 
             ros::Duration(sleep_time).sleep();
 
