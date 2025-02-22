@@ -95,7 +95,9 @@ public:
                 pos2d << p(0) + i * kernel_interval_, p(1) + j * kernel_interval_;
                 try
                 {
-                    height_sum += map_.atPosition(ground_layer_, pos2d);
+                    auto h = map_.atPosition(ground_layer_, pos2d);
+                    if (!std::isnan(h))
+                        height_sum += h;
                 }
                 catch (const std::out_of_range &e)
                 {

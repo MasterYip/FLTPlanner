@@ -32,6 +32,7 @@ LFTPlanner:
     guideSurfType: 1 # 0: ground, 1: keypoints, 2: convolution
     guideSurfConvKernelSize: 5
     guideSurfConvKernelInterval: 0.05
+    guideSurfConvUseTravMap: false # Use traversable (filtered) map for convolution (for Sparse Scene)
     collBallCheckRad2: 0.05
     collBallCheckRad3: 0.03
   checker:

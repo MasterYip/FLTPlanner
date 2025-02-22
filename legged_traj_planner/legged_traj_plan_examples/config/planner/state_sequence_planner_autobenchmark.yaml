@@ -28,6 +28,7 @@ StateSequencePlanner:
 
   # Reachability Check vis
   enableReachableCheck: True
+  reachableCheckSize: 30 # (size*size, in 0.75*0.75 area)
 
   swingTrajPreOpt: true
   shutdownAfterPreOpt: true

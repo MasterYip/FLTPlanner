@@ -217,7 +217,10 @@ LeggedBorderCheckConfig getLeggedBorderCheckConfig(const std::shared_ptr<GridMap
                                                    const SwingTrajPlannerConfig &config)
 {
     LeggedBorderCheckConfig cfg;
-    cfg.ground_layer = gridmap_interface->getGroundLayerName();
+    if (config.guideSurfConvUseTravMap)
+        cfg.ground_layer = gridmap_interface->getTravLayerName();
+    else
+        cfg.ground_layer = gridmap_interface->getGroundLayerName();
     cfg.ceiling_layer = gridmap_interface->getCeilingLayerName();
     cfg.enable_ground = true;
     cfg.enable_ceiling = gridmap_interface->isCeilingLayerExist(); // TODO: enable ceiling

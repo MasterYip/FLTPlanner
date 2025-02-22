@@ -62,6 +62,7 @@ struct SwingTrajPlannerConfig
     int guideSurfType;
     int guideSurfConvKernelSize;
     double guideSurfConvKernelInterval;
+    bool guideSurfConvUseTravMap;
     double collBallCheckRad2; // Knee
     double collBallCheckRad3; // Foot
     // Checker
@@ -230,6 +231,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("LFTPlanner/searcher/guideSurfType", guideSurfType);
             check_digit *= nh.getParam("LFTPlanner/searcher/guideSurfConvKernelSize", guideSurfConvKernelSize);
             check_digit *= nh.getParam("LFTPlanner/searcher/guideSurfConvKernelInterval", guideSurfConvKernelInterval);
+            check_digit *= nh.getParam("LFTPlanner/searcher/guideSurfConvUseTravMap", guideSurfConvUseTravMap);
             check_digit *= nh.getParam("LFTPlanner/searcher/collBallCheckRad2", collBallCheckRad2);
             check_digit *= nh.getParam("LFTPlanner/searcher/collBallCheckRad3", collBallCheckRad3);
             check_digit *= nh.getParam("LFTPlanner/checker/useTrajOptForReachableCheck", useTrajOptForReachableCheck);

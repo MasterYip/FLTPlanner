@@ -20,22 +20,26 @@ double LeggedBorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
     // check if the position is out of the map
     try
     {
-        map_.atPosition(config_.ground_layer, pos2d);
+        double query_height = config_.guide_surf_type ? guide_surf_ptr_->getHeight(pos) : map_.atPosition(config_.ground_layer, pos2d);
+        if (config_.enable_ground && query_height < map_.atPosition(config_.ground_layer, pos2d))
+        {
+            query_height = map_.atPosition(config_.ground_layer, pos2d);
+        }
+        if (config_.enable_ceiling && query_height > map_.atPosition(config_.ceiling_layer, pos2d))
+        {
+            query_height = map_.atPosition(config_.ceiling_layer, pos2d);
+        }
+        // if  query_heigh = nan
+        if (isnan(query_height))
+            return guide_surf_ptr_->getHeight(pos);
+        else
+            return query_height;
     }
     catch (const std::out_of_range &e)
     {
+        std::cout << e.what() << '\n';
         return guide_surf_ptr_->getHeight(pos);
     }
-    double query_height = config_.guide_surf_type ? guide_surf_ptr_->getHeight(pos) : map_.atPosition(config_.ground_layer, pos2d);
-    if (config_.enable_ground && query_height < map_.atPosition(config_.ground_layer, pos2d))
-    {
-        query_height = map_.atPosition(config_.ground_layer, pos2d);
-    }
-    if (config_.enable_ceiling && query_height > map_.atPosition(config_.ceiling_layer, pos2d))
-    {
-        query_height = map_.atPosition(config_.ceiling_layer, pos2d);
-    }
-    return query_height;
 };
 
 double LeggedBorderCheck::queryHeight(const GridPt &grid2d)
