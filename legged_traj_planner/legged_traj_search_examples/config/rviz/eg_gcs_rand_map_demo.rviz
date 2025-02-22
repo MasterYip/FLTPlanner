@@ -170,7 +170,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /visualizer_markers
+      Marker Topic: /gcs_example/visualizer_markers
       Name: MarkerArray
       Namespaces:
         curve: true

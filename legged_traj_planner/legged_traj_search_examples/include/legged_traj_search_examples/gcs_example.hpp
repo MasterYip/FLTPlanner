@@ -92,6 +92,7 @@ private:
 
 public:
     GCS_Example(GCS_Example_Config &conf, ros::NodeHandle &nh_);
+    GCS_Example(GCS_Example_Config &conf, ros::NodeHandle &nh_, ros::NodeHandle &nh_priv);
     ~GCS_Example() = default;
 
     // Callbacks

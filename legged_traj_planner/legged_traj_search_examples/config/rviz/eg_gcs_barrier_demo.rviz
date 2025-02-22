@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /Image2Gridmap_ground1
+        - /MarkerArray1
         - /MarkerArray1/Namespaces1
         - /Axes1
       Splitter Ratio: 0.5
@@ -173,7 +174,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /visualizer_markers
+      Marker Topic: /gcs_example/visualizer_markers
       Name: MarkerArray
       Namespaces:
         curve: true

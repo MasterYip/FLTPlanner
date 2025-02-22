@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 
     GCS_Example_Config config;
     config.loadParameters(nh_priv);
-    GCS_Example gcs(config, nh_);
+    GCS_Example gcs(config, nh_, nh_priv);
 
     if (config.testRate > 0.0)
     {

@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /GridMap1
+        - /Border Vis1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -83,7 +84,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /visualizer_markers
+      Marker Topic: /gcs_example/visualizer_markers
       Name: Border Vis
       Namespaces:
         {}

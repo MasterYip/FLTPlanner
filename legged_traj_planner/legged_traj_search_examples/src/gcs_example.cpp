@@ -67,6 +67,44 @@ GCS_Example::GCS_Example(GCS_Example_Config &conf,
     }
 }
 
+GCS_Example::GCS_Example(GCS_Example_Config &conf,
+                         ros::NodeHandle &nh_,
+                         ros::NodeHandle &nh_priv) : nh_(nh_), gcs_visualizer_(nh_priv), conf_(conf)
+{
+    ROS_INFO("GCS_Example");
+    map_sub_ = nh_.subscribe(conf_.mapTopic, 1, &GCS_Example::map_callback, this);
+    map_pub_ = nh_.advertise<grid_map_msgs::GridMap>("gcs_example_mappub", 1, true);
+    f = boost::bind(&GCS_Example::dyn_reconf_callback, this, _1, _2);
+    server.setCallback(f);
+
+    pos_shift = Eigen::MatrixX3d::Zero(1, 3);
+
+    // Default CVX Hull
+    Eigen::MatrixX3d FootHull(10, 3);
+    FootHull << 0.2412, -0.154, -0.1303,
+        -0.07939, -0.1551, -0.1464,
+        -0.0809, -0.1567, -0.3889,
+        0.2556, -0.1674, -0.3545,
+        -0.3199, -0.3958, 0.006312,
+        -0.2209, -0.2967, -0.3344,
+        0.3721, -0.2772, 0.02371,
+        0.3527, -0.2589, -0.2644,
+        0.05979, -0.4186, -0.2857,
+        0.06059, -0.472, 0.1195;
+    vPoly = FootHull.transpose();
+
+    if (!map_received_)
+    {
+        ROS_WARN("Waiting for map...");
+        while (!map_received_ && ros::ok())
+        {
+            ros::spinOnce();
+            ros::Duration(0.1).sleep();
+        }
+        ROS_INFO("Map received!");
+    }
+}
+
 // Callbacks
 
 void GCS_Example::dyn_reconf_callback(legged_traj_search_examples::GCSExampleConfig &config, uint32_t level)

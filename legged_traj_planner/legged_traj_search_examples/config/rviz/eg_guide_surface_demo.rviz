@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /Border Vis1
       Splitter Ratio: 0.5
     Tree Height: 651
   - Class: rviz/Selection
@@ -58,12 +59,10 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /visualizer_markers
+      Marker Topic: /gcs_example/visualizer_markers
       Name: Border Vis
       Namespaces:
-        curve: true
-        facet: true
-        mesh: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
