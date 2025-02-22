@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Image2Gridmap_ground1
         - /MarkerArray1/Namespaces1
         - /Axes1
       Splitter Ratio: 0.5
@@ -184,13 +183,13 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Class: rviz/Axes
-      Enabled: true
+      Enabled: false
       Length: 0.10000000149011612
       Name: Axes
       Radius: 0.004999999888241291
       Reference Frame: <Fixed Frame>
       Show Trail: false
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -227,17 +226,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.24168400466442108
-        Y: -0.013712029904127121
-        Z: -0.18185365200042725
+        X: 0.11759821325540543
+        Y: -0.39878204464912415
+        Z: -0.181270569562912
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5297969579696655
+      Pitch: 0.6597968339920044
       Target Frame: <Fixed Frame>
-      Yaw: 3.7845332622528076
+      Yaw: 2.7345259189605713
     Saved: ~
 Window Geometry:
   Displays:

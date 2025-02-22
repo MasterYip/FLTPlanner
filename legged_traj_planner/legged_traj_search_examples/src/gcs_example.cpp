@@ -452,6 +452,10 @@ bool GCS_Example::example_run(std::string name)
     {
         eg_gcs_barrier_demo();
     }
+    else if (name == "eg_gcs_barrier_ani_demo")
+    {
+        eg_gcs_barrier_ani_demo();
+    }
     else if (name == "eg_gcs_rand_corridor_demo")
     {
         eg_gcs_rand_corridor_demo();
@@ -632,6 +636,186 @@ void GCS_Example::eg_gcs_barrier_demo()
     }
 
     gcs_path_search(polys, start3d, goal3d);
+}
+
+void GCS_Example::eg_gcs_barrier_ani_demo()
+{
+    double sleep_time = 1.0;
+    double short_sleep_time = 0.1;
+    // clean
+    gcs_visualizer_.delAll();
+
+    Eigen::MatrixX3d waypoints(3, 3);
+    waypoints << -0.5, 0.0, 0.2,
+        0.0, 0.4, 0.4,
+        // -0.2, 0.0, 0.5,
+        // 0.2, 0.0, 0.5,
+        // 0.3, 0.0, 0.3,
+        0.5, 0.0, 0.2;
+    // Eigen::Vector2d start(-0.4, -0.3), goal(0.4, -0.3);
+    Eigen::Vector2d goal(0.4, -0.3);
+
+    Eigen::Vector3d start3d, goal3d;
+    start3d << start[0], start[1], map_.atPosition("elevation", start);
+    goal3d << goal[0], goal[1], map_.atPosition("elevation", goal);
+
+    ros::Duration(sleep_time).sleep();
+
+    std::vector<Polyhedra> polys;
+    for (int i = 0; i < waypoints.rows(); i++)
+    {
+        Eigen::Matrix3Xd tmpvPoly = (vPoly.array().colwise() + (waypoints.transpose().col(i).array() + pos_shift.transpose().col(0).array())).eval();
+        polys.emplace_back(Polyhedra(tmpvPoly));
+    }
+
+    // Init
+    PolyCorridor poly_corridor(polys, start3d, goal3d);
+    PolyTrajSearchConfig config;
+    config.enable_benchmark = true;
+    PolyTrajSearch poly_traj_search(poly_corridor, map_, config);
+    std::vector<Point3D> path;
+
+    // Check validity
+    if (!poly_traj_search.endpointValid(start3d, goal3d))
+        return;
+    poly_traj_search.reachable(start3d, goal3d);
+
+    ros::Duration(sleep_time).sleep();
+
+    // Draw Start & Goal
+    Point start2d = start3d.head(2);
+    Point goal2d = goal3d.head(2);
+    GridPt start_idx, goal_idx;
+    start_idx = poly_traj_search.getIndexRemap().pos2Grid(start2d);
+    goal_idx = poly_traj_search.getIndexRemap().pos2Grid(goal2d);
+    // map_.getIndex(start, start_idx);
+    // map_.getIndex(goal, goal_idx);
+    Point3D start3d_grid, goal3d_grid;
+    // start3d_grid.head(2) = getPos(start_idx);
+    start3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(start_idx);
+    start3d_grid[2] = poly_traj_search.getBorderCheck()->queryHeight(start_idx);
+    // goal3d_grid.head(2) = getPos(goal_idx);
+    goal3d_grid.head(2) = poly_traj_search.getIndexRemap().grid2Pos(goal_idx);
+    goal3d_grid[2] = poly_traj_search.getBorderCheck()->queryHeight(goal_idx);
+    // gcs_visualizer_.visSphere(start3d_grid, 0.01);
+    // gcs_visualizer_.visSphere(goal3d_grid, 0.01);
+    gcs_visualizer_.visSphere(start3d, 0.04, ros_visualizer::VisStyle(0.0, 0.6, 1.0, 1.0, 0.04));
+    ros::Duration(short_sleep_time).sleep();
+    gcs_visualizer_.visSphere(goal3d, 0.04);
+
+    ros::Duration(sleep_time).sleep();
+
+    // Draw Corridor
+    std::vector<Polyhedra> corridor = poly_corridor.getCorridor();
+    gcs_visualizer_.visPolytope(corridor);
+    // Draw Polys
+    // gcs_visualizer_.visPolytope(polys);
+
+    ros::Duration(sleep_time).sleep();
+
+    // Draw border
+    GridPolyLine border = poly_traj_search.getFullResBorder();
+    std::vector<Point3D> border_pos;
+    for (uint i = 0; i < border.size(); i++)
+    {
+        Point3D pos;
+        Eigen::Vector2d posxy;
+        pos[2] = poly_traj_search.getBorderCheck()->queryHeight(border.at(i));
+        map_.getPosition(border.at(i), posxy);
+        pos[0] = posxy.x();
+        pos[1] = posxy.y();
+        border_pos.push_back(pos);
+    }
+    for (int i = 0; i < border_pos.size(); i++)
+    {
+        std::vector<Point3D> segment = {border_pos.at(i), border_pos.at((i + 1) % border_pos.size())};
+        gcs_visualizer_.visCurve(segment, ros_visualizer::VisStyle(0.0, 0.0, 0.0, 0.5, 0.015));
+        ros::Duration(short_sleep_time).sleep();
+    }
+
+    ros::Duration(sleep_time).sleep();
+
+    // Draw Concave Points
+    std::vector<Point3D> concave_pts;
+    for (auto pt : poly_traj_search.getConcavePts())
+    {
+        Point3D pos;
+        // pos.head(2) = getPos(pt);
+        pos.head(2) = poly_traj_search.getIndexRemap().grid2Pos(pt);
+        pos[2] = poly_traj_search.getBorderCheck()->queryHeight(pt);
+        concave_pts.push_back(pos);
+        gcs_visualizer_.visSphere(pos, 0.03);
+        ros::Duration(short_sleep_time).sleep();
+    }
+
+    ros::Duration(sleep_time).sleep();
+
+    if (!poly_traj_search.reachable(start3d, goal3d))
+    {
+        std::cout << "Warning: String Straining Search failed" << std::endl;
+        return;
+    }
+    else
+    {
+        // Path Search
+        if (!poly_traj_search.search(start3d, goal3d, path))
+        {
+            std::cout << "Warning: A star search failed" << std::endl;
+            return;
+        }
+        else
+        {
+            // Draw Result
+            // Draw VisGraph
+
+            VisibilityGraph vis_graph = poly_traj_search.getVisGraph();
+            std::vector<Point3D> mesh;
+            uint size = vis_graph.size();
+            Point3D pos1, pos2;
+            for (uint i = 0; i < size; i++)
+            {
+                for (uint j = i + 1; j < size; j++)
+                {
+                    if (vis_graph.isVisibile(i, j))
+                    {
+                        // pos1.head(2) = getPos(vis_graph.getPt(i));
+                        // pos2.head(2) = getPos(vis_graph.getPt(j));
+                        pos1.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(i));
+                        pos2.head(2) = poly_traj_search.getIndexRemap().grid2Pos(vis_graph.getPt(j));
+                        pos1[2] = poly_traj_search.getBorderCheck()->queryHeight(vis_graph.getPt(i));
+                        pos2[2] = poly_traj_search.getBorderCheck()->queryHeight(vis_graph.getPt(j));
+                        mesh.push_back(pos1);
+                        mesh.push_back(pos2);
+                    }
+                }
+                gcs_visualizer_.visMesh(mesh, ros_visualizer::VisStyle(0.0, 0.0, 0.0, 0.4, 0.005));
+                ros::Duration(short_sleep_time*3).sleep();
+                mesh.clear();
+            }
+
+            ros::Duration(sleep_time).sleep();
+
+            // Draw grid_traj
+            gcs_visualizer_.visCurve(path, ros_visualizer::VisStyle(1.0, 0.6, 0.002, 1.0, 0.015));
+
+            ros::Duration(sleep_time).sleep();
+
+            // Minco Traj Opt
+            MincoTrajInit minco_traj_opt(path);
+            std::vector<Point3D> traj;
+            bool ret = minco_traj_opt.getTrajSamples(traj, 0.01);
+            if (!ret)
+            {
+                std::cout << "Warning: Minco Traj Opt failed" << std::endl;
+                return;
+            }
+            // gcs_visualizer_.visCurve(traj, ros_visualizer::VisStyle(1.0, 0.3, 0.3, 0.4, 0.02));
+
+            ros::Duration(sleep_time).sleep();
+
+            return;
+        }
+    }
 }
 
 void GCS_Example::eg_gcs_rand_corridor_demo()
