@@ -237,7 +237,7 @@ public:
                                  ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
             // FIXME: avoid Nan
             // NaN check
-            if (isnan(dg(0)) || isnan(dg(1)) || isnan(dg(2)))
+            if (std::isnan(dg(0)) || std::isnan(dg(1)) || std::isnan(dg(2)))
                 std::cout << "Warning: dg is " << dg.transpose() << std::endl;
             else
                 gradPosCfg += dg;
@@ -268,7 +268,7 @@ public:
             Eigen::Vector3d dg = weight_(1) * velnorm * J.transpose() *
                                  ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
             // NaN check
-            if (isnan(dg(0)) || isnan(dg(1)) || isnan(dg(2)))
+            if (std::isnan(dg(0)) || std::isnan(dg(1)) || std::isnan(dg(2)))
                 std::cout << "Warning: dg is " << dg.transpose() << std::endl;
             else
                 gradPosCfg += dg;
@@ -301,7 +301,7 @@ public:
         //     Eigen::Vector3d dg = weight_(1) * velnorm * J.transpose() *
         //                          ((I - veldir * veldir.transpose()) * gradPcoll - f * kappa);
         //     // NaN check
-        //     if (isnan(dg(0)) || isnan(dg(1)) || isnan(dg(2)))
+        //     if (std::isnan(dg(0)) || std::isnan(dg(1)) || std::isnan(dg(2)))
         //         std::cout << "Warning: dg is " << dg.transpose() << std::endl;
         //     else
         //         gradPosCfg += dg;

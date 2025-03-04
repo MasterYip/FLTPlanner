@@ -30,7 +30,7 @@ double LeggedBorderCheck::queryHeight(const Eigen::Vector2d &pos2d)
             query_height = map_.atPosition(config_.ceiling_layer, pos2d);
         }
         // if  query_heigh = nan
-        if (isnan(query_height))
+        if (std::isnan(query_height))
             return guide_surf_ptr_->getHeight(pos);
         else
             return query_height;

@@ -11,7 +11,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -fPIC")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(Eigen3 REQUIRED)
-find_package(CGAL REQUIRED)
+# find_package(CGAL REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   legged_traj_search
