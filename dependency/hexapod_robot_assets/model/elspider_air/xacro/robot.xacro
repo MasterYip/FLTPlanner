@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+
+<robot name="elspider_air" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- robot namespace -->
+    <xacro:arg name="ns" default=""/>
+    <xacro:property name="ns" value="$(arg ns)"/>
+
+    <!-- Set to None if you don't use sensor in gazebo -->
+    <!-- IMPORTANT: Get hexapod_elevation_mapping at https://github.com/MasterYip/HexapodElevationMapping -->
+    <xacro:arg name="sensor_module_name" default="None"/>
+    <xacro:property name="sensor_module_name" value="$(arg sensor_module_name)"/>
+
+    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/const.xacro"/>
+    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/trunk.xacro"/>
+    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/leg.xacro"/>
+    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/gazebo.xacro"/>
+    <xacro:if value="${sensor_module_name == 'HexPercept1'}">
+        <xacro:include filename="$(find hexapod_elevation_mapping)/model/modules/HexPercept1/HexPercept1.xacro"/>
+        <xacro:HexPercept1 parent_link="base" lidar_frame_name="velodyneLidar" camera_frame_name="camera">
+            <origin rpy="-1.5708 0 3.1415" xyz="0.27 0 0.2"/>
+        </xacro:HexPercept1>
+    </xacro:if>
+    <xacro:if value="${sensor_module_name == 'HexPercept2'}">
+        <xacro:include filename="$(find hexapod_elevation_mapping)/model/modules/HexPercept2/HexPercept2.xacro"/>
+        <xacro:HexPercept2 parent_link="base" lidar_frame_name="BPearl_Lidar" camera_frame_name="camera">
+            <origin rpy="0 0 0" xyz="0.361 0 0"/>
+        </xacro:HexPercept2>
+    </xacro:if>
+    <xacro:if value="${sensor_module_name == 'HexPercept3'}">
+        <xacro:include filename="$(find hexapod_elevation_mapping)/model/modules/HexPercept3/HexPercept3.xacro"/>
+        <xacro:HexPercept3 parent_link="base" lidar_frame_name="BPearl_Lidar" camera_frame_name="camera">
+            <origin rpy="0 0 0" xyz="0.361 0 0"/>
+        </xacro:HexPercept3>
+    </xacro:if>
+
+    <xacro:leg name="RF" mirror="1" back = "1" special = "1" special2 = "1">
+        <origin rpy="0 -0 0" xyz="0.3 -0.08 0.011"/>
+    </xacro:leg>
+
+    <xacro:leg name="RM" mirror="1" back = "1" special = "1"  special2 = "1">
+        <origin rpy="0 -0 0" xyz="0 -0.14 0.011"/>
+    </xacro:leg>
+
+    <xacro:leg name="RB" mirror="1" back = "-1" special = "1" special2 = "1" >
+        <origin rpy="0 -0 0" xyz="-0.3 -0.08 0.011"/>
+    </xacro:leg>
+
+    <xacro:leg name="LF" mirror="-1" back = "1" special = "-1" special2 = "1" >
+        <origin rpy="-3.1416 0 0" xyz="0.3 0.08 0.011"/>
+    </xacro:leg>
+
+    <xacro:leg name="LM" mirror="-1" back = "1" special = "1" special2 = "-1" >
+        <origin rpy="-3.1416 0 0" xyz="0 0.14 0.011"/>
+    </xacro:leg>
+
+    <xacro:leg name="LB" mirror="-1" back = "-1" special = "1" special2 = "1" >
+        <origin rpy="-3.1416 0 0" xyz="-0.3 0.08 0.011"/>
+    </xacro:leg>
+
+</robot>

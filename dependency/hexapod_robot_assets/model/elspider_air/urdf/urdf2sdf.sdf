@@ -1,0 +1,1062 @@
+<sdf version='1.7'>
+  <model name='elspider_air'>
+    <link name='BASE'>
+      <inertial>
+        <pose>7e-06 0 0.024287 0 -0 0</pose>
+        <mass>15.8991</mass>
+        <inertia>
+          <ixx>0.0926086</ixx>
+          <ixy>-1.892e-05</ixy>
+          <ixz>1.58e-06</ixz>
+          <iyy>0.470549</iyy>
+          <iyz>0</iyz>
+          <izz>0.538968</izz>
+        </inertia>
+      </inertial>
+      <collision name='BASE_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/BASE.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='BASE_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/BASE.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='LB_HAA' type='revolute'>
+      <pose relative_to='BASE'>-0.3 0.08 0.011 3.14159 -0 0</pose>
+      <parent>BASE</parent>
+      <child>LB_HIP</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.785</lower>
+          <upper>0.785</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='LB_HIP'>
+      <pose relative_to='LB_HAA'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0.011469 -0.123064 0.036436 0 -0 0</pose>
+        <mass>1.20924</mass>
+        <inertia>
+          <ixx>0.00506259</ixx>
+          <ixy>0.00037922</ixy>
+          <ixz>-0.00012353</ixz>
+          <iyy>0.00134204</iyy>
+          <iyz>0.00101741</iyz>
+          <izz>0.00448477</izz>
+        </inertia>
+      </inertial>
+      <collision name='LB_HIP_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LB_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='LB_HIP_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LB_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='LB_HFE' type='revolute'>
+      <pose relative_to='LB_HIP'>-0.0355 -0.14999 0.045056 7e-06 1.57079 3.14159</pose>
+      <parent>LB_HIP</parent>
+      <child>LB_THIGH</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.5233</lower>
+          <upper>3.14</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='LB_THIGH'>
+      <pose relative_to='LB_HFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0.114248 -5.8e-05 -0.019768 0 -0 0</pose>
+        <mass>0.925235</mass>
+        <inertia>
+          <ixx>0.0006569</ixx>
+          <ixy>1.48e-06</ixy>
+          <ixz>0.0001226</ixz>
+          <iyy>0.00209449</iyy>
+          <iyz>1.58e-06</iyz>
+          <izz>0.00237655</izz>
+        </inertia>
+      </inertial>
+      <collision name='LB_THIGH_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LB_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='LB_THIGH_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LB_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='LB_KFE' type='revolute'>
+      <pose relative_to='LB_THIGH'>0.13 0 0 -3.14159 -0 1.5708</pose>
+      <parent>LB_THIGH</parent>
+      <child>LB_SHANK</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.6978</lower>
+          <upper>3.925</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='LB_SHANK'>
+      <pose relative_to='LB_KFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.080924 -0.009791 0 -0 0</pose>
+        <mass>0.3005</mass>
+        <inertia>
+          <ixx>0.00307948</ixx>
+          <ixy>2.62942e-19</ixy>
+          <ixz>1.48816e-20</ixz>
+          <iyy>9.92577e-05</iyy>
+          <iyz>-0.000199633</iyz>
+          <izz>0.00309991</izz>
+        </inertia>
+      </inertial>
+      <collision name='LB_SHANK_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LB_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <collision name='LB_SHANK_fixed_joint_lump__LB_FOOT_collision_1'>
+        <pose>0 -0.232 -0.018 3.14159 -0 -3.14159</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LB_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='LB_SHANK_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LB_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='LB_SHANK_fixed_joint_lump__LB_FOOT_visual_1'>
+        <pose>0 -0.232 -0.018 3.14159 -0 -3.14159</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LB_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='LF_HAA' type='revolute'>
+      <pose relative_to='BASE'>0.3 0.08 0.011 3.14159 -0 0</pose>
+      <parent>BASE</parent>
+      <child>LF_HIP</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.785</lower>
+          <upper>0.785</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='LF_HIP'>
+      <pose relative_to='LF_HAA'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>-0.011469 -0.123064 0.036436 0 -0 0</pose>
+        <mass>1.20924</mass>
+        <inertia>
+          <ixx>0.00506259</ixx>
+          <ixy>-0.00037922</ixy>
+          <ixz>0.00012353</ixz>
+          <iyy>0.00134204</iyy>
+          <iyz>0.00101741</iyz>
+          <izz>0.00448477</izz>
+        </inertia>
+      </inertial>
+      <collision name='LF_HIP_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LF_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='LF_HIP_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LF_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='LF_HFE' type='revolute'>
+      <pose relative_to='LF_HIP'>0.0355 -0.14999 0.045056 7e-06 1.57079 3.14159</pose>
+      <parent>LF_HIP</parent>
+      <child>LF_THIGH</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.5233</lower>
+          <upper>3.14</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='LF_THIGH'>
+      <pose relative_to='LF_HFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0.114248 -5.8e-05 0.019768 0 -0 0</pose>
+        <mass>0.925235</mass>
+        <inertia>
+          <ixx>0.0006569</ixx>
+          <ixy>1.48e-06</ixy>
+          <ixz>-0.0001226</ixz>
+          <iyy>0.00209449</iyy>
+          <iyz>-1.58e-06</iyz>
+          <izz>0.00237655</izz>
+        </inertia>
+      </inertial>
+      <collision name='LF_THIGH_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LF_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='LF_THIGH_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LF_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='LF_KFE' type='revolute'>
+      <pose relative_to='LF_THIGH'>0.13 0 0 3.14159 0 1.5708</pose>
+      <parent>LF_THIGH</parent>
+      <child>LF_SHANK</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.6978</lower>
+          <upper>3.925</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='LF_SHANK'>
+      <pose relative_to='LF_KFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.080924 0.009791 0 -0 0</pose>
+        <mass>0.3005</mass>
+        <inertia>
+          <ixx>0.00307948</ixx>
+          <ixy>2.62942e-19</ixy>
+          <ixz>-1.48816e-20</ixz>
+          <iyy>9.92577e-05</iyy>
+          <iyz>0.000199633</iyz>
+          <izz>0.00309991</izz>
+        </inertia>
+      </inertial>
+      <collision name='LF_SHANK_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LF_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <collision name='LF_SHANK_fixed_joint_lump__LF_FOOT_collision_1'>
+        <pose>0 -0.232 0.018 -3.14159 -0 -3.14159</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LF_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='LF_SHANK_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LF_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='LF_SHANK_fixed_joint_lump__LF_FOOT_visual_1'>
+        <pose>0 -0.232 0.018 -3.14159 -0 -3.14159</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LF_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='LM_HAA' type='revolute'>
+      <pose relative_to='BASE'>0 0.14 0.011 3.14159 -0 0</pose>
+      <parent>BASE</parent>
+      <child>LM_HIP</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.785</lower>
+          <upper>0.785</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='LM_HIP'>
+      <pose relative_to='LM_HAA'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>-0.011469 -0.123064 0.036436 0 -0 0</pose>
+        <mass>1.20924</mass>
+        <inertia>
+          <ixx>0.00506259</ixx>
+          <ixy>-0.00037922</ixy>
+          <ixz>0.00012353</ixz>
+          <iyy>0.00134204</iyy>
+          <iyz>0.00101741</iyz>
+          <izz>0.00448477</izz>
+        </inertia>
+      </inertial>
+      <collision name='LM_HIP_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LM_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='LM_HIP_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LM_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='LM_HFE' type='revolute'>
+      <pose relative_to='LM_HIP'>0.0355 -0.14999 0.045056 7e-06 1.57079 3.14159</pose>
+      <parent>LM_HIP</parent>
+      <child>LM_THIGH</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.5233</lower>
+          <upper>3.14</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='LM_THIGH'>
+      <pose relative_to='LM_HFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0.114248 -5.8e-05 0.019768 0 -0 0</pose>
+        <mass>0.925235</mass>
+        <inertia>
+          <ixx>0.0006569</ixx>
+          <ixy>1.48e-06</ixy>
+          <ixz>-0.0001226</ixz>
+          <iyy>0.00209449</iyy>
+          <iyz>-1.58e-06</iyz>
+          <izz>0.00237655</izz>
+        </inertia>
+      </inertial>
+      <collision name='LM_THIGH_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LM_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='LM_THIGH_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LM_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='LM_KFE' type='revolute'>
+      <pose relative_to='LM_THIGH'>0.13 0 0 3.14159 0 1.5708</pose>
+      <parent>LM_THIGH</parent>
+      <child>LM_SHANK</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.6978</lower>
+          <upper>3.925</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='LM_SHANK'>
+      <pose relative_to='LM_KFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>-0 -0.080924 0.009791 0 -0 0</pose>
+        <mass>0.3005</mass>
+        <inertia>
+          <ixx>0.00307948</ixx>
+          <ixy>-6.31894e-20</ixy>
+          <ixz>3.5763e-21</ixz>
+          <iyy>9.92577e-05</iyy>
+          <iyz>0.000199633</iyz>
+          <izz>0.00309991</izz>
+        </inertia>
+      </inertial>
+      <collision name='LM_SHANK_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LM_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <collision name='LM_SHANK_fixed_joint_lump__LM_FOOT_collision_1'>
+        <pose>0 -0.232 0.018 3.14159 -0 3.14159</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LM_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='LM_SHANK_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LM_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='LM_SHANK_fixed_joint_lump__LM_FOOT_visual_1'>
+        <pose>0 -0.232 0.018 3.14159 -0 3.14159</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/LM_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='RB_HAA' type='revolute'>
+      <pose relative_to='BASE'>-0.3 -0.08 0.011 0 -0 0</pose>
+      <parent>BASE</parent>
+      <child>RB_HIP</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.785</lower>
+          <upper>0.785</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='RB_HIP'>
+      <pose relative_to='RB_HAA'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0.011469 -0.123064 -0.036436 0 -0 0</pose>
+        <mass>1.20924</mass>
+        <inertia>
+          <ixx>0.00506259</ixx>
+          <ixy>0.00037922</ixy>
+          <ixz>0.00012353</ixz>
+          <iyy>0.00134204</iyy>
+          <iyz>-0.00101741</iyz>
+          <izz>0.00448477</izz>
+        </inertia>
+      </inertial>
+      <collision name='RB_HIP_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RB_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='RB_HIP_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RB_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='RB_HFE' type='revolute'>
+      <pose relative_to='RB_HIP'>-0.0355 -0.14999 -0.045056 7e-06 -1.57079 -3.14159</pose>
+      <parent>RB_HIP</parent>
+      <child>RB_THIGH</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.5233</lower>
+          <upper>3.14</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='RB_THIGH'>
+      <pose relative_to='RB_HFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0.114248 -5.8e-05 0.019768 0 -0 0</pose>
+        <mass>0.925235</mass>
+        <inertia>
+          <ixx>0.0006569</ixx>
+          <ixy>1.48e-06</ixy>
+          <ixz>-0.0001226</ixz>
+          <iyy>0.00209449</iyy>
+          <iyz>-1.58e-06</iyz>
+          <izz>0.00237655</izz>
+        </inertia>
+      </inertial>
+      <collision name='RB_THIGH_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RB_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='RB_THIGH_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RB_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='RB_KFE' type='revolute'>
+      <pose relative_to='RB_THIGH'>0.13 0 0 -3.14159 -0 1.5708</pose>
+      <parent>RB_THIGH</parent>
+      <child>RB_SHANK</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.6978</lower>
+          <upper>3.925</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='RB_SHANK'>
+      <pose relative_to='RB_KFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.080924 0.009791 0 -0 0</pose>
+        <mass>0.3005</mass>
+        <inertia>
+          <ixx>0.00307948</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>9.92577e-05</iyy>
+          <iyz>0.000199633</iyz>
+          <izz>0.00309991</izz>
+        </inertia>
+      </inertial>
+      <collision name='RB_SHANK_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RB_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <collision name='RB_SHANK_fixed_joint_lump__RB_FOOT_collision_1'>
+        <pose>0 -0.232 0.018 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RB_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='RB_SHANK_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RB_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='RB_SHANK_fixed_joint_lump__RB_FOOT_visual_1'>
+        <pose>0 -0.232 0.018 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RB_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='RF_HAA' type='revolute'>
+      <pose relative_to='BASE'>0.3 -0.08 0.011 0 -0 0</pose>
+      <parent>BASE</parent>
+      <child>RF_HIP</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.785</lower>
+          <upper>0.785</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='RF_HIP'>
+      <pose relative_to='RF_HAA'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>-0.011469 -0.123064 -0.036436 0 -0 0</pose>
+        <mass>1.20924</mass>
+        <inertia>
+          <ixx>0.00506259</ixx>
+          <ixy>-0.00037922</ixy>
+          <ixz>-0.00012353</ixz>
+          <iyy>0.00134204</iyy>
+          <iyz>-0.00101741</iyz>
+          <izz>0.00448477</izz>
+        </inertia>
+      </inertial>
+      <collision name='RF_HIP_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RF_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='RF_HIP_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RF_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='RF_HFE' type='revolute'>
+      <pose relative_to='RF_HIP'>0.0355 -0.14999 -0.045056 7e-06 -1.57079 -3.14159</pose>
+      <parent>RF_HIP</parent>
+      <child>RF_THIGH</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.5233</lower>
+          <upper>3.14</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='RF_THIGH'>
+      <pose relative_to='RF_HFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0.114248 -5.8e-05 -0.019768 0 -0 0</pose>
+        <mass>0.925235</mass>
+        <inertia>
+          <ixx>0.0006569</ixx>
+          <ixy>1.48e-06</ixy>
+          <ixz>0.0001226</ixz>
+          <iyy>0.00209449</iyy>
+          <iyz>1.58e-06</iyz>
+          <izz>0.00237655</izz>
+        </inertia>
+      </inertial>
+      <collision name='RF_THIGH_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RF_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='RF_THIGH_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RF_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='RF_KFE' type='revolute'>
+      <pose relative_to='RF_THIGH'>0.13 0 0 -3.14159 -0 1.5708</pose>
+      <parent>RF_THIGH</parent>
+      <child>RF_SHANK</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.6978</lower>
+          <upper>3.925</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='RF_SHANK'>
+      <pose relative_to='RF_KFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.080924 -0.009791 0 -0 0</pose>
+        <mass>0.3005</mass>
+        <inertia>
+          <ixx>0.00307948</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>9.92577e-05</iyy>
+          <iyz>-0.000199633</iyz>
+          <izz>0.00309991</izz>
+        </inertia>
+      </inertial>
+      <collision name='RF_SHANK_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RF_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <collision name='RF_SHANK_fixed_joint_lump__RF_FOOT_collision_1'>
+        <pose>0 -0.232 -0.018 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RF_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='RF_SHANK_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RF_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='RF_SHANK_fixed_joint_lump__RF_FOOT_visual_1'>
+        <pose>0 -0.232 -0.018 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RF_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='RM_HAA' type='revolute'>
+      <pose relative_to='BASE'>0 -0.14 0.011 0 -0 0</pose>
+      <parent>BASE</parent>
+      <child>RM_HIP</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.785</lower>
+          <upper>0.785</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='RM_HIP'>
+      <pose relative_to='RM_HAA'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>-0.011469 -0.123064 -0.036436 0 -0 0</pose>
+        <mass>1.20924</mass>
+        <inertia>
+          <ixx>0.00506259</ixx>
+          <ixy>-0.00037922</ixy>
+          <ixz>-0.00012353</ixz>
+          <iyy>0.00134204</iyy>
+          <iyz>-0.00101741</iyz>
+          <izz>0.00448477</izz>
+        </inertia>
+      </inertial>
+      <collision name='RM_HIP_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RM_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='RM_HIP_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RM_HIP.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='RM_HFE' type='revolute'>
+      <pose relative_to='RM_HIP'>0.0355 -0.14999 -0.045056 7e-06 -1.57079 -3.14159</pose>
+      <parent>RM_HIP</parent>
+      <child>RM_THIGH</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.5233</lower>
+          <upper>3.14</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='RM_THIGH'>
+      <pose relative_to='RM_HFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0.114248 -5.8e-05 -0.019768 0 -0 0</pose>
+        <mass>0.925235</mass>
+        <inertia>
+          <ixx>0.0006569</ixx>
+          <ixy>1.48e-06</ixy>
+          <ixz>0.0001226</ixz>
+          <iyy>0.00209449</iyy>
+          <iyz>1.58e-06</iyz>
+          <izz>0.00237655</izz>
+        </inertia>
+      </inertial>
+      <collision name='RM_THIGH_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RM_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='RM_THIGH_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RM_THIGH.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+    <joint name='RM_KFE' type='revolute'>
+      <pose relative_to='RM_THIGH'>0.13 0 0 -3.14159 -0 1.5708</pose>
+      <parent>RM_THIGH</parent>
+      <child>RM_SHANK</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-0.6978</lower>
+          <upper>3.925</upper>
+          <effort>33.5</effort>
+          <velocity>21</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='RM_SHANK'>
+      <pose relative_to='RM_KFE'>0 0 0 0 -0 0</pose>
+      <inertial>
+        <pose>0 -0.080924 -0.009791 0 -0 0</pose>
+        <mass>0.3005</mass>
+        <inertia>
+          <ixx>0.00307948</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>9.92577e-05</iyy>
+          <iyz>-0.000199633</iyz>
+          <izz>0.00309991</izz>
+        </inertia>
+      </inertial>
+      <collision name='RM_SHANK_collision'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RM_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <collision name='RM_SHANK_fixed_joint_lump__RM_FOOT_collision_1'>
+        <pose>0 -0.232 -0.018 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RM_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='RM_SHANK_visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RM_SHANK.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='RM_SHANK_fixed_joint_lump__RM_FOOT_visual_1'>
+        <pose>0 -0.232 -0.018 0 -0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>model://elspider_air/meshes/RM_FOOT.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

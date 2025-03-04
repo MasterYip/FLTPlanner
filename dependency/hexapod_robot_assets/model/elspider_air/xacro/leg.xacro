@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/transmission.xacro"/>
+
+    <xacro:macro name="leg" params="name mirror back special special2 *origin">
+        <!-- right mirror == 1, left mirror == -1 -->
+
+        <joint name="${ns}${name}_HAA" type="revolute">
+            <xacro:insert_block name="origin"/>
+            <parent link="${ns}trunk" />
+            <child link="${ns}${name}_HIP" />
+            <axis xyz="0 0 1" />
+            <dynamics damping="${damping}" friction="${friction}"/>
+            <limit lower="${haa_position_min}" upper="${haa_position_max}" effort="${motor_torque_max}" velocity="${motor_velocity_max}" />
+        </joint>
+
+        <link name="${ns}${name}_HIP">
+            <inertial>
+                <origin xyz="${-0.01146909*back} -0.12306389 ${-0.03643601*mirror}" rpy="0 0 0" />
+                <mass value="${hip_mass}" />
+                <inertia ixx="${hip_ixx}" ixy="${hip_ixy*back}" ixz="${hip_ixz*back*mirror}" iyy="${hip_iyy}" iyz="${hip_iyz*mirror}" izz="${hip_izz}" />
+            </inertial>
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="${mesh_path}/${name}_HIP.STL" />
+                </geometry>
+                <material name="default_material">
+                    <color rgba="0.4 0.4 0.4 1" />
+                </material>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="${mesh_path}/${name}_HIP.STL" />
+                </geometry>
+            </collision>
+        </link>
+
+        <joint name="${ns}${name}_HFE" type="revolute">
+            <xacro:if value="${(mirror == 1)}">
+                <origin xyz="${0.0355*back} -0.14999 -0.045056" rpy="3.1416 -1.5708 0"/>
+            </xacro:if>
+            <xacro:if value="${(mirror == -1)}">
+                <origin xyz="${0.0355*back} -0.14999 0.045056" rpy="3.1416 1.5708 0"/>
+            </xacro:if>
+            <axis xyz="0 0 1" />
+            <parent link="${ns}${name}_HIP" />
+            <child link="${ns}${name}_THIGH" />
+            <dynamics damping="${damping}" friction="${friction}"/>
+            <limit lower="${hfe_position_min}" upper="${hfe_position_max}" effort="${motor_torque_max}" velocity="${motor_velocity_max}" />
+        </joint>
+
+        <link name="${ns}${name}_THIGH">
+            <inertial>
+                <!-- y approximately euqal to 0 -->
+                <origin xyz="0.11424797 -0.00005753  ${-0.01976803*back*mirror}" rpy="0 0 0" />
+                <mass value="${thigh_mass}" />
+                <inertia ixx="${thigh_ixx}" ixy="${thigh_ixy}" ixz="${thigh_ixz*mirror*back}" iyy="${thigh_iyy}" iyz="${thigh_iyz*mirror*back}" izz="${thigh_izz}" />
+            </inertial>
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="${mesh_path}/${name}_THIGH.STL" />
+                </geometry>
+                <material name="default_material">
+                    <color rgba="0.4 0.4 0.4 1" />
+                </material>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="${mesh_path}/${name}_THIGH.STL" />
+                </geometry>
+            </collision>
+        </link>
+
+        <joint name="${ns}${name}_KFE" type="revolute">
+            <!--TODO here in r maybe exist problem -->
+            <origin xyz="0.13 0 0" rpy="${special*special2*3.1416} 0 1.5708" />
+            <parent link="${ns}${name}_THIGH" />
+            <child link="${ns}${name}_SHANK" />
+            <axis xyz="0 0 1" />
+            <dynamics damping="${damping}" friction="${friction}"/>
+            <limit lower="${kfe_position_min}" upper="${kfe_position_max}" effort="${motor_torque_max}" velocity="${motor_velocity_max}" />
+        </joint>
+
+        <link name="${ns}${name}_SHANK">
+            <inertial>
+                <origin xyz="${0.00000000*mirror} -0.07024046 ${-0.00923673*mirror*back}" rpy="0 0 0" />
+                <mass value="${shank_mass}" />
+                <!-- no mirror in ixy, ixz? -->
+                <inertia ixx="${shank_ixx}" ixy="${shank_ixy}" ixz="${shank_ixz}" iyy="${shank_iyy}" iyz="${shank_iyz*back*mirror}" izz="${shank_izz}" />
+            </inertial>
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="${mesh_path}/${name}_SHANK.STL" />
+                </geometry>
+                <material name="default_material">
+                    <color rgba="0.4 0.4 0.4 1" />
+                </material>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="${mesh_path}/${name}_SHANK.STL" />
+                </geometry>
+            </collision>
+        </link>
+
+        <joint name="${ns}${name}_FIX" type="fixed" dont_collapse="true">
+            <xacro:if value="${(mirror == 1)}">
+                <origin xyz="0 -0.232 ${-0.018*mirror*back}" rpy="0 0 0" />
+            </xacro:if>
+            <!-- todo may exist problem -->
+            <xacro:if value="${(mirror == -1)}">
+                <origin xyz="0 -0.232 ${-0.018*mirror*back}" rpy="${special*3.14159265358979} 0 ${special*3.14159265358979}" />
+            </xacro:if>
+            <parent link="${ns}${name}_SHANK" />
+            <child link="${ns}${name}_FOOT" />
+            <axis xyz="0 0 0" />
+        </joint>
+
+        <link name="${ns}${name}_FOOT">
+            <inertial>
+                <!-- xyz approximately euqal to 0 -->
+                <origin xyz="0.00000000 -0.0070918 0.00000000" rpy="0 0 0" />
+                <mass value="${foot_mass}" />
+                <inertia ixx="${foot_ixx}" ixy="${foot_ixy*mirror}" ixz="${foot_ixz}" iyy="${foot_iyy}" iyz="${foot_iyz*mirror}" izz="${foot_izz}" />
+            </inertial>
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="${mesh_path}/${name}_FOOT.STL" />
+                </geometry>
+                <material name="default_material">
+                    <color rgba="0.2 0.2 0.2 1" />
+                </material>
+            </visual>
+            <collision>
+                <!-- avoid multiple points of contact with the ground -->
+                <origin rpy="0 0 0" xyz="0 0 0"/>
+                <geometry>
+                    <sphere radius="0.02"/>
+                </geometry>
+                <!-- <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="${mesh_path}/${name}_FOOT.STL" />
+                </geometry> -->
+            </collision>
+        </link>
+
+        <!-- ros control -->
+        <xacro:leg_transmission name="${ns}${name}"/>
+
+        <!-- foot contacts -->
+        <gazebo reference="${ns}${name}_SHANK">
+            <sensor name="${ns}${name}_foot_contact" type="contact">
+                <alwaysOn>true</alwaysOn>
+                <update_rate>100</update_rate>
+                <plugin name="contactPlugin" filename="libunitreeFootContactPlugin.so"/>
+                <contact>
+                    <collision>${name}_SHANK_fixed_joint_lump__${name}_FOOT_collision_1</collision>
+                </contact>
+            </sensor>
+        </gazebo>
+
+        <!-- visualization of Foot contacts. -->
+        <gazebo reference="${ns}${name}_FOOT">
+            <visual>
+                <plugin name="drawForcePlugin" filename="libunitreeDrawForcePlugin.so">
+                    <topicName>${name}_foot_contact</topicName>
+                </plugin>
+            </visual>
+        </gazebo>
+
+        <!-- set friction -->
+        <gazebo reference="${ns}${name}_HIP">
+            <mu1>0.2</mu1>
+            <mu2>0.2</mu2>
+            <self_collide>1</self_collide>
+        </gazebo>
+        <gazebo reference="${ns}${name}_THIGH">
+            <mu1>0.2</mu1>
+            <mu2>0.2</mu2>
+            <self_collide>1</self_collide>
+        </gazebo>
+        <gazebo reference="${ns}${name}_SHANK">
+            <mu1>0.2</mu1>
+            <mu2>0.2</mu2>
+            <self_collide>1</self_collide>
+        </gazebo>
+        <gazebo reference="${ns}${name}_FOOT">
+            <mu1>0.6</mu1>
+            <mu2>0.6</mu2>
+            <self_collide>1</self_collide>
+            <!-- soft foot -->
+            <!-- <kp value="1000000.0"/>
+            <kd value="1.0"/> -->
+            <kp value="20.0"/>
+            <kd value="10.0"/>
+        </gazebo>
+
+    </xacro:macro>
+</robot>
