@@ -4,7 +4,7 @@
 
 <!-- NOTE/CAUTION/WARNING -->
 > [!NOTE]
-> This repo contains codes for paper _KCFRC: Kinematic Collision-Aware Foothold Reachability Criteria for Legged Locomotion_.
+> This repo contains codes for paper [_KCFRC: Kinematic Collision-Aware Foothold Reachability Criteria for Legged Locomotion_](https://masteryip.github.io/fltplanner.github.io/).
 
 ## Installation
 
@@ -51,6 +51,10 @@ source ../devel/setup.bash
 
 ### MCTS Contact Planner Examples
 
+![FRC_EG](./doc/frc_examples.png)
+
+Perform **foothold reachability checks** and trajectory optimization using recorded contact sequences or MCTS planner.
+
 ```bash
 roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch \
 robot_interface_type:=ElSpiderAirDummy \
@@ -84,6 +88,10 @@ Robot Control:
 > You can publish `geometry_msgs/Twist` to `/cmd_vel` to control the robot too.
 
 ### Raibert Heuristic Planner Examples
+
+![Raibert_EG](./doc/raibert_examples.png)
+
+Perform trajectory optimization using Raibert heuristic planner.
 
 ```bash
 roslaunch legged_traj_plan_examples elspider_air_raibert_planner.launch \
