@@ -7,7 +7,7 @@
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="user@todo.todo">user</maintainer>
+  <maintainer email="2205929492@qq.com">Master Yip</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -50,6 +50,7 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>grid_map_core</build_depend>
+  <build_depend>grid_map_ros</build_depend>
   <build_depend>ompl</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
@@ -59,6 +60,7 @@
   <build_depend>ros_visualizer</build_depend>
   <build_depend>third_party</build_depend>
   <build_export_depend>grid_map_core</build_export_depend>
+  <build_export_depend>grid_map_ros</build_export_depend>
   <build_export_depend>ompl</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
@@ -67,6 +69,7 @@
   <build_export_depend>ros_visualizer</build_export_depend>
   <build_export_depend>third_party</build_export_depend>
   <exec_depend>grid_map_core</exec_depend>
+  <exec_depend>grid_map_ros</exec_depend>
   <exec_depend>ompl</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>

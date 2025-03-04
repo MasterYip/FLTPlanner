@@ -9,9 +9,21 @@
 	path = legged_traj_planner/third_party/LeggedKinModule
 	url = https://github.com/MasterYip/LeggedKinModule
 [submodule "ros_visualizer"]
-	path = ros_visualizer
+	path = dependency/ros_visualizer
 	url = https://github.com/MasterYip/ros_visualizer
 	branch = master
 [submodule "stomp"]
-	path = stomp
+	path = dependency/stomp
 	url = https://github.com/ros-industrial/stomp.git
+[submodule "dependency/pinocchio"]
+	path = dependency/pinocchio
+	url = https://github.com/leggedrobotics/pinocchio.git
+[submodule "dependency/grid_map"]
+	path = dependency/grid_map
+	url = https://github.com/ANYbotics/grid_map.git
+[submodule "dependency/hpp-fcl"]
+	path = dependency/hpp-fcl
+	url = https://github.com/leggedrobotics/hpp-fcl.git
+[submodule "legged_traj_planner/third_party/cddlib"]
+	path = legged_traj_planner/third_party/cddlib
+	url = https://github.com/cddlib/cddlib.git

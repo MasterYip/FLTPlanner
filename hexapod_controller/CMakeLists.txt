@@ -116,7 +116,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES hexapod_controller
-#  CATKIN_DEPENDS geometry_msgs roscpp std_msgs
+  CATKIN_DEPENDS qpoases_catkin roscpp std_msgs
 #  DEPENDS system_lib
 )
 

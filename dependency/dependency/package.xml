@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>dependency</name>
+    <version>0.0.0</version>
+    <description>Meta package that contains package of dependencies.</description>
+    <maintainer email="2205929492@qq.com">Master Yip</maintainer>
+
+    <license>MIT</license>
+
+    <url type="repository">https://github.com/MasterYip/Fast-Legged-Planner-Test</url>
+    <url type="bugtracker">https://github.com/MasterYip/Fast-Legged-Planner-Test/issues</url>
+
+    <author email="2205929492@qq.com">Master Yip</author>
+
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <export>
+        <metapackage/>
+    </export>
+</package>
