@@ -1,7 +1,8 @@
 # Fast Legged Trajectory Planner
 
-<!-- NOTE/CAUTION/WARNING -->
+![banner](./doc/repo_banner.png)
 
+<!-- NOTE/CAUTION/WARNING -->
 > [!NOTE]
 > This repo contains codes for paper _KCFRC: Kinematic Collision-Aware Foothold Reachability Criteria for Legged Locomotion_.
 
@@ -60,9 +61,12 @@ planner_cfg:=flt_cfg_planner_conv
 ```
 
 Demos:
-`1_stairs`, `2_stairs`, `3_quincuncial_piles`, `4_barrier`, `4_ushape_barrier`, `5_channel`, `6_fractal`
+`1_stairs`, `2_stairs`, `3_quincuncial_piles`,
+`4_barrier`, `4_ushape_barrier`, `5_channel`, `6_fractal`
+
 Planners:
-`flt_cfg_planner_keypoint`, `flt_cfg_planner_conv`, `rrt_cfg_planner`, `stomp_cfg_planner`, `fec_planner`
+`flt_cfg_planner_keypoint`(KCFRC keypoint), `flt_cfg_planner_conv`(KCFRC conv),
+`rrt_cfg_planner`, `stomp_cfg_planner`, `fec_planner`
 
 More configs can be found in:
 
