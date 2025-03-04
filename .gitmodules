@@ -1,7 +1,6 @@
 [submodule "hexapod_robot_assets"]
 	path = hexapod_robot_assets
 	url = https://github.com/HITSME-HexLab/hexapod_robot_assets.git
-
 [submodule "legged_traj_planner/legged_traj_plan_examples/mcts_planner"]
 	path = legged_traj_planner/legged_traj_plan_examples/mcts_planner
 	url = https://github.com/BetterEthan/contactPlanner_HexMIni.git
@@ -24,6 +23,3 @@
 [submodule "dependency/hpp-fcl"]
 	path = dependency/hpp-fcl
 	url = https://github.com/leggedrobotics/hpp-fcl.git
-[submodule "legged_traj_planner/third_party/cddlib"]
-	path = legged_traj_planner/third_party/cddlib
-	url = https://github.com/cddlib/cddlib.git

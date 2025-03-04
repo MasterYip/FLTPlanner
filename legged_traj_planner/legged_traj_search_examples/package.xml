@@ -50,6 +50,7 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>legged_traj_search</build_depend>
+  <build_depend>grid_map_ros</build_depend>
   <build_depend>roscpp</build_depend>
   <build_export_depend>legged_traj_search</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>

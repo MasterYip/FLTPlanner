@@ -1,2 +1,4 @@
 /CMakeLists.txt
 .vscode
+
+legged_traj_planner/third_party/cddlib-0.94m
