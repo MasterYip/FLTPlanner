@@ -1,0 +1,3 @@
+
+#define configFilePath "@MCTS_CFG_FILE@"
+#define URDF_FILE_PATH "@URDF_FILE_PATH@"

@@ -1,0 +1,94 @@
+# (注意不能在参数后边加注释,只能空行上加注释)
+
+################地图部分-txt地图读取###################################################
+# 地图类型 2D OR 3D
+MapFileType = 3D
+
+# 地图路径 
+MapFilePath = /home/xp/aContactPlanning/MPI_ROS_Workspace/terrainFile/plane.txt
+# /home/oem/aConstrainPlan/MPI_ROS_Workspace/src/pyTerrainGenerate/output_pixel_info.txt
+# /home/oem/aConstrainPlan/MPI_ROS_Workspace/terrainFile/stepTerrainHexMini1.txt
+# /home/oem/aConstrainPlan/MPI_ROS_Workspace/terrainFile/3dRandom_rightAngle4.txt
+# /home/oem/aConstrainPlan/MPI_ROS_Workspace/terrainFile/3dRandomTerrain.txt
+# /home/oem/aConstrainPlan/MPI_ROS_Workspace/terrainFile/plane.txt
+
+
+################地图部分-规划采用的layer层名称###################################################
+# 注意不需要打引号，读取时是按照string读取
+ElevationLayerName = elevation_inpainted_trav
+#ElevationLayerName = elevation
+NormalVector_x_Name = normal_x
+NormalVector_y_Name = normal_y
+NormalVector_z_Name = normal_z
+
+MapLength = 30
+MapWidth = 6
+GridLength = 0.05
+
+################机器人URDF路径###################################################S
+
+# 只有在筛选和落足点处使用，其它情况都是使用完整的
+workspaceReductionDis_ = 0.05
+
+
+# 力学稳定裕度
+staticStabilityMarginThreshold = 0.05
+
+
+# 默认单步步长（在工作空间内的步长，相对于机器人坐标系）
+norminalFootStepLengthInWorkspace = 0.04
+
+
+# 运动学阈值（机体移动过程中不能移动到小于kinematicMargin）
+kinematicMargin = 0.05
+
+# 默认行走高度
+norminalTrunkHeight = 0.26
+
+# 初始化落足点机器人坐标系下y的偏移量
+nominal_y_shift = 0.08
+
+# 落足点选取模式 average_addL:可行区域的中心位置+步长； norminal_Foothold_addL: 行走到初始化的名义落足点（机器人坐标系下）。
+foothold_select_type = norminal_Foothold_addL
+
+######################MCTS参数###########################################
+
+# Virtual loss
+IsVirtualLoss = true
+
+# Best BP Flag:  true 使用, false 不使用 (只针对不采用power mean的情况)
+IsBestBP = true
+
+# p参数
+P_Parameter =  100
+
+# 是否采用POWER_MEAN: true 使用, false 不使用
+USE_POWER_MEAN = false
+
+
+################约束部分####################################################
+# 是否碰撞检测: true 使用, false 不使用
+COLLISION_CHECK = false
+
+# 是否使用最大法向力约束: true 使用, false 不使用
+IsMaxForceConstraint = false
+
+# 是否使用力矩限幅约束: true 使用, false 不使用
+IsToruqeLimitConstraint = false
+
+
+# 测试与否， 论文实验使用
+IsTest = false
+
+
+
+################其它未使用####################################################
+# MCTS执行时间
+MPI_run_time = 5
+
+# 任务系数
+JOB_FACTOR = 3
+
+################步态模式####################################################
+# 步态模式 0:全步态   1:删除相邻腿作为摆动腿的步态（更稳定） 2:对角步态
+GaitMode = 1
