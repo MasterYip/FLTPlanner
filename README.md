@@ -1,7 +1,9 @@
 # Fast Legged Trajectory Planner
+
 <!-- NOTE/CAUTION/WARNING -->
+
 > [!NOTE]
-> This repo contains codes for paper `KCFRC: Kinematic Collision-Aware Foothold Reachability Criteria for Legged Locomotion`.
+> This repo contains codes for paper _KCFRC: Kinematic Collision-Aware Foothold Reachability Criteria for Legged Locomotion_.
 
 ## Installation
 
@@ -46,7 +48,7 @@ source ../devel/setup.bash
 
 ## Get Started
 
-FakeFeedback | Planning:
+### MCTS Contact Planner Examples
 
 ```bash
 roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch \
@@ -54,6 +56,15 @@ robot_interface_type:=ElSpiderAirDummy \
 sim:=true \
 teleop_type:=keyboard
 ```
+
+> [!NOTE]: More configs can be found in
+> [Launch Settings (Demos and Planners)](./legged_traj_planner/legged_traj_plan_examples/launch/elspider_air_state_sequence_planner.launch)
+> [State Sequence Planner Configs](./legged_traj_planner/legged_traj_plan_examples/config/planner/state_sequence_planner.yaml)
+> Swing Trajectory Planner Configs: In folder `./legged_traj_planner/legged_traj_plan/config/swing_traj_planner`
+
+```bash
+
+### Raibert Heuristic Planner Examples
 
 ```bash
 roslaunch legged_traj_plan_examples elspider_air_raibert_planner.launch \

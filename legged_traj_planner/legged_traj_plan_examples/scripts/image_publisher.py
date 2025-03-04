@@ -179,9 +179,9 @@ if __name__ == '__main__':
     rospy.init_node('image_publisher')
 
     try:
-        if os.path.isfile(rospy.get_param('~map_def_path')):
+        if os.path.isfile(rospy.get_param('~map_def_path', "")):
             timber_pile_generator()
-        elif os.path.isfile(rospy.get_param('~image_path')):
+        elif os.path.isfile(rospy.get_param('~image_path', "")):
             img_publisher()
         else:
             rospy.logerr('Invalid image path or map definition path')
