@@ -134,3 +134,14 @@ Example List:
 roslaunch legged_traj_search_examples gcs_example.launch \
 example_name:=eg_gcs_barrier_ani_demo
 ```
+
+<!-- Examples -->
+<!-- <details>
+  <summary><b>Setup env</b></summary>
+
+  - Create a Conda env and setup the requirements:
+
+```
+conda create -n eg python=3.8
+```
+</details> -->
