@@ -1,0 +1,24 @@
+source ~/.bashrc
+
+WITH_PINPY=1
+
+export ROBOT_TYPE=a1
+source /home/yip/CodeSpace/legged_ws/devel/setup.bash
+source /home/yip/CodeSpace/hexapod_ws/devel/setup.bash
+source /home/yip/CodeSpace/Fast-Legged-Planner_ws/moveit_ws/devel/setup.bash
+source /home/yip/CodeSpace/Fast-Legged-Planner_ws/flplanner_ws/devel/setup.bash
+export PATH=$PATH:/home/yip/.local/bin
+
+# Gurobi
+export GUROBI_HOME="/opt/gurobi1003/linux64"
+export PATH="${PATH}:${GUROBI_HOME}/bin"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${GUROBI_HOME}/lib"
+
+# Pinocchio (IMPORTANT: This may interfere with legged_ws-pinocchio, if you are using legged_ws, do not source this)
+if [ "$WITH_PINPY" -eq 1 ]; then
+export PATH=/opt/openrobots/bin:$PATH
+export PKG_CONFIG_PATH=/opt/openrobots/lib/pkgconfig:$PKG_CONFIG_PATH
+export LD_LIBRARY_PATH=/opt/openrobots/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=/opt/openrobots/lib/python3.8/site-packages:$PYTHONPATH # Adapt your desired python version here
+export CMAKE_PREFIX_PATH=/opt/openrobots:$CMAKE_PREFIX_PATH
+fi
