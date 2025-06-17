@@ -9,5 +9,6 @@
     <author email="2205929492@qq.com">Master Yip</author>
 
     <buildtool_depend>catkin</buildtool_depend>
+    <build_depend>pinocchio</build_depend>
 
 </package>
