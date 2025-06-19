@@ -48,6 +48,11 @@ catkin build -j8 legged_traj_plan_examples legged_traj_search_examples hexapod_r
 source ./devel/setup.bash
 ```
 
+### Problem Shooting
+
+1. Undefined reference to 'grid_map::GridMap::add()'
+    - If you encounter this error, it may be due to the `grid_map` library is linked incorrectly. Make sure you have already uninstall the ros version of `grid_map`: `sudo apt remove ros-noetic-grid-map-*`
+
 ## Get Started
 
 ### MCTS Contact Planner Examples
