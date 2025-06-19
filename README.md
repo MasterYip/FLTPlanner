@@ -42,9 +42,12 @@ sudo make install
 
 Build the package:
 
+> [!WARNING]
+> **DO NOT** install `ros-noetic-grid-map`, `ros-noetic-hpp-fcl` and `ros-noetic-pinocchio` from apt, which will lead to unexpected error.
+
 ```bash
 # Under catkin_ws
-catkin build -j8 legged_traj_plan_examples legged_traj_search_examples hexapod_robot_assets -DCMAKE_BUILD_TYPE=Release
+catkin build -j8 legged_traj_plan_examples legged_traj_search_examples hexapod_robot_assets -DCMAKE_BUILD_TYPE=Release # RelWithDebInfo
 source ./devel/setup.bash
 ```
 
