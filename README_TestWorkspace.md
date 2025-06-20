@@ -78,7 +78,7 @@ sudo apt install ros-$ROS_DISTRO-ros-industrial-cmake-boilerplate
     ├── logs
     └── src
         ├── fast_legged_planner
-        ├── hexapod_robot_assets
+        ├── robot_assets
 ```
 
 #### Get Started
@@ -211,7 +211,7 @@ Major rospkg:
 Related rospkgs:
 
 - [astar-algorithm-cpp](./astar-algorithm-cpp/README.md)
-- [hexapod_robot_assets](./hexapod_robot_assets/README.md)
+- [robot_assets](./robot_assets/README.md)
 
 ## Acknowledgements
 

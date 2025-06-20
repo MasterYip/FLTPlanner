@@ -47,7 +47,7 @@ Build the package:
 
 ```bash
 # Under catkin_ws
-catkin build -j8 legged_traj_plan_examples legged_traj_search_examples hexapod_robot_assets -DCMAKE_BUILD_TYPE=Release # RelWithDebInfo
+catkin build -j8 legged_traj_plan_examples legged_traj_search_examples robot_assets -DCMAKE_BUILD_TYPE=Release # RelWithDebInfo
 source ./devel/setup.bash
 ```
 
