@@ -69,6 +69,6 @@
     <xacro:arg name="organize_cloud" default="false"/>
     <xacro:property name="organize_cloud" value="$(arg organize_cloud)" />
 
-    <xacro:property name="mesh_path" value="file://$(find hexapod_robot_assets)/model/elspider_air/meshes"/>
+    <xacro:property name="mesh_path" value="file://$(find robot_assets)/model/elspider_air/meshes"/>
 
 </robot>

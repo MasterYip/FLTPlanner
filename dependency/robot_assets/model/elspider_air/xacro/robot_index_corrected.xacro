@@ -11,10 +11,10 @@
     <xacro:arg name="sensor_module_name" default="None"/>
     <xacro:property name="sensor_module_name" value="$(arg sensor_module_name)"/>
 
-    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/const.xacro"/>
-    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/trunk.xacro"/>
-    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/leg.xacro"/>
-    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/gazebo.xacro"/>
+    <xacro:include filename="$(find robot_assets)/model/elspider_air/xacro/const.xacro"/>
+    <xacro:include filename="$(find robot_assets)/model/elspider_air/xacro/trunk.xacro"/>
+    <xacro:include filename="$(find robot_assets)/model/elspider_air/xacro/leg.xacro"/>
+    <xacro:include filename="$(find robot_assets)/model/elspider_air/xacro/gazebo.xacro"/>
     <xacro:if value="${sensor_module_name == 'HexPercept1'}">
         <xacro:include filename="$(find hexapod_elevation_mapping)/model/modules/HexPercept1/HexPercept1.xacro"/>
         <xacro:HexPercept1 parent_link="base" lidar_frame_name="velodyneLidar" camera_frame_name="camera">

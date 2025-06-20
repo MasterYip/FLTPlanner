@@ -176,8 +176,8 @@ if(USE_GTEST)
   find_package(MathGL REQUIRED)
   find_package(GTest REQUIRED)  
   # Configure file
-  set(TEST_URDF_PATH ${PROJECT_SOURCE_DIR}/../../hexapod_robot_assets/model/elspider_air/urdf/el_mini.urdf)
-  set(TEST_PKG_DIRS ${PROJECT_SOURCE_DIR}/../../hexapod_robot_assets/model/elspider_air)
+  set(TEST_URDF_PATH ${PROJECT_SOURCE_DIR}/../../robot_assets/model/elspider_air/urdf/el_mini.urdf)
+  set(TEST_PKG_DIRS ${PROJECT_SOURCE_DIR}/../../robot_assets/model/elspider_air)
   configure_file(${PROJECT_SOURCE_DIR}/test/urdf_path.h.in ${PROJECT_SOURCE_DIR}/test/urdf_path.h @ONLY)
   # Build
   add_executable(flplanner_tests ${GTESTS})

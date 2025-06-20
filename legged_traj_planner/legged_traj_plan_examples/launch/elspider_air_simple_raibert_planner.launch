@@ -94,13 +94,13 @@
     </node>
 
     <!-- Robot related -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval robot_interface_type == 'ElSpiderAirDummy')"/>
+    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval robot_interface_type == 'ElSpiderAirDummy')"/>
     <!-- Load robot model if sim is False -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval sim == 0)"/>
+    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(eval sim == 0)"/>
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     <!-- Shadow Robot -->
     <group ns="shadow">
-        <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider_air/xacro/robot.xacro ns:=shadow"/>
+        <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro ns:=shadow"/>
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     </group>
 

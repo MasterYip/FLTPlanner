@@ -2,7 +2,7 @@
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <xacro:include filename="$(find hexapod_robot_assets)/model/elspider_air/xacro/transmission.xacro"/>
+    <xacro:include filename="$(find robot_assets)/model/elspider_air/xacro/transmission.xacro"/>
 
     <xacro:macro name="leg" params="name mirror back special special2 *origin">
         <!-- right mirror == 1, left mirror == -1 -->

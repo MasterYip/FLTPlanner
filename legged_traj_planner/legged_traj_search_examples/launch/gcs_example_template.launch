@@ -52,7 +52,7 @@
 
     <!-- Robot related -->
     <group if="$(arg with_robot)">
-        <param name="robot_description" command="$(find xacro)/xacro $(find hexapod_robot_assets)/model/elspider2/xacro/robot.xacro" />
+        <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider2/xacro/robot.xacro" />
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
     </group>
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(hexapod_robot_assets)
+project(robot_assets)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -100,7 +100,7 @@ find_package(catkin REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES hexapod_robot_assets
+#  LIBRARIES robot_assets
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -118,7 +118,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/hexapod_robot_assets.cpp
+#   src/${PROJECT_NAME}/robot_assets.cpp
 # )
 
 ## Add cmake target dependencies of the library
