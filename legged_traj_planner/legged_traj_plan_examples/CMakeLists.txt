@@ -128,7 +128,7 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES legged_traj_plan_examples
   CATKIN_DEPENDS grid_map_core legged_traj_plan roscpp std_msgs 
-  # DEPENDS LeggedKinModule
+  # DEPENDS 
 )
 
 ###########
