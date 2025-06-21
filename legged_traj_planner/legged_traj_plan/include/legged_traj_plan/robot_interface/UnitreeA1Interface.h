@@ -101,28 +101,184 @@ public:
         }
     }
 
-    // Simple inverse kinematics using pinocchio (no IKFast for A1)
-    Eigen::Vector3d IK_foot(const Eigen::Vector3d &footendpos, int index)
+    // Kinematics - IKFast interface matching ElSpiderAirInterface
+    std::vector<double> IKFast_foots(const std::vector<Eigen::Vector3d> &footendpos)
     {
-        // For A1, we'll use a simple geometric IK solution
-        // This is a placeholder - you may want to implement proper IK or use numerical methods
-        const std::string foot_frame = A1_FOOT_LINK_NAME[index];
-        
-        // Use pinocchio's inverse kinematics solver or implement geometric solution
-        // For now, return nominal joint configuration
-        Eigen::Vector3d q_nominal(0.0, 0.9, -1.8); // Hip, thigh, calf angles
-        return q_nominal;
+        std::vector<double> q;
+        for (int i = 0; i < 4; i++)
+        {
+            Eigen::Vector3d q_i = IKFast_foot(footendpos[i], i);
+            q.push_back(q_i[0]);
+            q.push_back(q_i[1]);
+            q.push_back(q_i[2]);
+        }
+        return q;
+    }
+
+    Eigen::Vector3d IKFast_foot(const Eigen::Vector3d &footendpos, int index)
+    {
+        // A1 link lengths (from URDF or robot specifications)
+        const double l1 = 0.0838;  // hip link length (ab/ad distance)
+        const double l2 = 0.2;     // thigh link length  
+        const double l3 = 0.2;     // calf link length
+
+        // Determine side sign: -1 for right legs (FR, RR), +1 for left legs (FL, RL)
+        int sideSign = (index == 0 || index == 2) ? -1 : 1;  // FR=0, FL=1, RR=2, RL=3
+
+        // Geometric inverse kinematics implementation
+        double px = footendpos[0];
+        double py = footendpos[1]; 
+        double pz = footendpos[2];
+
+        // Hip joint angle (q1)
+        double q1;
+        double L = sqrt(py * py + pz * pz - l1 * l1);
+        q1 = atan2(pz * l1 + py * L, py * l1 - pz * L);
+
+        // Distance from hip to foot in the leg plane
+        double a1 = py * sin(q1) - pz * cos(q1);
+        double a2 = px;
+        double leg_length = sqrt(a1 * a1 + a2 * a2);
+
+        // Knee joint angle (q3) - using law of cosines
+        double q3;
+        double temp = (l2 * l2 + l3 * l3 - leg_length * leg_length) / (2.0 * l2 * l3);
+        temp = std::max(-1.0, std::min(1.0, temp)); // clamp to valid range
+        q3 = acos(temp);
+        q3 = -(M_PI - q3);  // A1 convention: negative knee angle
+
+        // Thigh joint angle (q2)
+        double q2;
+        double m1 = l3 * sin(q3);
+        double m2 = l2 + l3 * cos(q3);
+        q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
+
+        return Eigen::Vector3d(q1, q2, q3);
     }
 
     Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index)
     {
-        // Forward kinematics using pinocchio
-        Eigen::VectorXd q_full = Eigen::VectorXd::Zero(12); // 4 legs * 3 joints each
-        q_full.segment<3>(index * 3) = q;
+        // A1 link lengths
+        const double l1 = 0.0838;  // hip link length
+        const double l2 = 0.2;     // thigh link length
+        const double l3 = 0.2;     // calf link length
+
+        // Determine side sign
+        int sideSign = (index == 0 || index == 2) ? -1 : 1;
+
+        double s1 = sin(q[0]);
+        double s2 = sin(q[1]);  
+        double s3 = sin(q[2]);
+        double c1 = cos(q[0]);
+        double c2 = cos(q[1]);
+        double c3 = cos(q[2]);
+
+        double c23 = c2 * c3 - s2 * s3;
+        double s23 = s2 * c3 + c2 * s3;
+
+        // Forward kinematics equations
+        double px = -l3 * s23 - l2 * s2;
+        double py = l1 * sideSign * c1 + l3 * (s1 * c23) + l2 * c2 * s1;
+        double pz = l1 * sideSign * s1 - l3 * (c1 * c23) - l2 * c1 * c2;
+
+        return Eigen::Vector3d(px, py, pz);
+    }
+
+    // Additional kinematics methods to match ElSpiderAirInterface API
+    Eigen::Matrix3Xd getJacobian(const Eigen::Vector3d &q, int index)
+    {
+        // A1 link lengths
+        const double l1 = 0.0838;
+        const double l2 = 0.2;
+        const double l3 = 0.2;
+
+        int sideSign = (index == 0 || index == 2) ? -1 : 1;
+
+        double s1 = sin(q[0]);
+        double s2 = sin(q[1]);
+        double s3 = sin(q[2]);
+        double c1 = cos(q[0]);
+        double c2 = cos(q[1]);
+        double c3 = cos(q[2]);
+
+        double c23 = c2 * c3 - s2 * s3;
+        double s23 = s2 * c3 + c2 * s3;
+
+        Eigen::Matrix3Xd J(3, 3);
         
-        const std::string foot_frame = A1_FOOT_LINK_NAME[index];
-        pinocchio::SE3 foot_pose = get_frame_placement(q_full, foot_frame);
-        return foot_pose.translation();
+        // Jacobian matrix elements
+        J(0, 0) = 0;
+        J(1, 0) = -sideSign * l1 * s1 + l2 * c2 * c1 + l3 * c23 * c1;
+        J(2, 0) = sideSign * l1 * c1 + l2 * c2 * s1 + l3 * c23 * s1;
+        
+        J(0, 1) = -l3 * c23 - l2 * c2;
+        J(1, 1) = -l2 * s2 * s1 - l3 * s23 * s1;
+        J(2, 1) = l2 * s2 * c1 + l3 * s23 * c1;
+        
+        J(0, 2) = -l3 * c23;
+        J(1, 2) = -l3 * s23 * s1;
+        J(2, 2) = l3 * s23 * c1;
+
+        return J;
+    }
+
+    Eigen::Matrix3Xd getJacobianTimeVariation(const Eigen::Vector3d &q, const Eigen::Vector3d &vel, int index)
+    {
+        // Numerical approximation of Jacobian time derivative
+        // For a more accurate implementation, analytical derivatives would be computed
+        const double dt = 1e-6;
+        Eigen::Matrix3Xd J_current = getJacobian(q, index);
+        Eigen::Matrix3Xd J_next = getJacobian(q + vel * dt, index);
+        return (J_next - J_current) / dt;
+    }
+
+    // Simple collision ball forward kinematics (for compatibility)
+    Eigen::Vector3d FK_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx)
+    {
+        // For A1, we'll approximate collision balls at joint positions
+        // This is a simplified implementation - joint positions along the leg
+        const double l1 = 0.0838;
+        const double l2 = 0.2;
+        
+        int sideSign = (legIdx == 0 || legIdx == 2) ? -1 : 1;
+        
+        double s1 = sin(q[0]);
+        double s2 = sin(q[1]);
+        double c1 = cos(q[0]);
+        double c2 = cos(q[1]);
+        
+        switch(jointIdx) {
+            case 0: // Hip joint position
+                return Eigen::Vector3d(0, l1 * sideSign * c1, l1 * sideSign * s1);
+            case 1: // Knee joint position  
+                return Eigen::Vector3d(-l2 * s2, 
+                                     l1 * sideSign * c1 + l2 * c2 * s1,
+                                     l1 * sideSign * s1 - l2 * c1 * c2);
+            case 2: // Foot position
+                return FK_foot(q, legIdx);
+            default:
+                return Eigen::Vector3d::Zero();
+        }
+    }
+
+    Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx)
+    {
+        // Simplified Jacobian for collision balls
+        if (jointIdx == 2) {
+            return getJacobian(q, legIdx);
+        } else {
+            // For intermediate joints, return a simplified Jacobian
+            // This would need proper implementation based on specific joint
+            return getJacobian(q, legIdx);
+        }
+    }
+
+    Eigen::Matrix3d getJacobianTimeVariation_CollBall(const Eigen::Vector3d &q, const Eigen::Vector3d &vel,
+                                                      int legIdx, int jointIdx)
+    {
+        // Return 3x3 matrix instead of 3xN for compatibility
+        Eigen::Matrix3Xd J_dot = getJacobianTimeVariation(q, vel, legIdx);
+        return J_dot.block<3,3>(0,0);
     }
 
     Eigen::Vector3d getNominalFoothold(int index)
