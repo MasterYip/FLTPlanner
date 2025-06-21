@@ -153,6 +153,12 @@ public:
         return q_i;
     }
 
+    // Overload for constraint checking with boolean return
+    bool IKFast_foot(const Eigen::Vector3d &footendpos, Eigen::Vector3d &q_result, int index)
+    {
+        return robot_kin.inverseKinConstraint(footendpos, q_result, index, false);
+    }
+
     Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index)
     {
         Eigen::Vector3d footendpos;

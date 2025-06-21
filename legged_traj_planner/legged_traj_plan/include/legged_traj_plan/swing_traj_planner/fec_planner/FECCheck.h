@@ -66,7 +66,7 @@ public:
         // 1. Check if the foot is in the task space
         Eigen::Vector3d pos = point_SE3Act(pose, p);
         Eigen::Vector3d sol;
-        bool joint_limit_check = robot_interface_->getRobotKin().inverseKinConstraint(pos, sol, index, false);
+        bool joint_limit_check = robot_interface_->IKFast_foot(pos, sol, index);
         if (!joint_limit_check)
             return false;
         // 2. Check if the leg is in the collision-free space

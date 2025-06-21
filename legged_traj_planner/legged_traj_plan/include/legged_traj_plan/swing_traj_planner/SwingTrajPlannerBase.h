@@ -405,10 +405,9 @@ public:
                             const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
                             int index)
     {
-        auto robot_kin = robot_interface_->getRobotKin();
         Eigen::Vector3d q_i;
-        if (!robot_kin.inverseKinConstraint(point_SE3Act(pose0, p0), q_i, index, false) ||
-            !robot_kin.inverseKinConstraint(point_SE3Act(pose1, p1), q_i, index, false))
+        if (!robot_interface_->IKFast_foot(point_SE3Act(pose0, p0), q_i, index) ||
+            !robot_interface_->IKFast_foot(point_SE3Act(pose1, p1), q_i, index))
         {
             return false;
         }
@@ -418,7 +417,7 @@ public:
     bool ifKinValid(const pinocchio::SE3 &pose, const Eigen::Vector3d &p, int index)
     {
         Eigen::Vector3d q_i;
-        return robot_interface_->getRobotKin().inverseKinConstraint(point_SE3Act(pose, p), q_i, index, false);
+        return robot_interface_->IKFast_foot(point_SE3Act(pose, p), q_i, index);
     }
 
     SwingTrajPlannerConfig &getConfig()

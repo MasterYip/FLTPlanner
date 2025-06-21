@@ -156,6 +156,86 @@ public:
         return Eigen::Vector3d(q1, q2, q3);
     }
 
+    // Overload for constraint checking with boolean return
+    bool IKFast_foot(const Eigen::Vector3d &footendpos, Eigen::Vector3d &q_result, int index, bool check_constraints = true)
+    {
+        // A1 link lengths
+        const double l1 = 0.0838;
+        const double l2 = 0.2;
+        const double l3 = 0.2;
+
+        int sideSign = (index == 0 || index == 2) ? -1 : 1;
+
+        double px = footendpos[0];
+        double py = footendpos[1]; 
+        double pz = footendpos[2];
+
+        // Check if point is reachable (basic constraint checking)
+        double leg_reach = sqrt(px * px + py * py + pz * pz);
+        double max_reach = l2 + l3;
+        double min_reach = abs(l2 - l3);
+        
+        if (check_constraints)
+        {
+            // Check basic reachability constraints
+            if (leg_reach > max_reach || leg_reach < min_reach)
+            {
+                return false;
+            }
+            
+            // Check if hip offset is reachable
+            double hip_distance = sqrt(py * py + pz * pz);
+            if (hip_distance < l1)
+            {
+                return false;
+            }
+        }
+
+        try
+        {
+            // Compute IK solution
+            double L = sqrt(py * py + pz * pz - l1 * l1);
+            if (L != L) return false; // Check for NaN
+            
+            double q1 = atan2(pz * l1 + py * L, py * l1 - pz * L);
+            
+            double a1 = py * sin(q1) - pz * cos(q1);
+            double a2 = px;
+            double leg_length = sqrt(a1 * a1 + a2 * a2);
+            
+            double temp = (l2 * l2 + l3 * l3 - leg_length * leg_length) / (2.0 * l2 * l3);
+            temp = std::max(-1.0, std::min(1.0, temp));
+            double q3 = acos(temp);
+            q3 = -(M_PI - q3);
+            
+            double m1 = l3 * sin(q3);
+            double m2 = l2 + l3 * cos(q3);
+            double q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
+            
+            if (check_constraints)
+            {
+                // Additional joint limit checks
+                const double q1_min = -1.0, q1_max = 1.0;
+                const double q2_min = -1.5, q2_max = 3.0;
+                const double q3_min = -2.7, q3_max = -0.9;
+                
+                if (q1 < q1_min || q1 > q1_max ||
+                    q2 < q2_min || q2 > q2_max ||
+                    q3 < q3_min || q3 > q3_max)
+                {
+                    return false;
+                }
+            }
+            
+            q_result = Eigen::Vector3d(q1, q2, q3);
+            return true;
+        }
+        catch (...)
+        {
+            return false;
+        }
+    }
+
     Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index)
     {
         // A1 link lengths

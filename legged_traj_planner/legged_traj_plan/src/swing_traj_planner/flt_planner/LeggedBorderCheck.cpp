@@ -88,7 +88,7 @@ double LeggedBorderCheck::disInBorder(const Eigen::Vector2d &pos2d)
         pos[2] += config_.collBallRad3;
     pos = point_SE3Act(pose, pos);
     Eigen::Vector3d sol;
-    bool joint_limit_check = robot_interface_->getRobotKin().inverseKinConstraint(pos, sol, index_, false);
+    bool joint_limit_check = robot_interface_->IKFast_foot(pos, sol, index_);
     if (!joint_limit_check)
     {
         return -1.0;
