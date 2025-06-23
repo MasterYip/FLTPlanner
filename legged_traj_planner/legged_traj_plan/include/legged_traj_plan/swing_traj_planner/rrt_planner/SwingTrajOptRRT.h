@@ -29,6 +29,8 @@
 #include <ompl/base/Path.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/objectives/StateCostIntegralObjective.h>
+#include <ompl/base/MotionValidator.h>
+#include <ompl/base/DiscreteMotionValidator.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
@@ -190,10 +192,9 @@ public:
     }
 };
 
-
 /**
  * @brief Configuration Space Validity Checker
- * 
+ *
  */
 class CfgValidityChecker : public ob::StateValidityChecker
 {
@@ -328,6 +329,75 @@ public:
     };
 };
 
+/**
+ * @brief Custom Motion Validator that enforces time monotonicity
+ */
+class MonotonicTimeMotionValidator : public ob::MotionValidator
+{
+private:
+    ob::MotionValidatorPtr base_validator_;
+
+public:
+    MonotonicTimeMotionValidator(const ob::SpaceInformationPtr &si) : ob::MotionValidator(si)
+    {
+        // Use the default discrete motion validator as base
+        base_validator_ = std::make_shared<ob::DiscreteMotionValidator>(si);
+    }
+
+    MonotonicTimeMotionValidator(const ob::SpaceInformationPtr &si, ob::MotionValidatorPtr base_validator)
+        : ob::MotionValidator(si), base_validator_(base_validator)
+    {
+    }
+
+    bool checkMotion(const ob::State *s1, const ob::State *s2) const override
+    {
+        // First check the base motion validator (collision checking etc.)
+        if (!base_validator_->checkMotion(s1, s2))
+            return false;
+
+        // Extract time values from the 4th dimension
+        const auto *state1 = s1->as<ob::RealVectorStateSpace::StateType>();
+        const auto *state2 = s2->as<ob::RealVectorStateSpace::StateType>();
+
+        double t1 = state1->values[3];
+        double t2 = state2->values[3];
+
+        // Ensure time is non-decreasing (monotonic)
+        if (t2 < t1)
+        {
+            return false;
+        }
+
+        // Optional: Add a minimum time step to prevent numerical issues
+        const double min_time_step = 1e-6;
+        if (t2 - t1 < min_time_step && t1 != t2)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool checkMotion(const ob::State *s1, const ob::State *s2,
+                     std::pair<ob::State *, double> &lastValid) const override
+    {
+        // First check time monotonicity
+        const auto *state1 = s1->as<ob::RealVectorStateSpace::StateType>();
+        const auto *state2 = s2->as<ob::RealVectorStateSpace::StateType>();
+
+        if (state2->values[3] < state1->values[3])
+        {
+            // Time goes backward - set lastValid to s1
+            si_->copyState(lastValid.first, s1);
+            lastValid.second = 0.0;
+            return false;
+        }
+
+        // If time is monotonic, use base validator for detailed checking
+        return base_validator_->checkMotion(s1, s2, lastValid);
+    }
+};
+
 class SwingCfgTrajOptRRT
 {
 private:
@@ -429,6 +499,12 @@ public:
                                                  start_exclude_cylinder_,
                                                  end_exclude_cylinder_, index_);
         ss.setStateValidityChecker(checker_ptr);
+
+        // Set custom motion validator to enforce time monotonicity
+        ob::MotionValidatorPtr motion_validator =
+            std::make_shared<MonotonicTimeMotionValidator>(ss.getSpaceInformation());
+        ss.getSpaceInformation()->setMotionValidator(motion_validator);
+
         ss.setStartAndGoalStates(start, goal);
         ss.setOptimizationObjective(getBalancedObjective(ss.getSpaceInformation()));
 

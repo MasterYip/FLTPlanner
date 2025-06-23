@@ -42,26 +42,26 @@ inline Polyhedra genA1LegPolyRegion(int index)
     case 0: // FR
         hull.resize(3, 8);
         hull << 0.25, 0.15, -0.15, -0.25, 0.25, 0.15, -0.15, -0.25,
-                -0.15, -0.25, -0.25, -0.15, -0.15, -0.25, -0.25, -0.15,
-                -0.05, -0.05, -0.05, -0.05, -0.45, -0.45, -0.45, -0.45;
+            -0.15, -0.25, -0.25, -0.15, -0.15, -0.25, -0.25, -0.15,
+            -0.05, -0.05, -0.05, -0.05, -0.45, -0.45, -0.45, -0.45;
         break;
-    case 1: // FL  
+    case 1: // FL
         hull.resize(3, 8);
         hull << 0.25, 0.15, -0.15, -0.25, 0.25, 0.15, -0.15, -0.25,
-                0.15, 0.25, 0.25, 0.15, 0.15, 0.25, 0.25, 0.15,
-                -0.05, -0.05, -0.05, -0.05, -0.45, -0.45, -0.45, -0.45;
+            0.15, 0.25, 0.25, 0.15, 0.15, 0.25, 0.25, 0.15,
+            -0.05, -0.05, -0.05, -0.05, -0.45, -0.45, -0.45, -0.45;
         break;
     case 2: // RR
         hull.resize(3, 8);
         hull << -0.25, -0.15, 0.15, 0.25, -0.25, -0.15, 0.15, 0.25,
-                -0.15, -0.25, -0.25, -0.15, -0.15, -0.25, -0.25, -0.15,
-                -0.05, -0.05, -0.05, -0.05, -0.45, -0.45, -0.45, -0.45;
+            -0.15, -0.25, -0.25, -0.15, -0.15, -0.25, -0.25, -0.15,
+            -0.05, -0.05, -0.05, -0.05, -0.45, -0.45, -0.45, -0.45;
         break;
     case 3: // RL
         hull.resize(3, 8);
         hull << -0.25, -0.15, 0.15, 0.25, -0.25, -0.15, 0.15, 0.25,
-                0.15, 0.25, 0.25, 0.15, 0.15, 0.25, 0.25, 0.15,
-                -0.05, -0.05, -0.05, -0.05, -0.45, -0.45, -0.45, -0.45;
+            0.15, 0.25, 0.25, 0.15, 0.15, 0.25, 0.25, 0.15,
+            -0.05, -0.05, -0.05, -0.05, -0.45, -0.45, -0.45, -0.45;
         break;
     default:
         throw std::invalid_argument("Invalid leg index for A1 robot (should be 0-3)");
@@ -71,7 +71,7 @@ inline Polyhedra genA1LegPolyRegion(int index)
 
 // Nominal foot positions for A1 (BASE frame)
 const double a1_nominal_x = 0.18;  // front/rear distance from center
-const double a1_nominal_y = 0.13;  // left/right distance from center  
+const double a1_nominal_y = 0.13;  // left/right distance from center
 const double a1_nominal_z = -0.32; // nominal height
 const std::vector<Eigen::Vector3d> A1_NOMINAL_FOOT_POS = {
     Eigen::Vector3d(a1_nominal_x, -a1_nominal_y, a1_nominal_z),  // FR
@@ -118,16 +118,16 @@ public:
     Eigen::Vector3d IKFast_foot(const Eigen::Vector3d &footendpos, int index)
     {
         // A1 link lengths (from URDF or robot specifications)
-        const double l1 = 0.0838;  // hip link length (ab/ad distance)
-        const double l2 = 0.2;     // thigh link length  
-        const double l3 = 0.2;     // calf link length
+        const double l1 = 0.0838; // hip link length (ab/ad distance)
+        const double l2 = 0.2;    // thigh link length
+        const double l3 = 0.2;    // calf link length
 
         // Determine side sign: -1 for right legs (FR, RR), +1 for left legs (FL, RL)
-        int sideSign = (index == 0 || index == 2) ? -1 : 1;  // FR=0, FL=1, RR=2, RL=3
+        int sideSign = (index == 0 || index == 2) ? -1 : 1; // FR=0, FL=1, RR=2, RL=3
 
         // Geometric inverse kinematics implementation
         double px = footendpos[0];
-        double py = footendpos[1]; 
+        double py = footendpos[1];
         double pz = footendpos[2];
 
         // Hip joint angle (q1)
@@ -145,7 +145,7 @@ public:
         double temp = (l2 * l2 + l3 * l3 - leg_length * leg_length) / (2.0 * l2 * l3);
         temp = std::max(-1.0, std::min(1.0, temp)); // clamp to valid range
         q3 = acos(temp);
-        q3 = -(M_PI - q3);  // A1 convention: negative knee angle
+        q3 = -(M_PI - q3); // A1 convention: negative knee angle
 
         // Thigh joint angle (q2)
         double q2;
@@ -167,14 +167,14 @@ public:
         int sideSign = (index == 0 || index == 2) ? -1 : 1;
 
         double px = footendpos[0];
-        double py = footendpos[1]; 
+        double py = footendpos[1];
         double pz = footendpos[2];
 
         // Check if point is reachable (basic constraint checking)
         double leg_reach = sqrt(px * px + py * py + pz * pz);
         double max_reach = l2 + l3;
         double min_reach = abs(l2 - l3);
-        
+
         if (check_constraints)
         {
             // Check basic reachability constraints
@@ -182,7 +182,7 @@ public:
             {
                 return false;
             }
-            
+
             // Check if hip offset is reachable
             double hip_distance = sqrt(py * py + pz * pz);
             if (hip_distance < l1)
@@ -195,30 +195,31 @@ public:
         {
             // Compute IK solution
             double L = sqrt(py * py + pz * pz - l1 * l1);
-            if (L != L) return false; // Check for NaN
-            
+            if (L != L)
+                return false; // Check for NaN
+
             double q1 = atan2(pz * l1 + py * L, py * l1 - pz * L);
-            
+
             double a1 = py * sin(q1) - pz * cos(q1);
             double a2 = px;
             double leg_length = sqrt(a1 * a1 + a2 * a2);
-            
+
             double temp = (l2 * l2 + l3 * l3 - leg_length * leg_length) / (2.0 * l2 * l3);
             temp = std::max(-1.0, std::min(1.0, temp));
             double q3 = acos(temp);
             q3 = -(M_PI - q3);
-            
+
             double m1 = l3 * sin(q3);
             double m2 = l2 + l3 * cos(q3);
             double q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
-            
+
             if (check_constraints)
             {
                 // Additional joint limit checks
                 const double q1_min = -1.0, q1_max = 1.0;
                 const double q2_min = -1.5, q2_max = 3.0;
                 const double q3_min = -2.7, q3_max = -0.9;
-                
+
                 if (q1 < q1_min || q1 > q1_max ||
                     q2 < q2_min || q2 > q2_max ||
                     q3 < q3_min || q3 > q3_max)
@@ -226,7 +227,7 @@ public:
                     return false;
                 }
             }
-            
+
             q_result = Eigen::Vector3d(q1, q2, q3);
             return true;
         }
@@ -239,15 +240,15 @@ public:
     Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index)
     {
         // A1 link lengths
-        const double l1 = 0.0838;  // hip link length
-        const double l2 = 0.2;     // thigh link length
-        const double l3 = 0.2;     // calf link length
+        const double l1 = 0.0838; // hip link length
+        const double l2 = 0.2;    // thigh link length
+        const double l3 = 0.2;    // calf link length
 
         // Determine side sign
         int sideSign = (index == 0 || index == 2) ? -1 : 1;
 
         double s1 = sin(q[0]);
-        double s2 = sin(q[1]);  
+        double s2 = sin(q[1]);
         double s3 = sin(q[2]);
         double c1 = cos(q[0]);
         double c2 = cos(q[1]);
@@ -285,16 +286,16 @@ public:
         double s23 = s2 * c3 + c2 * s3;
 
         Eigen::Matrix3Xd J(3, 3);
-        
+
         // Jacobian matrix elements
         J(0, 0) = 0;
         J(1, 0) = -sideSign * l1 * s1 + l2 * c2 * c1 + l3 * c23 * c1;
         J(2, 0) = sideSign * l1 * c1 + l2 * c2 * s1 + l3 * c23 * s1;
-        
+
         J(0, 1) = -l3 * c23 - l2 * c2;
         J(1, 1) = -l2 * s2 * s1 - l3 * s23 * s1;
         J(2, 1) = l2 * s2 * c1 + l3 * s23 * c1;
-        
+
         J(0, 2) = -l3 * c23;
         J(1, 2) = -l3 * s23 * s1;
         J(2, 2) = l3 * s23 * c1;
@@ -319,34 +320,38 @@ public:
         // This is a simplified implementation - joint positions along the leg
         const double l1 = 0.0838;
         const double l2 = 0.2;
-        
+
         int sideSign = (legIdx == 0 || legIdx == 2) ? -1 : 1;
-        
+
         double s1 = sin(q[0]);
         double s2 = sin(q[1]);
         double c1 = cos(q[0]);
         double c2 = cos(q[1]);
-        
-        switch(jointIdx) {
-            case 0: // Hip joint position
-                return Eigen::Vector3d(0, l1 * sideSign * c1, l1 * sideSign * s1);
-            case 1: // Knee joint position  
-                return Eigen::Vector3d(-l2 * s2, 
-                                     l1 * sideSign * c1 + l2 * c2 * s1,
-                                     l1 * sideSign * s1 - l2 * c1 * c2);
-            case 2: // Foot position
-                return FK_foot(q, legIdx);
-            default:
-                return Eigen::Vector3d::Zero();
+
+        switch (jointIdx)
+        {
+        case 0: // Hip joint position
+            return Eigen::Vector3d(0, l1 * sideSign * c1, l1 * sideSign * s1);
+        case 1: // Knee joint position
+            return Eigen::Vector3d(-l2 * s2,
+                                   l1 * sideSign * c1 + l2 * c2 * s1,
+                                   l1 * sideSign * s1 - l2 * c1 * c2);
+        case 2: // Foot position
+            return FK_foot(q, legIdx);
+        default:
+            return Eigen::Vector3d::Zero();
         }
     }
 
     Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx)
     {
         // Simplified Jacobian for collision balls
-        if (jointIdx == 2) {
+        if (jointIdx == 2)
+        {
             return getJacobian(q, legIdx);
-        } else {
+        }
+        else
+        {
             // For intermediate joints, return a simplified Jacobian
             // This would need proper implementation based on specific joint
             return getJacobian(q, legIdx);
@@ -358,7 +363,7 @@ public:
     {
         // Return 3x3 matrix instead of 3xN for compatibility
         Eigen::Matrix3Xd J_dot = getJacobianTimeVariation(q, vel, legIdx);
-        return J_dot.block<3,3>(0,0);
+        return J_dot.block<3, 3>(0, 0);
     }
 
     Eigen::Vector3d getNominalFoothold(int index)
@@ -427,7 +432,7 @@ public:
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q, 
+    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q,
                              const std::vector<Eigen::Vector3d> &v,
                              const std::vector<Eigen::Vector3d> &tau,
                              const std::vector<bool> &contact)
