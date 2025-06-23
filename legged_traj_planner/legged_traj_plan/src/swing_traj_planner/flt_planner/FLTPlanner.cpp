@@ -19,7 +19,7 @@
 // FLTPlanner
 
 FLTPlanner::FLTPlanner(SwingTrajPlannerConfig config,
-                       std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                       std::shared_ptr<BaseRobotInterface> robot_interface,
                        std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
                                                                               swing_traj_opt_(robot_interface_, gridmap_interface_,
                                                                                               nullptr, config.enableBenchmark)
@@ -182,7 +182,7 @@ bool FLTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 // FLTCfgPlanner
 
 FLTCfgPlanner::FLTCfgPlanner(SwingTrajPlannerConfig config,
-                             std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                             std::shared_ptr<BaseRobotInterface> robot_interface,
                              std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
                                                                                     swing_traj_opt_(robot_interface_, gridmap_interface_,
                                                                                                     nullptr, false)

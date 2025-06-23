@@ -40,7 +40,7 @@
 /* internal project header files */
 #include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/utils/Geometry.h"
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/swing_traj_planner/SwingTrajPlannerBase.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
@@ -51,7 +51,7 @@ namespace og = ompl::geometric;
 class SwingTrajOptRRT
 {
 private:
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     SwingTrajPlannerConfig config_;
 
@@ -76,7 +76,7 @@ private:
 
 public:
     SwingTrajOptRRT(SwingTrajPlannerConfig config,
-                    std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                    std::shared_ptr<BaseRobotInterface> robot_interface,
                     std::shared_ptr<GridMapInterface> gridmap_interface,
                     std::shared_ptr<GCSVisualizer> visualizer = nullptr,
                     bool enable_benchmark = true)
@@ -200,7 +200,7 @@ class CfgValidityChecker : public ob::StateValidityChecker
 {
 private:
     SwingTrajPlannerConfig config_;
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     Eigen::Vector3d start_exclude_cylinder_;
     Eigen::Vector3d end_exclude_cylinder_;
@@ -211,7 +211,7 @@ private:
 public:
     CfgValidityChecker(const ob::SpaceInformationPtr &si,
                        SwingTrajPlannerConfig &config,
-                       std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                       std::shared_ptr<BaseRobotInterface> robot_interface,
                        std::shared_ptr<GridMapInterface> gridmap_interface,
                        pinocchio::SE3 pose0, pinocchio::SE3 pose1,
                        Eigen::Vector3d start_exclude_cylinder,
@@ -401,7 +401,7 @@ public:
 class SwingCfgTrajOptRRT
 {
 private:
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     SwingTrajPlannerConfig config_;
 
@@ -423,7 +423,7 @@ private:
 
 public:
     SwingCfgTrajOptRRT(SwingTrajPlannerConfig config,
-                       std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                       std::shared_ptr<BaseRobotInterface> robot_interface,
                        std::shared_ptr<GridMapInterface> gridmap_interface,
                        std::shared_ptr<GCSVisualizer> visualizer = nullptr,
                        bool enable_benchmark = true)

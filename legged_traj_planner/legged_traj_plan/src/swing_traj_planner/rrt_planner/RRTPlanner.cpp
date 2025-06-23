@@ -14,7 +14,7 @@
 #include "legged_traj_plan/swing_traj_planner/rrt_planner/SwingTrajOptRRT.h"
 
 RRTPlanner::RRTPlanner(SwingTrajPlannerConfig config,
-                       std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                       std::shared_ptr<BaseRobotInterface> robot_interface,
                        std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
                                                                               swing_traj_opt_(config, robot_interface_, gridmap_interface_,
                                                                                               nullptr, config.enableBenchmark)
@@ -62,7 +62,7 @@ bool RRTPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 // RRTCfgPlanner
 
 RRTCfgPlanner::RRTCfgPlanner(SwingTrajPlannerConfig config,
-                             std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                             std::shared_ptr<BaseRobotInterface> robot_interface,
                              std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
                                                                                     swing_traj_opt_(config, robot_interface_, gridmap_interface_,
                                                                                                     nullptr, config.enableBenchmark)
@@ -121,7 +121,6 @@ bool RRTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
         // }
         // visualizer_->setIdGroup(1);
         // visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
-
     }
     return ret;
 }

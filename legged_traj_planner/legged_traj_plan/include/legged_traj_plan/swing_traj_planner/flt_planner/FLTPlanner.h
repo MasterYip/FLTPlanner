@@ -33,7 +33,7 @@ private:
 
 public:
     FLTPlanner(SwingTrajPlannerConfig config,
-               std::shared_ptr<ElSpiderAirInterface> robot_interface,
+               std::shared_ptr<BaseRobotInterface> robot_interface,
                std::shared_ptr<GridMapInterface> gridmap_interface);
 
     /**
@@ -75,14 +75,13 @@ private:
 
 public:
     FLTCfgPlanner(SwingTrajPlannerConfig config,
-                  std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                  std::shared_ptr<BaseRobotInterface> robot_interface,
                   std::shared_ptr<GridMapInterface> gridmap_interface);
 
     void visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1, int index,
                          std::vector<Point3D> cfg_poly_traj,
                          Eigen::Vector3d start_vel, Eigen::Vector3d goal_vel, double trajTime,
                          int groupId = 1);
-
 
     /**
      * @brief Search for a poly feasible trajectory

@@ -20,7 +20,7 @@
 /* external project header files */
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 /* internal project header files */
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_plan/swing_traj_planner/flt_planner/Utils.h"
@@ -117,7 +117,7 @@ public:
 class StompLegCollisionPenalty
 {
 private:
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     Eigen::Vector3d collBallRadius_;
     Eigen::Vector3d weight_;
@@ -132,7 +132,7 @@ private:
     bool enable_vis_ = false;
 
 public:
-    StompLegCollisionPenalty(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+    StompLegCollisionPenalty(std::shared_ptr<BaseRobotInterface> robot_interface,
                              std::shared_ptr<GridMapInterface> gridmap_interface,
                              std::shared_ptr<GCSVisualizer> visualizer = nullptr)
         : robot_interface_(robot_interface), gridmap_interface_(gridmap_interface)

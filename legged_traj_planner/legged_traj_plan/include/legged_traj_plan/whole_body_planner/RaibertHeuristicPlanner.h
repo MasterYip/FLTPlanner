@@ -18,7 +18,7 @@
 /* c++ standard library header files */
 
 /* internal project header files */
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "CmdVelExtrapolator.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
@@ -238,7 +238,7 @@ struct LegTraj
 class SimpleRaibertPlanner
 {
 private:
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     GridMapCmdVelExtrapolator cmd_vel_extrapolator_;
     std::vector<LegSwitchScheduler> switch_scheduler_;
@@ -258,21 +258,21 @@ private:
 
 public:
     SimpleRaibertPlanner(std::shared_ptr<GridMapInterface> gridmap_interface,
-                         std::shared_ptr<ElSpiderAirInterface> robot_interface);
+                         std::shared_ptr<BaseRobotInterface> robot_interface);
 
     /**
      * @brief Start the planner
-     * 
-     * @param pose 
-     * @param foot_pos_list Foot pos in WORLD frame 
+     *
+     * @param pose
+     * @param foot_pos_list Foot pos in WORLD frame
      */
     void start(pinocchio::SE3 pose, PosList foot_pos_list = PosList());
 
     /**
-     * @brief 
-     * 
-     * @param pose 
-     * @param cmd_vel 
+     * @brief
+     *
+     * @param pose
+     * @param cmd_vel
      * @param last_footholds Foot pos in WORLD frame
      */
     void update(const pinocchio::SE3 pose, const geometry_msgs::Twist cmd_vel,
@@ -287,7 +287,7 @@ class RaibertHeuristicPlanner
 private:
     ros::NodeHandle nh_;
 
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
     GridMapCmdVelExtrapolator cmd_vel_extrapolator_;
@@ -305,12 +305,12 @@ private:
 
 public:
     [[deprecated]] RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
-                            std::shared_ptr<GridMapInterface> gridmap_interface,
-                            std::shared_ptr<ElSpiderAirInterface> robot_interface);
+                                           std::shared_ptr<GridMapInterface> gridmap_interface,
+                                           std::shared_ptr<BaseRobotInterface> robot_interface);
 
     RaibertHeuristicPlanner(std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_,
                             std::shared_ptr<GridMapInterface> gridmap_interface,
-                            std::shared_ptr<ElSpiderAirInterface> robot_interface);
+                            std::shared_ptr<BaseRobotInterface> robot_interface);
 
     void start(pinocchio::SE3 pose, PosList foot_pos_list = PosList());
 

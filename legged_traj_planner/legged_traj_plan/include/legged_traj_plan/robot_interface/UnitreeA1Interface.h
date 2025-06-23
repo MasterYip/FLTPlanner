@@ -265,7 +265,6 @@ public:
         return Eigen::Vector3d(px, py, pz);
     }
 
-    // Additional kinematics methods to match ElSpiderAirInterface API
     Eigen::Matrix3Xd getJacobian(const Eigen::Vector3d &q, int index) override
     {
         // A1 link lengths

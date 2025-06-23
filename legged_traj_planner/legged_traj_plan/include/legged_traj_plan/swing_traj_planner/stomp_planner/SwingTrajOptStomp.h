@@ -273,7 +273,7 @@ class CfgStompTask : public stomp::Task
 {
 
 protected:
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     SwingTrajPlannerConfig config_;
 
@@ -297,7 +297,7 @@ protected:
 
 public:
     CfgStompTask(SwingTrajPlannerConfig config,
-                 std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                 std::shared_ptr<BaseRobotInterface> robot_interface,
                  std::shared_ptr<GridMapInterface> gridmap_interface,
                  std::shared_ptr<GCSVisualizer> visualizer = nullptr)
         : config_(config), robot_interface_(robot_interface), gridmap_interface_(gridmap_interface),

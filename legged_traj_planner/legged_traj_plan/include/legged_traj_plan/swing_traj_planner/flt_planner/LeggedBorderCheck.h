@@ -18,7 +18,7 @@
 /* c++ standard library header files */
 
 /* internal project header files */
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_search/poly_traj/border_check.hpp"
 /* external project header files */
@@ -53,7 +53,7 @@ private:
     const grid_map::GridMap &map_;
     IndexRemap index_remap_;
     std::unique_ptr<BaseGuideSurf> guide_surf_ptr_;
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     LeggedBorderCheckConfig config_;
 
@@ -67,7 +67,7 @@ private:
     int index_;
 
 public:
-    LeggedBorderCheck(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+    LeggedBorderCheck(std::shared_ptr<BaseRobotInterface> robot_interface,
                       std::shared_ptr<GridMapInterface> gridmap_interface,
                       const pinocchio::SE3 &pose0,
                       const pinocchio::SE3 &pose1,

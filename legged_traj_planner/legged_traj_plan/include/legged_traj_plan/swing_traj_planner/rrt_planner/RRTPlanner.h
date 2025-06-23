@@ -21,7 +21,7 @@
 #include <Eigen/Dense>
 /* internal project header files */
 #include "legged_traj_plan/utils/Spline.h"
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/swing_traj_planner/rrt_planner/SwingTrajOptRRT.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
@@ -34,7 +34,7 @@ private:
 
 public:
     RRTPlanner(SwingTrajPlannerConfig config,
-               std::shared_ptr<ElSpiderAirInterface> robot_interface,
+               std::shared_ptr<BaseRobotInterface> robot_interface,
                std::shared_ptr<GridMapInterface> gridmap_interface);
     ~RRTPlanner() = default;
 
@@ -56,7 +56,7 @@ private:
 
 public:
     RRTCfgPlanner(SwingTrajPlannerConfig config,
-                  std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                  std::shared_ptr<BaseRobotInterface> robot_interface,
                   std::shared_ptr<GridMapInterface> gridmap_interface);
     ~RRTCfgPlanner() = default;
 

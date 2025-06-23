@@ -2,7 +2,7 @@
 
 StateSequencePlanner::StateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                                            std::shared_ptr<GridMapInterface> gridmap_interface,
-                                           std::shared_ptr<ElSpiderAirInterface> robot_interface)
+                                           std::shared_ptr<BaseRobotInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       use_cfg_space_(swing_traj_planner_config.useCfgSpace)
 {
@@ -33,7 +33,7 @@ StateSequencePlanner::StateSequencePlanner(SwingTrajPlannerConfig swing_traj_pla
 
 StateSequencePlanner::StateSequencePlanner(std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner,
                                            std::shared_ptr<GridMapInterface> gridmap_interface,
-                                           std::shared_ptr<ElSpiderAirInterface> robot_interface)
+                                           std::shared_ptr<BaseRobotInterface> robot_interface)
     : swing_traj_planner_(swing_traj_planner),
       gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       use_cfg_space_(swing_traj_planner->getConfig().useCfgSpace)

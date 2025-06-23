@@ -31,7 +31,7 @@ private:
 
 public:
     StompPlanner(SwingTrajPlannerConfig config,
-                 std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                 std::shared_ptr<BaseRobotInterface> robot_interface,
                  std::shared_ptr<GridMapInterface> gridmap_interface);
     ~StompPlanner() = default;
 
@@ -53,7 +53,7 @@ private:
 
 public:
     StompCfgPlanner(SwingTrajPlannerConfig config,
-                    std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                    std::shared_ptr<BaseRobotInterface> robot_interface,
                     std::shared_ptr<GridMapInterface> gridmap_interface);
     ~StompCfgPlanner() = default;
 

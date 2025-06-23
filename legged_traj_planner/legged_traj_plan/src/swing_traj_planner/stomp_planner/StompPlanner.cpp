@@ -17,7 +17,7 @@
 #include "legged_traj_search/poly_traj/poly_traj_search.hpp"
 
 StompPlanner::StompPlanner(SwingTrajPlannerConfig config,
-                           std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                           std::shared_ptr<BaseRobotInterface> robot_interface,
                            std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
                                                                                   swing_traj_opt_(std::make_shared<StompTask>(config, gridmap_interface_,
                                                                                                                               nullptr))
@@ -108,7 +108,7 @@ bool StompPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
 // StompCfgPlanner
 
 StompCfgPlanner::StompCfgPlanner(SwingTrajPlannerConfig config,
-                                 std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                                 std::shared_ptr<BaseRobotInterface> robot_interface,
                                  std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
                                                                                         swing_traj_opt_(std::make_shared<CfgStompTask>(config, robot_interface_, gridmap_interface_,
                                                                                                                                        nullptr))

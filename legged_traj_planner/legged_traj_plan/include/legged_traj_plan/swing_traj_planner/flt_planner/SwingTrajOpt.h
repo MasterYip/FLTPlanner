@@ -27,7 +27,7 @@
 #include "PrimitivePenalty.h"
 
 #include "legged_traj_plan/utils/Spline.h"
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
@@ -41,7 +41,7 @@ class SwingTrajOpt
 private:
     bool useCfgSpace_;
 
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     SwingTrajPlannerConfig config_;
     minco::MINCO_S2NU minco;
@@ -428,7 +428,7 @@ private:
     }
 
 public:
-    SwingTrajOpt(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+    SwingTrajOpt(std::shared_ptr<BaseRobotInterface> robot_interface,
                  std::shared_ptr<GridMapInterface> gridmap_interface,
                  std::shared_ptr<GCSVisualizer> visualizer = nullptr,
                  bool enable_benchmark = true)

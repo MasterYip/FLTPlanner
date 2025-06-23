@@ -17,7 +17,7 @@
 /* c++ standard library header files */
 
 /* internal project header files */
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/whole_body_planner/MCTStateTransfer.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/swing_traj_planner/flt_planner/FLTPlanner.h"
@@ -30,7 +30,7 @@ class StateSequencePlanner
 {
 private:
     std::vector<MCTStateTransfer> state_trajs;
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
     bool use_cfg_space_;
@@ -41,11 +41,11 @@ private:
 public:
     [[deprecated]] StateSequencePlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                                         std::shared_ptr<GridMapInterface> gridmap_interface,
-                                        std::shared_ptr<ElSpiderAirInterface> robot_interface);
+                                        std::shared_ptr<BaseRobotInterface> robot_interface);
 
     StateSequencePlanner(std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner,
                          std::shared_ptr<GridMapInterface> gridmap_interface,
-                         std::shared_ptr<ElSpiderAirInterface> robot_interface);
+                         std::shared_ptr<BaseRobotInterface> robot_interface);
 
     bool enqueue_MCTsolution(hexapod_State state0, hexapod_State state1);
 

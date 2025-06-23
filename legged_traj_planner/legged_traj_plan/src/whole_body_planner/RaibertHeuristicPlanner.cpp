@@ -12,7 +12,7 @@
 #include "legged_traj_plan/whole_body_planner/RaibertHeuristicPlanner.h"
 
 SimpleRaibertPlanner::SimpleRaibertPlanner(std::shared_ptr<GridMapInterface> gridmap_interface,
-                                           std::shared_ptr<ElSpiderAirInterface> robot_interface)
+                                           std::shared_ptr<BaseRobotInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface)
 {
     // Bigait
@@ -142,7 +142,7 @@ bool SimpleRaibertPlanner::query(double t, pinocchio::SE3 &pose,
 
 RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                                                  std::shared_ptr<GridMapInterface> gridmap_interface,
-                                                 std::shared_ptr<ElSpiderAirInterface> robot_interface)
+                                                 std::shared_ptr<BaseRobotInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       swing_traj_planner_(std::make_shared<FLTCfgPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_))
 {
@@ -176,7 +176,7 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
 
 RaibertHeuristicPlanner::RaibertHeuristicPlanner(std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_,
                                                  std::shared_ptr<GridMapInterface> gridmap_interface,
-                                                 std::shared_ptr<ElSpiderAirInterface> robot_interface)
+                                                 std::shared_ptr<BaseRobotInterface> robot_interface)
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       swing_traj_planner_(swing_traj_planner_)
 {

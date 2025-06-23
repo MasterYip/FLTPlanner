@@ -20,7 +20,7 @@
 /* external project header files */
 
 /* internal project header files */
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_plan/utils/Trajectory.h"
 #include "legged_traj_plan/utils/Geometry.h"
@@ -40,12 +40,12 @@ struct FECCheckConfig
 class FECCheck
 {
 private:
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     FECCheckConfig config_;
 
 public:
-    FECCheck(std::shared_ptr<ElSpiderAirInterface> robot_interface,
+    FECCheck(std::shared_ptr<BaseRobotInterface> robot_interface,
              std::shared_ptr<GridMapInterface> gridmap_interface,
              const FECCheckConfig &config = FECCheckConfig()) : robot_interface_(robot_interface),
                                                                 gridmap_interface_(gridmap_interface),

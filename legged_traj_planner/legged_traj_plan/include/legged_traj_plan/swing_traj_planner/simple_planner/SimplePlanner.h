@@ -29,7 +29,7 @@ private:
 
 public:
     HeightClearPlanner(SwingTrajPlannerConfig config,
-                       std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                       std::shared_ptr<BaseRobotInterface> robot_interface,
                        std::shared_ptr<GridMapInterface> gridmap_interface)
         : SwingTrajPlannerBase(config, robot_interface, gridmap_interface)
     {

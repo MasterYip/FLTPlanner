@@ -22,7 +22,7 @@
 /* internal project header files */
 #include "legged_traj_plan/utils/Spline.h"
 #include "legged_traj_plan/utils/Geometry.h"
-#include "legged_traj_plan/robot_interface/ElSpiderAirInterface.h"
+#include "legged_traj_plan/robot_interface/BaseRobotInterface.h"
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 #include "legged_traj_search/utils/benchmark.hpp"
@@ -388,7 +388,7 @@ struct SwingTrajPlannerConfig
 class SwingTrajPlannerBase
 {
 protected:
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     SwingTrajPlannerConfig config_;
 
@@ -399,7 +399,7 @@ protected:
 
 public:
     SwingTrajPlannerBase(SwingTrajPlannerConfig config,
-                         std::shared_ptr<ElSpiderAirInterface> robot_interface,
+                         std::shared_ptr<BaseRobotInterface> robot_interface,
                          std::shared_ptr<GridMapInterface> gridmap_interface) : robot_interface_(robot_interface),
                                                                                 gridmap_interface_(gridmap_interface),
                                                                                 config_(config),
@@ -430,7 +430,7 @@ public:
         return config_;
     }
 
-    std::shared_ptr<ElSpiderAirInterface> getRobotInterface()
+    std::shared_ptr<BaseRobotInterface> getRobotInterface()
     {
         return robot_interface_;
     }
