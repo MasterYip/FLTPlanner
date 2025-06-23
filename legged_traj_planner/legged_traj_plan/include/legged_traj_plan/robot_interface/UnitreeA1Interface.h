@@ -101,7 +101,7 @@ public:
         }
     }
 
-    // Kinematics - IKFast interface matching ElSpiderAirInterface
+    // Kinematics
     std::vector<double> IKFast_foots(const std::vector<Eigen::Vector3d> &footendpos)
     {
         std::vector<double> q;
@@ -237,7 +237,7 @@ public:
         }
     }
 
-    Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index)
+    Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index) override
     {
         // A1 link lengths
         const double l1 = 0.0838; // hip link length
@@ -266,7 +266,7 @@ public:
     }
 
     // Additional kinematics methods to match ElSpiderAirInterface API
-    Eigen::Matrix3Xd getJacobian(const Eigen::Vector3d &q, int index)
+    Eigen::Matrix3Xd getJacobian(const Eigen::Vector3d &q, int index) override
     {
         // A1 link lengths
         const double l1 = 0.0838;
@@ -303,7 +303,7 @@ public:
         return J;
     }
 
-    Eigen::Matrix3Xd getJacobianTimeVariation(const Eigen::Vector3d &q, const Eigen::Vector3d &vel, int index)
+    Eigen::Matrix3Xd getJacobianTimeVariation(const Eigen::Vector3d &q, const Eigen::Vector3d &vel, int index) override
     {
         // Numerical approximation of Jacobian time derivative
         // For a more accurate implementation, analytical derivatives would be computed
@@ -314,7 +314,7 @@ public:
     }
 
     // Simple collision ball forward kinematics (for compatibility)
-    Eigen::Vector3d FK_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx)
+    Eigen::Vector3d FK_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx) override
     {
         // For A1, we'll approximate collision balls at joint positions
         // This is a simplified implementation - joint positions along the leg
@@ -343,7 +343,7 @@ public:
         }
     }
 
-    Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx)
+    Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx) override
     {
         // Simplified Jacobian for collision balls
         if (jointIdx == 2)
@@ -359,33 +359,36 @@ public:
     }
 
     Eigen::Matrix3d getJacobianTimeVariation_CollBall(const Eigen::Vector3d &q, const Eigen::Vector3d &vel,
-                                                      int legIdx, int jointIdx)
+                                                      int legIdx, int jointIdx) override
     {
         // Return 3x3 matrix instead of 3xN for compatibility
         Eigen::Matrix3Xd J_dot = getJacobianTimeVariation(q, vel, legIdx);
         return J_dot.block<3, 3>(0, 0);
     }
 
-    Eigen::Vector3d getNominalFoothold(int index)
+    Eigen::Vector3d getNominalFoothold(int index) override
     {
         return nominal_footholds[index];
     }
 
     // Feedback Interface
     // Foot state in BASE frame
-    virtual const legged_traj_plan::FootState &getFootStateFdb() const
+    const legged_traj_plan::FootState &getFootStateFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual const sensor_msgs::JointState &getJointStateFdb() const
+    
+    const sensor_msgs::JointState &getJointStateFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual const pinocchio::SE3 &getBodyPoseFdb() const
+    
+    const pinocchio::SE3 &getBodyPoseFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual const pinocchio::Motion &getBodyVelFdb() const
+    
+    const pinocchio::Motion &getBodyVelFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
@@ -397,45 +400,48 @@ public:
      *
      * @param body_pose
      */
-    virtual void setBodyPoseCmd(const pinocchio::SE3 &body_pose)
+    void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override
     {
         throw std::runtime_error("Not implemented");
     }
 
-    virtual void setBodyVelCmd(const pinocchio::Motion &body_vel)
+    void setBodyVelCmd(const pinocchio::Motion &body_vel) override
     {
         throw std::runtime_error("Not implemented");
     }
 
-    virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos)
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
     {
         throw std::runtime_error("Not implemented");
     }
 
-    virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
-                            const std::vector<Eigen::Vector3d> &footendvel,
-                            const std::vector<Eigen::Vector3d> &footendeffort,
-                            const std::vector<bool> &contact)
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                    const std::vector<Eigen::Vector3d> &footendvel,
+                    const std::vector<Eigen::Vector3d> &footendeffort,
+                    const std::vector<bool> &contact) override
     {
         throw std::runtime_error("Not implemented");
     }
 
-    virtual void setJointCmd(const std::vector<double> &q)
+    void setJointCmd(const std::vector<double> &q) override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q)
+    
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact)
+    
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact) override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q,
-                             const std::vector<Eigen::Vector3d> &v,
-                             const std::vector<Eigen::Vector3d> &tau,
-                             const std::vector<bool> &contact)
+    
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q, 
+                     const std::vector<Eigen::Vector3d> &v,
+                     const std::vector<Eigen::Vector3d> &tau,
+                     const std::vector<bool> &contact) override
     {
         throw std::runtime_error("Not implemented");
     }

@@ -130,7 +130,7 @@ public:
     }
 
     // Kinematics
-    std::vector<double> IKFast_foots(const std::vector<Eigen::Vector3d> &footendpos)
+    std::vector<double> IKFast_foots(const std::vector<Eigen::Vector3d> &footendpos) override
     {
         std::vector<double> q;
         for (int i = 0; i < 6; i++)
@@ -145,7 +145,7 @@ public:
         return q;
     }
 
-    Eigen::Vector3d IKFast_foot(const Eigen::Vector3d &footendpos, int index)
+    Eigen::Vector3d IKFast_foot(const Eigen::Vector3d &footendpos, int index) override
     {
         Eigen::Vector3d q_i;
         robot_kin.inverseKinConstraint(footendpos, q_i, index);
@@ -153,41 +153,43 @@ public:
         return q_i;
     }
 
+    // IK_foot is now inherited from BaseRobotInterface and delegates to IKFast_foot
+
     // Overload for constraint checking with boolean return
-    bool IKFast_foot(const Eigen::Vector3d &footendpos, Eigen::Vector3d &q_result, int index)
+    bool IKFast_foot(const Eigen::Vector3d &footendpos, Eigen::Vector3d &q_result, int index) override
     {
         return robot_kin.inverseKinConstraint(footendpos, q_result, index, false);
     }
 
-    Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index)
+    Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index) override
     {
         Eigen::Vector3d footendpos;
         robot_kin.forwardKin(q, footendpos, index);
         return footendpos;
     }
 
-    Eigen::Vector3d FK_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx)
+    Eigen::Vector3d FK_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx) override
     {
         Eigen::Vector3d pos;
         robot_kin.forwardKin(q, pos, legIdx, jointIdx);
         return pos;
     }
 
-    Eigen::Matrix3Xd getJacobian(const Eigen::Vector3d &q, int index)
+    Eigen::Matrix3Xd getJacobian(const Eigen::Vector3d &q, int index) override
     {
         Eigen::Matrix3Xd J(3, 3);
         robot_kin.getJacobian(q, J, index);
         return J;
     }
 
-    Eigen::Matrix3Xd getJacobianTimeVariation(const Eigen::Vector3d &q, const Eigen::Vector3d &vel, int index)
+    Eigen::Matrix3Xd getJacobianTimeVariation(const Eigen::Vector3d &q, const Eigen::Vector3d &vel, int index) override
     {
         Eigen::Matrix3Xd J_dot(3, 3);
         robot_kin.getJacobianTimeVariation(q, vel, J_dot, index);
         return J_dot;
     }
 
-    Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx)
+    Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx) override
     {
         Eigen::Matrix3Xd J(3, 3);
         robot_kin.getJacobian(q, J, legIdx, jointIdx);
@@ -195,7 +197,7 @@ public:
     }
 
     Eigen::Matrix3d getJacobianTimeVariation_CollBall(const Eigen::Vector3d &q, const Eigen::Vector3d &vel,
-                                                      int legIdx, int jointIdx)
+                                                      int legIdx, int jointIdx) override
     {
         Eigen::Matrix3Xd J_dot(3, 3);
         robot_kin.getJacobianTimeVariation(q, vel, J_dot, legIdx, jointIdx);
@@ -207,26 +209,29 @@ public:
         return robot_kin;
     }
 
-    Eigen::Vector3d getNominalFoothold(int index)
+    Eigen::Vector3d getNominalFoothold(int index) override
     {
         return nominal_footholds[index];
     }
 
     // Feedback Interface
     // Foot state in BASE frame
-    virtual const legged_traj_plan::FootState &getFootStateFdb() const
+    const legged_traj_plan::FootState &getFootStateFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual const sensor_msgs::JointState &getJointStateFdb() const
+    
+    const sensor_msgs::JointState &getJointStateFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual const pinocchio::SE3 &getBodyPoseFdb() const
+    
+    const pinocchio::SE3 &getBodyPoseFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual const pinocchio::Motion &getBodyVelFdb() const
+    
+    const pinocchio::Motion &getBodyVelFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
@@ -238,45 +243,48 @@ public:
      *
      * @param body_pose
      */
-    virtual void setBodyPoseCmd(const pinocchio::SE3 &body_pose)
+    void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override
     {
         throw std::runtime_error("Not implemented");
     }
 
-    virtual void setBodyVelCmd(const pinocchio::Motion &body_vel)
+    void setBodyVelCmd(const pinocchio::Motion &body_vel) override
     {
         throw std::runtime_error("Not implemented");
     }
 
-    virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos)
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
     {
         throw std::runtime_error("Not implemented");
     }
 
-    virtual void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
-                            const std::vector<Eigen::Vector3d> &footendvel,
-                            const std::vector<Eigen::Vector3d> &footendeffort,
-                            const std::vector<bool> &contact)
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                    const std::vector<Eigen::Vector3d> &footendvel,
+                    const std::vector<Eigen::Vector3d> &footendeffort,
+                    const std::vector<bool> &contact) override
     {
         throw std::runtime_error("Not implemented");
     }
 
-    virtual void setJointCmd(const std::vector<double> &q)
+    void setJointCmd(const std::vector<double> &q) override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q)
+    
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact)
+    
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact) override
     {
         throw std::runtime_error("Not implemented");
     }
-    virtual void setJointCmd(const std::vector<Eigen::Vector3d> &q, 
-                             const std::vector<Eigen::Vector3d> &v,
-                             const std::vector<Eigen::Vector3d> &tau,
-                             const std::vector<bool> &contact)
+    
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q, 
+                     const std::vector<Eigen::Vector3d> &v,
+                     const std::vector<Eigen::Vector3d> &tau,
+                     const std::vector<bool> &contact) override
     {
         throw std::runtime_error("Not implemented");
     }
