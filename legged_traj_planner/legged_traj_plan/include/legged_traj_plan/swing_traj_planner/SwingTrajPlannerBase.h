@@ -125,6 +125,9 @@ struct SwingTrajPlannerConfig
     // double excludeRadius;
     // double collMargin;
     // double rrtMaxStepSize;
+    // Reachability Check
+    // bool enableReachableCheckRetry;
+    // int maxReachableCheckRetry;
     // Joint limit
     // double joint1PosMin;
     // double joint1PosMax;
@@ -297,6 +300,8 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("RRTCfgPlanner/joint2PosMax", joint2PosMax);
             check_digit *= nh.getParam("RRTCfgPlanner/joint3PosMin", joint3PosMin);
             check_digit *= nh.getParam("RRTCfgPlanner/joint3PosMax", joint3PosMax);
+            check_digit *= nh.getParam("RRTCfgPlanner/checker/enableReachableCheckRetry", enableReachableCheckRetry);
+            check_digit *= nh.getParam("RRTCfgPlanner/checker/maxReachableCheckRetry", maxReachableCheckRetry);
         }
         //// ID[3] HeightClearPlannerSettings
         else if (plannerID == 3)

@@ -95,28 +95,33 @@ bool RRTCfgPlanner::optTrajHook(std::shared_ptr<TrajectoryBase> &traj,
     if (config_.enableVis && ret)
     {
         // Discrete
-        // std::vector<Eigen::Vector3d> rrt_poly_traj;
-        // Eigen::MatrixXd knots = minco_traj->get();
-        // for (int i = 0; i < knots.rows(); i++)
-        // {
-        //     rrt_poly_traj.push_back(knots.row(i));
-        // }
-        // visualizer_->visCurve(rrt_poly_traj, ros_visualizer::VisStyle(0.3, 0.7, 0.3, 0.7, 0.01));
-
-        // MincoTrajectory
-        std::vector<Point3D> cfg_path_opt;
-        std::vector<Point3D> path_opt;
-        double ts = 0.01;
-        double t = 0;
-        std::dynamic_pointer_cast<MincoTrajectory>(traj)->getTrajSamples(cfg_path_opt, ts, true);
-        for (auto pt : cfg_path_opt)
+        auto traj_mc = std::dynamic_pointer_cast<MincoTrajectory>(traj);
+        auto cfg_path_knots = traj_mc->getPolyPath();
+        auto ts = traj_mc->getTs();
+        std::vector<Point3D> poly_traj;
+        float tsum = 0.0;
+        for (int i = 0; i < cfg_path_knots.size(); i++)
         {
-            Point3D base_pt = robot_interface_->FK_foot(pt, index);
-            path_opt.emplace_back(point_SE3Act(poseLinearInterp(pose0, pose1, t).inverse(), base_pt));
-            t += ts;
+            poly_traj.push_back(point_SE3Act(poseLinearInterp(pose0, pose1, tsum).inverse(), robot_interface_->FK_foot(cfg_path_knots[i], index)));
+            tsum += ts(i);
         }
-        visualizer_->setIdGroup(1);
-        visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
+        visualizer_->visCurve(poly_traj, ros_visualizer::VisStyle(0.3, 0.7, 0.3, 0.7, 0.01));
+
+        // // MincoTrajectory
+        // std::vector<Point3D> cfg_path_opt;
+        // std::vector<Point3D> path_opt;
+        // double ts = 0.01;
+        // double t = 0;
+        // std::dynamic_pointer_cast<MincoTrajectory>(traj)->getTrajSamples(cfg_path_opt, ts, true);
+        // for (auto pt : cfg_path_opt)
+        // {
+        //     Point3D base_pt = robot_interface_->FK_foot(pt, index);
+        //     path_opt.emplace_back(point_SE3Act(poseLinearInterp(pose0, pose1, t).inverse(), base_pt));
+        //     t += ts;
+        // }
+        // visualizer_->setIdGroup(1);
+        // visualizer_->visCurve(path_opt, ros_visualizer::VisStyle(1.0, 0.1, 0.1, 0.5, 0.01));
+
     }
     return ret;
 }
@@ -130,11 +135,37 @@ bool RRTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     {
         if (ifKinValid(pose1, footholds.at(i), index))
         {
-            auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
-            if (optTrajHook(traj, pose0, pose1, index))
-                reachable[i] = true;
-            else
+            if (config_.enableReachableCheckRetry)
+            {
                 reachable[i] = false;
+                auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
+                if (optTrajHook(traj, pose0, pose1, index))
+                    reachable[i] = true;
+                else
+                {
+                    int cnt = 0;
+                    config_.enableLiftRandomize = true;
+                    while (cnt < config_.maxReachableCheckRetry)
+                    {
+                        auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
+                        if (optTrajHook(traj, pose0, pose1, index))
+                        {
+                            reachable[i] = true;
+                            break;
+                        }
+                        cnt++;
+                    }
+                    config_.enableLiftRandomize = false;
+                }
+            }
+            else
+            {
+                auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
+                if (optTrajHook(traj, pose0, pose1, index))
+                    reachable[i] = true;
+                else
+                    reachable[i] = false;
+            }
         }
         else
             reachable[i] = false;

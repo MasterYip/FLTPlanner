@@ -8,8 +8,8 @@ trajInit:
 
 misc:
   enableOptimizer: true
-  reOptimize: false
-  reOptimizeMaxTry: 100
+  reOptimize: true
+  reOptimizeMaxTry: 10
   useCfgSpace: true
   useCfgCommand: true
   enableVis: true
@@ -21,12 +21,12 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 RRTCfgPlanner:
-  maxTime: 0.05
+  maxTime: 0.1
   CollBall2Rad: 0.05
   CollBall3Rad: 0.03
   excludeRadius: 0.05 # exclude sphere radius
   collMargin: 0.00  # collision margin in the middle of the traj
-  rrtMaxStepSize: 0.4
+  rrtMaxStepSize: 0.6
   joint1PosMin: -0.785
   joint1PosMax: 0.785
   joint2PosMin: -0.349
@@ -34,7 +34,7 @@ RRTCfgPlanner:
   joint3PosMin: -0.6978
   joint3PosMax: 3.403
   checker:
-    enableReachableCheckRetry: False
-    maxReachableCheckRetry: 1
+    enableReachableCheckRetry: True
+    maxReachableCheckRetry: 20
 
 

@@ -88,6 +88,7 @@ class MincoTrajectory : public TrajectoryBase
 {
 private:
     std::vector<Point3D> poly_path_;
+    Eigen::VectorXd ts_;
     minco::MINCO_S2NU minco_traj_;
     Eigen::Vector3d start_vel_;
     Eigen::Vector3d goal_vel_;
@@ -105,6 +106,7 @@ public:
                     Eigen::Vector3d start_vel = {0, 0, 0},
                     Eigen::Vector3d goal_vel = {0, 0, 0},
                     double total_time = 1.0) : poly_path_(poly_path),
+                                               ts_(ts),
                                                start_vel_(start_vel),
                                                goal_vel_(goal_vel),
                                                total_time_(total_time)
@@ -333,5 +335,10 @@ public:
     std::vector<Point3D> getPolyPath() const
     {
         return poly_path_;
+    }
+
+    Eigen::VectorXd getTs() const
+    {
+        return ts_;
     }
 };

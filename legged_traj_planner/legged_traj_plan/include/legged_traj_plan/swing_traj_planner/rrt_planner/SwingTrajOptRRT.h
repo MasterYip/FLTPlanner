@@ -236,8 +236,8 @@ public:
         // Foot
         Eigen::Vector3d pos_vec = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(posCfg, index_));
         double sdf = gridmap_interface_->sdfValue(pos_vec, "min");
-        if (!inZCylinder(pos_vec, start_exclude_cylinder_, config_.excludeRadius) &&
-            !inZCylinder(pos_vec, end_exclude_cylinder_, config_.excludeRadius) &&
+        if (!inSphere(pos_vec, start_exclude_cylinder_, config_.excludeRadius) &&
+            !inSphere(pos_vec, end_exclude_cylinder_, config_.excludeRadius) &&
             config_.CollBall3Rad > sdf - config_.collMargin)
         {
             return false;
@@ -264,8 +264,8 @@ public:
         const auto *pos = state->as<ob::RealVectorStateSpace::StateType>();
         Eigen::Vector3d pos_vec(point_SE3Act(poseLinearInterp(pose0_, pose1_, pos->values[3]).inverse(),
                                              robot_interface_->FK_foot(Eigen::Vector3d(pos->values[0], pos->values[1], pos->values[2]), index_)));
-        if (inZCylinder(pos_vec, start_exclude_cylinder_, config_.excludeRadius) ||
-            inZCylinder(pos_vec, end_exclude_cylinder_, config_.excludeRadius))
+        if (inSphere(pos_vec, start_exclude_cylinder_, config_.excludeRadius) ||
+            inSphere(pos_vec, end_exclude_cylinder_, config_.excludeRadius))
         {
             return config_.excludeRadius;
         }
