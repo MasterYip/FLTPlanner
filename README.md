@@ -144,6 +144,26 @@ roslaunch legged_traj_search_examples gcs_example.launch \
 example_name:=eg_gcs_barrier_ani_demo
 ```
 
+### Auto Benchmarking
+
+1. Update path in config file `legged_traj_planner/legged_traj_plan_examples/config/planner/state_sequence_planner_autobenchmark.yaml` to `analysis_scripts/benchmarking/temp`.
+
+2. Run `analysis_scripts/benchmarking/ssplanner_auto_benchmark.py` to perform auto benchmarking of the state sequence planner. You can select the planner type and demo name in the script.
+
+3. Run `analysis_scripts/benchmarking/auto_benchmark_analysis.ipynb` to perform analysis of the auto benchmarking results.
+
+## Acknowledgements
+
+This work is built upon the following open-source projects:
+
+<!-- GCOPTER, STOMP, GridMap, OMPL etc -->
+- [GCOPTER]
+- [STOMP]
+- [GridMap]
+- [OMPL]
+- [HPP-FCL]
+- [Pinocchio]
+
 <!-- Examples -->
 <!-- <details>
   <summary><b>Setup env</b></summary>
