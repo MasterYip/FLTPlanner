@@ -319,7 +319,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/trunk.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/trunk.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -372,7 +372,7 @@
     <visual>
       <origin rpy="3.14159265359 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/hip.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/hip.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -414,7 +414,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/thigh_mirror.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/thigh_mirror.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -442,7 +442,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/calf.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/calf.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -524,7 +524,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/hip.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/hip.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -566,7 +566,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/thigh.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/thigh.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -594,7 +594,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/calf.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/calf.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -676,7 +676,7 @@
     <visual>
       <origin rpy="3.14159265359 3.14159265359 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/hip.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/hip.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -718,7 +718,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/thigh_mirror.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/thigh_mirror.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -746,7 +746,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/calf.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/calf.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -828,7 +828,7 @@
     <visual>
       <origin rpy="0 3.14159265359 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/hip.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/hip.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -870,7 +870,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/thigh.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/thigh.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -898,7 +898,7 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://a1_description/meshes/calf.dae" scale="1 1 1"/>
+        <mesh filename="package://robot_assets/model/a1/meshes/calf.dae" scale="1 1 1"/>
       </geometry>
       <material name="orange"/>
     </visual>
@@ -970,4 +970,3 @@
   </transmission>
   <!-- <xacro:stairs stairs="15" xpos="0" ypos="2.0" zpos="0" /> -->
 </robot>
-
