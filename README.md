@@ -102,6 +102,8 @@ Robot Control:
 
 Perform trajectory optimization using Raibert heuristic planner.
 
+#### Hexapod Robot (ElSpider Air)
+
 ```bash
 roslaunch legged_traj_plan_examples elspider_air_raibert_planner.launch \
 robot_interface_type:=ElSpiderAirDummy \
@@ -115,6 +117,27 @@ robot_interface_type:=ElSpiderAirDummy \
 sim:=true \
 teleop_type:=PS5
 ```
+
+#### Quadruped Robot (Unitree A1)
+
+```bash
+roslaunch legged_traj_plan_examples unitree_a1_raibert_planner.launch \
+robot_interface_type:=UnitreeA1Dummy \
+sim:=true \
+teleop_type:=PS5 \
+demo_name:=6_fractal \
+planner_cfg:=flt_cfg_planner
+```
+
+Robot Interface Types:
+- **UnitreeA1Dummy**: Simulated A1 robot interface for testing
+- **UnitreeA1ROS**: Real A1 robot interface for hardware deployment
+
+The Unitree A1 implementation features:
+- **Automatic Robot Detection**: The planner automatically detects 4-leg vs 6-leg robots and configures appropriate gaits
+- **Trotting Gait**: Optimized diagonal-pair trotting gait for quadruped locomotion
+- **Reachability Check**: Full integration with foothold reachability analysis
+- **Enhanced Performance**: Higher velocity limits suitable for quadruped dynamics
 
 > Use Joystick to control the robot.
 
@@ -151,6 +174,33 @@ example_name:=eg_gcs_barrier_ani_demo
 2. Run `analysis_scripts/benchmarking/ssplanner_auto_benchmark.py` to perform auto benchmarking of the state sequence planner. You can select the planner type and demo name in the script.
 
 3. Run `analysis_scripts/benchmarking/auto_benchmark_analysis.ipynb` to perform analysis of the auto benchmarking results.
+
+## Multi-Robot Support
+
+The planner now supports both hexapod and quadruped robots through a unified interface:
+
+### Supported Robot Types
+
+- **Hexapod Robots**: 6-legged robots (e.g., ElSpider Air)
+  - Uses bigait locomotion pattern
+  - 6-leg reachability analysis
+  
+- **Quadruped Robots**: 4-legged robots (e.g., Unitree A1)
+  - Uses trotting gait locomotion pattern  
+  - 4-leg reachability analysis
+  - Enhanced velocity limits for dynamic locomotion
+
+### Robot Detection
+
+The `RaibertHeuristicPlanner` automatically detects the robot type by querying the robot interface and configures:
+- Appropriate gait patterns (bigait for hexapod, trotting for quadruped)
+- Correct number of leg schedulers and trajectories
+- Robot-specific nominal foothold positions
+- Leg-count appropriate reachability checks
+
+### Usage
+
+Both robot types use the same core planning algorithms but with automatically adapted parameters. Simply choose the appropriate launch file for your robot type, and the planner will handle the configuration.
 
 ## Acknowledgements
 

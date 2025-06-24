@@ -81,3 +81,55 @@ ElSpiderAirShadow:
                 -0.35, 0.23, -0.24]
   nominalFootPosShift: [0, 0.10, 0]
   initBodyPose: [0, 0, 0.24, 0, 0, 0]
+
+# Unitree A1 Interfaces
+UnitreeA1ROS:
+  urdfParamPath: /robot_description
+  # Rviz
+  jointStateTopic: joint_states
+  jointNamePrefix: "" # empty
+  odomChildFrame: base
+  odomParentFrame: odom
+  enableVis: true
+  # Feedback & Command
+  jointStateFdbTopic: /unitree_a1/joint_state_fdb
+  footStateFdbTopic: /unitree_a1/foot_state_fdb
+  bodyStateFdbTopic: /base_odom
+  footCmdTopic: /unitree_a1/hlc/foot_cmd_track
+  jointCmdTopic: /unitree_a1/hlc/joint_cmd_track
+  # Control Params
+  # sim: true # IMPORTANT: load by launch file
+  jointKpSim: [80, 80, 80]
+  jointKdSim: [2, 2, 2]
+  jointKpHardware: [40, 40, 40]
+  jointKdHardware: [1.0, 1.0, 1.0]
+
+UnitreeA1Dummy:
+  urdfParamPath: /robot_description
+  jointStateTopic: joint_states
+  jointNamePrefix: "" # empty
+  odomChildFrame: base
+  odomParentFrame: odom
+  enableVis: true
+  nominalFootPos: [0.18, -0.13, -0.32,
+                   0.18, 0.13, -0.32,
+                   -0.18, -0.13, -0.32,
+                   -0.18, 0.13, -0.32]
+  nominalFootPosShift: [0, 0, 0]
+  initBodyPose: [0, 0, 0.32, 0, 0, 0]
+
+# Shadow Unitree A1
+UnitreeA1Shadow:
+  urdfParamPath: /shadow/robot_description
+  jointStateTopic: /shadow/joint_states
+  jointNamePrefix: shadow
+  odomChildFrame: shadowbase
+  odomParentFrame: odom
+  enableVis: true
+  # Not used for shadow:
+  nominalFootPos: [0.18, -0.13, -0.32,
+                   0.18, 0.13, -0.32,
+                   -0.18, -0.13, -0.32,
+                   -0.18, 0.13, -0.32]
+  nominalFootPosShift: [0, 0, 0]
+  initBodyPose: [0, 0, 0.32, 0, 0, 0]

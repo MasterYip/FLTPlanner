@@ -1,0 +1,22 @@
+# NOTE: Planner benchmark settings override 
+misc:
+  useCfgCommand: true
+  reOptimize: true
+  reOptimizeMaxTry: 100
+  enableVis: true
+  enableOptVis: false
+  optVisRate: 300
+  enableBenchmark: false
+  OptBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/temp/OptBenchmark.csv
+  ReachableBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/temp/ReachableBenchmark.csv
+  robotProfilePath: /home/user/CodeSpace/ROS/planner_ws/temp/A1RobotProfileRecord.csv
+
+
+RaibertPlanner:
+  rosRate: 100
+
+  # Enable Reachability Check (if enableVis is True, output will be visualized) 
+  enableReachableCheck: true
+  reachableCheckSize: 30 # (size*size, in 0.75*0.75 area)
+
+  OptBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/temp/UnitreeA1RaibertPlannerBenchmark.yaml
