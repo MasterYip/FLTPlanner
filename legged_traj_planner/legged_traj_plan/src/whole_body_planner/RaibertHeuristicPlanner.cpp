@@ -172,6 +172,11 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     cmd_vel_extrapolator_.init(gridmap_interface, pose_sample_pts);
 
     leg_traj_.resize(6);
+
+    // Initialize reachability check parameters from config
+    enable_reachable_check_ = swing_traj_planner_config.enableVis; // Use vis flag as default
+    reachable_check_size_ = 30;
+    reachable_check_interval_ = 0.025;
 }
 
 RaibertHeuristicPlanner::RaibertHeuristicPlanner(std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_,
@@ -206,6 +211,11 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(std::shared_ptr<SwingTrajPlanne
     cmd_vel_extrapolator_.init(gridmap_interface, pose_sample_pts);
 
     leg_traj_.resize(6);
+
+    // Initialize reachability check parameters from config
+    enable_reachable_check_ = swing_traj_planner_->getConfig().enableVis; // Use vis flag as default
+    reachable_check_size_ = 30;
+    reachable_check_interval_ = 0.025;
 }
 
 void RaibertHeuristicPlanner::start(pinocchio::SE3 pose, PosList foot_pos_list)
@@ -231,6 +241,9 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
     update_time_ = ros::Time::now().toSec();
 
     bool foot_pos_list_valid = foot_pos_list.size() == 6;
+
+    // Vis Clear
+    swing_traj_planner_->visClear();
 
     std::vector<std::pair<double, double>> switch_time_pairs;
     pinocchio::SE3 pose_st_mid, pose_touch, pose_lift;
@@ -284,8 +297,18 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                     p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
                 }
 
-                // Vis Clear
-                swing_traj_planner_->visClear();
+
+                // Perform reachability check for this leg before planning trajectory
+                if (enable_reachable_check_ && j == 0 && i%2 == 0) // Only check for the first upcoming swing
+                {
+                    // Generate grid of potential footholds around the target position
+                    auto footholds = generateReachabilityGrid(p1, reachable_check_size_, reachable_check_interval_);
+                    
+                    // Perform reachability check using the actual lift and touch poses
+                    std::vector<bool> reachable;
+                    swing_traj_planner_->reachableCheck(pose_lift, pose_touch, p0, i, footholds, reachable);
+                }
+
                 if (index < leg_traj_[i].size())
                 {
                     // FIXME: temp solution

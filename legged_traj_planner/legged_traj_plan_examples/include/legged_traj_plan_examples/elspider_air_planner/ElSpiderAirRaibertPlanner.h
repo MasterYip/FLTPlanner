@@ -61,6 +61,10 @@ struct ElSpiderAirRaibertPlannerConfig
 
     std::string OptBenchmarkSavePath;
 
+    // Reachability check parameters
+    bool enableReachableCheck;
+    int reachableCheckSize;
+
     void loadParams(ros::NodeHandle &nh, std::string ns = "RaibertPlanner")
     {
         bool check_digit = true;
@@ -69,6 +73,11 @@ struct ElSpiderAirRaibertPlannerConfig
         check_digit &= nh.getParam(ns + "/demoPath", demoPath);
 
         check_digit &= nh.getParam(ns + "/OptBenchmarkSavePath", OptBenchmarkSavePath);
+
+        // Load reachability check parameters
+        check_digit &= nh.getParam(ns + "/enableReachableCheck", enableReachableCheck);
+        check_digit &= nh.getParam(ns + "/reachableCheckSize", reachableCheckSize);
+
         if (!check_digit)
         {
             ROS_ERROR("Failed to load ElSpiderAirRaibertPlannerConfig.");
@@ -111,6 +120,10 @@ public:
         config_.loadParams(nh_);
         rate_ = ros::Rate(config_.rosRate);
         init_time_ = ros::Time::now().toSec();
+
+        // Configure reachability check parameters
+        raibert_planner_.setReachabilityCheckParams(config_.enableReachableCheck, config_.reachableCheckSize);
+
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &ElSpiderAirRaibertPlanner::cmd_callback, this);
 
         timer_ = nh_.createTimer(ros::Duration(0.01), &ElSpiderAirRaibertPlanner::timer_callback, this);

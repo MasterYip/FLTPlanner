@@ -303,6 +303,11 @@ private:
     double duty_ = 0.5;
     double extrapolate_window_ = 3;
 
+    // Reachability check parameters
+    bool enable_reachable_check_ = false;
+    int reachable_check_size_ = 30;
+    double reachable_check_interval_ = 0.025; // 0.75 / 30 = 0.025
+
 public:
     [[deprecated]] RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
                                            std::shared_ptr<GridMapInterface> gridmap_interface,
@@ -333,4 +338,40 @@ public:
     {
         swing_traj_planner_->saveBenchmarkResults();
     };
+
+    void setReachabilityCheckParams(bool enable, int size = 30, double total_area = 0.75)
+    {
+        enable_reachable_check_ = enable;
+        reachable_check_size_ = size;
+        reachable_check_interval_ = total_area / size;
+    }
+
+    /**
+     * @brief Generate footholds for reachable check around nominal position
+     *
+     * @param nominal_foothold Nominal foothold position in WORLD frame
+     * @param size Point array size (size x size)
+     * @param interval Spacing between points
+     * @return std::vector<Eigen::Vector3d> Grid of foothold positions
+     */
+    std::vector<Eigen::Vector3d> generateReachabilityGrid(const Eigen::Vector3d &nominal_foothold,
+                                                          int size, double interval)
+    {
+        std::vector<Eigen::Vector3d> footholds;
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                Eigen::Vector3d foothold = nominal_foothold +
+                                         Eigen::Vector3d((i - size / 2) * interval,
+                                                        (j - size / 2) * interval,
+                                                        0);
+                // Get terrain height at this position
+                foothold[2] = gridmap_interface_->value(grid_map::Position(foothold[0], foothold[1]));
+                footholds.emplace_back(foothold);
+            }
+        }
+        return footholds;
+    }
+
 };

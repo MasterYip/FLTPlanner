@@ -15,4 +15,9 @@ misc:
 
 RaibertPlanner:
   rosRate: 100
+
+  # Enable Reachability Check (if envableVis is True, output will be visualized) 
+  enableReachableCheck: true
+  reachableCheckSize: 30 # (size*size, in 0.75*0.75 area)
+
   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RaibertPlannerBenchmark.yaml

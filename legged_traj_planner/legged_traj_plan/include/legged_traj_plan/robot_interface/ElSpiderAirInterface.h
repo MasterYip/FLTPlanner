@@ -220,17 +220,17 @@ public:
     {
         throw std::runtime_error("Not implemented");
     }
-    
+
     const sensor_msgs::JointState &getJointStateFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
-    
+
     const pinocchio::SE3 &getBodyPoseFdb() const override
     {
         throw std::runtime_error("Not implemented");
     }
-    
+
     const pinocchio::Motion &getBodyVelFdb() const override
     {
         throw std::runtime_error("Not implemented");
@@ -270,18 +270,18 @@ public:
     {
         throw std::runtime_error("Not implemented");
     }
-    
+
     void setJointCmd(const std::vector<Eigen::Vector3d> &q) override
     {
         throw std::runtime_error("Not implemented");
     }
-    
+
     void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact) override
     {
         throw std::runtime_error("Not implemented");
     }
-    
-    void setJointCmd(const std::vector<Eigen::Vector3d> &q, 
+
+    void setJointCmd(const std::vector<Eigen::Vector3d> &q,
                      const std::vector<Eigen::Vector3d> &v,
                      const std::vector<Eigen::Vector3d> &tau,
                      const std::vector<bool> &contact) override
