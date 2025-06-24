@@ -26,6 +26,36 @@
 #include <sensor_msgs/JointState.h>
 #include "legged_traj_plan/FootState.h"
 
+// ================================
+// Unitree A1 Robot Parameters
+// ================================
+
+// Link lengths (from A1 URDF specifications)
+const double A1_HIP_LINK_LENGTH = 0.0838;    // hip ab/ad distance (l1)
+const double A1_THIGH_LINK_LENGTH = 0.2;     // thigh link length (l2)  
+const double A1_CALF_LINK_LENGTH = 0.2;      // calf link length (l3)
+
+// Hip positions in base frame (from A1 robot geometry)
+const std::vector<Eigen::Vector3d> A1_HIP_POSITIONS = {
+    Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
+    Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
+    Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
+    Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
+};
+
+// Joint limits (radians)
+const double A1_HIP_JOINT_MIN = -1.0;       // q1 min
+const double A1_HIP_JOINT_MAX = 1.0;        // q1 max
+const double A1_THIGH_JOINT_MIN = -1.5;     // q2 min
+const double A1_THIGH_JOINT_MAX = 3.0;      // q2 max
+const double A1_CALF_JOINT_MIN = -2.7;      // q3 min
+const double A1_CALF_JOINT_MAX = -0.9;      // q3 max
+
+// Nominal foot positions for A1 (BASE frame)
+const double A1_NOMINAL_X = 0.18;     // front/rear distance from center
+const double A1_NOMINAL_Y = 0.13;     // left/right distance from center
+const double A1_NOMINAL_Z = -0.32;    // nominal height
+
 // Define JOINT_STATE_NAME and FOOT_LINK_NAME constants for A1
 const std::vector<std::string> A1_JOINT_STATE_NAME = {"FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
                                                       "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint",
@@ -33,6 +63,14 @@ const std::vector<std::string> A1_JOINT_STATE_NAME = {"FR_hip_joint", "FR_thigh_
                                                       "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint"};
 
 const std::vector<std::string> A1_FOOT_LINK_NAME = {"FR_foot", "FL_foot", "RR_foot", "RL_foot"};
+
+// Nominal foot positions using parameters
+const std::vector<Eigen::Vector3d> A1_NOMINAL_FOOT_POS = {
+    Eigen::Vector3d(A1_NOMINAL_X, -A1_NOMINAL_Y, A1_NOMINAL_Z),  // FR
+    Eigen::Vector3d(A1_NOMINAL_X, A1_NOMINAL_Y, A1_NOMINAL_Z),   // FL
+    Eigen::Vector3d(-A1_NOMINAL_X, -A1_NOMINAL_Y, A1_NOMINAL_Z), // RR
+    Eigen::Vector3d(-A1_NOMINAL_X, A1_NOMINAL_Y, A1_NOMINAL_Z)   // RL
+};
 
 inline Polyhedra genA1LegPolyRegion(int index)
 {
@@ -69,25 +107,14 @@ inline Polyhedra genA1LegPolyRegion(int index)
     return Polyhedra(hull);
 }
 
-// Nominal foot positions for A1 (BASE frame)
-const double a1_nominal_x = 0.18;  // front/rear distance from center
-const double a1_nominal_y = 0.13;  // left/right distance from center
-const double a1_nominal_z = -0.32; // nominal height
-const std::vector<Eigen::Vector3d> A1_NOMINAL_FOOT_POS = {
-    Eigen::Vector3d(a1_nominal_x, -a1_nominal_y, a1_nominal_z),  // FR
-    Eigen::Vector3d(a1_nominal_x, a1_nominal_y, a1_nominal_z),   // FL
-    Eigen::Vector3d(-a1_nominal_x, -a1_nominal_y, a1_nominal_z), // RR
-    Eigen::Vector3d(-a1_nominal_x, a1_nominal_y, a1_nominal_z)   // RL
-};
-
 class UnitreeA1Interface : public BaseRobotInterface
 {
 private:
     std::vector<Eigen::Vector3d> nominal_footholds = {
-        Eigen::Vector3d(a1_nominal_x, -a1_nominal_y, a1_nominal_z),  // FR
-        Eigen::Vector3d(a1_nominal_x, a1_nominal_y, a1_nominal_z),   // FL
-        Eigen::Vector3d(-a1_nominal_x, -a1_nominal_y, a1_nominal_z), // RR
-        Eigen::Vector3d(-a1_nominal_x, a1_nominal_y, a1_nominal_z)   // RL
+        Eigen::Vector3d(A1_NOMINAL_X, -A1_NOMINAL_Y, A1_NOMINAL_Z),  // FR
+        Eigen::Vector3d(A1_NOMINAL_X, A1_NOMINAL_Y, A1_NOMINAL_Z),   // FL
+        Eigen::Vector3d(-A1_NOMINAL_X, -A1_NOMINAL_Y, A1_NOMINAL_Z), // RR
+        Eigen::Vector3d(-A1_NOMINAL_X, A1_NOMINAL_Y, A1_NOMINAL_Z)   // RL
     };
 
 public:
@@ -117,21 +144,8 @@ public:
 
     Eigen::Vector3d IKFast_foot(const Eigen::Vector3d &footendpos, int index) override
     {
-        // A1 link lengths (from URDF or robot specifications)
-        const double l1 = 0.0838; // hip link length (ab/ad distance)
-        const double l2 = 0.2;    // thigh link length
-        const double l3 = 0.2;    // calf link length
-
-        // Hip positions in base frame (from A1 robot geometry)
-        std::vector<Eigen::Vector3d> hip_positions = {
-            Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
-            Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
-            Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
-            Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
-        };
-
         // Convert from base frame to leg frame
-        Eigen::Vector3d pDes = footendpos - hip_positions[index];
+        Eigen::Vector3d pDes = footendpos - A1_HIP_POSITIONS[index];
         
         // Determine side sign: -1 for right legs (FR, RR), +1 for left legs (FL, RL)
         int sideSign = (index == 0 || index == 2) ? -1 : 1; // FR=0, FL=1, RR=2, RL=3
@@ -142,14 +156,14 @@ public:
 
         // Use the same IK algorithm as in LegController.cpp
         double c = sqrt(px*px + py*py + pz*pz);  // whole length
-        double b = sqrt(c*c - l1*l1);  // distance between shoulder and footpoint
+        double b = sqrt(c*c - A1_HIP_LINK_LENGTH*A1_HIP_LINK_LENGTH);  // distance between shoulder and footpoint
 
         // Hip joint angle (q1) - same as q1_ik in LegController.cpp
-        double L = sqrt(py*py + pz*pz - l1*l1);
-        double q1 = atan2(pz * l1 + py * L, py * l1 - pz * L);
+        double L = sqrt(py*py + pz*pz - A1_HIP_LINK_LENGTH*A1_HIP_LINK_LENGTH);
+        double q1 = atan2(pz * A1_HIP_LINK_LENGTH + py * L, py * A1_HIP_LINK_LENGTH - pz * L);
 
         // Knee joint angle (q3) - same as q3_ik in LegController.cpp  
-        double temp = (l2*l2 + l3*l3 - b*b) / (2.0 * l2 * l3);
+        double temp = (A1_THIGH_LINK_LENGTH*A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH*A1_CALF_LINK_LENGTH - b*b) / (2.0 * A1_THIGH_LINK_LENGTH * A1_CALF_LINK_LENGTH);
         temp = std::max(-1.0, std::min(1.0, temp)); // clamp to valid range
         double q3 = acos(temp);
         q3 = -(M_PI - q3); // A1 convention: negative knee angle
@@ -157,8 +171,8 @@ public:
         // Thigh joint angle (q2) - same as q2_ik in LegController.cpp
         double a1 = py * sin(q1) - pz * cos(q1);
         double a2 = px;
-        double m1 = l3 * sin(q3);
-        double m2 = l2 + l3 * cos(q3);
+        double m1 = A1_CALF_LINK_LENGTH * sin(q3);
+        double m2 = A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH * cos(q3);
         double q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
 
         return Eigen::Vector3d(q1, q2, q3);
@@ -168,21 +182,8 @@ public:
     bool IKFast_foot(const Eigen::Vector3d &footendpos, Eigen::Vector3d &q_result, int index) override
     {
         bool check_constraints = true;
-        // A1 link lengths
-        const double l1 = 0.0838;
-        const double l2 = 0.2;
-        const double l3 = 0.2;
-
-        // Hip positions in base frame
-        std::vector<Eigen::Vector3d> hip_positions = {
-            Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
-            Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
-            Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
-            Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
-        };
-
         // Convert from base frame to leg frame
-        Eigen::Vector3d pDes = footendpos - hip_positions[index];
+        Eigen::Vector3d pDes = footendpos - A1_HIP_POSITIONS[index];
         
         double px = pDes[0];
         double py = pDes[1];
@@ -190,8 +191,8 @@ public:
 
         // Check if point is reachable (basic constraint checking)
         double c = sqrt(px*px + py*py + pz*pz);
-        double max_reach = l2 + l3;
-        double min_reach = abs(l2 - l3);
+        double max_reach = A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH;
+        double min_reach = abs(A1_THIGH_LINK_LENGTH - A1_CALF_LINK_LENGTH);
 
         if (check_constraints)
         {
@@ -203,7 +204,7 @@ public:
 
             // Check if hip offset is reachable
             double hip_distance = sqrt(py*py + pz*pz);
-            if (hip_distance < l1)
+            if (hip_distance < A1_HIP_LINK_LENGTH)
             {
                 return false;
             }
@@ -212,35 +213,31 @@ public:
         try
         {
             // Use same algorithm as non-constraint version
-            double b = sqrt(c*c - l1*l1);
+            double b = sqrt(c*c - A1_HIP_LINK_LENGTH*A1_HIP_LINK_LENGTH);
             
-            double L = sqrt(py*py + pz*pz - l1*l1);
+            double L = sqrt(py*py + pz*pz - A1_HIP_LINK_LENGTH*A1_HIP_LINK_LENGTH);
             if (L != L) // Check for NaN
                 return false;
 
-            double q1 = atan2(pz * l1 + py * L, py * l1 - pz * L);
+            double q1 = atan2(pz * A1_HIP_LINK_LENGTH + py * L, py * A1_HIP_LINK_LENGTH - pz * L);
 
-            double temp = (l2*l2 + l3*l3 - b*b) / (2.0 * l2 * l3);
+            double temp = (A1_THIGH_LINK_LENGTH*A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH*A1_CALF_LINK_LENGTH - b*b) / (2.0 * A1_THIGH_LINK_LENGTH * A1_CALF_LINK_LENGTH);
             temp = std::max(-1.0, std::min(1.0, temp));
             double q3 = acos(temp);
             q3 = -(M_PI - q3);
 
             double a1 = py * sin(q1) - pz * cos(q1);
             double a2 = px;
-            double m1 = l3 * sin(q3);
-            double m2 = l2 + l3 * cos(q3);
+            double m1 = A1_CALF_LINK_LENGTH * sin(q3);
+            double m2 = A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH * cos(q3);
             double q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
 
             if (check_constraints)
             {
-                // Additional joint limit checks
-                const double q1_min = -1.0, q1_max = 1.0;
-                const double q2_min = -1.5, q2_max = 3.0;
-                const double q3_min = -2.7, q3_max = -0.9;
-
-                if (q1 < q1_min || q1 > q1_max ||
-                    q2 < q2_min || q2 > q2_max ||
-                    q3 < q3_min || q3 > q3_max)
+                // Additional joint limit checks using parameters
+                if (q1 < A1_HIP_JOINT_MIN || q1 > A1_HIP_JOINT_MAX ||
+                    q2 < A1_THIGH_JOINT_MIN || q2 > A1_THIGH_JOINT_MAX ||
+                    q3 < A1_CALF_JOINT_MIN || q3 > A1_CALF_JOINT_MAX)
                 {
                     return false;
                 }
@@ -257,19 +254,6 @@ public:
 
     Eigen::Vector3d FK_foot(const Eigen::Vector3d &q, int index) override
     {
-        // A1 link lengths
-        const double l1 = 0.0838; // hip link length
-        const double l2 = 0.2;    // thigh link length
-        const double l3 = 0.2;    // calf link length
-
-        // Hip positions in base frame
-        std::vector<Eigen::Vector3d> hip_positions = {
-            Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
-            Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
-            Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
-            Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
-        };
-
         // Determine side sign
         int sideSign = (index == 0 || index == 2) ? -1 : 1;
 
@@ -284,22 +268,17 @@ public:
         double s23 = s2 * c3 + c2 * s3;
 
         // Forward kinematics equations in leg frame (same as LegController.cpp)
-        double px = -l3 * s23 - l2 * s2;
-        double py = l1 * sideSign * c1 + l3 * (s1 * c23) + l2 * c2 * s1;
-        double pz = l1 * sideSign * s1 - l3 * (c1 * c23) - l2 * c1 * c2;
+        double px = -A1_CALF_LINK_LENGTH * s23 - A1_THIGH_LINK_LENGTH * s2;
+        double py = A1_HIP_LINK_LENGTH * sideSign * c1 + A1_CALF_LINK_LENGTH * (s1 * c23) + A1_THIGH_LINK_LENGTH * c2 * s1;
+        double pz = A1_HIP_LINK_LENGTH * sideSign * s1 - A1_CALF_LINK_LENGTH * (c1 * c23) - A1_THIGH_LINK_LENGTH * c1 * c2;
 
         // Convert from leg frame to base frame
         Eigen::Vector3d pLeg(px, py, pz);
-        return pLeg + hip_positions[index];
+        return pLeg + A1_HIP_POSITIONS[index];
     }
 
     Eigen::Matrix3Xd getJacobian(const Eigen::Vector3d &q, int index) override
     {
-        // A1 link lengths
-        const double l1 = 0.0838;
-        const double l2 = 0.2;
-        const double l3 = 0.2;
-
         int sideSign = (index == 0 || index == 2) ? -1 : 1;
 
         double s1 = sin(q[0]);
@@ -316,16 +295,16 @@ public:
 
         // Jacobian matrix elements (same as LegController.cpp)
         J(0, 0) = 0;
-        J(1, 0) = -sideSign * l1 * s1 + l2 * c2 * c1 + l3 * c23 * c1;
-        J(2, 0) = sideSign * l1 * c1 + l2 * c2 * s1 + l3 * c23 * s1;
+        J(1, 0) = -sideSign * A1_HIP_LINK_LENGTH * s1 + A1_THIGH_LINK_LENGTH * c2 * c1 + A1_CALF_LINK_LENGTH * c23 * c1;
+        J(2, 0) = sideSign * A1_HIP_LINK_LENGTH * c1 + A1_THIGH_LINK_LENGTH * c2 * s1 + A1_CALF_LINK_LENGTH * c23 * s1;
 
-        J(0, 1) = -l3 * c23 - l2 * c2;
-        J(1, 1) = -l2 * s2 * s1 - l3 * s23 * s1;
-        J(2, 1) = l2 * s2 * c1 + l3 * s23 * c1;
+        J(0, 1) = -A1_CALF_LINK_LENGTH * c23 - A1_THIGH_LINK_LENGTH * c2;
+        J(1, 1) = -A1_THIGH_LINK_LENGTH * s2 * s1 - A1_CALF_LINK_LENGTH * s23 * s1;
+        J(2, 1) = A1_THIGH_LINK_LENGTH * s2 * c1 + A1_CALF_LINK_LENGTH * s23 * c1;
 
-        J(0, 2) = -l3 * c23;
-        J(1, 2) = -l3 * s23 * s1;
-        J(2, 2) = l3 * s23 * c1;
+        J(0, 2) = -A1_CALF_LINK_LENGTH * c23;
+        J(1, 2) = -A1_CALF_LINK_LENGTH * s23 * s1;
+        J(2, 2) = A1_CALF_LINK_LENGTH * s23 * c1;
 
         // Note: This Jacobian is in leg frame. For base frame operations,
         // the calling code should account for hip offsets if needed
@@ -345,18 +324,7 @@ public:
     // Simple collision ball forward kinematics (for compatibility)
     Eigen::Vector3d FK_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx) override
     {
-        // Hip positions in base frame
-        std::vector<Eigen::Vector3d> hip_positions = {
-            Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
-            Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
-            Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
-            Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
-        };
-
         // For A1, we'll approximate collision balls at joint positions
-        const double l1 = 0.0838;
-        const double l2 = 0.2;
-
         int sideSign = (legIdx == 0 || legIdx == 2) ? -1 : 1;
 
         double s1 = sin(q[0]);
@@ -368,12 +336,12 @@ public:
         switch (jointIdx)
         {
         case 0: // Hip joint position
-            pLeg = Eigen::Vector3d(0, l1 * sideSign * c1, l1 * sideSign * s1);
+            pLeg = Eigen::Vector3d(0, A1_HIP_LINK_LENGTH * sideSign * c1, A1_HIP_LINK_LENGTH * sideSign * s1);
             break;
         case 1: // Knee joint position
-            pLeg = Eigen::Vector3d(-l2 * s2,
-                                   l1 * sideSign * c1 + l2 * c2 * s1,
-                                   l1 * sideSign * s1 - l2 * c1 * c2);
+            pLeg = Eigen::Vector3d(-A1_THIGH_LINK_LENGTH * s2,
+                                   A1_HIP_LINK_LENGTH * sideSign * c1 + A1_THIGH_LINK_LENGTH * c2 * s1,
+                                   A1_HIP_LINK_LENGTH * sideSign * s1 - A1_THIGH_LINK_LENGTH * c1 * c2);
             break;
         case 2: // Foot position
             return FK_foot(q, legIdx);
@@ -382,7 +350,7 @@ public:
         }
         
         // Convert from leg frame to base frame
-        return pLeg + hip_positions[legIdx];
+        return pLeg + A1_HIP_POSITIONS[legIdx];
     }
 
     Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx) override

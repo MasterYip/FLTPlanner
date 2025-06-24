@@ -115,13 +115,13 @@ private:
 
 public:
     UnitreeA1RaibertPlanner() : UnitreeA1PlannerBase(),
-                                rate_(100), 
+                                rate_(100),
                                 benchmark_("UnitreeA1RaibertPlannerBenchmark", false),
                                 visualizer_(nh_, "odom", "visualizer_markers"),
                                 visualizer_base_(nh_, "base", "visualizer_markers_base"),
-                                raibert_planner_(swing_traj_planner_, 
-                                                gridmap_interface_, 
-                                                robot_interface_)
+                                raibert_planner_(swing_traj_planner_,
+                                                 gridmap_interface_,
+                                                 robot_interface_)
     {
         // Load configurations
         config_.loadParams(nh_);
@@ -145,8 +145,8 @@ public:
         PosList foot_pos_list;
         for (size_t i = 0; i < 4; ++i)
         {
-            foot_pos_list.push_back(point_SE3Act(pose.inverse(), 
-                Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z)));
+            foot_pos_list.push_back(point_SE3Act(pose.inverse(),
+                                                 Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z)));
         }
         return foot_pos_list;
     }
@@ -156,7 +156,7 @@ public:
         pinocchio::SE3 exp_pose;
         PosList exp_foot_pos;
         std::array<bool, 4> contact_state;
-        
+
         if (swing_traj_planner_config_.useCfgCommand)
         {
             if (raibert_planner_.queryCfg(ros::Time::now().toSec(), exp_pose, exp_foot_pos, contact_state))
