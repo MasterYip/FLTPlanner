@@ -146,20 +146,42 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       swing_traj_planner_(std::make_shared<FLTCfgPlanner>(swing_traj_planner_config, robot_interface_, gridmap_interface_))
 {
+    // Determine number of legs from robot interface
+    num_legs_ = determineNumLegs();
+
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "raibert_heuristic_planner_vis");
 
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28 - 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34 - 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28 - 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28 + 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34 + 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28 + 0.04, -0.28));
+    // Configure schedulers based on robot type
+    if (num_legs_ == 4) // Quadruped - trotting gait
+    {
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));   // FR
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5)); // FL
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5)); // RR
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));   // RL
+
+        // Quadruped nominal footholds (A1 style)
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.18, -0.13, -0.32));  // FR
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.18, 0.13, -0.32));   // FL
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.18, -0.13, -0.32)); // RR
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.18, 0.13, -0.32));  // RL
+    }
+    else // Hexapod - default bigait
+    {
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+
+        // Hexapod nominal footholds
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28 - 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34 - 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28 - 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28 + 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34 + 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28 + 0.04, -0.28));
+    }
 
     PosList pose_sample_pts;
     for (double x = -0.4; x <= 0.4; x += 0.1)
@@ -171,10 +193,10 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_tr
     }
     cmd_vel_extrapolator_.init(gridmap_interface, pose_sample_pts);
 
-    leg_traj_.resize(6);
+    leg_traj_.resize(num_legs_);
 
     // Initialize reachability check parameters from config
-    enable_reachable_check_ = swing_traj_planner_config.enableVis; // Use vis flag as default
+    enable_reachable_check_ = swing_traj_planner_->getConfig().enableVis; // Use vis flag as default
     reachable_check_size_ = 30;
     reachable_check_interval_ = 0.025;
 }
@@ -185,20 +207,42 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(std::shared_ptr<SwingTrajPlanne
     : gridmap_interface_(gridmap_interface), robot_interface_(robot_interface),
       swing_traj_planner_(swing_traj_planner_)
 {
+    // Determine number of legs from robot interface
+    num_legs_ = determineNumLegs();
+
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "raibert_heuristic_planner_vis");
 
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
-    switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28 - 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34 - 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28 - 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28 + 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34 + 0.04, -0.28));
-    nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28 + 0.04, -0.28));
+    // Configure schedulers based on robot type
+    if (num_legs_ == 4) // Quadruped - trotting gait
+    {
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));   // FR
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5)); // FL
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5)); // RR
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));   // RL
+
+        // Quadruped nominal footholds (A1 style)
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.18, -0.13, -0.32));  // FR
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.18, 0.13, -0.32));   // FL
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.18, -0.13, -0.32)); // RR
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.18, 0.13, -0.32));  // RL
+    }
+    else // Hexapod - default bigait
+    {
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0));
+        switch_scheduler_.emplace_back(LegSwitchScheduler(interval_, duty_, 0.5));
+
+        // Hexapod nominal footholds
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, -0.28 - 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, -0.34 - 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, -0.28 - 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.354, 0.28 + 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(0.054, 0.34 + 0.04, -0.28));
+        nominal_foothold_base_.emplace_back(Eigen::Vector3d(-0.354, 0.28 + 0.04, -0.28));
+    }
 
     PosList pose_sample_pts;
     for (double x = -0.4; x <= 0.4; x += 0.1)
@@ -210,7 +254,7 @@ RaibertHeuristicPlanner::RaibertHeuristicPlanner(std::shared_ptr<SwingTrajPlanne
     }
     cmd_vel_extrapolator_.init(gridmap_interface, pose_sample_pts);
 
-    leg_traj_.resize(6);
+    leg_traj_.resize(num_legs_);
 
     // Initialize reachability check parameters from config
     enable_reachable_check_ = swing_traj_planner_->getConfig().enableVis; // Use vis flag as default
@@ -240,7 +284,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
     cmd_vel_extrapolator_.update(pose, cmd_vel);
     update_time_ = ros::Time::now().toSec();
 
-    bool foot_pos_list_valid = foot_pos_list.size() == 6;
+    bool foot_pos_list_valid = foot_pos_list.size() == num_legs_;
 
     // Vis Clear
     swing_traj_planner_->visClear();
@@ -248,7 +292,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
     std::vector<std::pair<double, double>> switch_time_pairs;
     pinocchio::SE3 pose_st_mid, pose_touch, pose_lift;
     double t_now = update_time_;
-    for (int i = 0; i < 6; ++i)
+    for (int i = 0; i < num_legs_; ++i)
     {
         // Remove old traj
         while (leg_traj_[i].size() > 1 && leg_traj_[i].front().t_touch < t_now - interval_)
@@ -297,13 +341,12 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                     p0 = point_SE3Act(pose_lift.inverse(), nominal_foothold_base_[i]);
                 }
 
-
                 // Perform reachability check for this leg before planning trajectory
-                if (enable_reachable_check_ && j == 0 && i%2 == 0) // Only check for the first upcoming swing
+                if (enable_reachable_check_ && j == 0 && i % 2 == 0) // Only check for the first upcoming swing
                 {
                     // Generate grid of potential footholds around the target position
                     auto footholds = generateReachabilityGrid(p1, reachable_check_size_, reachable_check_interval_);
-                    
+
                     // Perform reachability check using the actual lift and touch poses
                     std::vector<bool> reachable;
                     swing_traj_planner_->reachableCheck(pose_lift, pose_touch, p0, i, footholds, reachable);
@@ -349,28 +392,27 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
         }
     }
 
-    // Visulization
+    // Visualization
     if (swing_traj_planner_->getConfig().enableVis)
     {
         visualizer_->delAll();
-        std::vector<std::vector<Point3D>> foot_trajs(6);
+        std::vector<std::vector<Point3D>> foot_trajs(num_legs_);
         double delta_t = 0.01;
         int sample_points = 100;
         pinocchio::SE3 pose;
         PosList foot_pos_list;
-        std::array<bool, 6> support_state;
+        std::vector<bool> support_state;
         for (int i = 0; i < sample_points; i++)
         {
             double t = update_time_ + i * delta_t;
-            query(t, pose, foot_pos_list, support_state);
-            for (int j = 0; j < 6; j++)
+            queryGeneric(t, pose, foot_pos_list, support_state);
+            for (int j = 0; j < num_legs_; j++)
             {
                 foot_trajs[j].emplace_back(point_SE3Act(pose.inverse(), foot_pos_list[j]));
             }
         }
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < num_legs_; i++)
         {
-            // visualizer_->visCurve(foot_trajs[i], ros_visualizer::VisStyle(0.3, 0.7, 0.3, 0.7, 0.01));
             visualizer_->visCurve(foot_trajs[i]);
         }
     }
@@ -488,5 +530,127 @@ bool RaibertHeuristicPlanner::toCfgSpace(pinocchio::SE3 pose, Eigen::Vector3d po
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(pos_cfg, leg_index);
     Eigen::Matrix3Xd J_inv = J.transpose() * (J * J.transpose()).inverse();
     vel_cfg = J_inv * base_vel;
+    return true;
+}
+
+// Quadruped interface (4 legs) - new overloaded methods
+bool RaibertHeuristicPlanner::query(double t, pinocchio::SE3 &pose,
+                                    PosList &foot_pos_list,
+                                    std::array<bool, 4> &support_state)
+{
+    // Use the generic interface and convert to quadruped-specific format
+    std::vector<bool> generic_support_state;
+    bool result = queryGeneric(t, pose, foot_pos_list, generic_support_state);
+
+    // Convert to 4-leg array
+    for (int i = 0; i < 4 && i < generic_support_state.size(); ++i)
+    {
+        support_state[i] = generic_support_state[i];
+    }
+
+    return result;
+}
+
+bool RaibertHeuristicPlanner::queryCfg(double t, pinocchio::SE3 &pose,
+                                       PosList &foot_pos_list,
+                                       std::array<bool, 4> &support_state)
+{
+    // Use the generic interface and convert to quadruped-specific format
+    std::vector<bool> generic_support_state;
+    bool result = queryCfgGeneric(t, pose, foot_pos_list, generic_support_state);
+
+    // Convert to 4-leg array
+    for (int i = 0; i < 4 && i < generic_support_state.size(); ++i)
+    {
+        support_state[i] = generic_support_state[i];
+    }
+
+    return result;
+}
+
+// Generic interface that works with both robot types
+bool RaibertHeuristicPlanner::queryGeneric(double t, pinocchio::SE3 &pose,
+                                           PosList &foot_pos_list,
+                                           std::vector<bool> &support_state)
+{
+    foot_pos_list.clear();
+    support_state.clear();
+    support_state.resize(num_legs_, true);
+
+    pose = cmd_vel_extrapolator_.extrapolate(t - update_time_);
+    for (int i = 0; i < num_legs_; ++i)
+    {
+        bool found = false;
+        for (int j = 0; j < leg_traj_[i].size(); j++)
+        {
+            auto &leg_traj = leg_traj_[i][j];
+            if (leg_traj.isInDuration(t))
+            {
+                foot_pos_list.emplace_back(robot_interface_->FK_foot(leg_traj.evaluate(t), i));
+                support_state[i] = false;
+                found = true;
+                break;
+            }
+            if (t < leg_traj.t_lift)
+            {
+                foot_pos_list.emplace_back(point_SE3Act(pose, leg_traj.foothold_lift));
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            if (leg_traj_[i].size() > 0)
+                foot_pos_list.emplace_back(point_SE3Act(pose, leg_traj_[i].back().foothold_touch));
+            else
+            {
+                ROS_WARN("No valid leg_traj found for leg %d at time %f", i, t);
+                foot_pos_list.emplace_back(nominal_foothold_base_[i]);
+            }
+        }
+    }
+    return true;
+}
+
+bool RaibertHeuristicPlanner::queryCfgGeneric(double t, pinocchio::SE3 &pose,
+                                              PosList &foot_pos_list,
+                                              std::vector<bool> &support_state)
+{
+    foot_pos_list.clear();
+    support_state.clear();
+    support_state.resize(num_legs_, true);
+
+    pose = cmd_vel_extrapolator_.extrapolate(t - update_time_);
+    for (int i = 0; i < num_legs_; ++i)
+    {
+        bool found = false;
+        for (int j = 0; j < leg_traj_[i].size(); j++)
+        {
+            auto &leg_traj = leg_traj_[i][j];
+            if (leg_traj.isInDuration(t))
+            {
+                foot_pos_list.emplace_back(leg_traj.evaluate(t));
+                support_state[i] = false;
+                found = true;
+                break;
+            }
+            if (t < leg_traj.t_lift)
+            {
+                foot_pos_list.emplace_back(robot_interface_->IKFast_foot(point_SE3Act(pose, leg_traj.foothold_lift), i));
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+        {
+            if (leg_traj_[i].size() > 0)
+                foot_pos_list.emplace_back(robot_interface_->IKFast_foot(point_SE3Act(pose, leg_traj_[i].back().foothold_touch), i));
+            else
+            {
+                ROS_WARN("No valid leg_traj found for leg %d at time %f", i, t);
+                foot_pos_list.emplace_back(robot_interface_->IKFast_foot(nominal_foothold_base_[i], i));
+            }
+        }
+    }
     return true;
 }

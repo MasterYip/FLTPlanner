@@ -303,10 +303,40 @@ private:
     double duty_ = 0.5;
     double extrapolate_window_ = 3;
 
+    // Robot configuration
+    int num_legs_ = 6; // Default to hexapod, will be determined from robot interface
+
     // Reachability check parameters
     bool enable_reachable_check_ = false;
     int reachable_check_size_ = 30;
     double reachable_check_interval_ = 0.025; // 0.75 / 30 = 0.025
+
+private:
+    /**
+     * @brief Determine number of legs from robot interface
+     */
+    int determineNumLegs()
+    {
+        try
+        {
+            // Try to get nominal foothold for different leg indices to determine robot type
+            robot_interface_->getNominalFoothold(5); // Test for hexapod (index 5)
+            return 6;                                // If successful, it's a hexapod
+        }
+        catch (...)
+        {
+            try
+            {
+                robot_interface_->getNominalFoothold(3); // Test for quadruped (index 3)
+                return 4;                                // If successful, it's a quadruped
+            }
+            catch (...)
+            {
+                ROS_WARN("Could not determine robot type, defaulting to hexapod (6 legs)");
+                return 6; // Default fallback
+            }
+        }
+    }
 
 public:
     [[deprecated]] RaibertHeuristicPlanner(SwingTrajPlannerConfig swing_traj_planner_config,
@@ -322,6 +352,7 @@ public:
     void update(pinocchio::SE3 pose, geometry_msgs::Twist cmd_vel,
                 PosList foot_pos_list = PosList());
 
+    // Hexapod interface (6 legs) - maintain backward compatibility
     bool query(double t, pinocchio::SE3 &pose,
                PosList &foot_pos_list,
                std::array<bool, 6> &support_state);
@@ -329,6 +360,24 @@ public:
     bool queryCfg(double t, pinocchio::SE3 &pose,
                   PosList &foot_pos_list,
                   std::array<bool, 6> &support_state);
+
+    // Quadruped interface (4 legs) - new overloaded methods
+    bool query(double t, pinocchio::SE3 &pose,
+               PosList &foot_pos_list,
+               std::array<bool, 4> &support_state);
+
+    bool queryCfg(double t, pinocchio::SE3 &pose,
+                  PosList &foot_pos_list,
+                  std::array<bool, 4> &support_state);
+
+    // Generic interface that works with both robot types
+    bool queryGeneric(double t, pinocchio::SE3 &pose,
+                      PosList &foot_pos_list,
+                      std::vector<bool> &support_state);
+
+    bool queryCfgGeneric(double t, pinocchio::SE3 &pose,
+                         PosList &foot_pos_list,
+                         std::vector<bool> &support_state);
 
     bool toCfgSpace(pinocchio::SE3 pose, Eigen::Vector3d pos, Eigen::Vector3d vel,
                     Eigen::Vector3d &pos_cfg, Eigen::Vector3d &vel_cfg,
@@ -363,9 +412,9 @@ public:
             for (int j = 0; j < size; j++)
             {
                 Eigen::Vector3d foothold = nominal_foothold +
-                                         Eigen::Vector3d((i - size / 2) * interval,
-                                                        (j - size / 2) * interval,
-                                                        0);
+                                           Eigen::Vector3d((i - size / 2) * interval,
+                                                           (j - size / 2) * interval,
+                                                           0);
                 // Get terrain height at this position
                 foothold[2] = gridmap_interface_->value(grid_map::Position(foothold[0], foothold[1]));
                 footholds.emplace_back(foothold);
@@ -374,4 +423,8 @@ public:
         return footholds;
     }
 
+    /**
+     * @brief Get number of legs for this robot
+     */
+    int getNumLegs() const { return num_legs_; }
 };
