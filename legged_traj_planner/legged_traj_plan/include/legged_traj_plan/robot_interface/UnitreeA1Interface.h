@@ -102,7 +102,7 @@ public:
     }
 
     // Kinematics
-    std::vector<double> IKFast_foots(const std::vector<Eigen::Vector3d> &footendpos)
+    std::vector<double> IKFast_foots(const std::vector<Eigen::Vector3d> &footendpos) override
     {
         std::vector<double> q;
         for (int i = 0; i < 4; i++)
@@ -115,76 +115,94 @@ public:
         return q;
     }
 
-    Eigen::Vector3d IKFast_foot(const Eigen::Vector3d &footendpos, int index)
+    Eigen::Vector3d IKFast_foot(const Eigen::Vector3d &footendpos, int index) override
     {
         // A1 link lengths (from URDF or robot specifications)
         const double l1 = 0.0838; // hip link length (ab/ad distance)
         const double l2 = 0.2;    // thigh link length
         const double l3 = 0.2;    // calf link length
 
+        // Hip positions in base frame (from A1 robot geometry)
+        std::vector<Eigen::Vector3d> hip_positions = {
+            Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
+            Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
+            Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
+            Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
+        };
+
+        // Convert from base frame to leg frame
+        Eigen::Vector3d pDes = footendpos - hip_positions[index];
+        
         // Determine side sign: -1 for right legs (FR, RR), +1 for left legs (FL, RL)
         int sideSign = (index == 0 || index == 2) ? -1 : 1; // FR=0, FL=1, RR=2, RL=3
 
-        // Geometric inverse kinematics implementation
-        double px = footendpos[0];
-        double py = footendpos[1];
-        double pz = footendpos[2];
+        double px = pDes[0];
+        double py = pDes[1]; 
+        double pz = pDes[2];
 
-        // Hip joint angle (q1)
-        double q1;
-        double L = sqrt(py * py + pz * pz - l1 * l1);
-        q1 = atan2(pz * l1 + py * L, py * l1 - pz * L);
+        // Use the same IK algorithm as in LegController.cpp
+        double c = sqrt(px*px + py*py + pz*pz);  // whole length
+        double b = sqrt(c*c - l1*l1);  // distance between shoulder and footpoint
 
-        // Distance from hip to foot in the leg plane
-        double a1 = py * sin(q1) - pz * cos(q1);
-        double a2 = px;
-        double leg_length = sqrt(a1 * a1 + a2 * a2);
+        // Hip joint angle (q1) - same as q1_ik in LegController.cpp
+        double L = sqrt(py*py + pz*pz - l1*l1);
+        double q1 = atan2(pz * l1 + py * L, py * l1 - pz * L);
 
-        // Knee joint angle (q3) - using law of cosines
-        double q3;
-        double temp = (l2 * l2 + l3 * l3 - leg_length * leg_length) / (2.0 * l2 * l3);
+        // Knee joint angle (q3) - same as q3_ik in LegController.cpp  
+        double temp = (l2*l2 + l3*l3 - b*b) / (2.0 * l2 * l3);
         temp = std::max(-1.0, std::min(1.0, temp)); // clamp to valid range
-        q3 = acos(temp);
+        double q3 = acos(temp);
         q3 = -(M_PI - q3); // A1 convention: negative knee angle
 
-        // Thigh joint angle (q2)
-        double q2;
+        // Thigh joint angle (q2) - same as q2_ik in LegController.cpp
+        double a1 = py * sin(q1) - pz * cos(q1);
+        double a2 = px;
         double m1 = l3 * sin(q3);
         double m2 = l2 + l3 * cos(q3);
-        q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
+        double q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
 
         return Eigen::Vector3d(q1, q2, q3);
     }
 
     // Overload for constraint checking with boolean return
-    bool IKFast_foot(const Eigen::Vector3d &footendpos, Eigen::Vector3d &q_result, int index, bool check_constraints = true)
+    bool IKFast_foot(const Eigen::Vector3d &footendpos, Eigen::Vector3d &q_result, int index) override
     {
+        bool check_constraints = true;
         // A1 link lengths
         const double l1 = 0.0838;
         const double l2 = 0.2;
         const double l3 = 0.2;
 
-        int sideSign = (index == 0 || index == 2) ? -1 : 1;
+        // Hip positions in base frame
+        std::vector<Eigen::Vector3d> hip_positions = {
+            Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
+            Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
+            Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
+            Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
+        };
 
-        double px = footendpos[0];
-        double py = footendpos[1];
-        double pz = footendpos[2];
+        // Convert from base frame to leg frame
+        Eigen::Vector3d pDes = footendpos - hip_positions[index];
+        
+        double px = pDes[0];
+        double py = pDes[1];
+        double pz = pDes[2];
 
         // Check if point is reachable (basic constraint checking)
-        double leg_reach = sqrt(px * px + py * py + pz * pz);
+        double c = sqrt(px*px + py*py + pz*pz);
         double max_reach = l2 + l3;
         double min_reach = abs(l2 - l3);
 
         if (check_constraints)
         {
             // Check basic reachability constraints
-            if (leg_reach > max_reach || leg_reach < min_reach)
+            if (c > max_reach || c < min_reach)
             {
                 return false;
             }
 
             // Check if hip offset is reachable
-            double hip_distance = sqrt(py * py + pz * pz);
+            double hip_distance = sqrt(py*py + pz*pz);
             if (hip_distance < l1)
             {
                 return false;
@@ -193,22 +211,22 @@ public:
 
         try
         {
-            // Compute IK solution
-            double L = sqrt(py * py + pz * pz - l1 * l1);
-            if (L != L)
-                return false; // Check for NaN
+            // Use same algorithm as non-constraint version
+            double b = sqrt(c*c - l1*l1);
+            
+            double L = sqrt(py*py + pz*pz - l1*l1);
+            if (L != L) // Check for NaN
+                return false;
 
             double q1 = atan2(pz * l1 + py * L, py * l1 - pz * L);
 
-            double a1 = py * sin(q1) - pz * cos(q1);
-            double a2 = px;
-            double leg_length = sqrt(a1 * a1 + a2 * a2);
-
-            double temp = (l2 * l2 + l3 * l3 - leg_length * leg_length) / (2.0 * l2 * l3);
+            double temp = (l2*l2 + l3*l3 - b*b) / (2.0 * l2 * l3);
             temp = std::max(-1.0, std::min(1.0, temp));
             double q3 = acos(temp);
             q3 = -(M_PI - q3);
 
+            double a1 = py * sin(q1) - pz * cos(q1);
+            double a2 = px;
             double m1 = l3 * sin(q3);
             double m2 = l2 + l3 * cos(q3);
             double q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
@@ -244,6 +262,14 @@ public:
         const double l2 = 0.2;    // thigh link length
         const double l3 = 0.2;    // calf link length
 
+        // Hip positions in base frame
+        std::vector<Eigen::Vector3d> hip_positions = {
+            Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
+            Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
+            Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
+            Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
+        };
+
         // Determine side sign
         int sideSign = (index == 0 || index == 2) ? -1 : 1;
 
@@ -257,12 +283,14 @@ public:
         double c23 = c2 * c3 - s2 * s3;
         double s23 = s2 * c3 + c2 * s3;
 
-        // Forward kinematics equations
+        // Forward kinematics equations in leg frame (same as LegController.cpp)
         double px = -l3 * s23 - l2 * s2;
         double py = l1 * sideSign * c1 + l3 * (s1 * c23) + l2 * c2 * s1;
         double pz = l1 * sideSign * s1 - l3 * (c1 * c23) - l2 * c1 * c2;
 
-        return Eigen::Vector3d(px, py, pz);
+        // Convert from leg frame to base frame
+        Eigen::Vector3d pLeg(px, py, pz);
+        return pLeg + hip_positions[index];
     }
 
     Eigen::Matrix3Xd getJacobian(const Eigen::Vector3d &q, int index) override
@@ -286,7 +314,7 @@ public:
 
         Eigen::Matrix3Xd J(3, 3);
 
-        // Jacobian matrix elements
+        // Jacobian matrix elements (same as LegController.cpp)
         J(0, 0) = 0;
         J(1, 0) = -sideSign * l1 * s1 + l2 * c2 * c1 + l3 * c23 * c1;
         J(2, 0) = sideSign * l1 * c1 + l2 * c2 * s1 + l3 * c23 * s1;
@@ -299,6 +327,8 @@ public:
         J(1, 2) = -l3 * s23 * s1;
         J(2, 2) = l3 * s23 * c1;
 
+        // Note: This Jacobian is in leg frame. For base frame operations,
+        // the calling code should account for hip offsets if needed
         return J;
     }
 
@@ -315,8 +345,15 @@ public:
     // Simple collision ball forward kinematics (for compatibility)
     Eigen::Vector3d FK_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx) override
     {
+        // Hip positions in base frame
+        std::vector<Eigen::Vector3d> hip_positions = {
+            Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
+            Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
+            Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
+            Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
+        };
+
         // For A1, we'll approximate collision balls at joint positions
-        // This is a simplified implementation - joint positions along the leg
         const double l1 = 0.0838;
         const double l2 = 0.2;
 
@@ -327,19 +364,25 @@ public:
         double c1 = cos(q[0]);
         double c2 = cos(q[1]);
 
+        Eigen::Vector3d pLeg;
         switch (jointIdx)
         {
         case 0: // Hip joint position
-            return Eigen::Vector3d(0, l1 * sideSign * c1, l1 * sideSign * s1);
+            pLeg = Eigen::Vector3d(0, l1 * sideSign * c1, l1 * sideSign * s1);
+            break;
         case 1: // Knee joint position
-            return Eigen::Vector3d(-l2 * s2,
+            pLeg = Eigen::Vector3d(-l2 * s2,
                                    l1 * sideSign * c1 + l2 * c2 * s1,
                                    l1 * sideSign * s1 - l2 * c1 * c2);
+            break;
         case 2: // Foot position
             return FK_foot(q, legIdx);
         default:
-            return Eigen::Vector3d::Zero();
+            pLeg = Eigen::Vector3d::Zero();
         }
+        
+        // Convert from leg frame to base frame
+        return pLeg + hip_positions[legIdx];
     }
 
     Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx) override
@@ -367,6 +410,7 @@ public:
 
     Eigen::Vector3d getNominalFoothold(int index) override
     {
+        // Return nominal footholds in base frame (already correct)
         return nominal_footholds[index];
     }
 
