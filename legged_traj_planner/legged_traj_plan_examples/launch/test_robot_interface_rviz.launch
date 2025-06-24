@@ -1,6 +1,36 @@
 <launch>
-    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro"/>
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" />
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find legged_traj_plan_examples)/config/rviz/test_robot_interface_rviz.rviz" output="screen"/>
-    <node pkg="legged_traj_plan_examples" type="test_robot_interface_rviz" name="test_robot_interface_rviz" output="screen"/>
+    <!-- Test Robot Interface Rviz -->
+    
+    <!-- Robot Selection -->
+    <!-- elspider / unitree_a1 -->
+    <arg name="robot_type" default="elspider" />
+    
+    <!-- Test Type Selection -->
+    <!-- jacobian / convexhull / fk_ik (fk_ik only available for unitree_a1) -->
+    <arg name="test_type" default="jacobian" />
+    
+    <!-- Output: screen / log -->
+    <arg name="output" default="screen" />
+
+    <!-- Robot Description -->
+    <group if="$(eval robot_type == 'elspider')">
+        <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" />
+    </group>
+    
+    <group if="$(eval robot_type == 'unitree_a1')">
+        <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/a1/xacro/robot.xacro" />
+    </group>
+
+    <!-- Robot State Publisher -->
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
+
+    <!-- Test Node -->
+    <node pkg="legged_traj_plan_examples" type="test_robot_interface_rviz" name="test_robot_interface_rviz" output="$(arg output)">
+        <param name="robot_type" value="$(arg robot_type)" />
+        <param name="test_type" value="$(arg test_type)" />
+    </node>
+
+    <!-- Rviz Visualization -->
+    <node pkg="rviz" type="rviz" name="rviz_robot_test" args="-d $(find legged_traj_plan_examples)/config/rviz/test_robot_interface_rviz.rviz" output="$(arg output)" />
+
 </launch>

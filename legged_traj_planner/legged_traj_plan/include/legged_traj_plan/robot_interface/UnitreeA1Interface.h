@@ -31,30 +31,30 @@
 // ================================
 
 // Link lengths (from A1 URDF specifications)
-const double A1_HIP_LINK_LENGTH = 0.0838;    // hip ab/ad distance (l1)
-const double A1_THIGH_LINK_LENGTH = 0.2;     // thigh link length (l2)  
-const double A1_CALF_LINK_LENGTH = 0.2;      // calf link length (l3)
+const double A1_HIP_LINK_LENGTH = 0.0838; // hip ab/ad distance (l1)
+const double A1_THIGH_LINK_LENGTH = 0.2;  // thigh link length (l2)
+const double A1_CALF_LINK_LENGTH = 0.2;   // calf link length (l3)
 
 // Hip positions in base frame (from A1 robot geometry)
 const std::vector<Eigen::Vector3d> A1_HIP_POSITIONS = {
-    Eigen::Vector3d(0.1805, -0.047, 0.0),   // FR hip
-    Eigen::Vector3d(0.1805, 0.047, 0.0),    // FL hip  
-    Eigen::Vector3d(-0.1805, -0.047, 0.0),  // RR hip
-    Eigen::Vector3d(-0.1805, 0.047, 0.0)    // RL hip
+    Eigen::Vector3d(0.1805, -0.047, 0.0),  // FR hip
+    Eigen::Vector3d(0.1805, 0.047, 0.0),   // FL hip
+    Eigen::Vector3d(-0.1805, -0.047, 0.0), // RR hip
+    Eigen::Vector3d(-0.1805, 0.047, 0.0)   // RL hip
 };
 
 // Joint limits (radians)
-const double A1_HIP_JOINT_MIN = -1.0;       // q1 min
-const double A1_HIP_JOINT_MAX = 1.0;        // q1 max
-const double A1_THIGH_JOINT_MIN = -1.5;     // q2 min
-const double A1_THIGH_JOINT_MAX = 3.0;      // q2 max
-const double A1_CALF_JOINT_MIN = -2.7;      // q3 min
-const double A1_CALF_JOINT_MAX = -0.9;      // q3 max
+const double A1_HIP_JOINT_MIN = -1.0;   // q1 min
+const double A1_HIP_JOINT_MAX = 1.0;    // q1 max
+const double A1_THIGH_JOINT_MIN = -1.5; // q2 min
+const double A1_THIGH_JOINT_MAX = 3.0;  // q2 max
+const double A1_CALF_JOINT_MIN = -2.7;  // q3 min
+const double A1_CALF_JOINT_MAX = -0.9;  // q3 max
 
 // Nominal foot positions for A1 (BASE frame)
-const double A1_NOMINAL_X = 0.18;     // front/rear distance from center
-const double A1_NOMINAL_Y = 0.13;     // left/right distance from center
-const double A1_NOMINAL_Z = -0.32;    // nominal height
+const double A1_NOMINAL_X = 0.18;  // front/rear distance from center
+const double A1_NOMINAL_Y = 0.13;  // left/right distance from center
+const double A1_NOMINAL_Z = -0.32; // nominal height
 
 // Define JOINT_STATE_NAME and FOOT_LINK_NAME constants for A1
 const std::vector<std::string> A1_JOINT_STATE_NAME = {"FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
@@ -146,24 +146,24 @@ public:
     {
         // Convert from base frame to leg frame
         Eigen::Vector3d pDes = footendpos - A1_HIP_POSITIONS[index];
-        
+
         // Determine side sign: -1 for right legs (FR, RR), +1 for left legs (FL, RL)
         int sideSign = (index == 0 || index == 2) ? -1 : 1; // FR=0, FL=1, RR=2, RL=3
 
         double px = pDes[0];
-        double py = pDes[1]; 
+        double py = pDes[1];
         double pz = pDes[2];
 
         // Use the same IK algorithm as in LegController.cpp
-        double c = sqrt(px*px + py*py + pz*pz);  // whole length
-        double b = sqrt(c*c - A1_HIP_LINK_LENGTH*A1_HIP_LINK_LENGTH);  // distance between shoulder and footpoint
+        double c = sqrt(px * px + py * py + pz * pz);                     // whole length
+        double b = sqrt(c * c - A1_HIP_LINK_LENGTH * A1_HIP_LINK_LENGTH); // distance between shoulder and footpoint
 
         // Hip joint angle (q1) - same as q1_ik in LegController.cpp
-        double L = sqrt(py*py + pz*pz - A1_HIP_LINK_LENGTH*A1_HIP_LINK_LENGTH);
+        double L = sqrt(py * py + pz * pz - A1_HIP_LINK_LENGTH * A1_HIP_LINK_LENGTH);
         double q1 = atan2(pz * A1_HIP_LINK_LENGTH + py * L, py * A1_HIP_LINK_LENGTH - pz * L);
 
-        // Knee joint angle (q3) - same as q3_ik in LegController.cpp  
-        double temp = (A1_THIGH_LINK_LENGTH*A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH*A1_CALF_LINK_LENGTH - b*b) / (2.0 * A1_THIGH_LINK_LENGTH * A1_CALF_LINK_LENGTH);
+        // Knee joint angle (q3) - same as q3_ik in LegController.cpp
+        double temp = (A1_THIGH_LINK_LENGTH * A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH * A1_CALF_LINK_LENGTH - b * b) / (2.0 * A1_THIGH_LINK_LENGTH * A1_CALF_LINK_LENGTH);
         temp = std::max(-1.0, std::min(1.0, temp)); // clamp to valid range
         double q3 = acos(temp);
         q3 = -(M_PI - q3); // A1 convention: negative knee angle
@@ -184,13 +184,13 @@ public:
         bool check_constraints = true;
         // Convert from base frame to leg frame
         Eigen::Vector3d pDes = footendpos - A1_HIP_POSITIONS[index];
-        
+
         double px = pDes[0];
         double py = pDes[1];
         double pz = pDes[2];
 
         // Check if point is reachable (basic constraint checking)
-        double c = sqrt(px*px + py*py + pz*pz);
+        double c = sqrt(px * px + py * py + pz * pz);
         double max_reach = A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH;
         double min_reach = abs(A1_THIGH_LINK_LENGTH - A1_CALF_LINK_LENGTH);
 
@@ -203,7 +203,7 @@ public:
             }
 
             // Check if hip offset is reachable
-            double hip_distance = sqrt(py*py + pz*pz);
+            double hip_distance = sqrt(py * py + pz * pz);
             if (hip_distance < A1_HIP_LINK_LENGTH)
             {
                 return false;
@@ -213,15 +213,15 @@ public:
         try
         {
             // Use same algorithm as non-constraint version
-            double b = sqrt(c*c - A1_HIP_LINK_LENGTH*A1_HIP_LINK_LENGTH);
-            
-            double L = sqrt(py*py + pz*pz - A1_HIP_LINK_LENGTH*A1_HIP_LINK_LENGTH);
+            double b = sqrt(c * c - A1_HIP_LINK_LENGTH * A1_HIP_LINK_LENGTH);
+
+            double L = sqrt(py * py + pz * pz - A1_HIP_LINK_LENGTH * A1_HIP_LINK_LENGTH);
             if (L != L) // Check for NaN
                 return false;
 
             double q1 = atan2(pz * A1_HIP_LINK_LENGTH + py * L, py * A1_HIP_LINK_LENGTH - pz * L);
 
-            double temp = (A1_THIGH_LINK_LENGTH*A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH*A1_CALF_LINK_LENGTH - b*b) / (2.0 * A1_THIGH_LINK_LENGTH * A1_CALF_LINK_LENGTH);
+            double temp = (A1_THIGH_LINK_LENGTH * A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH * A1_CALF_LINK_LENGTH - b * b) / (2.0 * A1_THIGH_LINK_LENGTH * A1_CALF_LINK_LENGTH);
             temp = std::max(-1.0, std::min(1.0, temp));
             double q3 = acos(temp);
             q3 = -(M_PI - q3);
@@ -348,7 +348,7 @@ public:
         default:
             pLeg = Eigen::Vector3d::Zero();
         }
-        
+
         // Convert from leg frame to base frame
         return pLeg + A1_HIP_POSITIONS[legIdx];
     }
@@ -376,10 +376,14 @@ public:
         return J_dot.block<3, 3>(0, 0);
     }
 
+    // Get nominal foothold positions
     Eigen::Vector3d getNominalFoothold(int index) override
     {
-        // Return nominal footholds in base frame (already correct)
-        return nominal_footholds[index];
+        if (index >= 0 && index < 4)
+        {
+            return nominal_footholds[index];
+        }
+        throw std::out_of_range("Invalid leg index for getNominalFoothold");
     }
 
     // Feedback Interface
