@@ -3,11 +3,11 @@
     
     <!-- Robot Selection -->
     <!-- elspider / unitree_a1 -->
-    <arg name="robot_type" default="unitree_a1" />
+    <arg name="robot_type" default="elspider" />
     
     <!-- Test Type Selection -->
     <!-- jacobian / convexhull / fk_ik (fk_ik only available for unitree_a1) -->
-    <arg name="test_type" default="fk_ik" />
+    <arg name="test_type" default="jacobian" />
     
     <!-- Output: screen / log -->
     <arg name="output" default="screen" />
