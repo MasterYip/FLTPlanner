@@ -126,7 +126,7 @@ robot_interface_type:=UnitreeA1Dummy \
 sim:=true \
 teleop_type:=PS5 \
 demo_name:=6_fractal \
-planner_cfg:=flt_cfg_planner_conv
+planner_cfg:=flt_cfg_planner_conv_a1
 ```
 
 Robot Interface Types:
