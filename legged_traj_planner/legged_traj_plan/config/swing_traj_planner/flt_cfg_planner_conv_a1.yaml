@@ -33,8 +33,8 @@ LFTPlanner:
     guideSurfConvKernelSize: 5
     guideSurfConvKernelInterval: 0.05
     guideSurfConvUseTravMap: false # Use traversable (filtered) map for convolution (for Sparse Scene)
-    collBallCheckRad2: 0.05
-    collBallCheckRad3: 0.03
+    collBallCheckRad2: 0.03
+    collBallCheckRad3: 0.02
   checker:
     useTrajOptForReachableCheck: false
     maxReachableCheckRetry: 1
@@ -64,13 +64,13 @@ LFTPlanner:
     jointVelWeight: 0.1
     jointAccWeight: 0.1
     CollBall1Rad: 0.06
-    CollBall2Rad: 0.05
-    CollBall3Rad: 0.03
+    CollBall2Rad: 0.03
+    CollBall3Rad: 0.02
     CollBall1Weight: 0.0
     CollBall2Weight: 4.0
     CollBall3Weight: 6.0
-    FootCollExcludeBallRad: 0.05
-    FootCollExcludeBallSmoothRad: 0.04
+    FootCollExcludeBallRad: 0.04
+    FootCollExcludeBallSmoothRad: 0.02
     primitivePos1: 0.0
     primitivePos2: 1.57
     primitivePos3: 3.14
