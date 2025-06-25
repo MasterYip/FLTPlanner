@@ -368,15 +368,17 @@ public:
         Eigen::Vector3d pLeg;
         switch (jointIdx)
         {
-        case 0: // Hip joint position
+        case 0: // HAA
+            pLeg = Eigen::Vector3d(0, 0, 0); // HAA joint is at the hip position
+        case 1: // Hip joint position
             pLeg = Eigen::Vector3d(0, A1_HIP_LINK_LENGTH * sideSign * c1, A1_HIP_LINK_LENGTH * sideSign * s1);
             break;
-        case 1: // Knee joint position
+        case 2: // Knee joint position
             pLeg = Eigen::Vector3d(-A1_THIGH_LINK_LENGTH * s2,
                                    A1_HIP_LINK_LENGTH * sideSign * c1 + A1_THIGH_LINK_LENGTH * c2 * s1,
                                    A1_HIP_LINK_LENGTH * sideSign * s1 - A1_THIGH_LINK_LENGTH * c1 * c2);
             break;
-        case 2: // Foot position
+        case 3: // Foot position
             return FK_foot(q, legIdx);
         default:
             pLeg = Eigen::Vector3d::Zero();
