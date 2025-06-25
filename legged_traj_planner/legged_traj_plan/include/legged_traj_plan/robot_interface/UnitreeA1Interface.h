@@ -390,24 +390,69 @@ public:
 
     Eigen::Matrix3Xd getJacobian_CollBall(const Eigen::Vector3d &q, int legIdx, int jointIdx) override
     {
-        // Simplified Jacobian for collision balls
-        if (jointIdx == 2)
+        // For A1, we compute Jacobian for collision balls at joint positions
+        int sideSign = (legIdx == 0 || legIdx == 2) ? -1 : 1;
+
+        double s1 = sin(q[0]);
+        double s2 = sin(q[1]);
+        double s3 = sin(q[2]);
+        double c1 = cos(q[0]);
+        double c2 = cos(q[1]);
+        double c3 = cos(q[2]);
+
+        double c23 = c2 * c3 - s2 * s3;
+        double s23 = s2 * c3 + c2 * s3;
+
+        Eigen::Matrix3Xd J(3, 3);
+        J.setZero();
+
+        switch (jointIdx)
         {
+        case 0: // HAA joint (at hip position)
+            // HAA joint is fixed at hip, so Jacobian is zero
+            J.setZero();
+            break;
+        case 1: // Hip joint position
+            J(0, 0) = 0;
+            J(1, 0) = -sideSign * A1_HIP_LINK_LENGTH * s1;
+            J(2, 0) = sideSign * A1_HIP_LINK_LENGTH * c1;
+            J(0, 1) = 0;
+            J(1, 1) = 0;
+            J(2, 1) = 0;
+            J(0, 2) = 0;
+            J(1, 2) = 0;
+            J(2, 2) = 0;
+            break;
+        case 2: // Knee joint position
+            J(0, 0) = 0;
+            J(1, 0) = -sideSign * A1_HIP_LINK_LENGTH * s1 + A1_THIGH_LINK_LENGTH * c2 * c1;
+            J(2, 0) = sideSign * A1_HIP_LINK_LENGTH * c1 + A1_THIGH_LINK_LENGTH * c2 * s1;
+            J(0, 1) = -A1_THIGH_LINK_LENGTH * c2;
+            J(1, 1) = -A1_THIGH_LINK_LENGTH * s2 * s1;
+            J(2, 1) = A1_THIGH_LINK_LENGTH * s2 * c1;
+            J(0, 2) = 0;
+            J(1, 2) = 0;
+            J(2, 2) = 0;
+            break;
+        case 3: // Foot position (use full foot Jacobian)
             return getJacobian(q, legIdx);
+        default:
+            J.setZero();
         }
-        else
-        {
-            // For intermediate joints, return a simplified Jacobian
-            // This would need proper implementation based on specific joint
-            return getJacobian(q, legIdx);
-        }
+
+        return J;
     }
 
     Eigen::Matrix3d getJacobianTimeVariation_CollBall(const Eigen::Vector3d &q, const Eigen::Vector3d &vel,
                                                       int legIdx, int jointIdx) override
     {
-        // Return 3x3 matrix instead of 3xN for compatibility
-        Eigen::Matrix3Xd J_dot = getJacobianTimeVariation(q, vel, legIdx);
+        // Numerical approximation of collision ball Jacobian time derivative
+        const double dt = 1e-6;
+        Eigen::Matrix3Xd J_current = getJacobian_CollBall(q, legIdx, jointIdx);
+        Eigen::Matrix3Xd J_next = getJacobian_CollBall(q + vel * dt, legIdx, jointIdx);
+        Eigen::Matrix3Xd J_dot = (J_next - J_current) / dt;
+        
+        // Return 3x3 matrix for compatibility
         return J_dot.block<3, 3>(0, 0);
     }
 

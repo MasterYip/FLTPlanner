@@ -54,7 +54,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.4000000059604645
+    - Alpha: 0.10000000149011612
       Class: rviz/RobotModel
       Collision Enabled: false
       Enabled: true
@@ -428,9 +428,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7347962856292725
+      Pitch: 0.17479629814624786
       Target Frame: base
-      Yaw: 1.1763592958450317
+      Yaw: 0.8363592624664307
     Saved: ~
 Window Geometry:
   Displays:

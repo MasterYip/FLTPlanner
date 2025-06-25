@@ -314,53 +314,53 @@ void test_unitree_a1_fk_ik(ros::NodeHandle nh)
 
     // Test points for each leg based on their hip positions and reachable workspace
     std::vector<std::vector<Eigen::Vector3d>> test_points_per_leg(4);
-    
+
     // FR leg (index 0) - hip at (0.1805, -0.047, 0.0)
     test_points_per_leg[0] = {
-        robot_interface->getNominalFoothold(0),         // Nominal position
-        Eigen::Vector3d(0.25, -0.15, -0.25),          // Forward-right
-        Eigen::Vector3d(0.15, -0.20, -0.35),          // More right
-        Eigen::Vector3d(0.30, -0.10, -0.30),          // Far forward
-        Eigen::Vector3d(0.10, -0.25, -0.20),          // Close-right-high
-        Eigen::Vector3d(0.05, -0.15, -0.40),          // Close-deep
-        Eigen::Vector3d(0.20, -0.05, -0.28),          // Forward-center
-        Eigen::Vector3d(0.35, -0.12, -0.25)           // Maximum forward reach
+        robot_interface->getNominalFoothold(0), // Nominal position
+        Eigen::Vector3d(0.25, -0.15, -0.25),    // Forward-right
+        Eigen::Vector3d(0.15, -0.20, -0.35),    // More right
+        Eigen::Vector3d(0.30, -0.10, -0.30),    // Far forward
+        Eigen::Vector3d(0.10, -0.25, -0.20),    // Close-right-high
+        Eigen::Vector3d(0.05, -0.15, -0.40),    // Close-deep
+        Eigen::Vector3d(0.20, -0.05, -0.28),    // Forward-center
+        Eigen::Vector3d(0.35, -0.12, -0.25)     // Maximum forward reach
     };
 
     // FL leg (index 1) - hip at (0.1805, 0.047, 0.0)
     test_points_per_leg[1] = {
-        robot_interface->getNominalFoothold(1),         // Nominal position
-        Eigen::Vector3d(0.25, 0.15, -0.25),           // Forward-left
-        Eigen::Vector3d(0.15, 0.20, -0.35),           // More left
-        Eigen::Vector3d(0.30, 0.10, -0.30),           // Far forward
-        Eigen::Vector3d(0.10, 0.25, -0.20),           // Close-left-high
-        Eigen::Vector3d(0.05, 0.15, -0.40),           // Close-deep
-        Eigen::Vector3d(0.20, 0.05, -0.28),           // Forward-center
-        Eigen::Vector3d(0.35, 0.12, -0.25)            // Maximum forward reach
+        robot_interface->getNominalFoothold(1), // Nominal position
+        Eigen::Vector3d(0.25, 0.15, -0.25),     // Forward-left
+        Eigen::Vector3d(0.15, 0.20, -0.35),     // More left
+        Eigen::Vector3d(0.30, 0.10, -0.30),     // Far forward
+        Eigen::Vector3d(0.10, 0.25, -0.20),     // Close-left-high
+        Eigen::Vector3d(0.05, 0.15, -0.40),     // Close-deep
+        Eigen::Vector3d(0.20, 0.05, -0.28),     // Forward-center
+        Eigen::Vector3d(0.35, 0.12, -0.25)      // Maximum forward reach
     };
 
     // RR leg (index 2) - hip at (-0.1805, -0.047, 0.0)
     test_points_per_leg[2] = {
-        robot_interface->getNominalFoothold(2),         // Nominal position
-        Eigen::Vector3d(-0.25, -0.15, -0.25),         // Backward-right
-        Eigen::Vector3d(-0.15, -0.20, -0.35),         // More right
-        Eigen::Vector3d(-0.30, -0.10, -0.30),         // Far backward
-        Eigen::Vector3d(-0.10, -0.25, -0.20),         // Close-right-high
-        Eigen::Vector3d(-0.05, -0.15, -0.40),         // Close-deep
-        Eigen::Vector3d(-0.20, -0.05, -0.28),         // Backward-center
-        Eigen::Vector3d(-0.35, -0.12, -0.25)          // Maximum backward reach
+        robot_interface->getNominalFoothold(2), // Nominal position
+        Eigen::Vector3d(-0.25, -0.15, -0.25),   // Backward-right
+        Eigen::Vector3d(-0.15, -0.20, -0.35),   // More right
+        Eigen::Vector3d(-0.30, -0.10, -0.30),   // Far backward
+        Eigen::Vector3d(-0.10, -0.25, -0.20),   // Close-right-high
+        Eigen::Vector3d(-0.05, -0.15, -0.40),   // Close-deep
+        Eigen::Vector3d(-0.20, -0.05, -0.28),   // Backward-center
+        Eigen::Vector3d(-0.35, -0.12, -0.25)    // Maximum backward reach
     };
 
     // RL leg (index 3) - hip at (-0.1805, 0.047, 0.0)
     test_points_per_leg[3] = {
-        robot_interface->getNominalFoothold(3),         // Nominal position
-        Eigen::Vector3d(-0.25, 0.15, -0.25),          // Backward-left
-        Eigen::Vector3d(-0.15, 0.20, -0.35),          // More left
-        Eigen::Vector3d(-0.30, 0.10, -0.30),          // Far backward
-        Eigen::Vector3d(-0.10, 0.25, -0.20),          // Close-left-high
-        Eigen::Vector3d(-0.05, 0.15, -0.40),          // Close-deep
-        Eigen::Vector3d(-0.20, 0.05, -0.28),          // Backward-center
-        Eigen::Vector3d(-0.35, 0.12, -0.25)           // Maximum backward reach
+        robot_interface->getNominalFoothold(3), // Nominal position
+        Eigen::Vector3d(-0.25, 0.15, -0.25),    // Backward-left
+        Eigen::Vector3d(-0.15, 0.20, -0.35),    // More left
+        Eigen::Vector3d(-0.30, 0.10, -0.30),    // Far backward
+        Eigen::Vector3d(-0.10, 0.25, -0.20),    // Close-left-high
+        Eigen::Vector3d(-0.05, 0.15, -0.40),    // Close-deep
+        Eigen::Vector3d(-0.20, 0.05, -0.28),    // Backward-center
+        Eigen::Vector3d(-0.35, 0.12, -0.25)     // Maximum backward reach
     };
 
     int point_idx = 0;
@@ -440,7 +440,7 @@ void test_unitree_a1_fk_ik(ros::NodeHandle nh)
             ROS_WARN("Leg %d, Point %d: IK Failed - point unreachable", leg_idx, point_idx);
             ros_visualizer::VisStyle red_style(1.0, 0.0, 0.0, 1.0, 0.03);
             visualizer.visSphere(target_point, 0.03, red_style); // red for failed points
-            
+
             // Still visualize hip position for reference
             ros_visualizer::VisStyle hip_style(0.8, 0.8, 0.8, 1.0, 0.02);
             visualizer.visSphere(A1_HIP_POSITIONS[leg_idx], 0.02, hip_style);

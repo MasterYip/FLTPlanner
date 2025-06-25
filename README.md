@@ -126,7 +126,7 @@ robot_interface_type:=UnitreeA1Dummy \
 sim:=true \
 teleop_type:=PS5 \
 demo_name:=6_fractal \
-planner_cfg:=flt_cfg_planner
+planner_cfg:=flt_cfg_planner_conv
 ```
 
 Robot Interface Types:
@@ -201,6 +201,10 @@ The `RaibertHeuristicPlanner` automatically detects the robot type by querying t
 ### Usage
 
 Both robot types use the same core planning algorithms but with automatically adapted parameters. Simply choose the appropriate launch file for your robot type, and the planner will handle the configuration.
+
+## TODO
+
+- [ ] Bugs exist in RobotInterface JacobianTimeVariation (test_robot_interface)
 
 ## Acknowledgements
 
