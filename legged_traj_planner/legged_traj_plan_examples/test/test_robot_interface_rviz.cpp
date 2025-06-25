@@ -115,8 +115,16 @@ void test_unitree_jacobian_vis(std::shared_ptr<UnitreeA1Interface> robot_interfa
         visualizer.delAll();
         for (int i = 0; i < dof; i++)
         {
-            q[i] = 0.5 * sin(ros::Time::now().toSec());
-            dq[i] = 0.5 * cos(ros::Time::now().toSec());
+            if (i % 3 != 0)
+            {
+                q[i] = 0.5 * sin(ros::Time::now().toSec());
+                dq[i] = 0.5 * cos(ros::Time::now().toSec());
+            }
+            else
+            {
+                q[i] = 0.0; // Keep hip angles fixed for visualization
+                dq[i] = 0.0;
+            }
         }
 
         for (int i = 0; i < 4; i++)
@@ -302,18 +310,57 @@ void test_unitree_a1_fk_ik(ros::NodeHandle nh)
     auto robot_interface = std::make_shared<UnitreeA1Interface>(urdf_param);
 
     GCSVisualizer visualizer(nh, std::string("base"), std::string("visualizer_markers"));
-    ros::Rate loop_rate(5);
+    ros::Rate loop_rate(2);
 
-    // Test points in base frame
-    std::vector<Eigen::Vector3d> test_points = {
-        robot_interface->getNominalFoothold(0), // FR nominal
-        robot_interface->getNominalFoothold(1), // FL nominal
-        robot_interface->getNominalFoothold(2), // RR nominal
-        robot_interface->getNominalFoothold(3), // RL nominal
-        Eigen::Vector3d(0.15, -0.10, -0.25),    // Custom test point 1
-        Eigen::Vector3d(0.20, 0.15, -0.35),     // Custom test point 2
-        Eigen::Vector3d(-0.15, -0.10, -0.30),   // Custom test point 3
-        Eigen::Vector3d(-0.20, 0.15, -0.28)     // Custom test point 4
+    // Test points for each leg based on their hip positions and reachable workspace
+    std::vector<std::vector<Eigen::Vector3d>> test_points_per_leg(4);
+    
+    // FR leg (index 0) - hip at (0.1805, -0.047, 0.0)
+    test_points_per_leg[0] = {
+        robot_interface->getNominalFoothold(0),         // Nominal position
+        Eigen::Vector3d(0.25, -0.15, -0.25),          // Forward-right
+        Eigen::Vector3d(0.15, -0.20, -0.35),          // More right
+        Eigen::Vector3d(0.30, -0.10, -0.30),          // Far forward
+        Eigen::Vector3d(0.10, -0.25, -0.20),          // Close-right-high
+        Eigen::Vector3d(0.05, -0.15, -0.40),          // Close-deep
+        Eigen::Vector3d(0.20, -0.05, -0.28),          // Forward-center
+        Eigen::Vector3d(0.35, -0.12, -0.25)           // Maximum forward reach
+    };
+
+    // FL leg (index 1) - hip at (0.1805, 0.047, 0.0)
+    test_points_per_leg[1] = {
+        robot_interface->getNominalFoothold(1),         // Nominal position
+        Eigen::Vector3d(0.25, 0.15, -0.25),           // Forward-left
+        Eigen::Vector3d(0.15, 0.20, -0.35),           // More left
+        Eigen::Vector3d(0.30, 0.10, -0.30),           // Far forward
+        Eigen::Vector3d(0.10, 0.25, -0.20),           // Close-left-high
+        Eigen::Vector3d(0.05, 0.15, -0.40),           // Close-deep
+        Eigen::Vector3d(0.20, 0.05, -0.28),           // Forward-center
+        Eigen::Vector3d(0.35, 0.12, -0.25)            // Maximum forward reach
+    };
+
+    // RR leg (index 2) - hip at (-0.1805, -0.047, 0.0)
+    test_points_per_leg[2] = {
+        robot_interface->getNominalFoothold(2),         // Nominal position
+        Eigen::Vector3d(-0.25, -0.15, -0.25),         // Backward-right
+        Eigen::Vector3d(-0.15, -0.20, -0.35),         // More right
+        Eigen::Vector3d(-0.30, -0.10, -0.30),         // Far backward
+        Eigen::Vector3d(-0.10, -0.25, -0.20),         // Close-right-high
+        Eigen::Vector3d(-0.05, -0.15, -0.40),         // Close-deep
+        Eigen::Vector3d(-0.20, -0.05, -0.28),         // Backward-center
+        Eigen::Vector3d(-0.35, -0.12, -0.25)          // Maximum backward reach
+    };
+
+    // RL leg (index 3) - hip at (-0.1805, 0.047, 0.0)
+    test_points_per_leg[3] = {
+        robot_interface->getNominalFoothold(3),         // Nominal position
+        Eigen::Vector3d(-0.25, 0.15, -0.25),          // Backward-left
+        Eigen::Vector3d(-0.15, 0.20, -0.35),          // More left
+        Eigen::Vector3d(-0.30, 0.10, -0.30),          // Far backward
+        Eigen::Vector3d(-0.10, 0.25, -0.20),          // Close-left-high
+        Eigen::Vector3d(-0.05, 0.15, -0.40),          // Close-deep
+        Eigen::Vector3d(-0.20, 0.05, -0.28),          // Backward-center
+        Eigen::Vector3d(-0.35, 0.12, -0.25)           // Maximum backward reach
     };
 
     int point_idx = 0;
@@ -333,7 +380,7 @@ void test_unitree_a1_fk_ik(ros::NodeHandle nh)
     {
         visualizer.delAll();
 
-        Eigen::Vector3d target_point = test_points[point_idx];
+        Eigen::Vector3d target_point = test_points_per_leg[leg_idx][point_idx];
 
         // Test IK with constraint checking
         Eigen::Vector3d q_result;
@@ -383,12 +430,20 @@ void test_unitree_a1_fk_ik(ros::NodeHandle nh)
             {
                 joint_state.position[leg_idx * 3 + i] = q_result[i];
             }
+
+            // Visualize hip position for reference
+            ros_visualizer::VisStyle hip_style(0.8, 0.8, 0.8, 1.0, 0.02);
+            visualizer.visSphere(A1_HIP_POSITIONS[leg_idx], 0.02, hip_style);
         }
         else
         {
             ROS_WARN("Leg %d, Point %d: IK Failed - point unreachable", leg_idx, point_idx);
             ros_visualizer::VisStyle red_style(1.0, 0.0, 0.0, 1.0, 0.03);
             visualizer.visSphere(target_point, 0.03, red_style); // red for failed points
+            
+            // Still visualize hip position for reference
+            ros_visualizer::VisStyle hip_style(0.8, 0.8, 0.8, 1.0, 0.02);
+            visualizer.visSphere(A1_HIP_POSITIONS[leg_idx], 0.02, hip_style);
         }
 
         // Publish joint states
@@ -396,7 +451,7 @@ void test_unitree_a1_fk_ik(ros::NodeHandle nh)
         joint_pub.publish(joint_state);
 
         // Move to next test case
-        point_idx = (point_idx + 1) % test_points.size();
+        point_idx = (point_idx + 1) % test_points_per_leg[leg_idx].size();
         if (point_idx == 0)
         {
             leg_idx = (leg_idx + 1) % 4;

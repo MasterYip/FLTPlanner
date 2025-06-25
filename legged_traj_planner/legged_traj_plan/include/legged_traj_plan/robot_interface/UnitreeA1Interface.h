@@ -144,36 +144,50 @@ public:
 
     Eigen::Vector3d IKFast_foot(const Eigen::Vector3d &footendpos, int index) override
     {
-        // Convert from base frame to leg frame
+        // Convert from base frame to leg frame with hip shift
+        // This matches the transformation used in the ConvexMPC code:
+        // pDesLeg = seResult.rBody * (pDesFootWorld - seResult.position) - data._quadruped->getHipLocation(foot);
         Eigen::Vector3d pDes = footendpos - A1_HIP_POSITIONS[index];
 
-        // Determine side sign: -1 for right legs (FR, RR), +1 for left legs (FL, RL)
-        int sideSign = (index == 0 || index == 2) ? -1 : 1; // FR=0, FL=1, RR=2, RL=3
+        // Use the same algorithm as computeInverseKinematics in LegController.cpp
+        double l1 = A1_HIP_LINK_LENGTH; // ab_ad
+        double l2 = A1_THIGH_LINK_LENGTH;
+        double l3 = A1_CALF_LINK_LENGTH;
 
-        double px = pDes[0];
-        double py = pDes[1];
-        double pz = pDes[2];
+        double q1, q2, q3;
+        double b2y, b3z, b4z, a, b, c;
+        int sideSign = 1; // 1 for Left legs; -1 for right legs
+        if (index == 0 || index == 2)
+        {
+            sideSign = -1;
+        }
 
-        // Use the same IK algorithm as in LegController.cpp
-        double c = sqrt(px * px + py * py + pz * pz);                     // whole length
-        double b = sqrt(c * c - A1_HIP_LINK_LENGTH * A1_HIP_LINK_LENGTH); // distance between shoulder and footpoint
+        b2y = l1 * sideSign;
+        b3z = -l2;
+        b4z = -l3;
+        a = l1;
+        c = sqrt(pow(pDes[0], 2) + pow(pDes[1], 2) + pow(pDes[2], 2)); // whole length
+        b = sqrt(pow(c, 2) - pow(a, 2));                               // distance between shoulder and footpoint
 
-        // Hip joint angle (q1) - same as q1_ik in LegController.cpp
-        double L = sqrt(py * py + pz * pz - A1_HIP_LINK_LENGTH * A1_HIP_LINK_LENGTH);
-        double q1 = atan2(pz * A1_HIP_LINK_LENGTH + py * L, py * A1_HIP_LINK_LENGTH - pz * L);
+        // q1_ik implementation
+        double L = sqrt(pow(pDes[1], 2) + pow(pDes[2], 2) - pow(b2y, 2));
+        q1 = atan2(pDes[2] * b2y + pDes[1] * L, pDes[1] * b2y - pDes[2] * L);
 
-        // Knee joint angle (q3) - same as q3_ik in LegController.cpp
-        double temp = (A1_THIGH_LINK_LENGTH * A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH * A1_CALF_LINK_LENGTH - b * b) / (2.0 * A1_THIGH_LINK_LENGTH * A1_CALF_LINK_LENGTH);
-        temp = std::max(-1.0, std::min(1.0, temp)); // clamp to valid range
-        double q3 = acos(temp);
-        q3 = -(M_PI - q3); // A1 convention: negative knee angle
+        // q3_ik implementation
+        double temp = (pow(b3z, 2) + pow(b4z, 2) - pow(b, 2)) / (2 * fabs(b3z * b4z));
+        if (temp > 1)
+            temp = 1;
+        if (temp < -1)
+            temp = -1;
+        q3 = acos(temp);
+        q3 = -(M_PI - q3); // 0~180
 
-        // Thigh joint angle (q2) - same as q2_ik in LegController.cpp
-        double a1 = py * sin(q1) - pz * cos(q1);
-        double a2 = px;
-        double m1 = A1_CALF_LINK_LENGTH * sin(q3);
-        double m2 = A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH * cos(q3);
-        double q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
+        // q2_ik implementation
+        double a1 = pDes[1] * sin(q1) - pDes[2] * cos(q1);
+        double a2 = pDes[0];
+        double m1 = b4z * sin(q3);
+        double m2 = b3z + b4z * cos(q3);
+        q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
 
         return Eigen::Vector3d(q1, q2, q3);
     }
@@ -182,29 +196,42 @@ public:
     bool IKFast_foot(const Eigen::Vector3d &footendpos, Eigen::Vector3d &q_result, int index) override
     {
         bool check_constraints = true;
-        // Convert from base frame to leg frame
+
+        // Convert from base frame to leg frame with hip shift
         Eigen::Vector3d pDes = footendpos - A1_HIP_POSITIONS[index];
 
-        double px = pDes[0];
-        double py = pDes[1];
-        double pz = pDes[2];
+        // Use the same algorithm as computeInverseKinematics in LegController.cpp
+        double l1 = A1_HIP_LINK_LENGTH; // ab_ad
+        double l2 = A1_THIGH_LINK_LENGTH;
+        double l3 = A1_CALF_LINK_LENGTH;
 
-        // Check if point is reachable (basic constraint checking)
-        double c = sqrt(px * px + py * py + pz * pz);
-        double max_reach = A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH;
-        double min_reach = abs(A1_THIGH_LINK_LENGTH - A1_CALF_LINK_LENGTH);
+        double q1, q2, q3;
+        double b2y, b3z, b4z, a, b, c;
+        int sideSign = 1; // 1 for Left legs; -1 for right legs
+        if (index == 0 || index == 2)
+        {
+            sideSign = -1;
+        }
+
+        b2y = l1 * sideSign;
+        b3z = -l2;
+        b4z = -l3;
+        a = l1;
+        c = sqrt(pow(pDes[0], 2) + pow(pDes[1], 2) + pow(pDes[2], 2)); // whole length
 
         if (check_constraints)
         {
             // Check basic reachability constraints
-            if (c > max_reach || c < min_reach)
+            double max_reach = l2 + l3;
+            double min_reach = abs(l2 - l3);
+
+            if (c > max_reach || c < a) // c must be at least hip length
             {
                 return false;
             }
 
-            // Check if hip offset is reachable
-            double hip_distance = sqrt(py * py + pz * pz);
-            if (hip_distance < A1_HIP_LINK_LENGTH)
+            // Check if hip offset calculation is valid
+            if (c * c - a * a < 0)
             {
                 return false;
             }
@@ -212,25 +239,31 @@ public:
 
         try
         {
-            // Use same algorithm as non-constraint version
-            double b = sqrt(c * c - A1_HIP_LINK_LENGTH * A1_HIP_LINK_LENGTH);
+            b = sqrt(pow(c, 2) - pow(a, 2)); // distance between shoulder and footpoint
 
-            double L = sqrt(py * py + pz * pz - A1_HIP_LINK_LENGTH * A1_HIP_LINK_LENGTH);
-            if (L != L) // Check for NaN
-                return false;
+            // q1_ik implementation
+            double temp_hip = pow(pDes[1], 2) + pow(pDes[2], 2) - pow(b2y, 2);
+            if (temp_hip < 0)
+                return false; // Invalid hip calculation
 
-            double q1 = atan2(pz * A1_HIP_LINK_LENGTH + py * L, py * A1_HIP_LINK_LENGTH - pz * L);
+            double L = sqrt(temp_hip);
+            q1 = atan2(pDes[2] * b2y + pDes[1] * L, pDes[1] * b2y - pDes[2] * L);
 
-            double temp = (A1_THIGH_LINK_LENGTH * A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH * A1_CALF_LINK_LENGTH - b * b) / (2.0 * A1_THIGH_LINK_LENGTH * A1_CALF_LINK_LENGTH);
-            temp = std::max(-1.0, std::min(1.0, temp));
-            double q3 = acos(temp);
-            q3 = -(M_PI - q3);
+            // q3_ik implementation
+            double temp = (pow(b3z, 2) + pow(b4z, 2) - pow(b, 2)) / (2 * fabs(b3z * b4z));
+            if (temp > 1)
+                temp = 1;
+            if (temp < -1)
+                temp = -1;
+            q3 = acos(temp);
+            q3 = -(M_PI - q3); // 0~180
 
-            double a1 = py * sin(q1) - pz * cos(q1);
-            double a2 = px;
-            double m1 = A1_CALF_LINK_LENGTH * sin(q3);
-            double m2 = A1_THIGH_LINK_LENGTH + A1_CALF_LINK_LENGTH * cos(q3);
-            double q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
+            // q2_ik implementation
+            double a1 = pDes[1] * sin(q1) - pDes[2] * cos(q1);
+            double a2 = pDes[0];
+            double m1 = b4z * sin(q3);
+            double m2 = b3z + b4z * cos(q3);
+            q2 = atan2(m1 * a1 + m2 * a2, m1 * a2 - m2 * a1);
 
             if (check_constraints)
             {
