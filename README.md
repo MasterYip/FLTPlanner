@@ -98,11 +98,12 @@ Robot Control:
 
 ### Raibert Heuristic Planner Examples
 
-![Raibert_EG](./doc/raibert_examples.png)
 
-Perform trajectory optimization using Raibert heuristic planner.
+Perform trajectory optimization & reachability check using Raibert heuristic planner.
 
 #### Hexapod Robot (ElSpider Air)
+
+![Raibert_EG](./doc/raibert_elspider_air.png)
 
 ```bash
 roslaunch legged_traj_plan_examples elspider_air_raibert_planner.launch \
