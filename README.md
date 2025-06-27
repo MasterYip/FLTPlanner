@@ -120,6 +120,8 @@ teleop_type:=PS5
 
 #### Quadruped Robot (Unitree A1)
 
+![Unitree A1](doc/raibert_unitree_a1.png)
+
 ```bash
 roslaunch legged_traj_plan_examples unitree_a1_raibert_planner.launch \
 robot_interface_type:=UnitreeA1Dummy \
@@ -128,16 +130,6 @@ teleop_type:=PS5 \
 demo_name:=6_fractal \
 planner_cfg:=flt_cfg_planner_conv_a1
 ```
-
-Robot Interface Types:
-- **UnitreeA1Dummy**: Simulated A1 robot interface for testing
-- **UnitreeA1ROS**: Real A1 robot interface for hardware deployment
-
-The Unitree A1 implementation features:
-- **Automatic Robot Detection**: The planner automatically detects 4-leg vs 6-leg robots and configures appropriate gaits
-- **Trotting Gait**: Optimized diagonal-pair trotting gait for quadruped locomotion
-- **Reachability Check**: Full integration with foothold reachability analysis
-- **Enhanced Performance**: Higher velocity limits suitable for quadruped dynamics
 
 > Use Joystick to control the robot.
 

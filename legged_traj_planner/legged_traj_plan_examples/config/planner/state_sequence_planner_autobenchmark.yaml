@@ -8,10 +8,9 @@ misc:
   enableOptVis: false
   optVisRate: 12
   enableBenchmark: true
-  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/OptBenchmark.csv
-  ReachableBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/ReachableBenchmark.csv
-  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
-
+  OptBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/OptBenchmark.csv
+  ReachableBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/ReachableBenchmark.csv
+  robotProfilePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
 
 StateSequencePlanner:
   rosRate: 100
@@ -40,4 +39,4 @@ StateSequencePlanner:
   execSavedStates: true 
 
   # Benchmark for StateSequencePlanner
-  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml
+  OptBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml

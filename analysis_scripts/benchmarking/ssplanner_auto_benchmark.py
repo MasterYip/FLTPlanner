@@ -36,6 +36,7 @@ def csv2dict(filename):
 
 
 PLANNERS = [
+    "rrt_cfg_groundtruth",  # As the ground truth for Reachable Evaluation
     "flt_cfg_groundtruth", 
     "flt_cfg_planner_keypoint", 
     "flt_cfg_planner_conv", 
@@ -344,6 +345,8 @@ class SSPlannerAutoBenchmark:
         return os.path.join(ROOT_DIR, "temp", filename)
 
     def analyze(self):
+        if not os.path.exists(os.path.join(ROOT_DIR, "temp")):
+            os.makedirs(os.path.join(ROOT_DIR, "temp"))
         with open(self.get_abs_path(self.planner_benchmark), "r") as f:
             planner_benchmark = yaml.load(f, Loader=yaml.FullLoader)
             self.test_cases[self.test_case_ptr].parse_planner_benchmark(planner_benchmark)

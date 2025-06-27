@@ -35,6 +35,6 @@ RRTCfgPlanner:
   joint3PosMax: 3.403
   checker:
     enableReachableCheckRetry: True
-    maxReachableCheckRetry: 20
+    maxReachableCheckRetry: 5
 
 

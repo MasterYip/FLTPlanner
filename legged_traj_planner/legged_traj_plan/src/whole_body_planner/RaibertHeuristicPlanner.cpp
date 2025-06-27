@@ -342,7 +342,7 @@ void RaibertHeuristicPlanner::update(pinocchio::SE3 pose, geometry_msgs::Twist c
                 }
 
                 // Perform reachability check for this leg before planning trajectory
-                if (enable_reachable_check_ && j == 0 && i % 2 == 0) // Only check for the first upcoming swing
+                if (enable_reachable_check_ && j == 0 && i == 0) // Only check for the first upcoming swing
                 {
                     // Generate grid of potential footholds around the target position
                     auto footholds = generateReachabilityGrid(p1, reachable_check_size_, reachable_check_interval_);
