@@ -107,12 +107,6 @@ private:
     GCSVisualizer visualizer_;
     GCSVisualizer visualizer_base_;
 
-private:
-    void loadSwingTrajPlannerConfig()
-    {
-        swing_traj_planner_config_.loadParams(nh_);
-    }
-
 public:
     UnitreeA1RaibertPlanner() : UnitreeA1PlannerBase(),
                                 rate_(100),

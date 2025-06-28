@@ -84,7 +84,7 @@ inline double inZCylinderSoft(const Eigen::Vector3d &pos, const Eigen::Vector3d 
         return 0.0;
     else
         return 1 - sine_remap(std::max((dist - rmin) / (rmax - rmin),
-                            (center(2) - pos(2) - rmin) / (rmax - rmin)));
+                                       (center(2) - pos(2) - rmin) / (rmax - rmin)));
 }
 
 inline double inSphereCylinderSoft(const Eigen::Vector3d &pos, const Eigen::Vector3d &center,
@@ -102,7 +102,6 @@ inline double inSphereCylinderSoft(const Eigen::Vector3d &pos, const Eigen::Vect
         return 0.0;
     else
         return 1 - sine_remap((dist - rmin) / (rmax - rmin));
-
 }
 
 inline bool inSphere(const Eigen::Vector3d &pos, const Eigen::Vector3d &center, double radius)

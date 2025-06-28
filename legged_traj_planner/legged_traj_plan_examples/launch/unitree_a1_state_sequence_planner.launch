@@ -7,17 +7,22 @@
     / 5_channel / 6_fractal-->
     <arg name="demo_name" default="4_ushape_barrier" />
     <!-- Planner Select -->
+    <!-- height_clear_planner -->
+    <!-- fec_planner -->
+    <!-- minco_cfg_planner -->
     <!-- flt_planner / flt_cfg_planner / flt_cfg_planner_fast / flt_cfg_groundtruth-->
+    <!-- flt_cfg_planner_keypoint /  flt_cfg_planner_conv (for reahcability check benchmark)-->
     <!-- rrt_planner / rrt_cfg_planner -->
-    <arg name="planner_cfg" default="flt_cfg_planner" />
+    <!-- stomp_planner / stomp_cfg_planner / stomp_cfg_groundtruth-->
+    <arg name="planner_cfg" default="flt_cfg_planner_conv_a1" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware / Dummy -->
     <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
-    <!-- A1Dummy / A1ROS (for future hardware integration) -->
-    <arg name="robot_interface_type" default="A1Dummy" />
+    <!-- UnitreeA1Dummy / UnitreeA1ROS (for future hardware integration) -->
+    <arg name="robot_interface_type" default="UnitreeA1Dummy" />
     <!-- GridMap -->
     <arg name="with_ceiling" default="false"/>
     <arg name="ground_ceiling_boundary" default="0.3" />
@@ -40,7 +45,7 @@
     <arg name="grid_map_def" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/map_def.yaml" />
 
     <!-- GridMap -->
-    <arg name="use_fake_map" value="$(eval robot_interface_type == 'A1Dummy')" />
+    <arg name="use_fake_map" value="$(eval robot_interface_type == 'UnitreeA1Dummy')" />
     <group if="$(eval use_fake_map == 1)">
         <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="$(arg output)">
             <param name="image_path" value="$(arg grid_map_file)" />
@@ -71,13 +76,13 @@
         <!-- Robot Interface -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/robot_interface.yaml"/>
         <param name="robotInterface" value="$(arg robot_interface_type)" />
-        <param name="robotInterface/urdfPath" value="$(find robot_assets)/model/unitree_a1/urdf/a1.urdf" />
+        <param name="$(arg robot_interface_type)/sim" value="$(arg sim)" />
         <!-- Planner Config -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/$(arg planner_cfg).yaml"/>
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/unitree_a1_state_sequence_planner.yaml" if="$(eval auto_benchmark == 0)"/>
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/unitree_a1_state_sequence_planner_autobenchmark.yaml" if="$(eval auto_benchmark == 1)"/>
         <param name="A1StateSequencePlanner/demoPath" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/" />
-        <param name="A1StateSequencePlanner/execSavedStates" value="false" unless="$(eval robot_interface_type == 'A1Dummy')"/>
+        <param name="A1StateSequencePlanner/execSavedStates" value="false" unless="$(eval robot_interface_type == 'UnitreeA1Dummy')"/>
         <!-- Perception Interface -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/perception_interface.yaml"/>
         <!-- Perception Interface Config Override -->
@@ -85,13 +90,13 @@
     </node>
 
     <!-- Robot related -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/unitree_a1/urdf/a1.urdf" if="$(eval robot_interface_type == 'A1Dummy')"/>
+    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/a1/urdf/a1.urdf" if="$(eval robot_interface_type == 'UnitreeA1Dummy')"/>
     <!-- Load robot model if sim is False -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/unitree_a1/urdf/a1.urdf" if="$(eval sim == 0)"/>
+    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/a1/urdf/a1.urdf" if="$(eval sim == 0)"/>
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     <!-- Shadow Robot -->
     <group ns="shadow">
-        <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/unitree_a1/urdf/a1.urdf ns:=shadow"/>
+        <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/a1/urdf/a1.urdf ns:=shadow"/>
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     </group>
 
@@ -104,6 +109,8 @@
         <group if="$(eval teleop_type == 'keyboard')">
             <include file="$(find legged_traj_plan_examples)/launch/key_teleop.launch">
                 <arg name="topic_name" value="/cmd_vel" />
+                <arg name="scale_linear" value="0.1" />
+                <arg name="scale_angular" value="0.1" />
             </include>
         </group>
         <group if="$(eval teleop_type == 'PS5')">
