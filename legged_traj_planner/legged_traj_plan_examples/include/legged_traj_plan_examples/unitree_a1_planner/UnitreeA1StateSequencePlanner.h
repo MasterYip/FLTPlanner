@@ -247,7 +247,7 @@ public:
 
         // Get current body pose
         pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
-        state.base_Pose_Now = SE32XYZRPY(body_pose);
+        state.base_Pose_Now = SE32Pose(body_pose);
         state.base_Pose_Next = state.base_Pose_Now;
 
         // Get current foot positions

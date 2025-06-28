@@ -33,14 +33,9 @@ pinocchio::SE3 XYZRPY2SE3(legged_traj_plan::hexapod_Base_Pose pose)
 
 pinocchio::SE3 Pose2SE3(const geometry_msgs::Pose &pose)
 {
-    // Convert quaternion to rotation matrix
-    Eigen::Quaterniond quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
-    Eigen::Matrix3d rotation_matrix = quaternion.toRotationMatrix();
-    
-    // Create SE3 object with rotation matrix and translation vector
-    pinocchio::SE3 se3(rotation_matrix, Eigen::Vector3d(pose.position.x, pose.position.y, pose.position.z));
-    
-    return se3;
+    return pinocchio::SE3(
+        Eigen::Quaterniond(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z),
+        Eigen::Vector3d(pose.position.x, pose.position.y, pose.position.z));
 }
 
 legged_traj_plan::hexapod_Base_Pose SE32XYZRPY(const pinocchio::SE3 &se3)

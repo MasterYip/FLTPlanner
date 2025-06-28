@@ -12,13 +12,6 @@
 #include "legged_traj_plan/whole_body_planner/A1StateTransfer.h"
 #include "legged_traj_plan/utils/Geometry.h"
 
-// Conversion function for geometry_msgs::Pose to pinocchio::SE3
-pinocchio::SE3 Pose2SE3(const geometry_msgs::Pose &pose)
-{
-    return pinocchio::SE3(
-        Eigen::Quaterniond(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z),
-        Eigen::Vector3d(pose.position.x, pose.position.y, pose.position.z));
-}
 
 PosList A1FeetPos2PosList(legged_traj_plan::A1FeetPosition feet_pos)
 {

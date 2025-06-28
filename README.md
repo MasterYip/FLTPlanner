@@ -44,6 +44,7 @@ Build the package:
 
 > [!WARNING]
 > **DO NOT** install `ros-noetic-grid-map`, `ros-noetic-hpp-fcl` and `ros-noetic-pinocchio` from apt, which will lead to unexpected error.
+> `catkin build -j16` will take 10 mins & nearly 30 GB memory, so make sure you have enough memory available (RAM+Swap), or reduce jobs num.
 
 ```bash
 # Under catkin_ws
