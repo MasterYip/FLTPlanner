@@ -12,6 +12,14 @@
 #include "legged_traj_plan/whole_body_planner/A1StateTransfer.h"
 #include "legged_traj_plan/utils/Geometry.h"
 
+// Conversion function for geometry_msgs::Pose to pinocchio::SE3
+pinocchio::SE3 Pose2SE3(const geometry_msgs::Pose &pose)
+{
+    return pinocchio::SE3(
+        Eigen::Quaterniond(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z),
+        Eigen::Vector3d(pose.position.x, pose.position.y, pose.position.z));
+}
+
 PosList A1FeetPos2PosList(legged_traj_plan::A1FeetPosition feet_pos)
 {
     PosList pos_list;
@@ -29,7 +37,7 @@ A1StateTransfer::A1StateTransfer(A1_State state0, A1_State state1,
                                                        state1_(state1),
                                                        footpos_list0_(A1FeetPos2PosList(state0.feetPositionNow)),
                                                        footpos_list1_(A1FeetPos2PosList(state1.feetPositionNow)),
-                                                       swingtraj_isopt_(std::vector<bool>(4, false)), // 4 legs
+                                                       swingtraj_isopt_(std::vector<bool>(4, false)),    // 4 legs
                                                        swingtraj_isneeded_(std::vector<bool>(4, false)), // 4 legs
                                                        use_cfg_space_(use_cfg_space)
 {
@@ -42,9 +50,9 @@ A1StateTransfer::A1StateTransfer(A1_State state0, A1_State state1,
 pinocchio::SE3 A1StateTransfer::eval_torso_traj(double t)
 {
     // Convert geometry_msgs::Pose to pinocchio::SE3
-    auto pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
-    auto pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
-    
+    auto pose0 = Pose2SE3(state0_.base_Pose_Now);
+    auto pose1 = Pose2SE3(state1_.base_Pose_Now);
+
     pinocchio::Motion err = pinocchio::log6(pose0.actInv(pose1));
     pinocchio::SE3 odom_interp = pose0.act(pinocchio::exp6(err * t));
 
@@ -131,8 +139,8 @@ void A1StateTransfer::opt_swing_traj(int index)
 {
     if (!opt_check(index))
     {
-        auto pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
-        auto pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
+        auto pose0 = Pose2SE3(state0_.base_Pose_Now);
+        auto pose1 = Pose2SE3(state1_.base_Pose_Now);
 
         // Init Trajectory
         swingtraj_[index] = swing_traj_planner_->getInitTraj(
@@ -169,8 +177,8 @@ void A1StateTransfer::opt_swing_traj(int index)
 
 std::vector<Eigen::Vector3d> A1StateTransfer::generate_footholds(int index, int size, double interval)
 {
-    auto pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
-    auto pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
+    auto pose0 = Pose2SE3(state0_.base_Pose_Now);
+    auto pose1 = Pose2SE3(state1_.base_Pose_Now);
     auto nominal_foothold = swing_traj_planner_->getRobotInterface()->getNominalFoothold(index);
     nominal_foothold = point_SE3Act(pose1.inverse(), nominal_foothold);
     std::vector<Point3D> footholds;
@@ -191,8 +199,8 @@ void A1StateTransfer::reachable_check(int index, int size, double interval)
 {
     auto footholds = generate_footholds(index, size, interval);
     std::vector<bool> reachable;
-    auto pose0 = XYZRPY2SE3(state0_.base_Pose_Now);
-    auto pose1 = XYZRPY2SE3(state1_.base_Pose_Now);
+    auto pose0 = Pose2SE3(state0_.base_Pose_Now);
+    auto pose1 = Pose2SE3(state1_.base_Pose_Now);
     swing_traj_planner_->reachableCheck(pose0, pose1, footpos_list0_[index], index, footholds, reachable);
 }
 

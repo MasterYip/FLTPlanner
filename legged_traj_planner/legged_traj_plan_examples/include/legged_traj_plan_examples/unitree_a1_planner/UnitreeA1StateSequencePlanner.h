@@ -40,7 +40,8 @@
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
 // Simple trot gait patterns for A1 (FR, FL, RR, RL)
-enum class TrotPhase {
+enum class TrotPhase
+{
     PHASE_1, // FR+RL swing, FL+RR stance
     PHASE_2  // FL+RR swing, FR+RL stance
 };
@@ -51,25 +52,25 @@ struct RaibertFootholdPlanner
     double step_time;
     double stance_time;
     Eigen::Vector3d velocity_gain;
-    
-    RaibertFootholdPlanner(double step_t = 0.4, double stance_t = 0.2) 
+
+    RaibertFootholdPlanner(double step_t = 0.4, double stance_t = 0.2)
         : step_time(step_t), stance_time(stance_t), velocity_gain(0.5, 0.5, 0.0) {}
-    
-    Eigen::Vector3d computeFoothold(const pinocchio::SE3& body_pose, 
-                                   const Eigen::Vector3d& body_velocity,
-                                   const Eigen::Vector3d& nominal_foothold,
-                                   int leg_index)
+
+    Eigen::Vector3d computeFoothold(const pinocchio::SE3 &body_pose,
+                                    const Eigen::Vector3d &body_velocity,
+                                    const Eigen::Vector3d &nominal_foothold,
+                                    int leg_index)
     {
         // Raibert heuristic: foothold = nominal + velocity_gain * body_velocity * (step_time/2 + stance_time/2)
         double foothold_time = step_time / 2.0 + stance_time / 2.0;
         Eigen::Vector3d velocity_offset = velocity_gain.cwiseProduct(body_velocity) * foothold_time;
-        
+
         // Transform nominal foothold to world frame
         Eigen::Vector3d world_nominal = point_SE3Act(body_pose, nominal_foothold);
-        
+
         // Add velocity-based offset
         Eigen::Vector3d target_foothold = world_nominal + velocity_offset;
-        
+
         // Transform back to body frame
         return point_SE3Act(body_pose.inverse(), target_foothold);
     }
@@ -184,40 +185,40 @@ public:
         benchmark_progress_pub_ = nh_.advertise<std_msgs::Bool>("/benchmark_progress", 1);
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &UnitreeA1StateSequencePlanner::cmd_callback, this);
         a1_state_sequence_planner_.enableRecordStates(config_.savePlannedStates);
-        
+
         body_velocity_ = Eigen::Vector3d::Zero();
     }
 
     // Trot gait generation
-    A1_State generateNextTrotState(const A1_State& current_state, const geometry_msgs::Twist& cmd_vel)
+    A1_State generateNextTrotState(const A1_State &current_state, const geometry_msgs::Twist &cmd_vel)
     {
         A1_State next_state = current_state;
-        
+
         // Update body pose based on command velocity
         pinocchio::SE3 current_pose = XYZRPY2SE3(current_state.base_Pose_Now);
-        
+
         // Simple velocity integration
         double dt = config_.trotStepDuration;
         Eigen::Vector3d velocity(cmd_vel.linear.x, cmd_vel.linear.y, 0.0);
         Eigen::Vector3d angular_velocity(0, 0, cmd_vel.angular.z);
-        
+
         // Update position
         current_pose.translation() += velocity * dt;
-        
+
         // Update orientation (simple yaw rotation)
         Eigen::Vector3d current_rpy = pinocchio::rpy::matrixToRpy(current_pose.rotation());
         current_rpy[2] += angular_velocity[2] * dt;
         current_pose.rotation() = pinocchio::rpy::rpyToMatrix(current_rpy);
-        
+
         next_state.base_Pose_Now = SE32XYZRPY(current_pose);
-        
+
         // Set contact pattern based on current trot phase
         std::array<bool, 4> contact_pattern = getTrotContactPattern(current_phase_);
         for (int i = 0; i < 4; i++)
         {
             next_state.support_State_Now[i] = contact_pattern[i];
         }
-        
+
         // Update foot positions using Raibert heuristic for swing legs
         for (int i = 0; i < 4; i++)
         {
@@ -226,7 +227,7 @@ public:
                 Eigen::Vector3d nominal_foothold = robot_interface_->getNominalFoothold(i);
                 Eigen::Vector3d target_foothold = raibert_planner_.computeFoothold(
                     current_pose, velocity, nominal_foothold, i);
-                
+
                 // Set target foothold in world frame
                 Eigen::Vector3d world_foothold = point_SE3Act(current_pose, target_foothold);
                 next_state.feetPositionNow.foot[i].x = world_foothold[0];
@@ -235,20 +236,20 @@ public:
             }
             // Stance legs keep their position (no update needed)
         }
-        
+
         return next_state;
     }
-    
+
     // State conversion utilities
     A1_State getCurrentA1State()
     {
         A1_State state;
-        
+
         // Get current body pose
         pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
         state.base_Pose_Now = SE32XYZRPY(body_pose);
         state.base_Pose_Next = state.base_Pose_Now;
-        
+
         // Get current foot positions
         legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
         for (int i = 0; i < 4; i++)
@@ -260,12 +261,12 @@ public:
         state.feetPositionNext = state.feetPositionNow;
         state.support_State_Next = state.support_State_Now;
         state.faultLeg_State_Next = state.faultLeg_State_Now;
-        
+
         // Set move direction based on current velocity
         state.move_Direction.x = body_velocity_[0];
         state.move_Direction.y = body_velocity_[1];
         state.move_Direction.z = 0.0;
-        
+
         return state;
     }
 
@@ -307,9 +308,9 @@ public:
     bool is_contact(int leg_idx, double eps = 0.1)
     {
         legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
-        Eigen::Vector3d foot_force(foot_state.effort[leg_idx].x, 
-                                  foot_state.effort[leg_idx].y, 
-                                  foot_state.effort[leg_idx].z);
+        Eigen::Vector3d foot_force(foot_state.effort[leg_idx].x,
+                                   foot_state.effort[leg_idx].y,
+                                   foot_state.effort[leg_idx].z);
         return (foot_force.norm() > eps) || foot_state.contact[leg_idx];
     }
 
@@ -319,7 +320,7 @@ public:
         int max_cnt = 200;
         double alpha = 0.005;
         ros::spinOnce();
-        
+
         legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
         std::vector<Eigen::Vector3d> footend_interp(4, Eigen::Vector3d::Zero());
         for (size_t k = 0; k < 4; ++k)
@@ -367,7 +368,7 @@ public:
             a1_state_sequence_planner_.reachableCheck();
             benchmark_.record("ReachabilityCheck");
             benchmark_.end();
-            
+
             if (config_.shutdownAfterPreOpt)
             {
                 std_msgs::Bool msg;
@@ -433,7 +434,7 @@ public:
                 t = 0.0;
                 a1_state_sequence_planner_.dequeue_A1solution();
                 switchTrotPhase(); // Switch to next trot phase
-                
+
                 if (a1_state_sequence_planner_.get_state_traj_length() > 0)
                 {
                     a1_state_sequence_planner_.visClear();
@@ -452,7 +453,7 @@ public:
 
         // Set all foot contact to true
         robot_interface_->setJointCmd(footend_interp, std::vector<bool>(4, true));
-        
+
         // Stance contact handling
         stance_contact_handle();
     }
@@ -465,7 +466,7 @@ public:
             ROS_WARN("A1 robot is in motion, ignore new command.");
             return;
         }
-        
+
         motion_lock_ = true;
         gridmap_interface_->lockMapUpdate();
         cmd_ = msg;
@@ -492,7 +493,7 @@ public:
         {
             ROS_WARN("A1 trot gait planning failed.");
         }
-        
+
         motion_lock_ = false;
         gridmap_interface_->unlockMapUpdate();
     }
@@ -510,7 +511,7 @@ public:
             file << "foot0_sdf,foot1_sdf,foot2_sdf,foot3_sdf,";
             file << "support0,support1,support2,support3,";
             file << "cmd_vel_x,cmd_vel_y,cmd_vel_z\n";
-            
+
             for (const auto &profile : robot_profile_)
             {
                 file << profile.time << "," << profile.t << ",";
@@ -562,7 +563,7 @@ public:
             ros::spinOnce();
             rate_.sleep();
         }
-        
+
         if (swing_traj_planner_config_.enableBenchmark)
         {
             std::cout << "Save A1 benchmark results..." << std::endl;

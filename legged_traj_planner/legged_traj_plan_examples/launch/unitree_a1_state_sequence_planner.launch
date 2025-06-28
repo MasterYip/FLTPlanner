@@ -38,7 +38,7 @@
     <arg name="grid_map_file_ceiling" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ceiling.png" />
     <!-- Map Def (Timber Pile Generation) -->
     <arg name="grid_map_def" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/map_def.yaml" />
-    
+
     <!-- GridMap -->
     <arg name="use_fake_map" value="$(eval robot_interface_type == 'A1Dummy')" />
     <group if="$(eval use_fake_map == 1)">

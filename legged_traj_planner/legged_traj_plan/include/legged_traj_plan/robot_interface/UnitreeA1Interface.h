@@ -368,9 +368,9 @@ public:
         Eigen::Vector3d pLeg;
         switch (jointIdx)
         {
-        case 0: // HAA
+        case 0:                              // HAA
             pLeg = Eigen::Vector3d(0, 0, 0); // HAA joint is at the hip position
-        case 1: // Hip joint position
+        case 1:                              // Hip joint position
             pLeg = Eigen::Vector3d(0, A1_HIP_LINK_LENGTH * sideSign * c1, A1_HIP_LINK_LENGTH * sideSign * s1);
             break;
         case 2: // Knee joint position
@@ -451,7 +451,7 @@ public:
         Eigen::Matrix3Xd J_current = getJacobian_CollBall(q, legIdx, jointIdx);
         Eigen::Matrix3Xd J_next = getJacobian_CollBall(q + vel * dt, legIdx, jointIdx);
         Eigen::Matrix3Xd J_dot = (J_next - J_current) / dt;
-        
+
         // Return 3x3 matrix for compatibility
         return J_dot.block<3, 3>(0, 0);
     }

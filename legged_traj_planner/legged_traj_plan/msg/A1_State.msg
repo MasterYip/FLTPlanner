@@ -1,14 +1,3 @@
-/**
- * @file A1_State.msg
- * @author GitHub Copilot
- * @brief Unitree A1 Robot State Message
- * @version 0.1
- * @date 2025-06-28
- *
- * @copyright Copyright (c) 2025
- *
- */
-
 # A1 Robot State (4 legs instead of 6)
 geometry_msgs/Pose base_Pose_Now
 geometry_msgs/Pose base_Pose_Next
