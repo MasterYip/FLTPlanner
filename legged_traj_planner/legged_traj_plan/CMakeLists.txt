@@ -86,6 +86,10 @@ add_message_files(
   BodyState.msg
   # Hexapod Controller
   JointState.msg
+  
+  # UnitreeA1
+  A1_State.msg
+  A1FeetPosition.msg
 )
 
 ## Generate services in the 'srv' folder

@@ -1,0 +1,25 @@
+# Unitree A1 State Sequence Planner Auto Benchmark Configuration
+
+A1StateSequencePlanner:
+  # ROS Settings
+  rosRate: 100
+  stepTime: 2.0
+  
+  # Trot Gait Parameters
+  trotStepDuration: 0.4
+  trotStanceDuration: 0.2
+  
+  # Reachability Check
+  enableReachableCheck: true
+  reachableCheckSize: 30
+  
+  # Trajectory Optimization (Auto Benchmark Mode)
+  swingTrajPreOpt: true
+  shutdownAfterPreOpt: true
+  execOnKeyboardCmd: false
+  
+  # Demo and Benchmark Settings
+  demoPath: ""
+  savePlannedStates: true
+  execSavedStates: false
+  OptBenchmarkSavePath: "/tmp/a1_benchmark"
