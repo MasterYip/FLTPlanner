@@ -111,12 +111,12 @@ UnitreeA1Dummy:
   odomChildFrame: base
   odomParentFrame: odom
   enableVis: true
-  nominalFootPos: [0.18, -0.13, -0.32,
-                   0.18, 0.13, -0.32,
-                   -0.18, -0.13, -0.32,
-                   -0.18, 0.13, -0.32]
+  nominalFootPos: [0.18, -0.13, -0.24,
+                   0.18, 0.13, -0.24,
+                   -0.18, -0.13, -0.24,
+                   -0.18, 0.13, -0.24]
   nominalFootPosShift: [0, 0, 0]
-  initBodyPose: [0, 0, 0.32, 0, 0, 0]
+  initBodyPose: [0, 0, 0.24, 0, 0, 0]
 
 # Shadow Unitree A1
 UnitreeA1Shadow:
@@ -127,9 +127,9 @@ UnitreeA1Shadow:
   odomParentFrame: odom
   enableVis: true
   # Not used for shadow:
-  nominalFootPos: [0.18, -0.13, -0.32,
-                   0.18, 0.13, -0.32,
-                   -0.18, -0.13, -0.32,
-                   -0.18, 0.13, -0.32]
+  nominalFootPos: [0.18, -0.13, -0.24,
+                   0.18, 0.13, -0.24,
+                   -0.18, -0.13, -0.24,
+                   -0.18, 0.13, -0.24]
   nominalFootPosShift: [0, 0, 0]
-  initBodyPose: [0, 0, 0.32, 0, 0, 0]
+  initBodyPose: [0, 0, 0.24, 0, 0, 0]

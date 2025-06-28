@@ -4,7 +4,7 @@ misc:
   useCfgCommand: true
   reOptimize: false
   reOptimizeMaxTry: 3
-  enableVis: false
+  enableVis: true
   enableOptVis: false
   optVisRate: 12
   enableBenchmark: true
@@ -29,7 +29,7 @@ A1StateSequencePlanner:
   # Trajectory Optimization
   swingTrajPreOpt: false
   shutdownAfterPreOpt: false
-  execOnKeyboardCmd: true
+  execOnKeyboardCmd: false
   
   # Demo and Benchmark Settings
   demoPath: ""

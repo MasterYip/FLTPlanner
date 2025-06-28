@@ -107,7 +107,7 @@
 
         <!-- Teleop -->
         <group if="$(eval teleop_type == 'keyboard')">
-            <include file="$(find legged_traj_plan_examples)/launch/key_teleop.launch">
+            <include file="$(find legged_traj_plan_examples)/launch/key_teleop2.launch">
                 <arg name="topic_name" value="/cmd_vel" />
                 <arg name="scale_linear" value="0.1" />
                 <arg name="scale_angular" value="0.1" />

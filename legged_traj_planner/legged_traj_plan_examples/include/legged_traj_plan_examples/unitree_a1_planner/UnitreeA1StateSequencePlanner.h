@@ -66,13 +66,14 @@ struct RaibertFootholdPlanner
         Eigen::Vector3d velocity_offset = velocity_gain.cwiseProduct(body_velocity) * foothold_time;
 
         // Transform nominal foothold to world frame
-        Eigen::Vector3d world_nominal = point_SE3Act(body_pose, nominal_foothold);
+        Eigen::Vector3d world_nominal = point_SE3Act(body_pose.inverse(), nominal_foothold);
 
         // Add velocity-based offset
-        Eigen::Vector3d target_foothold = world_nominal + velocity_offset;
+        // Eigen::Vector3d target_foothold = world_nominal + velocity_offset;
+        // Eigen::Vector3d target_foothold = world_nominal;
 
         // Transform back to body frame
-        return point_SE3Act(body_pose.inverse(), target_foothold);
+        return world_nominal;
     }
 };
 
@@ -229,10 +230,11 @@ public:
                     current_pose, velocity, nominal_foothold, i);
 
                 // Set target foothold in world frame
-                Eigen::Vector3d world_foothold = point_SE3Act(current_pose, target_foothold);
-                next_state.feetPositionNow.foot[i].x = world_foothold[0];
-                next_state.feetPositionNow.foot[i].y = world_foothold[1];
-                next_state.feetPositionNow.foot[i].z = world_foothold[2];
+                next_state.feetPositionNow.foot[i].x = target_foothold[0];
+                next_state.feetPositionNow.foot[i].y = target_foothold[1];
+                // next_state.feetPositionNow.foot[i].z = world_foothold[2];
+                next_state.feetPositionNow.foot[i].z = gridmap_interface_->value(
+                    grid_map::Position(target_foothold[0], target_foothold[1]));
             }
             // Stance legs keep their position (no update needed)
         }
@@ -254,7 +256,12 @@ public:
         legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
         for (int i = 0; i < 4; i++)
         {
-            state.feetPositionNow.foot[i] = foot_state.position[i];
+            auto footpos = point_SE3Act(
+                body_pose.inverse(),
+                Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z));
+            state.feetPositionNow.foot[i].x = footpos[0];
+            state.feetPositionNow.foot[i].y = footpos[1];
+            state.feetPositionNow.foot[i].z = footpos[2];
             state.support_State_Now[i] = foot_state.contact[i];
             state.faultLeg_State_Now[i] = 0; // Normal
         }
@@ -284,17 +291,17 @@ public:
         {
             // FR+RL swing (false), FL+RR stance (true)
             pattern[0] = false; // FR
-            pattern[1] = true;  // FL
-            pattern[2] = false; // RR
-            pattern[3] = true;  // RL
+            pattern[1] = true;  // RR
+            pattern[2] = true;  // FL
+            pattern[3] = false; // RL
         }
         else // PHASE_2
         {
             // FL+RR swing (false), FR+RL stance (true)
             pattern[0] = true;  // FR
-            pattern[1] = false; // FL
-            pattern[2] = true;  // RR
-            pattern[3] = false; // RL
+            pattern[1] = false; // RR
+            pattern[2] = false; // FL
+            pattern[3] = true;  // RL
         }
         return pattern;
     }
@@ -477,7 +484,7 @@ public:
         A1_State current_state = getCurrentA1State();
         A1_State next_state = generateNextTrotState(current_state, cmd_);
 
-        // Visualization
+        // Visualization 
         visualizer_.delAll();
         visualizer_base_.delAll();
 
