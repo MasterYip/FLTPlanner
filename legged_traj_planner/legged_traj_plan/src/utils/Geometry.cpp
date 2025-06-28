@@ -31,6 +31,61 @@ pinocchio::SE3 XYZRPY2SE3(legged_traj_plan::hexapod_Base_Pose pose)
     return se3;
 }
 
+pinocchio::SE3 Pose2SE3(const geometry_msgs::Pose &pose)
+{
+    // Convert quaternion to rotation matrix
+    Eigen::Quaterniond quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+    Eigen::Matrix3d rotation_matrix = quaternion.toRotationMatrix();
+    
+    // Create SE3 object with rotation matrix and translation vector
+    pinocchio::SE3 se3(rotation_matrix, Eigen::Vector3d(pose.position.x, pose.position.y, pose.position.z));
+    
+    return se3;
+}
+
+legged_traj_plan::hexapod_Base_Pose SE32XYZRPY(const pinocchio::SE3 &se3)
+{
+    legged_traj_plan::hexapod_Base_Pose pose;
+    
+    // Extract translation (XYZ)
+    Eigen::Vector3d translation = se3.translation();
+    pose.position.x = translation[0];
+    pose.position.y = translation[1];
+    pose.position.z = translation[2];
+    
+    // Extract rotation matrix and convert to RPY
+    Eigen::Matrix3d rotation_matrix = se3.rotation();
+    Eigen::Vector3d rpy = pinocchio::rpy::matrixToRpy(rotation_matrix);
+    pose.orientation.roll = rpy[0];
+    pose.orientation.pitch = rpy[1];
+    pose.orientation.yaw = rpy[2];
+    
+    return pose;
+}
+
+geometry_msgs::Pose SE32Pose(const pinocchio::SE3 &se3)
+{
+    geometry_msgs::Pose pose;
+    
+    // Extract translation (XYZ)
+    Eigen::Vector3d translation = se3.translation();
+    pose.position.x = translation[0];
+    pose.position.y = translation[1];
+    pose.position.z = translation[2];
+    
+    // Extract rotation matrix and convert to quaternion
+    Eigen::Matrix3d rotation_matrix = se3.rotation();
+    Eigen::Quaterniond quaternion(rotation_matrix);
+    pose.orientation.x = quaternion.x();
+    pose.orientation.y = quaternion.y();
+    pose.orientation.z = quaternion.z();
+    pose.orientation.w = quaternion.w();
+    
+    return pose;
+}
+
+
+
 /**
  * @brief Transform a point from frame b to frame a (or apply a SE3 transformation to a point)
  *

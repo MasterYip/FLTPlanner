@@ -22,8 +22,15 @@
 #include <pinocchio/math/rpy.hpp>
 /* internal project header files */
 #include "legged_traj_plan/hexapod_Base_Pose.h"
+#include "geometry_msgs/Pose.h"
 
 pinocchio::SE3 XYZRPY2SE3(legged_traj_plan::hexapod_Base_Pose pose);
+
+pinocchio::SE3 Pose2SE3(const geometry_msgs::Pose &pose);
+
+legged_traj_plan::hexapod_Base_Pose SE32XYZRPY(const pinocchio::SE3 &se3);
+
+geometry_msgs::Pose SE32Pose(const pinocchio::SE3 &se3);
 
 Eigen::Vector3d point_SE3Act(const pinocchio::SE3 &bMa, const Eigen::Vector3d &pt);
 

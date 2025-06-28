@@ -17,7 +17,7 @@
 /* c++ standard library header files */
 
 /* internal project header files */
-#include <pinocchio/math/rpy.hpp>
+#include "legged_traj_plan/utils/Geometry.h"
 #include "legged_traj_plan/whole_body_planner/CmdVelExtrapolator.h"
 #include "legged_traj_plan/whole_body_planner/A1StateSequencePlanner.h"
 #include "UnitreeA1PlannerBase.h"
@@ -195,7 +195,7 @@ public:
         A1_State next_state = current_state;
 
         // Update body pose based on command velocity
-        pinocchio::SE3 current_pose = XYZRPY2SE3(current_state.base_Pose_Now);
+        pinocchio::SE3 current_pose = Pose2SE3(current_state.base_Pose_Now);
 
         // Simple velocity integration
         double dt = config_.trotStepDuration;
@@ -210,7 +210,7 @@ public:
         current_rpy[2] += angular_velocity[2] * dt;
         current_pose.rotation() = pinocchio::rpy::rpyToMatrix(current_rpy);
 
-        next_state.base_Pose_Now = SE32XYZRPY(current_pose);
+        next_state.base_Pose_Now = SE32Pose(current_pose);
 
         // Set contact pattern based on current trot phase
         std::array<bool, 4> contact_pattern = getTrotContactPattern(current_phase_);
