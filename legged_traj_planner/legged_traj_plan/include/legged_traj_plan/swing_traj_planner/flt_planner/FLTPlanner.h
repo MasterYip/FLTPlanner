@@ -21,6 +21,7 @@
 
 /* internal project header files */
 #include "legged_traj_plan/swing_traj_planner/SwingTrajPlannerBase.h"
+#include "legged_traj_plan/swing_traj_planner/fec_planner/FECCheck.h"
 #include "SwingTrajOpt.h"
 
 using namespace geo_utils;
@@ -72,6 +73,7 @@ class FLTCfgPlanner : public SwingTrajPlannerBase
 private:
     ros::NodeHandle nh_;
     SwingTrajOpt swing_traj_opt_;
+    FECCheck fec_check_;
 
 public:
     FLTCfgPlanner(SwingTrajPlannerConfig config,

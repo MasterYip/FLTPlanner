@@ -68,6 +68,7 @@ struct SwingTrajPlannerConfig
     // Checker
     bool useTrajOptForReachableCheck;
     int maxReachableCheckRetry;
+    // double FECCheckResolution;
     // Optimizer Settings
     double lengthPerPiece;
     double allocSpeed;
@@ -239,6 +240,7 @@ struct SwingTrajPlannerConfig
             check_digit *= nh.getParam("LFTPlanner/searcher/collBallCheckRad3", collBallCheckRad3);
             check_digit *= nh.getParam("LFTPlanner/checker/useTrajOptForReachableCheck", useTrajOptForReachableCheck);
             check_digit *= nh.getParam("LFTPlanner/checker/maxReachableCheckRetry", maxReachableCheckRetry);
+            check_digit *= nh.getParam("LFTPlanner/checker/FECCheckResolution", FECCheckResolution);
             check_digit *= nh.getParam("LFTPlanner/optimizer/lengthPerPiece", lengthPerPiece);
             check_digit *= nh.getParam("LFTPlanner/optimizer/allocSpeed", allocSpeed);
             check_digit *= nh.getParam("LFTPlanner/optimizer/relCostTol", relCostTol);

@@ -90,6 +90,9 @@ public:
     {
         double detla = 1.0 / config_.checkResolution;
         double t = 0.0;
+        if (!checkLegFEC(pose0, p0, p0, p1, index) ||
+            !checkLegFEC(pose1, p1, p0, p1, index))
+            return false;
         while (t <= 1.0)
         {
             Eigen::Vector3d p = traj->evaluate(t, 0, true);

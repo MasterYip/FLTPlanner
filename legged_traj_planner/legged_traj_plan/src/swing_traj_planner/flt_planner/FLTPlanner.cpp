@@ -185,8 +185,15 @@ FLTCfgPlanner::FLTCfgPlanner(SwingTrajPlannerConfig config,
                              std::shared_ptr<BaseRobotInterface> robot_interface,
                              std::shared_ptr<GridMapInterface> gridmap_interface) : SwingTrajPlannerBase(config, robot_interface, gridmap_interface),
                                                                                     swing_traj_opt_(robot_interface_, gridmap_interface_,
-                                                                                                    nullptr, false)
+                                                                                                    nullptr, false),
+                                                                                    fec_check_(robot_interface_, gridmap_interface_)
 {
+    FECCheckConfig fec_check_config;
+    fec_check_config.collBallRad2 = config.collBallCheckRad2;
+    fec_check_config.collBallRad3 = config.collBallCheckRad3;
+    fec_check_config.FootCollExcludeBallRad = config.FootCollExcludeBallRad;
+    fec_check_config.checkResolution = config.FECCheckResolution;
+    fec_check_.setConfig(fec_check_config);
     visualizer_ = std::make_shared<GCSVisualizer>(nh_, "odom", "swing_traj_planner_vis");
     if (config_.enableOptVis)
         swing_traj_opt_.setVisualizer(visualizer_);
@@ -596,10 +603,11 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
         for (int i = 0; i < footholds.size(); i++)
         {
             if (ifKinValid(pose1, footholds.at(i), index))
+            // if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
             {
                 reachable[i] = false;
                 auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
-                if (optTrajHook(traj, pose0, pose1, index))
+                if (optTrajHook(traj, pose0, pose1, index) && fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index))
                     reachable[i] = true;
                 else
                 {
@@ -608,7 +616,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                     while (cnt < config_.maxReachableCheckRetry)
                     {
                         auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
-                        if (optTrajHook(traj, pose0, pose1, index))
+                        if (optTrajHook(traj, pose0, pose1, index) && fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index))
                         {
                             reachable[i] = true;
                             break;
