@@ -65,6 +65,8 @@ source ./devel/setup.bash
 
 Perform **foothold reachability checks** and trajectory optimization using recorded contact sequences or MCTS planner.
 
+#### Hexapod Robot (ElSpider Air)
+
 ```bash
 roslaunch legged_traj_plan_examples elspider_air_state_sequence_planner.launch \
 robot_interface_type:=ElSpiderAirDummy \
@@ -96,6 +98,19 @@ Robot Control:
 - `arrow right`: Turn right(not recommended)
 
 > You can publish `geometry_msgs/Twist` to `/cmd_vel` to control the robot too.
+
+#### Quadruped Robot (Unitree A1)
+
+> Note: This demo are still under development, so the planner may not work properly.
+
+```bash
+roslaunch legged_traj_plan_examples unitree_a1_state_sequence_planner.launch \
+robot_interface_type:=UnitreeA1Dummy \
+sim:=true \
+teleop_type:=keyboard \
+demo_name:=6_fractal \
+planner_cfg:=flt_cfg_planner_conv_a1
+```
 
 ### Raibert Heuristic Planner Examples
 

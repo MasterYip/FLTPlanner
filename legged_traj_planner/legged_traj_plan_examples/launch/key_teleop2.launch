@@ -1,5 +1,6 @@
 <launch>
     <arg name="topic_name" default="/cmd_vel" />
+    <arg name="pub_rate" default="2" />
     <arg name="scale_linear" default="0.5" />
     <arg name="scale_angular" default="0.5" />
     <!-- <node pkg="turtlesim" type="turtle_teleop_key" name="teleop_key" output="screen">
@@ -9,9 +10,9 @@
     </node> -->
     <node pkg="legged_traj_plan_examples" type="key_teleop.py" name="key_teleop" output="screen">
         <param name="cmd_topic" value="$(arg topic_name)" />
-        <param name="pub_rate" value="1" />
+        <param name="pub_rate" value="$(arg pub_rate)" type="double" />
         <param name="max_linear_x" value="$(arg scale_linear)" type="double" />
-        <param name="max_linear_y" value="0.2" type="double" />
+        <param name="max_linear_y" value="$(arg scale_linear)" type="double" />
         <param name="max_angular_z" value="$(arg scale_angular)" type="double" />
     </node>
 </launch>
