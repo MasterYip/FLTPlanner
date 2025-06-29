@@ -41,7 +41,7 @@ LFTPlanner:
   optimizer:
     lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization
-    relCostTol: 1.0e-4
+    relCostTol: 1.0e-5
     smoothingFactor: 5.0e-2
     integralResolution: 16
     enableSpaceDeform: false
