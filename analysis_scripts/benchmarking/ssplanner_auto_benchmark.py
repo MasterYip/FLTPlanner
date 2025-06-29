@@ -37,12 +37,12 @@ def csv2dict(filename):
 
 # A1-specific planners for quadruped locomotion
 A1_PLANNERS = [
-    # "flt_cfg_groundtruth_a1"
+    "flt_cfg_groundtruth_a1"
     "flt_cfg_planner_conv_a1",
     "flt_cfg_planner_keypoint_a1",
-    # "rrt_cfg_planner_a1", 
-    # "stomp_cfg_planner_a1",
-    # "fec_planner_a1",
+    "rrt_cfg_planner_a1", 
+    "stomp_cfg_planner_a1",
+    "fec_planner_a1",
 ]
 
 # A1-specific demos (simpler terrain for quadruped testing)
@@ -396,7 +396,7 @@ class A1StateSequencePlannerAutoBenchmark(SSPlannerAutoBenchmark):
     swingtraj_benchmark = "OptBenchmark.csv"
     reachable_benchmark = "ReachableBenchmark.csv"
     robot_profile = "RobotProfileRecord.csv"
-    
+
     def __init__(self):
         super().__init__()
         # Override launch file for A1

@@ -1,0 +1,27 @@
+plannerID: 6 # i.e. FEC planner
+
+trajInit:
+  vLift: 0.2
+  vLiftNormalRandomize: 0.5
+  hLift: 0.10
+  trajTime: 3 # Only affect init trajectory
+
+misc:
+  enableOptimizer: true
+  reOptimize: false
+  reOptimizeMaxTry: 100
+  useCfgSpace: false
+  useCfgCommand: true
+  enableVis: false
+  enableOptVis: false
+  optVisRate: 10
+  enableBenchmark: true
+  # Benchmark result save path
+  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/optBenchmark2.csv
+  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
+
+FECPlanner:
+  collBallCheckRad2: 0.03
+  collBallCheckRad3: 0.02
+  FootCollExcludeBallRad: 0.04
+  FECCheckResolution: 50 # points to check for FEC
