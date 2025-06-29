@@ -21,6 +21,7 @@ A1StateSequencePlanner:
   # Trot Gait Parameters
   trotStepDuration: 0.4
   trotStanceDuration: 0.2
+  nominalBodyHeight: 0.20
   
   # Reachability Check
   enableReachableCheck: true
@@ -34,5 +35,5 @@ A1StateSequencePlanner:
   # Demo and Benchmark Settings
   demoPath: ""
   savePlannedStates: false
-  execSavedStates: true
+  execSavedStates: false
   OptBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml

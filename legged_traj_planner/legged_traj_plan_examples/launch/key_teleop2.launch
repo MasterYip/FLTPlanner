@@ -1,6 +1,6 @@
 <launch>
     <arg name="topic_name" default="/cmd_vel" />
-    <arg name="pub_rate" default="2" />
+    <arg name="pub_rate" default="10" />
     <arg name="scale_linear" default="0.5" />
     <arg name="scale_angular" default="0.5" />
     <!-- <node pkg="turtlesim" type="turtle_teleop_key" name="teleop_key" output="screen">

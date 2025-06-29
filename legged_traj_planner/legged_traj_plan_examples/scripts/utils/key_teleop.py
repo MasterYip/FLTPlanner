@@ -31,10 +31,13 @@ class KeyTeleop:
         # Save the old tty settings
         self.old_tty_settings = termios.tcgetattr(sys.stdin)
 
+        self.sent = False
+
 
     def timer_callback(self, event):
         self.update_cmd()
-        self.cmd_vel_pub.publish(self.twist_cmd)
+        if not self.sent:
+            self.cmd_vel_pub.publish(self.twist_cmd)
 
     def run(self):
         rospy.spin()
@@ -53,6 +56,12 @@ class KeyTeleop:
 
     def update_cmd(self):
         key = self.read_key()
+        self.sent = False
+
+        self.twist_cmd.linear.x = 0.0
+        self.twist_cmd.linear.y = 0.0
+        self.twist_cmd.angular.z = 0.0
+
         if key == 'w':
             self.twist_cmd.linear.x = self.max_linear_x
         elif key == 's':
@@ -69,6 +78,10 @@ class KeyTeleop:
         elif key == '\x03':
             self.reset_tty()
             rospy.signal_shutdown('shutdown')
+        else:
+            # Not key pressed then no message
+            self.sent = True
+
 
 
 if __name__ == '__main__':

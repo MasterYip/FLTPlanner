@@ -107,10 +107,26 @@ Robot Control:
 roslaunch legged_traj_plan_examples unitree_a1_state_sequence_planner.launch \
 robot_interface_type:=UnitreeA1Dummy \
 sim:=true \
-teleop_type:=PS5 \
+teleop_type:=keyboard \
 demo_name:=6_fractal \
 planner_cfg:=flt_cfg_planner_conv_a1
 ```
+
+Demos:
+`1_stairs`, `2_stairs`, `4_barrier`, `4_ushape_barrier`, `6_fractal`
+
+Planners:
+`flt_cfg_planner_keypoint_a1`(KCFRC keypoint), `flt_cfg_planner_conv_a1`(KCFRC conv),
+`rrt_cfg_planner_a1`, `stomp_cfg_planner_a1`, `fec_planner_a1`
+
+Robot Control:
+
+- `W`: Move forward
+- `S`: Move backward
+- `A`: Move left
+- `D`: Move right
+- `Q`: Turn left
+- `E`: Turn right
 
 ### Raibert Heuristic Planner Examples
 

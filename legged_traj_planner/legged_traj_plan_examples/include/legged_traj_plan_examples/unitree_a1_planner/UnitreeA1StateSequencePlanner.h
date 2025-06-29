@@ -105,6 +105,7 @@ struct UnitreeA1StateSequencePlannerConfig
 
     bool enableReachableCheck;
     int reachableCheckSize;
+    double nominalBodyHeight; // Nominal body height for A1, used in extrapolation
 
     bool swingTrajPreOpt;
     bool shutdownAfterPreOpt;
@@ -123,6 +124,7 @@ struct UnitreeA1StateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/stepTime", stepTime);
         check_digit &= nh.getParam(ns + "/trotStepDuration", trotStepDuration);
         check_digit &= nh.getParam(ns + "/trotStanceDuration", trotStanceDuration);
+        check_digit &= nh.getParam(ns + "/nominalBodyHeight", nominalBodyHeight);
 
         check_digit &= nh.getParam(ns + "/enableReachableCheck", enableReachableCheck);
         check_digit &= nh.getParam(ns + "/reachableCheckSize", reachableCheckSize);
@@ -199,14 +201,14 @@ public:
 
         // Initialize GridMapCmdVelExtrapolator with sample points for terrain adaptation
         PosList pose_sample_pts;
-        for (double x = -0.4; x <= 0.4; x += 0.2)
+        for (double x = -0.3; x <= 0.3; x += 0.1)
         {
-            for (double y = -0.4; y <= 0.4; y += 0.2)
+            for (double y = -0.2; y <= 0.2; y += 0.1)
             {
                 pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
             }
         }
-        cmd_vel_extrapolator_.init(gridmap_interface_, pose_sample_pts, 0.24); // A1 nominal height
+        cmd_vel_extrapolator_.init(gridmap_interface_, pose_sample_pts, config_.nominalBodyHeight); // A1 nominal height
 
         if (config_.execSavedStates)
         {
