@@ -107,7 +107,7 @@ Robot Control:
 roslaunch legged_traj_plan_examples unitree_a1_state_sequence_planner.launch \
 robot_interface_type:=UnitreeA1Dummy \
 sim:=true \
-teleop_type:=keyboard \
+teleop_type:=PS5 \
 demo_name:=6_fractal \
 planner_cfg:=flt_cfg_planner_conv_a1
 ```

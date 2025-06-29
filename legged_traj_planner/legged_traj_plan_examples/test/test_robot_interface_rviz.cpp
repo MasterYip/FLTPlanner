@@ -50,7 +50,6 @@ void publish_joint_states_unitree(std::shared_ptr<UnitreeA1Interface> robot_inte
     joint_pub.publish(joint_state);
 }
 
-
 // Visualization Legend:
 // Blue spheres: Joint positions (collision balls)
 // Green arrows: Foot velocity vectors (J·q̇)
@@ -74,7 +73,7 @@ void test_elspider_jacobian_vis(std::shared_ptr<ElSpiderAirInterfaceROS> robot_i
     {
         visualizer.delAll();
         double time = ros::Time::now().toSec();
-        
+
         for (int i = 0; i < dof; i++)
         {
             q[i] = 0.5 * sin(time);
@@ -98,44 +97,53 @@ void test_elspider_jacobian_vis(std::shared_ptr<ElSpiderAirInterfaceROS> robot_i
             {
                 Eigen::Vector3d joint_pos;
                 robot_interface->getRobotKin().forwardKin(q.segment<3>(3 * i), joint_pos, i, j);
-                
+
                 // Visualize joint position (blue sphere)
                 ros_visualizer::VisStyle blue_style(0.0, 0.0, 1.0, 1.0, 0.03);
                 visualizer.visSphere(joint_pos, 0.03, blue_style);
 
                 // Get collision ball Jacobian and compute velocity
-                try {
+                try
+                {
                     Eigen::Matrix3Xd J_coll = robot_interface->getJacobian_CollBall(q.segment<3>(3 * i), i, j);
                     Eigen::Vector3d joint_vel = J_coll * dq.segment<3>(3 * i);
-                    
+
                     // Visualize collision ball velocity (cyan arrows)
                     ros_visualizer::VisStyle cyan_style(0.0, 1.0, 1.0, 1.0, 0.015);
                     visualizer.visArrow(joint_pos, joint_pos + joint_vel * 0.5, cyan_style);
-                } catch (...) {
+                }
+                catch (...)
+                {
                     // If collision ball Jacobian not implemented, skip
                 }
 
                 // Test Jacobian time derivative if available
-                try {
+                try
+                {
                     Eigen::Matrix3Xd J_dot = robot_interface->getJacobianTimeVariation(q.segment<3>(3 * i), dq.segment<3>(3 * i), i);
                     Eigen::Vector3d acc_term = J_dot * dq.segment<3>(3 * i);
-                    
+
                     // Visualize acceleration term (red arrows)
                     ros_visualizer::VisStyle red_style(1.0, 0.0, 0.0, 1.0, 0.015);
                     visualizer.visArrow(footendpos[i], footendpos[i] + acc_term * 2, red_style);
-                } catch (...) {
+                }
+                catch (...)
+                {
                     // If Jacobian time derivative not implemented, skip
                 }
 
                 // Test collision ball Jacobian time derivative if available
-                try {
+                try
+                {
                     Eigen::Matrix3d J_dot_coll = robot_interface->getJacobianTimeVariation_CollBall(q.segment<3>(3 * i), dq.segment<3>(3 * i), i, j);
                     Eigen::Vector3d acc_term_coll = J_dot_coll * dq.segment<3>(3 * i);
-                    
+
                     // Visualize collision ball acceleration term (magenta arrows)
                     ros_visualizer::VisStyle magenta_style(1.0, 0.0, 1.0, 1.0, 0.01);
                     visualizer.visArrow(joint_pos, joint_pos + acc_term_coll * 1.5, magenta_style);
-                } catch (...) {
+                }
+                catch (...)
+                {
                     // If collision ball Jacobian time derivative not implemented, skip
                 }
             }
@@ -165,7 +173,7 @@ void test_unitree_jacobian_vis(std::shared_ptr<UnitreeA1Interface> robot_interfa
     {
         visualizer.delAll();
         double time = ros::Time::now().toSec();
-        
+
         for (int i = 0; i < dof; i++)
         {
             if (i % 3 != 0)
@@ -199,45 +207,54 @@ void test_unitree_jacobian_vis(std::shared_ptr<UnitreeA1Interface> robot_interfa
             for (int j = 0; j < 3; j++)
             {
                 Eigen::Vector3d joint_pos = robot_interface->FK_CollBall(q.segment<3>(3 * i), i, j);
-                
+
                 // Visualize joint position (blue sphere)
                 ros_visualizer::VisStyle blue_style(0.0, 0.0, 1.0, 1.0, 0.025);
                 visualizer.visSphere(joint_pos, 0.025, blue_style);
 
                 // Get collision ball Jacobian and compute velocity
-                try {
+                try
+                {
                     Eigen::Matrix3Xd J_coll = robot_interface->getJacobian_CollBall(q.segment<3>(3 * i), i, j);
                     Eigen::Vector3d joint_vel = J_coll * dq.segment<3>(3 * i);
-                    
+
                     // Visualize collision ball velocity (cyan arrows)
                     ros_visualizer::VisStyle cyan_style(0.0, 1.0, 1.0, 1.0, 0.015);
                     visualizer.visArrow(joint_pos, joint_pos + joint_vel * 0.5, cyan_style);
-                } catch (...) {
+                }
+                catch (...)
+                {
                     // If collision ball Jacobian not implemented, skip
                 }
 
                 // Test collision ball Jacobian time derivative if available
-                try {
+                try
+                {
                     Eigen::Matrix3d J_dot_coll = robot_interface->getJacobianTimeVariation_CollBall(q.segment<3>(3 * i), dq.segment<3>(3 * i), i, j);
                     Eigen::Vector3d acc_term_coll = J_dot_coll * dq.segment<3>(3 * i);
-                    
+
                     // Visualize collision ball acceleration term (magenta arrows)
                     ros_visualizer::VisStyle magenta_style(1.0, 0.0, 1.0, 1.0, 0.01);
                     visualizer.visArrow(joint_pos, joint_pos + acc_term_coll * 1.5, magenta_style);
-                } catch (...) {
+                }
+                catch (...)
+                {
                     // If collision ball Jacobian time derivative not implemented, skip
                 }
             }
 
             // Test foot Jacobian time derivative if available
-            try {
+            try
+            {
                 Eigen::Matrix3Xd J_dot = robot_interface->getJacobianTimeVariation(q.segment<3>(3 * i), dq.segment<3>(3 * i), i);
                 Eigen::Vector3d acc_term = J_dot * dq.segment<3>(3 * i);
-                
+
                 // Visualize foot acceleration term (red arrows)
                 ros_visualizer::VisStyle red_style(1.0, 0.0, 0.0, 1.0, 0.015);
                 visualizer.visArrow(footendpos[i], footendpos[i] + acc_term * 2, red_style);
-            } catch (...) {
+            }
+            catch (...)
+            {
                 // If Jacobian time derivative not implemented, skip
             }
         }

@@ -152,6 +152,9 @@ private:
     // Interface
     A1StateSequencePlanner a1_state_sequence_planner_;
 
+    // Terrain-aware pose extrapolation
+    GridMapCmdVelExtrapolator cmd_vel_extrapolator_;
+
     // Trot gait state
     TrotPhase current_phase_;
     RaibertFootholdPlanner raibert_planner_;
@@ -188,6 +191,17 @@ public:
         a1_state_sequence_planner_.enableRecordStates(config_.savePlannedStates);
 
         body_velocity_ = Eigen::Vector3d::Zero();
+
+        // Initialize GridMapCmdVelExtrapolator with sample points for terrain adaptation
+        PosList pose_sample_pts;
+        for (double x = -0.4; x <= 0.4; x += 0.2)
+        {
+            for (double y = -0.4; y <= 0.4; y += 0.2)
+            {
+                pose_sample_pts.emplace_back(Eigen::Vector3d(x, y, 0));
+            }
+        }
+        cmd_vel_extrapolator_.init(gridmap_interface_, pose_sample_pts, 0.24); // A1 nominal height
     }
 
     // Trot gait generation
@@ -195,23 +209,15 @@ public:
     {
         A1_State next_state = current_state;
 
-        // Update body pose based on command velocity
+        // Get current pose and update the extrapolator
         pinocchio::SE3 current_pose = Pose2SE3(current_state.base_Pose_Now);
+        cmd_vel_extrapolator_.update(current_pose, cmd_vel);
 
-        // Simple velocity integration
+        // Use terrain-aware pose extrapolation instead of simple velocity integration
         double dt = config_.trotStepDuration;
-        Eigen::Vector3d velocity(cmd_vel.linear.x, cmd_vel.linear.y, 0.0);
-        Eigen::Vector3d angular_velocity(0, 0, cmd_vel.angular.z);
+        pinocchio::SE3 next_pose = cmd_vel_extrapolator_.extrapolate(dt);
 
-        // Update position
-        current_pose.translation() += velocity * dt;
-
-        // Update orientation (simple yaw rotation)
-        Eigen::Vector3d current_rpy = pinocchio::rpy::matrixToRpy(current_pose.rotation());
-        current_rpy[2] += angular_velocity[2] * dt;
-        current_pose.rotation() = pinocchio::rpy::rpyToMatrix(current_rpy);
-
-        next_state.base_Pose_Now = SE32Pose(current_pose);
+        next_state.base_Pose_Now = SE32Pose(next_pose);
 
         // Set contact pattern based on current trot phase
         std::array<bool, 4> contact_pattern = getTrotContactPattern(current_phase_);
@@ -221,18 +227,18 @@ public:
         }
 
         // Update foot positions using Raibert heuristic for swing legs
+        Eigen::Vector3d velocity(cmd_vel.linear.x, cmd_vel.linear.y, 0.0);
         for (int i = 0; i < 4; i++)
         {
             if (!contact_pattern[i]) // Swing leg
             {
                 Eigen::Vector3d nominal_foothold = robot_interface_->getNominalFoothold(i);
                 Eigen::Vector3d target_foothold = raibert_planner_.computeFoothold(
-                    current_pose, velocity, nominal_foothold, i);
+                    next_pose, velocity, nominal_foothold, i);
 
-                // Set target foothold in world frame
+                // Set target foothold in world frame with terrain-aware height
                 next_state.feetPositionNow.foot[i].x = target_foothold[0];
                 next_state.feetPositionNow.foot[i].y = target_foothold[1];
-                // next_state.feetPositionNow.foot[i].z = world_foothold[2];
                 next_state.feetPositionNow.foot[i].z = gridmap_interface_->value(
                     grid_map::Position(target_foothold[0], target_foothold[1]));
             }
@@ -484,7 +490,7 @@ public:
         A1_State current_state = getCurrentA1State();
         A1_State next_state = generateNextTrotState(current_state, cmd_);
 
-        // Visualization 
+        // Visualization
         visualizer_.delAll();
         visualizer_base_.delAll();
 
