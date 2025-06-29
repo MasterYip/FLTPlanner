@@ -600,14 +600,19 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
 {
     if (config_.useTrajOptForReachableCheck)
     {
+        LeggedBorderCheckConfig cfg_lbc = getLeggedBorderCheckConfig(gridmap_interface_, config_);
         for (int i = 0; i < footholds.size(); i++)
         {
-            if (ifKinValid(pose1, footholds.at(i), index))
+            auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
+                                                                    pose0, pose1, p0, footholds[i],
+                                                                    index, cfg_lbc);
+            if (border_check->isGoalValid(Eigen::Vector2d(footholds[i].head(2))))
             // if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
             {
                 reachable[i] = false;
                 auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
-                if (optTrajHook(traj, pose0, pose1, index) && fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index))
+                if (optTrajHook(traj, pose0, pose1, index) &&
+                    (!config_.enableFECCheck || fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index)))
                     reachable[i] = true;
                 else
                 {
@@ -616,7 +621,8 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                     while (cnt < config_.maxReachableCheckRetry)
                     {
                         auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
-                        if (optTrajHook(traj, pose0, pose1, index) && fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index))
+                        if (optTrajHook(traj, pose0, pose1, index) &&
+                            (!config_.enableFECCheck || fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index)))
                         {
                             reachable[i] = true;
                             break;

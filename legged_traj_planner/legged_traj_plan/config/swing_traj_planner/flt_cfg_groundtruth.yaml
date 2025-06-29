@@ -38,7 +38,8 @@ LFTPlanner:
   checker:
     useTrajOptForReachableCheck: true
     maxReachableCheckRetry: 20
-    FECCheckResolution: 50 # points to check for FEC
+    enableFECCheck: false
+    FECCheckResolution:  2 # points to check for FEC
   optimizer:
     lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization
