@@ -8,9 +8,9 @@ misc:
   enableOptVis: false
   optVisRate: 12
   enableBenchmark: true
-  OptBenchmarkSavePath: /home/raymon/Documents/CodeSpace/ROS_ws/planner_ws/src/analysis_scripts/benchmarking/temp/OptBenchmark.csv
-  ReachableBenchmarkSavePath: /home/raymon/Documents/CodeSpace/ROS_ws/planner_ws/src/analysis_scripts/benchmarking/temp/ReachableBenchmark.csv
-  robotProfilePath: /home/raymon/Documents/CodeSpace/ROS_ws/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
+  OptBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/OptBenchmark.csv
+  ReachableBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/ReachableBenchmark.csv
+  robotProfilePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
 
 # Unitree A1 State Sequence Planner Configuration
 A1StateSequencePlanner:
@@ -34,5 +34,5 @@ A1StateSequencePlanner:
   # Demo and Benchmark Settings
   demoPath: ""
   savePlannedStates: false
-  execSavedStates: false
+  execSavedStates: true
   OptBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml

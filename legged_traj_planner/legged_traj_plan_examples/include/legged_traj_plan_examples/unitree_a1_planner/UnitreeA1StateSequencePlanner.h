@@ -91,6 +91,11 @@ struct A1RobotProfile
     geometry_msgs::Twist cmd_vel;
 };
 
+namespace A1DemoFiles
+{
+    const std::string planned_states = "a1_planned_states";
+};
+
 struct UnitreeA1StateSequencePlannerConfig
 {
     int rosRate;
@@ -202,6 +207,12 @@ public:
             }
         }
         cmd_vel_extrapolator_.init(gridmap_interface_, pose_sample_pts, 0.24); // A1 nominal height
+
+        if (config_.execSavedStates)
+        {
+            ros::Duration(1.0).sleep();
+            execRecordStates();
+        }
     }
 
     // Trot gait generation
@@ -511,10 +522,62 @@ public:
         gridmap_interface_->unlockMapUpdate();
     }
 
+    // Save and load recorded states functionality
+    void saveRecordStates()
+    {
+        std::ofstream file(config_.demoPath + A1DemoFiles::planned_states, std::ios::binary);
+        if (file.is_open())
+        {
+            std::vector<A1_State> record_states = a1_state_sequence_planner_.getRecordStates();
+            A1_State save_states[record_states.size()];
+            for (size_t i = 0; i < record_states.size(); ++i)
+            {
+                save_states[i] = record_states[i];
+            }
+            file.write((char *)save_states, sizeof(A1_State) * record_states.size());
+        }
+        file.close();
+    }
+
+    void execRecordStates()
+    {
+        std::ifstream file(config_.demoPath + A1DemoFiles::planned_states, std::ios::binary);
+        if (file.is_open())
+        {
+            std::vector<A1_State> record_states;
+            A1_State *state = new A1_State();
+            while (!file.eof())
+            {
+                file.read((char *)state, sizeof(A1_State));
+                record_states.push_back(*state);
+            }
+            file.close();
+            record_states.pop_back(); // FIXME: the last one is invalid
+            ROS_INFO("Loaded A1 record states: %ld", record_states.size());
+            if (record_states.size() > 1)
+            {
+                for (size_t i = 0; i < record_states.size() - 1; ++i)
+                {
+                    a1_state_sequence_planner_.enqueue_A1solution(record_states[i], record_states[i + 1]);
+                }
+                traj_planner();
+                return;
+            }
+            else
+            {
+                ROS_WARN("No A1 record states loaded.");
+            }
+        }
+        else
+        {
+            ROS_WARN("Failed to open A1 record states file.");
+        }
+    }
+
     // Benchmarking
     void saveRobotProfile()
     {
-        std::ofstream file(config_.OptBenchmarkSavePath + "/a1_robot_profile.csv");
+        std::ofstream file(swing_traj_planner_config_.robotProfilePath);
         if (file.is_open())
         {
             file << "time,t,pose_x,pose_y,pose_z,pose_roll,pose_pitch,pose_yaw,";
@@ -555,6 +618,10 @@ public:
                 file << profile.cmd_vel.linear.x << "," << profile.cmd_vel.linear.y << "," << profile.cmd_vel.angular.z << "\n";
             }
         }
+        else
+        {
+            ROS_ERROR("Failed to open robot profile file for saving.");
+        }
         file.close();
     }
 
@@ -581,10 +648,16 @@ public:
         {
             std::cout << "Save A1 benchmark results..." << std::endl;
             a1_state_sequence_planner_.saveBenchmarkResults();
-            benchmark_.save(config_.OptBenchmarkSavePath + "/a1_benchmark.csv");
+            benchmark_.save(config_.OptBenchmarkSavePath);
             std::cout << "Save A1 robot profile..." << std::endl;
             saveRobotProfile();
             std::cout << "A1 benchmark results and robot profile saved." << std::endl;
+        }
+        
+        if (config_.savePlannedStates)
+        {
+            saveRecordStates();
+            std::cout << "Save A1 planned states." << std::endl;
         }
     }
 };

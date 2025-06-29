@@ -1,0 +1,79 @@
+plannerID: 0
+
+trajInit:
+  # perpendicular to the ground (avoid collision detection)
+  vLift: 0.014 # For trajopt
+  # vLift: 0.018 # For raibert planner init traj
+  vLiftNormalRandomize: 1.5 # Rand normal for RE-PLANNING (orthogonal disk randomization)
+  hLift: 0.1
+  trajTime: 20
+
+misc:
+  enableOptimizer: true
+  reOptimize: true
+  reOptimizeMaxTry: 100
+  useCfgSpace: true # Do not change this (this file is for cfg space)
+  useCfgCommand: true
+  enableVis: false
+  enableOptVis: false # Visualize the optimization process
+  optVisRate: 10
+  enableBenchmark: true
+  # Benchmark result save path
+  # OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/optBenchmark.csv
+  # robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/legged_traj_planner/legged_traj_plan_examples/data/benchmark/robotProfile.csv
+  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/optBenchmark2.csv
+  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
+
+LFTPlanner:
+  searcher:
+    enablePolyPathSearch: true
+    useLeggedBorderCheck: true
+    updateGuideSurfInReachableCheck: true
+    guideSurfType: 1 # 0: ground, 1: keypoints, 2: convolution
+    guideSurfConvKernelSize: 5
+    guideSurfConvKernelInterval: 0.05
+    guideSurfConvUseTravMap: false # Use traversable (filtered) map for convolution (for Sparse Scene)
+    collBallCheckRad2: 0.03
+    collBallCheckRad3: 0.02
+  checker:
+    useTrajOptForReachableCheck: false
+    maxReachableCheckRetry: 1
+  optimizer:
+    lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+    allocSpeed: 0.018 # NOTE: crucial for optimization
+    relCostTol: 1.0e-4
+    smoothingFactor: 5.0e-2
+    integralResolution: 8
+    enableSpaceDeform: false
+    spaceDeform1: 1.57
+    spaceDeform2: 3.66
+    spaceDeform3: 4.62
+  penalty:
+    energyWeight: 1.0
+    timeWeight: 0.00026 # PROBLEM: too large or too small will leads to max-try error
+    # A1 Joint limits (radians) - Updated to match UnitreeA1Interface.h
+    joint1PosMin: -1.0      # Hip joint (HAA) min: A1_HIP_JOINT_MIN
+    joint1PosMax: 1.0       # Hip joint (HAA) max: A1_HIP_JOINT_MAX
+    joint2PosMin: -1.5      # Thigh joint (HFE) min: A1_THIGH_JOINT_MIN
+    joint2PosMax: 3.0       # Thigh joint (HFE) max: A1_THIGH_JOINT_MAX
+    joint3PosMin: -2.7      # Calf joint (KFE) min: A1_CALF_JOINT_MIN
+    joint3PosMax: -0.9      # Calf joint (KFE) max: A1_CALF_JOINT_MAX
+    jointMaxVel: 10.0
+    jointMaxAcc: 50.0
+    jointPosWeight: 0.4
+    jointVelWeight: 0.1
+    jointAccWeight: 0.1
+    CollBall1Rad: 0.06
+    CollBall2Rad: 0.03
+    CollBall3Rad: 0.02
+    CollBall1Weight: 0.0
+    CollBall2Weight: 4.0
+    CollBall3Weight: 6.0
+    FootCollExcludeBallRad: 0.04
+    FootCollExcludeBallSmoothRad: 0.02
+    primitivePos1: 0.0
+    primitivePos2: 1.57
+    primitivePos3: 3.14
+    primitiveWeight1: 0.0
+    primitiveWeight2: 0.0000 # 0.0005
+    primitiveWeight3: 0.0000 # 0.00002
