@@ -35,6 +35,24 @@ def csv2dict(filename):
     return df.to_dict(orient="list")
 
 
+# A1-specific planners for quadruped locomotion
+A1_PLANNERS = [
+    # "flt_cfg_groundtruth_a1"
+    "flt_cfg_planner_conv_a1",
+    "flt_cfg_planner_keypoint_a1",
+    # "rrt_cfg_planner_a1", 
+    # "stomp_cfg_planner_a1",
+    # "fec_planner_a1",
+]
+
+# A1-specific demos (simpler terrain for quadruped testing)
+A1_DEMOS = [
+    ("2_stairs", False),
+    ("6_fractal", False),
+    # ("4_barrier", True),
+    # ("5_channel", True),
+]
+
 PLANNERS = [
     "rrt_cfg_groundtruth",  # As the ground truth for Reachable Evaluation
     "flt_cfg_groundtruth", 
@@ -62,15 +80,19 @@ DEMOS = [
 
 class TestCase:
     def __init__(self, planner_name, demo_name,
-                 with_ceiling=False, rosbag_record=False):
+                 with_ceiling=False, rosbag_record=False, robot_type="elspider"):
         self.planner_name = planner_name
         self.demo_name = demo_name
         self.with_ceiling = with_ceiling
         self.rosbag_record = rosbag_record
+        self.robot_type = robot_type  # "elspider" or "a1"
 
-        # Default Parameters
+        # Default Parameters - vary by robot type
         self.sim = True
-        self.robot_interface_type = "ElSpiderAirDummy"
+        if robot_type == "a1":
+            self.robot_interface_type = "UnitreeA1Dummy"
+        else:
+            self.robot_interface_type = "ElSpiderAirDummy"
         self.teleop_type = "keyboard"
         self.rviz_gui = False
         self.auto_benchmark = True
@@ -366,6 +388,92 @@ class SSPlannerAutoBenchmark:
         pass
 
 
+class A1StateSequencePlannerAutoBenchmark(SSPlannerAutoBenchmark):
+    """A1-specific benchmark class that inherits from the base class"""
+    
+    # A1-specific benchmark file names
+    planner_benchmark = "StateSequencePlannerBenchmark.yaml"
+    swingtraj_benchmark = "OptBenchmark.csv"
+    reachable_benchmark = "ReachableBenchmark.csv"
+    robot_profile = "RobotProfileRecord.csv"
+    
+    def __init__(self):
+        super().__init__()
+        # Override launch file for A1
+        self.launch_file = "unitree_a1_state_sequence_planner.launch"
+        
+
+    def run_benchmark(self, planners=A1_PLANNERS, demos: List[Tuple[str, bool]] = A1_DEMOS):
+        """Run A1-specific benchmark with default A1 planners and demos"""
+        self.planners = planners
+        self.demos = demos
+        self.test_cases = []
+        # Generate test cases for A1
+        for planner in planners:
+            for demo in demos:
+                self.test_cases.append(TestCase(planner, demo[0], demo[1], False, robot_type="a1"))
+        self.test_case_ptr = 0
+        self.run(self.test_cases[self.test_case_ptr])
+
+    def save_benchmark(self, filename="A1AutoBenchmarkOutput", timestamp=True):
+        """Save A1 benchmark results with A1-specific filename"""
+        benchmark = {}
+        self.test_case_ptr = 0
+        for planner in self.planners:
+            benchmark[planner] = {}
+            for demo in self.demos:
+                benchmark[planner][demo[0]] = self.test_cases[self.test_case_ptr].benchmark_dict
+                self.test_case_ptr += 1
+        if timestamp:
+            filename = filename + "_" + datetime.datetime.now().strftime("%Y%m%d") + ".json"
+        else:
+            filename = filename + ".json"
+        abspath = os.path.join(ROOT_DIR, "data", filename)
+        with open(abspath, "w") as f:
+            json.dump(benchmark, f, indent=4)
+        return
+
+    def save_reachable_array(self, filename="A1AutoBenchmarkReachableArray", timestamp=True):
+        """Save A1 reachable array with A1-specific filename"""
+        benchmark = {}
+        self.test_case_ptr = 0
+        for planner in self.planners:
+            benchmark[planner] = {}
+            for demo in self.demos:
+                benchmark[planner][demo[0]] = self.test_cases[self.test_case_ptr].reachable_array
+                self.test_case_ptr += 1
+        if timestamp:
+            filename = filename + "_" + datetime.datetime.now().strftime("%Y%m%d") + ".json"
+        else:
+            filename = filename + ".json"
+        abspath = os.path.join(ROOT_DIR, "data", filename)
+        with open(abspath, "w") as f:
+            json.dump(benchmark, f, indent=4)
+        return
+
+
+def run_a1_benchmark():
+    """Run A1-specific benchmark"""
+    benchmark = A1StateSequencePlannerAutoBenchmark()
+    benchmark.run_benchmark(A1_PLANNERS, A1_DEMOS)
+    rospy.spin()
+    benchmark.save_benchmark()
+    benchmark.save_reachable_array()
+
+
+def run_a1_tests():
+    """Run A1-specific tests"""
+    benchmark = A1StateSequencePlannerAutoBenchmark()
+    testcases = []
+    testcases.append(TestCase("raibert_heuristic_planner", "2_stairs", False, False, robot_type="a1"))
+    testcases.append(TestCase("flt_cfg_planner", "4_barrier", True, False, robot_type="a1"))
+    testcases.append(TestCase("rrt_cfg_planner", "5_channel", True, False, robot_type="a1"))
+    testcases.append(TestCase("stomp_cfg_planner", "3_quincuncial_piles", False, False, robot_type="a1"))
+    benchmark.run_tests(testcases)
+    rospy.spin()
+    benchmark.summary()
+
+
 def run_benchmark():
     benchmark = SSPlannerAutoBenchmark()
     benchmark.run_benchmark(PLANNERS, DEMOS)
@@ -389,6 +497,17 @@ def run_tests():
 
 
 if __name__ == "__main__":
-    run_benchmark()
+    # Uncomment the desired benchmark to run:
+    
+    # Run ElSpider Air (hexapod) benchmark (original functionality)
+    # run_benchmark()
+    
+    # Run A1 (quadruped) benchmark
+    run_a1_benchmark()
+    
+    # Run ElSpider Air tests
     # run_tests()
+    
+    # Run A1 tests
+    # run_a1_tests()
     pass
