@@ -500,10 +500,10 @@ if __name__ == "__main__":
     # Uncomment the desired benchmark to run:
     
     # Run ElSpider Air (hexapod) benchmark (original functionality)
-    # run_benchmark()
+    run_benchmark()
     
     # Run A1 (quadruped) benchmark
-    run_a1_benchmark()
+    # run_a1_benchmark()
     
     # Run ElSpider Air tests
     # run_tests()
