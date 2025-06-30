@@ -37,7 +37,7 @@ def csv2dict(filename):
 
 # A1-specific planners for quadruped locomotion
 A1_PLANNERS = [
-    "flt_cfg_groundtruth_a1"
+    "flt_cfg_groundtruth_a1",
     "flt_cfg_planner_conv_a1",
     "flt_cfg_planner_keypoint_a1",
     "rrt_cfg_planner_a1", 
