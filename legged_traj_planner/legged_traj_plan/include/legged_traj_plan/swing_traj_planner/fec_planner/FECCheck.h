@@ -86,7 +86,8 @@ public:
 
     bool checkTrajReachability(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
                                const std::shared_ptr<TrajectoryBase> &traj,
-                               const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index)
+                               const Eigen::Vector3d &p0, const Eigen::Vector3d &p1, int index,
+                               const bool cfg_space = false)
     {
         double detla = 1.0 / config_.checkResolution;
         double t = 0.0;
@@ -97,6 +98,8 @@ public:
         {
             Eigen::Vector3d p = traj->evaluate(t, 0, true);
             pinocchio::SE3 pose = poseLinearInterp(pose0, pose1, t);
+            if (cfg_space)
+                p = point_SE3Act(pose.inverse(), robot_interface_->FK_foot(p, index));
             if (!checkLegFEC(pose, p, p0, p1, index))
                 return false;
             t += detla;

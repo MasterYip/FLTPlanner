@@ -612,7 +612,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                 reachable[i] = false;
                 auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
                 if (optTrajHook(traj, pose0, pose1, index) &&
-                    (!config_.enableFECCheck || fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index)))
+                    (!config_.enableFECCheck || fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index, true)))
                     reachable[i] = true;
                 else
                 {
@@ -622,7 +622,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                     {
                         auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
                         if (optTrajHook(traj, pose0, pose1, index) &&
-                            (!config_.enableFECCheck || fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index)))
+                            (!config_.enableFECCheck || fec_check_.checkTrajReachability(pose0, pose1, traj, p0, footholds.at(i), index, true)))
                         {
                             reachable[i] = true;
                             break;
