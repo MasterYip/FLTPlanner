@@ -600,14 +600,14 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
 {
     if (config_.useTrajOptForReachableCheck)
     {
-        LeggedBorderCheckConfig cfg_lbc = getLeggedBorderCheckConfig(gridmap_interface_, config_);
         for (int i = 0; i < footholds.size(); i++)
         {
-            auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-                                                                    pose0, pose1, p0, footholds[i],
-                                                                    index, cfg_lbc);
-            if (border_check->isGoalValid(Eigen::Vector2d(footholds[i].head(2))))
-            // if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
+            auto bc = std::make_unique<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
+                                                          pose0, pose1, p0, footholds[i],
+                                                          index, getLeggedBorderCheckConfig(gridmap_interface_, config_));
+
+            if (ifKinValid(pose1, footholds.at(i), index) &&
+                bc->isGoalValid(Eigen::Vector2d(footholds[i].head(2))))
             {
                 reachable[i] = false;
                 auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
