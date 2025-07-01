@@ -414,6 +414,12 @@ public:
 
     bool ifKinValid(const pinocchio::SE3 &pose, const Eigen::Vector3d &p, int index)
     {
+        Eigen::Vector3d q_i;
+        return robot_interface_->IKFast_foot(point_SE3Act(pose, p), q_i, index);
+    }
+
+    bool ifKinCollValid(const pinocchio::SE3 &pose, const Eigen::Vector3d &p, int index)
+    {
         bool check = true;
         // IK check
         Eigen::Vector3d q_i;
@@ -545,7 +551,7 @@ public:
         reachable.resize(footholds.size(), false);
         benchmark_.reset();
         bool ret = false;
-        if (ifKinValid(pose0, p0, index))
+        if (ifKinCollValid(pose0, p0, index))
             ret &= reachableCheckHook(pose0, pose1, p0, index, footholds, reachable);
         else
             std::cout << "Warning: Initial point is not kinematically valid." << std::endl;

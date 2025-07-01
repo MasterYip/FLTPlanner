@@ -319,7 +319,7 @@ bool FLTCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
     poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
 
     // bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
-    bool ret_endpoint = ifKinValid(pose0, p0, index) && ifKinValid(pose1, p1, index);
+    bool ret_endpoint = ifKinCollValid(pose0, p0, index) && ifKinCollValid(pose1, p1, index);
     bool ret_reachable = poly_traj_search->reachable(p0, p1);
     bool ret_search = poly_traj_search->search(p0, p1, poly_traj);
     // gridmap_interface_->unlockMapUpdate();
@@ -410,7 +410,7 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
                                                         gridmap_interface_->getCeilingLayerName(), true, false);
 
     // bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
-    bool ret_endpoint = ifKinValid(pose0, p0, index) && ifKinValid(pose1, p1, index);
+    bool ret_endpoint = ifKinCollValid(pose0, p0, index) && ifKinCollValid(pose1, p1, index);
     bool ret_reachable = poly_traj_search->reachable(p0, p1);
     bool ret_search = poly_traj_search->search(p0, p1, poly_traj);
     // gridmap_interface_->unlockMapUpdate();
@@ -625,7 +625,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     {
         for (int i = 0; i < footholds.size(); i++)
         {
-            if (ifKinValid(pose1, footholds.at(i), index))
+            if (ifKinCollValid(pose1, footholds.at(i), index))
             {
                 reachable[i] = false;
                 auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
@@ -666,7 +666,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
         {
             for (size_t i = 0; i < footholds.size(); i++)
             {
-                if (ifKinValid(pose1, footholds.at(i), index))
+                if (ifKinCollValid(pose1, footholds.at(i), index))
                 {
                     auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
                                                                             pose0, pose1, p0, footholds[i],
@@ -692,7 +692,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
 
             for (size_t i = 0; i < footholds.size(); i++)
             {
-                if (ifKinValid(pose1, footholds.at(i), index))
+                if (ifKinCollValid(pose1, footholds.at(i), index))
                     reachable[i] = poly_traj_search->reachable(p0, footholds[i], false);
             }
         }

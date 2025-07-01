@@ -9,8 +9,8 @@ trajInit:
 
 misc:
   enableOptimizer: true
-  reOptimize: true
-  reOptimizeMaxTry: 10
+  reOptimize: false
+  reOptimizeMaxTry: 100
   useCfgSpace: true
   useCfgCommand: true
   enableVis: true
@@ -35,7 +35,7 @@ RRTCfgPlanner:
   joint3PosMin: -0.6978
   joint3PosMax: 3.403
   checker:
-    enableReachableCheckRetry: True
+    enableReachableCheckRetry: True # RRT Ground Truth (Exhaustive Search)
     maxReachableCheckRetry: 5
 
 
