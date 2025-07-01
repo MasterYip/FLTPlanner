@@ -623,12 +623,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     {
         for (int i = 0; i < footholds.size(); i++)
         {
-            auto bc = std::make_unique<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-                                                          pose0, pose1, p0, footholds[i],
-                                                          index, getLeggedBorderCheckConfig(gridmap_interface_, robot_interface_, config_));
-
-            if (ifKinValid(pose1, footholds.at(i), index) &&
-                bc->isGoalValid(Eigen::Vector2d(footholds[i].head(2))))
+            if (ifKinValid(pose1, footholds.at(i), index))
             {
                 reachable[i] = false;
                 auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
@@ -669,7 +664,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
         {
             for (size_t i = 0; i < footholds.size(); i++)
             {
-                if (ifEndPointKinValid(pose0, pose1, p0, footholds.at(i), index))
+                if (ifKinValid(pose1, footholds.at(i), index))
                 {
                     auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
                                                                             pose0, pose1, p0, footholds[i],

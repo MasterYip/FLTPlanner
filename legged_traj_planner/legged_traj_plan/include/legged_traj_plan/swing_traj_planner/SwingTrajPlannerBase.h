@@ -412,23 +412,15 @@ public:
                                                                                 benchmark_("SwingTrajPlannerBenchmark", config_.enableBenchmark) {};
     ~SwingTrajPlannerBase() = default;
 
-    bool ifEndPointKinValid(const pinocchio::SE3 &pose0, const pinocchio::SE3 &pose1,
-                            const Eigen::Vector3d &p0, const Eigen::Vector3d &p1,
-                            int index)
-    {
-        Eigen::Vector3d q_i;
-        if (!robot_interface_->IKFast_foot(point_SE3Act(pose0, p0), q_i, index) ||
-            !robot_interface_->IKFast_foot(point_SE3Act(pose1, p1), q_i, index))
-        {
-            return false;
-        }
-        return true;
-    }
-
     bool ifKinValid(const pinocchio::SE3 &pose, const Eigen::Vector3d &p, int index)
     {
+        bool check = true;
+        // IK check
         Eigen::Vector3d q_i;
-        return robot_interface_->IKFast_foot(point_SE3Act(pose, p), q_i, index);
+        check *= robot_interface_->IKFast_foot(point_SE3Act(pose, p), q_i, index);
+        // Knee Collision check
+        Eigen::Vector3d joint2_pos = point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(q_i, index, 2));
+        check *=  config_.CollBall2Rad < gridmap_interface_->sdfValue(joint2_pos, "min");
     }
 
     SwingTrajPlannerConfig &getConfig()
