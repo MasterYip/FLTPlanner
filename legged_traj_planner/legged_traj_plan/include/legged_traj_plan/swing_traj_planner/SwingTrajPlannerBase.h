@@ -33,8 +33,9 @@ struct SwingTrajPlannerConfig
     double vLift;
     double hLift;
     double trajTime;
-    bool enableLiftRandomize{false}; // Enabled when replanning
+    bool enableReplanRandomize{false}; // Enabled when replanning
     double vLiftNormalRandomize;
+    double trajRandomizeScale;
 
     // Misc
     bool enableOptimizer;
@@ -213,6 +214,7 @@ struct SwingTrajPlannerConfig
         check_digit *= nh.getParam("trajInit/hLift", hLift);
         check_digit *= nh.getParam("trajInit/trajTime", trajTime);
         check_digit *= nh.getParam("trajInit/vLiftNormalRandomize", vLiftNormalRandomize);
+        check_digit *= nh.getParam("trajInit/enableReplanRandomize", enableReplanRandomize);
 
         check_digit *= nh.getParam("misc/enableOptimizer", enableOptimizer);
         check_digit *= nh.getParam("misc/reOptimize", reOptimize);

@@ -143,7 +143,7 @@ bool RRTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                 else
                 {
                     int cnt = 0;
-                    config_.enableLiftRandomize = true;
+                    config_.enableReplanRandomize = true;
                     while (cnt < config_.maxReachableCheckRetry)
                     {
                         auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
@@ -154,7 +154,7 @@ bool RRTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                         }
                         cnt++;
                     }
-                    config_.enableLiftRandomize = false;
+                    config_.enableReplanRandomize = false;
                 }
             }
             else

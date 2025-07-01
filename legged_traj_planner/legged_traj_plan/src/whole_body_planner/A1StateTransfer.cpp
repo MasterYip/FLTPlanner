@@ -12,7 +12,6 @@
 #include "legged_traj_plan/whole_body_planner/A1StateTransfer.h"
 #include "legged_traj_plan/utils/Geometry.h"
 
-
 PosList A1FeetPos2PosList(legged_traj_plan::A1FeetPosition feet_pos)
 {
     PosList pos_list;
@@ -146,7 +145,7 @@ void A1StateTransfer::opt_swing_traj(int index)
         // Retry Optimization
         if (swing_traj_planner_->getConfig().reOptimize)
         {
-            swing_traj_planner_->getConfig().enableLiftRandomize = true;
+            swing_traj_planner_->getConfig().enableReplanRandomize = true;
             bool enableVis = swing_traj_planner_->getConfig().enableVis;
             int reOptCnt = 0;
             while (!opt_check(index) &&
@@ -158,7 +157,7 @@ void A1StateTransfer::opt_swing_traj(int index)
                 swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
                     swingtraj_[index], pose0, pose1, index);
             }
-            swing_traj_planner_->getConfig().enableLiftRandomize = false;
+            swing_traj_planner_->getConfig().enableReplanRandomize = false;
             swing_traj_planner_->getConfig().enableVis = enableVis;
         }
         else

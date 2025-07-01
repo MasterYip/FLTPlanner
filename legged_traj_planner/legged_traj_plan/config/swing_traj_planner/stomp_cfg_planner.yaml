@@ -3,6 +3,7 @@ plannerID: 5
 trajInit:
   vLift: 0.014 # For trajopt
   vLiftNormalRandomize: 1.5 # Rand normal for RE-PLANNING (orthogonal disk randomization)
+  trajRandomizeScale: 0.0
   hLift: 0.1
   trajTime: 2
 

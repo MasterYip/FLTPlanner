@@ -265,16 +265,25 @@ std::shared_ptr<MincoTrajectory> FLTCfgPlanner::getDefaultCfgTraj(const pinocchi
     Point3D base_pt = point_SE3Act(pose1, poly_path.back());
     cfg_poly_traj.emplace_back(robot_interface_->IKFast_foot(base_pt, index));
 
+    if (config_.enableReplanRandomize && config_.trajRandomizeScale > 0)
+    {
+        // Add noise to cfg_poly_traj (except the first and last point)
+        for (size_t i = 1; i < cfg_poly_traj.size() - 1; i++)
+        {
+            cfg_poly_traj[i] += Eigen::Vector3d::Random() * config_.trajRandomizeScale;
+        }
+    }
+
     // Get start and goal velocity in config space
     // NOTE: the vel is in BASE frame, not in WORLD frame
     Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
     normal.normalize();
-    if (config_.enableLiftRandomize)
+    if (config_.enableReplanRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * config_.vLift); // Base frame
     normal = gridmap_interface_->sdfDerivative(p1, 0);
     normal.normalize();
-    if (config_.enableLiftRandomize)
+    if (config_.enableReplanRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * config_.vLift); // Base frame
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_traj.front(), index);
@@ -516,16 +525,25 @@ std::shared_ptr<TrajectoryBase> FLTCfgPlanner::getInitTrajHook(pinocchio::SE3 po
         return getDefaultCfgTraj(pose0, pose1, p0, p1, index);
     }
 
+    if (config_.enableReplanRandomize && config_.trajRandomizeScale > 0)
+    {
+        // Add noise to cfg_poly_traj (except the first and last point)
+        for (size_t i = 1; i < cfg_poly_traj.size() - 1; i++)
+        {
+            cfg_poly_traj[i] += Eigen::Vector3d::Random() * config_.trajRandomizeScale;
+        }
+    }
+
     // Get start and goal velocity in config space
     // NOTE: the vel is in BASE frame
     Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
     normal.normalize();
-    if (config_.enableLiftRandomize)
+    if (config_.enableReplanRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * config_.vLift); // Base frame
     normal = gridmap_interface_->sdfDerivative(p1, 0);
     normal.normalize();
-    if (config_.enableLiftRandomize)
+    if (config_.enableReplanRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * config_.vLift); // Base frame
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_traj.front(), index);
@@ -620,7 +638,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                 else
                 {
                     int cnt = 1;
-                    config_.enableLiftRandomize = true;
+                    config_.enableReplanRandomize = true;
                     while (cnt < config_.maxReachableCheckRetry)
                     {
                         auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
@@ -632,7 +650,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
                         }
                         cnt++;
                     }
-                    config_.enableLiftRandomize = false;
+                    config_.enableReplanRandomize = false;
                 }
             }
             else

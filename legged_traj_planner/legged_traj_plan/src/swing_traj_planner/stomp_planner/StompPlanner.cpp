@@ -166,12 +166,12 @@ std::shared_ptr<MincoTrajectory> StompCfgPlanner::getDefaultCfgTraj(const pinocc
     // NOTE: the vel is in BASE frame, not in WORLD frame
     Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
     normal.normalize();
-    if (config_.enableLiftRandomize)
+    if (config_.enableReplanRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * config_.vLift); // Base frame
     normal = gridmap_interface_->sdfDerivative(p1, 0);
     normal.normalize();
-    if (config_.enableLiftRandomize)
+    if (config_.enableReplanRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * config_.vLift); // Base frame
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_traj.front(), index);
@@ -337,12 +337,12 @@ std::shared_ptr<TrajectoryBase> StompCfgPlanner::getInitTrajHook(pinocchio::SE3 
     // NOTE: the vel is in BASE frame
     Eigen::Vector3d normal = gridmap_interface_->sdfDerivative(p0, 0);
     normal.normalize();
-    if (config_.enableLiftRandomize)
+    if (config_.enableReplanRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     Eigen::Vector3d start_vel = vec_SE3Act(pose0, normal * config_.vLift); // Base frame
     normal = gridmap_interface_->sdfDerivative(p1, 0);
     normal.normalize();
-    if (config_.enableLiftRandomize)
+    if (config_.enableReplanRandomize)
         normal += orthogonalDiskRandomize(normal, config_.vLiftNormalRandomize);
     Eigen::Vector3d goal_vel = vec_SE3Act(pose1, -normal * config_.vLift); // Base frame
     Eigen::Matrix3Xd J = robot_interface_->getJacobian(cfg_poly_traj.front(), index);
@@ -460,7 +460,7 @@ bool StompCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 po
                 else
                 {
                     int cnt = 0;
-                    config_.enableLiftRandomize = true;
+                    config_.enableReplanRandomize = true;
                     while (cnt < config_.maxReachableCheckRetry)
                     {
                         auto traj = getInitTrajHook(pose0, pose1, p0, footholds.at(i), index);
@@ -471,7 +471,7 @@ bool StompCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 po
                         }
                         cnt++;
                     }
-                    config_.enableLiftRandomize = false;
+                    config_.enableReplanRandomize = false;
                 }
             }
             else

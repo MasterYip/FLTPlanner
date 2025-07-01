@@ -3,6 +3,7 @@ plannerID: 6 # i.e. FEC planner
 trajInit:
   vLift: 0.2
   vLiftNormalRandomize: 0.5
+  trajRandomizeScale: 0.0
   hLift: 0.10
   trajTime: 3 # Only affect init trajectory
 

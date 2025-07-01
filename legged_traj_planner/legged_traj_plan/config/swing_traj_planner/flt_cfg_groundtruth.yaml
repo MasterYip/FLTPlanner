@@ -5,6 +5,7 @@ trajInit:
   vLift: 0.014 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
   vLiftNormalRandomize: 1.8 # Rand normal for RE-PLANNING (orthogonal disk randomization)
+  trajRandomizeScale: 0.0
   hLift: 0.1
   trajTime: 20
 
@@ -41,7 +42,7 @@ LFTPlanner:
     enableFECCheck: false
     FECCheckResolution:  50 # points to check for FEC
   optimizer:
-    lengthPerPiece: 0.35 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
+    lengthPerPiece: 0.2 # FIXME: pieces > 3, the vLift effect is not obvious, when pieces = 3 it will lead to strange outcome
     allocSpeed: 0.018 # NOTE: crucial for optimization
     relCostTol: 1.0e-4
     smoothingFactor: 5.0e-2

@@ -174,7 +174,7 @@ void MCTStateTransfer::opt_swing_traj(int index)
         if (swing_traj_planner_->getConfig().reOptimize)
         {
             // Normal randomization for replanning
-            swing_traj_planner_->getConfig().enableLiftRandomize = true;
+            swing_traj_planner_->getConfig().enableReplanRandomize = true;
             bool enableVis = swing_traj_planner_->getConfig().enableVis;
             // swing_traj_planner_->getConfig().enableVis = false;
             int reOptCnt = 0;
@@ -188,7 +188,7 @@ void MCTStateTransfer::opt_swing_traj(int index)
                 swingtraj_isopt_[index] = swing_traj_planner_->optTraj(
                     swingtraj_[index], pose0, pose1, index);
             }
-            swing_traj_planner_->getConfig().enableLiftRandomize = false;
+            swing_traj_planner_->getConfig().enableReplanRandomize = false;
             swing_traj_planner_->getConfig().enableVis = enableVis;
         }
         else
@@ -201,10 +201,10 @@ void MCTStateTransfer::opt_swing_traj(int index)
 
 /**
  * @brief Generate footholds for reachable check
- * 
+ *
  * @param size Point array size (size x size)
- * @param interval 
- * @return std::vector<Eigen::Vector3d> 
+ * @param interval
+ * @return std::vector<Eigen::Vector3d>
  */
 std::vector<Eigen::Vector3d> MCTStateTransfer::generate_footholds(int index, int size, double interval)
 {
