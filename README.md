@@ -24,7 +24,11 @@ Install apt dependencies:
 sudo apt install \
 ros-$ROS_DISTRO-ros-industrial-cmake-boilerplate \
 ros-$ROS_DISTRO-costmap-2d \
+ros-$ROS_DISTRO-octomap \
 ros-$ROS_DISTRO-ompl \
+ros-$ROS_DISTRO-pcl-ros \
+python3-catkin-tools \
+qtbase5-dev \
 libglpk-dev
 ```
 
@@ -44,11 +48,17 @@ Build the package:
 
 > [!WARNING]
 > **DO NOT** install `ros-noetic-grid-map`, `ros-noetic-hpp-fcl` and `ros-noetic-pinocchio` from apt, which will lead to unexpected error.
-> `catkin build -j16` will take 10 mins & nearly 30 GB memory, so make sure you have enough memory available (RAM+Swap), or reduce jobs num.
+> Recommand jobs of `catkin build -j16`
+> | Jobs | Time Est. | Min Mem. |
+> |------|----------|-----------------|
+> | -j4 | 32min | 16 GB |
+> | -j8 | 16min | 24 GB |
+> | -j16 | 8min | 32 GB |
+> | -j32 | 4min | 48 GB |
 
 ```bash
 # Under catkin_ws
-catkin build -j16 legged_traj_plan_examples legged_traj_search_examples robot_assets -DCMAKE_BUILD_TYPE=RelWithDebInfo # Release
+catkin build legged_traj_plan_examples legged_traj_search_examples robot_assets -DCMAKE_BUILD_TYPE=RelWithDebInfo # Release
 source ./devel/setup.bash
 ```
 
@@ -130,7 +140,6 @@ Robot Control:
 
 ### Raibert Heuristic Planner Examples
 
-
 Perform trajectory optimization & reachability check using Raibert heuristic planner.
 
 #### Hexapod Robot (ElSpider Air)
@@ -209,15 +218,15 @@ The planner now supports both hexapod and quadruped robots through a unified int
 - **Hexapod Robots**: 6-legged robots (e.g., ElSpider Air)
   - Uses bigait locomotion pattern
   - 6-leg reachability analysis
-  
 - **Quadruped Robots**: 4-legged robots (e.g., Unitree A1)
-  - Uses trotting gait locomotion pattern  
+  - Uses trotting gait locomotion pattern
   - 4-leg reachability analysis
   - Enhanced velocity limits for dynamic locomotion
 
 ### Robot Detection
 
 The `RaibertHeuristicPlanner` automatically detects the robot type by querying the robot interface and configures:
+
 - Appropriate gait patterns (bigait for hexapod, trotting for quadruped)
 - Correct number of leg schedulers and trajectories
 - Robot-specific nominal foothold positions
@@ -236,6 +245,7 @@ Both robot types use the same core planning algorithms but with automatically ad
 This work is built upon the following open-source projects:
 
 <!-- GCOPTER, STOMP, GridMap, OMPL etc -->
+
 - [GCOPTER]
 - [STOMP]
 - [GridMap]
