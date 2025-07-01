@@ -214,7 +214,7 @@ struct SwingTrajPlannerConfig
         check_digit *= nh.getParam("trajInit/hLift", hLift);
         check_digit *= nh.getParam("trajInit/trajTime", trajTime);
         check_digit *= nh.getParam("trajInit/vLiftNormalRandomize", vLiftNormalRandomize);
-        check_digit *= nh.getParam("trajInit/enableReplanRandomize", enableReplanRandomize);
+        check_digit *= nh.getParam("trajInit/trajRandomizeScale", trajRandomizeScale);
 
         check_digit *= nh.getParam("misc/enableOptimizer", enableOptimizer);
         check_digit *= nh.getParam("misc/reOptimize", reOptimize);

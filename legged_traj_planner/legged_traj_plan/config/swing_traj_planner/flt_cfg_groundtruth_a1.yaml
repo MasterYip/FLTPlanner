@@ -5,7 +5,7 @@ trajInit:
   vLift: 0.014 # For trajopt
   # vLift: 0.018 # For raibert planner init traj
   vLiftNormalRandomize: 1.8 # Rand normal for RE-PLANNING (orthogonal disk randomization)
-  trajRandomizeScale: 0.0
+  trajRandomizeScale: 0.2
   hLift: 0.1
   trajTime: 20
 
