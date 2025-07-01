@@ -221,6 +221,7 @@ void FLTCfgPlanner::visCfgMincoTraj(const pinocchio::SE3 &pose0, const pinocchio
 }
 
 LeggedBorderCheckConfig getLeggedBorderCheckConfig(const std::shared_ptr<GridMapInterface> &gridmap_interface,
+                                                   const std::shared_ptr<BaseRobotInterface> &robot_interface,
                                                    const SwingTrajPlannerConfig &config)
 {
     LeggedBorderCheckConfig cfg;
@@ -238,6 +239,8 @@ LeggedBorderCheckConfig getLeggedBorderCheckConfig(const std::shared_ptr<GridMap
     cfg.collBallRad2 = config.collBallCheckRad2;
     cfg.collBallRad3 = config.collBallCheckRad3;
     cfg.FootCollExcludeBallRad = config.FootCollExcludeBallRad;
+    cfg.interp_mode = 1;
+    cfg.nominal_joint_pos_ = robot_interface->IKFast_foot(robot_interface->getNominalFoothold(0), 0);
     return cfg;
 }
 
@@ -301,7 +304,7 @@ bool FLTCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
 
     // Use LeggedBorderCheck
     auto border_check = std::make_shared<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
-                                                            pose0, pose1, p0, p1, index, getLeggedBorderCheckConfig(gridmap_interface_, config_));
+                                                            pose0, pose1, p0, p1, index, getLeggedBorderCheckConfig(gridmap_interface_, robot_interface_, config_));
     PolyTrajSearchConfig cfg;
     cfg.enable_benchmark = false;
     poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
@@ -604,7 +607,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
         {
             auto bc = std::make_unique<LeggedBorderCheck>(robot_interface_, gridmap_interface_,
                                                           pose0, pose1, p0, footholds[i],
-                                                          index, getLeggedBorderCheckConfig(gridmap_interface_, config_));
+                                                          index, getLeggedBorderCheckConfig(gridmap_interface_, robot_interface_, config_));
 
             if (ifKinValid(pose1, footholds.at(i), index) &&
                 bc->isGoalValid(Eigen::Vector2d(footholds[i].head(2))))
@@ -640,7 +643,7 @@ bool FLTCfgPlanner::reachableCheckHook(pinocchio::SE3 pose0, pinocchio::SE3 pose
     {
         std::unique_ptr<PolyTrajSearch> poly_traj_search;
         // Config
-        LeggedBorderCheckConfig cfg_lbc = getLeggedBorderCheckConfig(gridmap_interface_, config_);
+        LeggedBorderCheckConfig cfg_lbc = getLeggedBorderCheckConfig(gridmap_interface_, robot_interface_, config_);
         PolyTrajSearchConfig cfg_pts;
         cfg_pts.enable_benchmark = false;
 

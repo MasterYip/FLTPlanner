@@ -40,6 +40,7 @@ struct LeggedBorderCheckConfig
     int interp_mode = 1;
     // 0: progress =  <(p1 - p0), (p - p0)> / |p1 - p0|
     // 1: progress =  <(nominal_pos1 - nominal_pos0), (p - nominal_pos0)> / |nominal_pos1 - nominal_pos0|
+    Eigen::Vector3d nominal_joint_pos_{0, 0, 0};
 
     double collBallRad1 = 0.0;
     double collBallRad2 = 0.0; // Knee
@@ -59,7 +60,6 @@ private:
 
     pinocchio::SE3 pose0_;
     pinocchio::SE3 pose1_;
-    Eigen::Vector3d nominal_joint_pos_{0, 1, 1};
     Eigen::Vector3d nominal_pos0_;
     Eigen::Vector3d nominal_pos1_;
     Eigen::Vector3d p0_;
@@ -128,8 +128,8 @@ public:
         }
         else if (config_.interp_mode == 1)
         {
-            nominal_pos0_ = point_SE3Act(pose0_.inverse(), robot_interface_->FK_foot(nominal_joint_pos_, index_));
-            nominal_pos1_ = point_SE3Act(pose1_.inverse(), robot_interface_->FK_foot(nominal_joint_pos_, index_));
+            nominal_pos0_ = point_SE3Act(pose0_.inverse(), robot_interface_->FK_foot(config_.nominal_joint_pos_, index_));
+            nominal_pos1_ = point_SE3Act(pose1_.inverse(), robot_interface_->FK_foot(config_.nominal_joint_pos_, index_));
         }
     }
 
