@@ -318,7 +318,8 @@ bool FLTCfgPlanner::searchPolyTrajPITD(std::vector<Point3D> &poly_traj,
     cfg.enable_benchmark = false;
     poly_traj_search = std::make_unique<PolyTrajSearch>(border_check, gridmap_interface_->getMap(), cfg);
 
-    bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
+    // bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
+    bool ret_endpoint = ifKinValid(pose0, p0, index) && ifKinValid(pose1, p1, index);
     bool ret_reachable = poly_traj_search->reachable(p0, p1);
     bool ret_search = poly_traj_search->search(p0, p1, poly_traj);
     // gridmap_interface_->unlockMapUpdate();
@@ -408,7 +409,8 @@ bool FLTCfgPlanner::searchPolyTraj(std::vector<Point3D> &poly_traj,
                                                         gridmap_interface_->getGroundLayerName(),
                                                         gridmap_interface_->getCeilingLayerName(), true, false);
 
-    bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
+    // bool ret_endpoint = poly_traj_search->endpointValid(p0, p1);
+    bool ret_endpoint = ifKinValid(pose0, p0, index) && ifKinValid(pose1, p1, index);
     bool ret_reachable = poly_traj_search->reachable(p0, p1);
     bool ret_search = poly_traj_search->search(p0, p1, poly_traj);
     // gridmap_interface_->unlockMapUpdate();
