@@ -421,6 +421,7 @@ public:
         // Knee Collision check
         Eigen::Vector3d joint2_pos = point_SE3Act(pose.inverse(), robot_interface_->FK_CollBall(q_i, index, 2));
         check *=  config_.CollBall2Rad < gridmap_interface_->sdfValue(joint2_pos, "min");
+        return check;
     }
 
     SwingTrajPlannerConfig &getConfig()
