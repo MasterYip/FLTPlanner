@@ -22,18 +22,19 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 RRTCfgPlanner:
-  maxTime: 0.001
-  CollBall2Rad: 0.05
-  CollBall3Rad: 0.03
-  excludeRadius: 0.05 # exclude sphere radius
+  maxTime: 0.00005
+  CollBall2Rad: 0.03
+  CollBall3Rad: 0.02
+  excludeRadius: 0.04 # exclude sphere radius
   collMargin: 0.00  # collision margin in the middle of the traj
   rrtMaxStepSize: 0.4
-  joint1PosMin: -0.785
-  joint1PosMax: 0.785
-  joint2PosMin: -0.349
-  joint2PosMax: 3.14
-  joint3PosMin: -0.6978
-  joint3PosMax: 3.403
+  # A1 Joint limits (radians) - Updated to match UnitreeA1Interface.h
+  joint1PosMin: -1.0      # Hip joint (HAA) min: A1_HIP_JOINT_MIN
+  joint1PosMax: 1.0       # Hip joint (HAA) max: A1_HIP_JOINT_MAX
+  joint2PosMin: -1.5      # Thigh joint (HFE) min: A1_THIGH_JOINT_MIN
+  joint2PosMax: 3.0       # Thigh joint (HFE) max: A1_THIGH_JOINT_MAX
+  joint3PosMin: -2.7      # Calf joint (KFE) min: A1_CALF_JOINT_MIN
+  joint3PosMax: -0.9      # Calf joint (KFE) max: A1_CALF_JOINT_MAX
   checker:
     enableReachableCheckRetry: False
     maxReachableCheckRetry: 1

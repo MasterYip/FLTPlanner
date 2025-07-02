@@ -60,7 +60,7 @@ PLANNERS = [
     "flt_cfg_planner_conv", 
     # "minco_cfg_planner",
     "rrt_cfg_planner",       # RRT with 50ms timeout
-    "rrt_cfg_planner_0.01",  # RRT with 10ms timeout
+    "rrt_cfg_planner_2",  # RRT with 10ms timeout
     "stomp_cfg_planner",
     # "stomp_cfg_groundtruth", # As the ground truth for Reachable Evaluation
     "fec_planner",

@@ -22,7 +22,7 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 RRTCfgPlanner:
-  maxTime: 0.05
+  maxTime: 0.001
   CollBall2Rad: 0.03
   CollBall3Rad: 0.02
   excludeRadius: 0.04 # exclude sphere radius
