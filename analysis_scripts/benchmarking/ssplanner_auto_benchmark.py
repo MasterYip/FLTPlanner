@@ -73,7 +73,7 @@ DEMOS = [
     ("4_ushape_barrier", True),
     ("4_barrier", True),
     ("4_barrier_vague", True),
-    ("5_channel", True),
+    # ("5_channel", True),
     ("6_fractal", False),
 ]
 
