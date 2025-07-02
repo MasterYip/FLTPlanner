@@ -22,11 +22,11 @@ misc:
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
 
 RRTCfgPlanner:
-  maxTime: 0.01
+  maxTime: 0.002
   CollBall2Rad: 0.05
   CollBall3Rad: 0.03
   excludeRadius: 0.05 # exclude sphere radius
-  collMargin: 0.00  # collision margin in the middle of the traj
+  collMargin: 0.00 # collision margin in the middle of the traj
   rrtMaxStepSize: 0.4
   joint1PosMin: -0.785
   joint1PosMax: 0.785
@@ -37,5 +37,3 @@ RRTCfgPlanner:
   checker:
     enableReachableCheckRetry: False
     maxReachableCheckRetry: 1
-
-
