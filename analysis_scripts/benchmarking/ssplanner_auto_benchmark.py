@@ -5,8 +5,8 @@ Author: HexLab-NUC12-MasterYip 2205929492@qq.com
 Date: 2024-08-18 21:29:09
 Description: file content
 FilePath: /planner_ws/src/analysis_scripts/benchmarking/ssplanner_auto_benchmark.py
-LastEditTime: 2025-02-21 14:42:22
-LastEditors: HexLab-NUC12-MasterYip
+LastEditTime: 2025-07-03 10:13:55
+LastEditors: RCAMC-4090
 '''
 
 from typing import Tuple, List
@@ -40,7 +40,8 @@ A1_PLANNERS = [
     "flt_cfg_groundtruth_a1",
     "flt_cfg_planner_conv_a1",
     "flt_cfg_planner_keypoint_a1",
-    "rrt_cfg_planner_a1", 
+    "rrt_cfg_planner_a1",
+    "rrt_cfg_planner_a1_2",
     "stomp_cfg_planner_a1",
     "fec_planner_a1",
 ]
@@ -501,10 +502,10 @@ if __name__ == "__main__":
     # Uncomment the desired benchmark to run:
     
     # Run ElSpider Air (hexapod) benchmark (original functionality)
-    run_benchmark()
+    # run_benchmark()
     
     # Run A1 (quadruped) benchmark
-    # run_a1_benchmark()
+    run_a1_benchmark()
     
     # Run ElSpider Air tests
     # run_tests()
