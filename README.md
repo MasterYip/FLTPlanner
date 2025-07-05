@@ -129,14 +129,24 @@ Planners:
 `flt_cfg_planner_keypoint_a1`(KCFRC keypoint), `flt_cfg_planner_conv_a1`(KCFRC conv),
 `rrt_cfg_planner_a1`, `stomp_cfg_planner_a1`, `fec_planner_a1`
 
+More configs can be found in:
+
+- [Launch Settings (Demos and Planners)](./legged_traj_planner/legged_traj_plan_examples/launch/unitree_a1_state_sequence_planner.launch)
+- [State Sequence Planner Configs](./legged_traj_planner/legged_traj_plan_examples/config/planner/unitree_a1_state_sequence_planner.yaml)
+- Swing Trajectory Planner Configs: In folder `./legged_traj_planner/legged_traj_plan/config/swing_traj_planner`
+
 Robot Control:
 
+`keyboard`
 - `W`: Move forward
 - `S`: Move backward
 - `A`: Move left
 - `D`: Move right
 - `Q`: Turn left
 - `E`: Turn right
+
+`PS5`
+Joistick control the robot.
 
 ### Raibert Heuristic Planner Examples
 
