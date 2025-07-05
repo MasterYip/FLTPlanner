@@ -73,6 +73,8 @@ source ./devel/setup.bash
 
 ![FRC_EG](./doc/frc_examples.png)
 
+https://github.com/user-attachments/assets/76e7c6f0-1abb-44a5-900c-750bd1b054cb
+
 Perform **foothold reachability checks** and trajectory optimization using recorded contact sequences or MCTS planner.
 
 #### Hexapod Robot (ElSpider Air)
