@@ -37,7 +37,8 @@ def csv2dict(filename):
 
 # A1-specific planners for quadruped locomotion
 A1_PLANNERS = [
-    "flt_cfg_groundtruth_a1",
+    "rrt_cfg_groundtruth_a1",  # As the ground truth for Reachable Evaluation
+    # "flt_cfg_groundtruth_a1",
     "flt_cfg_planner_conv_a1",
     "flt_cfg_planner_keypoint_a1",
     "rrt_cfg_planner_a1",
@@ -71,7 +72,7 @@ PLANNERS = [
 
 DEMOS = [
     ("2_stairs", False),
-    ("3_quincuncial_piles", False),
+    # ("3_quincuncial_piles", False),
     ("4_ushape_barrier", True),
     ("4_barrier", True),
     ("4_barrier_vague", True),
