@@ -1,0 +1,42 @@
+plannerID: 2
+
+trajInit:
+  vLift: 0.08
+  vLiftNormalRandomize: 0.5
+  trajRandomizeScale: 0.0
+  hLift: 0.15
+  trajTime: 3 # Only affect init trajectory
+
+misc:
+  enableOptimizer: true
+  reOptimize: false
+  reOptimizeMaxTry: 100
+  useCfgSpace: true
+  useCfgCommand: true
+  enableVis: true
+  enableOptVis: true
+  optVisRate: 10
+  enableBenchmark: true
+  # Benchmark result save path
+  OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/optBenchmark2.csv
+  robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/data/robotProfile2.csv
+
+RRTCfgPlanner:
+  maxTime: 0.1
+  CollBall2Rad: 0.03
+  CollBall3Rad: 0.02
+  excludeRadius: 0.04 # exclude sphere radius
+  collMargin: 0.00  # collision margin in the middle of the traj
+  rrtMaxStepSize: 0.4
+  # A1 Joint limits (radians) - Updated to match UnitreeA1Interface.h
+  joint1PosMin: -1.0      # Hip joint (HAA) min: A1_HIP_JOINT_MIN
+  joint1PosMax: 1.0       # Hip joint (HAA) max: A1_HIP_JOINT_MAX
+  joint2PosMin: -1.5      # Thigh joint (HFE) min: A1_THIGH_JOINT_MIN
+  joint2PosMax: 3.0       # Thigh joint (HFE) max: A1_THIGH_JOINT_MAX
+  joint3PosMin: -2.7      # Calf joint (KFE) min: A1_CALF_JOINT_MIN
+  joint3PosMax: -0.9      # Calf joint (KFE) max: A1_CALF_JOINT_MAX
+  checker:
+    enableReachableCheckRetry: True
+    maxReachableCheckRetry: 5
+
+
