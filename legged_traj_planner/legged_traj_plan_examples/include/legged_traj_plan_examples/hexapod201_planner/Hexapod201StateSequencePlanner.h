@@ -143,11 +143,11 @@ private:
 
 public:
     Hexapod201StateSequencePlanner() : ElSpiderAirPlannerBase(),
-                                        state_sequence_planner_(swing_traj_planner_, gridmap_interface_, robot_interface_),
-                                        visualizer_(nh_, "odom", "visualizer_markers"),
-                                        rate_(100),
-                                        current_tripod_phase_(TripodPhase::PHASE_135),
-                                        hexapod_raibert_planner_(0.4, 0.2)
+                                       state_sequence_planner_(swing_traj_planner_, gridmap_interface_, robot_interface_),
+                                       visualizer_(nh_, "odom", "visualizer_markers"),
+                                       rate_(100),
+                                       current_tripod_phase_(TripodPhase::PHASE_135),
+                                       hexapod_raibert_planner_(0.4, 0.2)
     {
         config_.loadParams(nh_);
         rate_ = ros::Rate(config_.rosRate);
@@ -182,13 +182,13 @@ public:
 
             // Fetch feedback
             ros::spinOnce();
-            
+
             // Use simple tripod gait planner (Raibert-style)
             legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
             legged_traj_plan::hexapod_State next_state = generateNextTripodState(current_state, cmd_);
-            
+
             bool ret = state_sequence_planner_.enqueue_MCTsolution(current_state, next_state);
-            
+
             if (ret)
             {
                 ROS_INFO("Hexapod201 tripod gait planned successfully.");
@@ -204,9 +204,9 @@ public:
             if (swing_traj_planner_config_.enableVis)
             {
                 // Vis current robot state
-                visualizer_.visSphere(Point3D(current_state.base_Pose_Now.position.x, 
-                                           current_state.base_Pose_Now.position.y, 
-                                           current_state.base_Pose_Now.position.z));
+                visualizer_.visSphere(Point3D(current_state.base_Pose_Now.position.x,
+                                              current_state.base_Pose_Now.position.y,
+                                              current_state.base_Pose_Now.position.z));
             }
 
             traj_planner();
@@ -219,13 +219,13 @@ public:
     legged_traj_plan::hexapod_State getCurrentHexapodState()
     {
         legged_traj_plan::hexapod_State hexapodState;
-        
+
         // Get body pose
         pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
         hexapodState.base_Pose_Now.position.x = body_pose.translation()[0];
         hexapodState.base_Pose_Now.position.y = body_pose.translation()[1];
         hexapodState.base_Pose_Now.position.z = body_pose.translation()[2];
-        
+
         Eigen::Vector3d rpy = pinocchio::rpy::matrixToRpy(body_pose.rotation());
         hexapodState.base_Pose_Now.orientation.roll = rpy[0];
         hexapodState.base_Pose_Now.orientation.pitch = rpy[1];
@@ -240,13 +240,13 @@ public:
             hexapodState.feetPositionNow.foot[i].y = foot_state.position[i].y;
             hexapodState.feetPositionNow.foot[i].z = foot_state.position[i].z;
             hexapodState.support_State_Now[i] = true; // Default all stance
-            hexapodState.faultLeg_State_Now[i] = 0; // Normal
+            hexapodState.faultLeg_State_Now[i] = 0;   // Normal
         }
-        
+
         hexapodState.move_Direction.x = cos(rpy[2]);
         hexapodState.move_Direction.y = sin(rpy[2]);
         hexapodState.move_Direction.z = 0;
-        
+
         // 下一步落足点
         hexapodState.feetPositionNext = hexapodState.feetPositionNow;
         // 下一步支撑状态和容错状态
@@ -256,8 +256,8 @@ public:
     }
 
     // Tripod gait generation
-    legged_traj_plan::hexapod_State generateNextTripodState(const legged_traj_plan::hexapod_State &current_state, 
-                                                           const geometry_msgs::Twist &cmd_vel)
+    legged_traj_plan::hexapod_State generateNextTripodState(const legged_traj_plan::hexapod_State &current_state,
+                                                            const geometry_msgs::Twist &cmd_vel)
     {
         legged_traj_plan::hexapod_State next_state = current_state;
 
@@ -305,21 +305,28 @@ public:
         std::array<bool, 6> pattern;
         if (phase == TripodPhase::PHASE_135)
         {
-            pattern[0] = true;  pattern[1] = false; pattern[2] = true;
-            pattern[3] = false; pattern[4] = true;  pattern[5] = false;
+            pattern[0] = true;
+            pattern[1] = false;
+            pattern[2] = true;
+            pattern[3] = false;
+            pattern[4] = true;
+            pattern[5] = false;
         }
         else // PHASE_246
         {
-            pattern[0] = false; pattern[1] = true;  pattern[2] = false;
-            pattern[3] = true;  pattern[4] = false; pattern[5] = true;
+            pattern[0] = false;
+            pattern[1] = true;
+            pattern[2] = false;
+            pattern[3] = true;
+            pattern[4] = false;
+            pattern[5] = true;
         }
         return pattern;
     }
 
     void switchTripodPhase()
     {
-        current_tripod_phase_ = (current_tripod_phase_ == TripodPhase::PHASE_135) ? 
-                               TripodPhase::PHASE_246 : TripodPhase::PHASE_135;
+        current_tripod_phase_ = (current_tripod_phase_ == TripodPhase::PHASE_135) ? TripodPhase::PHASE_246 : TripodPhase::PHASE_135;
     }
 
     // Simplified trajectory planner - only uses setBodyPoseCmd and setFootCmd
@@ -369,7 +376,7 @@ public:
             {
                 t = 0.0;
                 state_sequence_planner_.dequeue_MCTsolution();
-                
+
                 // Switch tripod phase
                 switchTripodPhase();
 

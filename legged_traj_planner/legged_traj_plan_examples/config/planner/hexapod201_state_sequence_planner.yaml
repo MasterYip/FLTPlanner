@@ -1,6 +1,6 @@
 # NOTE: Hexapod201 Planner settings
 misc:
-  useCfgCommand: false  # Simplified - no kinematics
+  useCfgCommand: false # Simplified - no kinematics
   reOptimize: false
   reOptimizeMaxTry: 1000
   enableVis: true
@@ -12,11 +12,11 @@ misc:
   robotProfilePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
 
 StateSequencePlanner:
-  rosRate: 50  # Lower rate for simplified planner
-  stepTime: 1.5  # Slower stepping for tripod gait
-  
+  rosRate: 50 # Lower rate for simplified planner
+  stepTime: 1.5 # Slower stepping for tripod gait
+
   execOnKeyboardCmd: false
-  
+
   # Tripod gait parameters (primary control method)
   tripodStepDuration: 0.6
   tripodStanceDuration: 0.3

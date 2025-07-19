@@ -346,10 +346,6 @@ public:
     void setJointCmd(const std::vector<Eigen::Vector3d> &q, const std::vector<bool> &contact) override
     {
         setJointCmd(q);
-        if (contact.size() >= 6)
-        {
-            foot_state_.contact = contact;
-        }
     }
 
     void setJointCmd(const std::vector<Eigen::Vector3d> &q,
@@ -384,23 +380,15 @@ public:
     {
         setFootCmd(footendpos);
 
-        for (int i = 0; i < 6 && i < footendvel.size(); ++i)
+        for (int i = 0; i < 6; ++i)
         {
             foot_state_.velocity[i].x = footendvel[i][0];
             foot_state_.velocity[i].y = footendvel[i][1];
             foot_state_.velocity[i].z = footendvel[i][2];
-        }
-
-        for (int i = 0; i < 6 && i < footendeffort.size(); ++i)
-        {
             foot_state_.effort[i].x = footendeffort[i][0];
             foot_state_.effort[i].y = footendeffort[i][1];
             foot_state_.effort[i].z = footendeffort[i][2];
-        }
-
-        if (contact.size() >= 6)
-        {
-            foot_state_.contact = contact;
+            foot_state_.contact[i] = contact[i];
         }
     }
 

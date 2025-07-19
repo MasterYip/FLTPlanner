@@ -64,12 +64,12 @@
     </node>
 
     <!-- Robot related -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/hexapod201/xacro/robot.xacro" />
+    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     
     <!-- Shadow Robot -->
     <group ns="shadow">
-        <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/hexapod201/xacro/robot.xacro ns:=shadow"/>
+        <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro ns:=shadow"/>
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     </group>
 
