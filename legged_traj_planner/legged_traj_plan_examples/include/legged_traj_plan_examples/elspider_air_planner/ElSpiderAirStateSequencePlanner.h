@@ -46,6 +46,40 @@
 #include <tf2_ros/transform_listener.h>
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
 
+// Simple tripod gait patterns for hexapod (legs 0-5: RF, RR, FL, LF, LR, RL)
+enum class TripodPhase
+{
+    PHASE_135, // Legs 1,3,5 (RR, LF, RL) swing, Legs 0,2,4 (RF, FL, LR) stance
+    PHASE_246  // Legs 0,2,4 (RF, FL, LR) swing, Legs 1,3,5 (RR, LF, RL) stance
+};
+
+// Raibert heuristic for hexapod foothold placement
+struct HexapodRaibertFootholdPlanner
+{
+    double step_time;
+    double stance_time;
+    Eigen::Vector3d velocity_gain;
+
+    HexapodRaibertFootholdPlanner(double step_t = 0.4, double stance_t = 0.2)
+        : step_time(step_t), stance_time(stance_t), velocity_gain(0.5, 0.5, 0.0) {}
+
+    Eigen::Vector3d computeFoothold(const pinocchio::SE3 &body_pose,
+                                    const Eigen::Vector3d &body_velocity,
+                                    const Eigen::Vector3d &nominal_foothold,
+                                    int leg_index)
+    {
+        // Raibert heuristic: foothold = nominal + velocity_gain * body_velocity * (step_time/2 + stance_time/2)
+        double foothold_time = step_time / 2.0 + stance_time / 2.0;
+        Eigen::Vector3d velocity_offset = velocity_gain.cwiseProduct(body_velocity) * foothold_time;
+
+        // Transform nominal foothold to world frame
+        Eigen::Vector3d world_nominal = point_SE3Act(body_pose.inverse(), nominal_foothold);
+
+        // Add velocity-based offset for forward motion
+        return world_nominal + velocity_offset;
+    }
+};
+
 legged_traj_plan::hexapod_State transRobotState(const MDT::RobotState &state_)
 {
     legged_traj_plan::hexapod_State hexapodState;
@@ -153,6 +187,11 @@ struct ElSpiderAirStateSequencePlannerConfig
 
     std::string OptBenchmarkSavePath;
 
+    // Tripod gait parameters
+    bool useTripodGait;
+    double tripodStepDuration;
+    double tripodStanceDuration;
+
     void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
     {
         bool check_digit = true;
@@ -180,6 +219,10 @@ struct ElSpiderAirStateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/execSavedStates", execSavedStates);
 
         check_digit &= nh.getParam(ns + "/OptBenchmarkSavePath", OptBenchmarkSavePath);
+        
+        check_digit &= nh.getParam(ns + "/useTripodGait", useTripodGait);
+        check_digit &= nh.getParam(ns + "/tripodStepDuration", tripodStepDuration);
+        check_digit &= nh.getParam(ns + "/tripodStanceDuration", tripodStanceDuration);
         if (!check_digit)
         {
             ROS_ERROR("Failed to load ElSpiderAirStateSequencePlannerConfig.");
@@ -225,13 +268,19 @@ private:
     GCSVisualizer visualizer_base_;
     ros::Publisher gridmap_pub_;
 
+    // Tripod gait state
+    TripodPhase current_tripod_phase_;
+    HexapodRaibertFootholdPlanner hexapod_raibert_planner_;
+
 public:
     ElSpiderAirStateSequencePlanner() : ElSpiderAirPlannerBase(),
                                         state_sequence_planner_(swing_traj_planner_, gridmap_interface_, robot_interface_),
                                         visualizer_(nh_, "odom", "visualizer_markers"),
                                         visualizer_base_(nh_, "base", "visualizer_markers_base"),
                                         rate_(100), benchmark_("ElSpiderAirStateSequencePlannerBenchmark",
-                                                               swing_traj_planner_config_.enableBenchmark)
+                                                               swing_traj_planner_config_.enableBenchmark),
+                                        current_tripod_phase_(TripodPhase::PHASE_135),
+                                        hexapod_raibert_planner_(0.4, 0.2)
     {
         config_.loadParams(nh_);
         rate_ = ros::Rate(config_.rosRate);
@@ -335,21 +384,58 @@ public:
             gridmap_interface_->lockMapUpdate();
             cmd_ = msg;
             state_sequence_planner_.visClear();
-            Parameters param(swing_traj_planner_config_.plannerID == 0 && config_.enableReachableFiltering ? gridmapReachableFiltering(cmd_, config_.reachableFilterPoseMoveDis) : gridmap_interface_->getMap());
+
             bool ret = false;
 
-            while (!ret && ros::ok())
+            if (config_.useTripodGait)
             {
-                // Fetch feedback
-                ros::spinOnce();
-                // update robot state
-                update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
-                // update_exp_path(cmd_);
-                update_exp_path_xlock();
-                // MCTS planning
-                ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
-                                                        param, true, config_.cmdMctsSearchNodeNum);
-                // next_planned_state_ = CONTACT_PLANNER::tripleGaitPlanner(robot_state_, gridmap_interface_->getMap(), 0.1);
+                // Use simple tripod gait planner (Raibert-style)
+                legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
+                legged_traj_plan::hexapod_State next_state = generateNextTripodState(current_state, cmd_);
+                
+                ret = state_sequence_planner_.enqueue_MCTsolution(current_state, next_state);
+                
+                if (ret)
+                {
+                    ROS_INFO("Hexapod tripod gait planned successfully.");
+                }
+                else
+                {
+                    ROS_WARN("Hexapod tripod gait planning failed.");
+                }
+            }
+            else
+            {
+                // Use original MCTS-based planner
+                Parameters param(swing_traj_planner_config_.plannerID == 0 && config_.enableReachableFiltering ? 
+                               gridmapReachableFiltering(cmd_, config_.reachableFilterPoseMoveDis) : 
+                               gridmap_interface_->getMap());
+
+                while (!ret && ros::ok())
+                {
+                    // Fetch feedback
+                    ros::spinOnce();
+                    // update robot state
+                    update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
+                    // update_exp_path(cmd_);
+                    update_exp_path_xlock();
+                    // MCTS planning
+                    ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
+                                                            param, true, config_.cmdMctsSearchNodeNum);
+                }
+
+                if (ret)
+                {
+                    state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                                transRobotState(next_planned_state_));
+                }
+                else
+                {
+                    ROS_INFO("MCTS failed to plan, reset to nominal state.");
+                    visualizer_base_.visPolytope(robot_interface_->getFootPolyhedra());
+                    state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                                transRobotState(getInitState(param, robot_state_.pose, robot_state_.moveDirection)));
+                }
             }
 
             // Visualization
@@ -365,35 +451,8 @@ public:
                     exp_path_vis.emplace_back(Point3D(pt[0], pt[1], pt[2]));
                 }
                 visualizer_.visCurve(exp_path_vis);
-
-                // // Vis getAvailableFootholds
-                // MDT::AvailableContactsInfo available_points = PLANNING::getAvailableFootholds(next_planned_state_, gridmap_interface_->getMap());
-                // std::vector<Eigen::Vector3d> pts;
-                // for (int i = 0; i < 6; i++)
-                // {
-                //     if (next_planned_state_.gaitToNow[i] == MDT::SUPPORT_FLAG)
-                //         continue;
-                //     for (auto pt : available_points.position.leg[i])
-                //     {
-                //         pts.emplace_back(pt);
-                //     }
-                // }
-                // visualizer_.visSphere(pts, 0.01);
             }
 
-            if (ret)
-            {
-                state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
-                                                            transRobotState(next_planned_state_));
-            }
-            else
-            {
-                ROS_INFO("MCTS failed to plan, reset to nominal state.");
-                visualizer_base_.visPolytope(robot_interface_->getFootPolyhedra());
-                state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
-                                                            transRobotState(getInitState(param, robot_state_.pose, robot_state_.moveDirection)));
-            }
-            // state_traj_replay(state_sequence_planner_.get_state_traj(0));
             traj_planner();
             motion_lock_ = false;
             gridmap_interface_->unlockMapUpdate();
@@ -640,6 +699,208 @@ public:
         return 0.5 * (1 + std::sin(M_PI * (t - 0.5)));
     }
 
+    // Tripod gait generation
+    legged_traj_plan::hexapod_State generateNextTripodState(const legged_traj_plan::hexapod_State &current_state, 
+                                                           const geometry_msgs::Twist &cmd_vel)
+    {
+        legged_traj_plan::hexapod_State next_state = current_state;
+
+        // Get current pose and update the extrapolator
+        pinocchio::SE3 current_pose = Pose2SE3(current_state.base_Pose_Now);
+        cmd_vel_extrapolator_.update(current_pose, cmd_vel);
+
+        // Use terrain-aware pose extrapolation
+        double dt = config_.tripodStepDuration;
+        pinocchio::SE3 next_pose = cmd_vel_extrapolator_.extrapolate(dt);
+
+        next_state.base_Pose_Now = SE32Pose(next_pose);
+
+        // Set contact pattern based on current tripod phase
+        std::array<bool, 6> contact_pattern = getTripodContactPattern(current_tripod_phase_);
+        for (int i = 0; i < 6; i++)
+        {
+            next_state.support_State_Now[i] = contact_pattern[i];
+        }
+
+        // Update foot positions using Raibert heuristic for swing legs
+        Eigen::Vector3d velocity(cmd_vel.linear.x, cmd_vel.linear.y, 0.0);
+        for (int i = 0; i < 6; i++)
+        {
+            if (!contact_pattern[i]) // Swing leg
+            {
+                Eigen::Vector3d nominal_foothold = robot_interface_->getNominalFoothold(i);
+                Eigen::Vector3d target_foothold = hexapod_raibert_planner_.computeFoothold(
+                    next_pose, velocity, nominal_foothold, i);
+
+                // Set target foothold in world frame with terrain-aware height
+                next_state.feetPositionNow.foot[i].x = target_foothold[0];
+                next_state.feetPositionNow.foot[i].y = target_foothold[1];
+                next_state.feetPositionNow.foot[i].z = gridmap_interface_->value(
+                    grid_map::Position(target_foothold[0], target_foothold[1]));
+            }
+            // Stance legs keep their position (no update needed)
+        }
+
+        return next_state;
+    }
+
+    // Tripod pattern helpers
+    std::array<bool, 6> getTripodContactPattern(TripodPhase phase)
+    {
+        std::array<bool, 6> pattern;
+        if (phase == TripodPhase::PHASE_135)
+        {
+            // Legs 1,3,5 (RR, LF, RL) swing (false), Legs 0,2,4 (RF, FL, LR) stance (true)
+            pattern[0] = true;  // RF - stance
+            pattern[1] = false; // RR - swing
+            pattern[2] = true;  // FL - stance
+            pattern[3] = false; // LF - swing
+            pattern[4] = true;  // LR - stance
+            pattern[5] = false; // RL - swing
+        }
+        else // PHASE_246
+        {
+            // Legs 0,2,4 (RF, FL, LR) swing (false), Legs 1,3,5 (RR, LF, RL) stance (true)
+            pattern[0] = false; // RF - swing
+            pattern[1] = true;  // RR - stance
+            pattern[2] = false; // FL - swing
+            pattern[3] = true;  // LF - stance
+            pattern[4] = false; // LR - swing
+            pattern[5] = true;  // RL - stance
+        }
+        return pattern;
+    }
+
+    void switchTripodPhase()
+    {
+        current_tripod_phase_ = (current_tripod_phase_ == TripodPhase::PHASE_135) ? 
+                               TripodPhase::PHASE_246 : TripodPhase::PHASE_135;
+    }
+
+    // Modified cmd_callback to support tripod gait option
+    void cmd_callback(const geometry_msgs::Twist &msg)
+    {
+        if (motion_lock_)
+            ROS_WARN("Robot is in motion, ignore new command.");
+        else
+        {
+            motion_lock_ = true;
+            gridmap_interface_->lockMapUpdate();
+            cmd_ = msg;
+            state_sequence_planner_.visClear();
+
+            bool ret = false;
+
+            if (config_.useTripodGait)
+            {
+                // Use simple tripod gait planner (Raibert-style)
+                legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
+                legged_traj_plan::hexapod_State next_state = generateNextTripodState(current_state, cmd_);
+                
+                ret = state_sequence_planner_.enqueue_MCTsolution(current_state, next_state);
+                
+                if (ret)
+                {
+                    ROS_INFO("Hexapod tripod gait planned successfully.");
+                }
+                else
+                {
+                    ROS_WARN("Hexapod tripod gait planning failed.");
+                }
+            }
+            else
+            {
+                // Use original MCTS-based planner
+                Parameters param(swing_traj_planner_config_.plannerID == 0 && config_.enableReachableFiltering ? 
+                               gridmapReachableFiltering(cmd_, config_.reachableFilterPoseMoveDis) : 
+                               gridmap_interface_->getMap());
+
+                while (!ret && ros::ok())
+                {
+                    // Fetch feedback
+                    ros::spinOnce();
+                    // update robot state
+                    update_robot_state(robot_interface_->getBodyPoseFdb(), robot_interface_->getFootStateFdb());
+                    // update_exp_path(cmd_);
+                    update_exp_path_xlock();
+                    // MCTS planning
+                    ret = CONTACT_PLANNER::pathTrackPlanner(robot_state_, next_planned_state_, exp_path_,
+                                                            param, true, config_.cmdMctsSearchNodeNum);
+                }
+
+                if (ret)
+                {
+                    state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                                transRobotState(next_planned_state_));
+                }
+                else
+                {
+                    ROS_INFO("MCTS failed to plan, reset to nominal state.");
+                    visualizer_base_.visPolytope(robot_interface_->getFootPolyhedra());
+                    state_sequence_planner_.enqueue_MCTsolution(transRobotState(robot_state_),
+                                                                transRobotState(getInitState(param, robot_state_.pose, robot_state_.moveDirection)));
+                }
+            }
+
+            // Visualization
+            visualizer_.delAll();
+            visualizer_base_.delAll();
+
+            if (swing_traj_planner_config_.enableVis)
+            {
+                // Vis expected path
+                std::vector<Point3D> exp_path_vis;
+                for (const auto &pt : exp_path_)
+                {
+                    exp_path_vis.emplace_back(Point3D(pt[0], pt[1], pt[2]));
+                }
+                visualizer_.visCurve(exp_path_vis);
+            }
+
+            traj_planner();
+            motion_lock_ = false;
+            gridmap_interface_->unlockMapUpdate();
+        }
+    }
+
+    // Get current hexapod state for tripod gait planning
+    legged_traj_plan::hexapod_State getCurrentHexapodState()
+    {
+        legged_traj_plan::hexapod_State state;
+
+        // Get current body pose
+        pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
+        state.base_Pose_Now = SE32Pose(body_pose);
+        state.base_Pose_Next = state.base_Pose_Now;
+
+        // Get current foot positions
+        legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
+        for (int i = 0; i < 6; i++)
+        {
+            auto footpos = point_SE3Act(
+                body_pose.inverse(),
+                Eigen::Vector3d(foot_state.position[i].x, foot_state.position[i].y, foot_state.position[i].z));
+            state.feetPositionNow.foot[i].x = footpos[0];
+            state.feetPositionNow.foot[i].y = footpos[1];
+            state.feetPositionNow.foot[i].z = footpos[2];
+            state.support_State_Now[i] = foot_state.contact[i];
+            state.faultLeg_State_Now[i] = 0; // Normal
+        }
+        state.feetPositionNext = state.feetPositionNow;
+        state.support_State_Next = state.support_State_Now;
+        state.faultLeg_State_Next = state.faultLeg_State_Now;
+
+        // Set move direction based on current velocity
+        Eigen::Vector3d body_velocity(cmd_.linear.x, cmd_.linear.y, 0.0);
+        double move_direction = std::atan2(body_velocity[1], body_velocity[0]);
+        state.move_Direction.x = std::cos(move_direction);
+        state.move_Direction.y = std::sin(move_direction);
+        state.move_Direction.z = 0.0;
+
+        return state;
+    }
+
+    // Modified traj_planner to handle tripod phase switching
     void traj_planner()
     {
 
@@ -740,6 +1001,13 @@ public:
             {
                 t = 0.0;
                 state_sequence_planner_.dequeue_MCTsolution();
+                
+                // Switch tripod phase if using tripod gait
+                if (config_.useTripodGait)
+                {
+                    switchTripodPhase();
+                }
+
                 if (state_sequence_planner_.get_state_traj_length() > 0)
                 {
                     state_sequence_planner_.visClear();

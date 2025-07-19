@@ -1,4 +1,3 @@
-
 # NOTE: Planner settings override 
 misc:
   useCfgCommand: true
@@ -37,7 +36,13 @@ StateSequencePlanner:
   # demoPath: # NOTE: offered by launch file
   savePlannedStates: false
   # Executing saved states on startup
-  execSavedStates: true 
+  execSavedStates: true
+
+  # Tripod gait parameters (for hexapod robots)
+  useTripodGait: false
+  tripodStepDuration: 0.4
+  tripodStanceDuration: 0.2
 
   # Benchmark for StateSequencePlanner
   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml
+  

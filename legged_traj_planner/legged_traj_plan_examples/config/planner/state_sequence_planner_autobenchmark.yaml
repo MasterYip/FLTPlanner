@@ -38,5 +38,10 @@ StateSequencePlanner:
   # Executing saved states on startup
   execSavedStates: true 
 
+  # Tripod gait parameters (for hexapod robots)
+  useTripodGait: false
+  tripodStepDuration: 0.4
+  tripodStanceDuration: 0.2
+
   # Benchmark for StateSequencePlanner
   OptBenchmarkSavePath: /home/user/CodeSpace/ROS/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml
