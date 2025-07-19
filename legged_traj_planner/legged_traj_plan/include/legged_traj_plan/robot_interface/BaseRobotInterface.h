@@ -151,6 +151,7 @@ public:
     }
 
     // Virtual Feedback Interface - to be implemented by derived classes
+    // NOTE: Foot state in BASE frame
     virtual const legged_traj_plan::FootState &getFootStateFdb() const
     {
         throw std::runtime_error("getFootStateFdb not implemented in derived class");

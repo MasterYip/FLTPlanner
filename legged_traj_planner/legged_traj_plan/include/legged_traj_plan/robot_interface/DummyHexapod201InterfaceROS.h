@@ -160,10 +160,10 @@ private:
             return;
 
         // Visualize body as cube
-        visualizer_->delGroup(1); // Clear previous group
+        // visualizer_->delGroup(1); // Clear previous group
         visualizer_->setIdGroup(1);
-        Eigen::Vector3d body_pos = body_pose.translation();
-        Eigen::Quaterniond quat(body_pose.rotation());
+        Eigen::Vector3d body_pos(0, 0, 0);
+        Eigen::Quaterniond quat(0, 0, 0, 1); // Identity quaternion
         Eigen::Vector4d quat_vec(quat.w(), quat.x(), quat.y(), quat.z());
         visualizer_->visCube(body_pos, quat_vec, ros_visualizer::VisStyle(0.0, 1.0, 0.0, 0.8, 0.3, 0.2, 0.1));
     }
@@ -178,7 +178,7 @@ public:
         // Initialize visualizer
         if (config_.enableVis)
         {
-            visualizer_ = std::make_shared<ros_visualizer::ROSVisualizer>(nh, "odom", "hexapod201_markers");
+            visualizer_ = std::make_shared<ros_visualizer::ROSVisualizer>(nh, "base", "hexapod201_markers");
         }
 
         // Init State
