@@ -149,6 +149,7 @@ private:
             return;
 
         // Visualize feet as spheres
+        visualizer_->delGroup(0); // Clear previous group
         visualizer_->setIdGroup(0);
         visualizer_->visSphere(footendpos, 0.03, ros_visualizer::VisStyle(1.0, 0.0, 0.0, 1.0, 0.03));
     }
@@ -159,6 +160,7 @@ private:
             return;
 
         // Visualize body as cube
+        visualizer_->delGroup(1); // Clear previous group
         visualizer_->setIdGroup(1);
         Eigen::Vector3d body_pos = body_pose.translation();
         Eigen::Quaterniond quat(body_pose.rotation());
