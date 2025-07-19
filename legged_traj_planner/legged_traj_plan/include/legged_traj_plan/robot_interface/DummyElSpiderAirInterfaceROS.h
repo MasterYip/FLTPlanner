@@ -150,6 +150,7 @@ public:
         // Rviz
         joint_state_pub = nh.advertise<sensor_msgs::JointState>(config_.jointStateTopic, 10);
         // Init State
+        nominal_footholds.clear();
         for (int i = 0; i < 6; i++)
         {
             geometry_msgs::Point pt;
@@ -164,6 +165,8 @@ public:
             joint_state_.position.emplace_back(q_i[0]);
             joint_state_.position.emplace_back(q_i[1]);
             joint_state_.position.emplace_back(q_i[2]);
+            // Update nominal foot position
+            nominal_footholds.emplace_back(Eigen::Vector3d(pt.x, pt.y, pt.z));
         }
         foot_state_.velocity.resize(6);
         foot_state_.effort.resize(6);

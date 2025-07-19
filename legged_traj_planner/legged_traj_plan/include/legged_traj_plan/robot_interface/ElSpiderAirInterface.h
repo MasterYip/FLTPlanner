@@ -108,7 +108,7 @@ const std::vector<Eigen::Vector3d> LOWEST_FOOT_POS = {
 
 class ElSpiderAirInterface : public BaseRobotInterface
 {
-private:
+protected:
     ElSpiderKin robot_kin;
     std::vector<Eigen::Vector3d> nominal_footholds = {
         Eigen::Vector3d(0.35, -0.23, -0.23),

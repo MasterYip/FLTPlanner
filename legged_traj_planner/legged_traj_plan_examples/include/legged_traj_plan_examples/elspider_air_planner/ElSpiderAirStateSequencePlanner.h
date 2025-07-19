@@ -782,8 +782,6 @@ public:
     }
 
 
-
-
     // Modified traj_planner to handle tripod phase switching
     void traj_planner()
     {

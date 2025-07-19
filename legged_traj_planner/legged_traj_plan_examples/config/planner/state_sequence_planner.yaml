@@ -35,7 +35,7 @@ StateSequencePlanner:
   # demoPath: # NOTE: offered by launch file
   savePlannedStates: false
   # Executing saved states on startup
-  execSavedStates: true
+  execSavedStates: false
 
   # Tripod gait parameters (for hexapod robots)
   useTripodGait: true
