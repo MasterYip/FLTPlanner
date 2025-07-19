@@ -1,4 +1,4 @@
-# NOTE: Planner settings override 
+# NOTE: Planner settings override
 misc:
   useCfgCommand: true
   reOptimize: false
@@ -10,7 +10,6 @@ misc:
   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/OptBenchmark.csv
   ReachableBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/ReachableBenchmark.csv
   robotProfilePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/RobotProfileRecord.csv
-
 
 StateSequencePlanner:
   rosRate: 100
@@ -25,7 +24,7 @@ StateSequencePlanner:
   reachableFilterPoseMoveDis: 0.2
   reachableTravLayerName: "elevation_inpainted_trav"
 
-  # Enable Reachability Check (if envableVis is True, output will be visualized) 
+  # Enable Reachability Check (if envableVis is True, output will be visualized)
   enableReachableCheck: true
   reachableCheckSize: 30 # (size*size, in 0.75*0.75 area)
 
@@ -39,10 +38,9 @@ StateSequencePlanner:
   execSavedStates: true
 
   # Tripod gait parameters (for hexapod robots)
-  useTripodGait: false
+  useTripodGait: true
   tripodStepDuration: 0.4
   tripodStanceDuration: 0.2
 
   # Benchmark for StateSequencePlanner
   OptBenchmarkSavePath: /home/user/HexLabCodeSpace/planner_ws/src/analysis_scripts/benchmarking/temp/StateSequencePlannerBenchmark.yaml
-  
