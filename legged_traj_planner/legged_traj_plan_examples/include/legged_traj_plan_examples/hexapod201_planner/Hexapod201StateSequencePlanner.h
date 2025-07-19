@@ -236,9 +236,13 @@ public:
         legged_traj_plan::FootState foot_state = robot_interface_->getFootStateFdb();
         for (int i = 0; i < 6; i++)
         {
-            hexapodState.feetPositionNow.foot[i].x = foot_state.position[i].x;
-            hexapodState.feetPositionNow.foot[i].y = foot_state.position[i].y;
-            hexapodState.feetPositionNow.foot[i].z = foot_state.position[i].z;
+            Point3D base_foot_pos(foot_state.position[i].x,
+                                  foot_state.position[i].y,
+                                  foot_state.position[i].z);
+            Point3D world_foot_pos = point_SE3Act(body_pose.inverse(), base_foot_pos);
+            hexapodState.feetPositionNow.foot[i].x = world_foot_pos[0];
+            hexapodState.feetPositionNow.foot[i].y = world_foot_pos[1];
+            hexapodState.feetPositionNow.foot[i].z = world_foot_pos[2];
             hexapodState.support_State_Now[i] = true; // Default all stance
             hexapodState.faultLeg_State_Now[i] = 0;   // Normal
         }
@@ -349,6 +353,12 @@ public:
             // Footend position in world frame - simplified for Hexapod201
             footend_interp = state_traj.eval_foot_traj(sine_remap(t));
 
+            for (size_t k = 0; k < 6; ++k)
+            {
+                // Convert to BASE
+                footend_interp[k] = point_SE3Act(odom_interp, footend_interp[k]);
+            }
+            
             // Only use setBodyPoseCmd and setFootCmd (no kinematics)
             robot_interface_->setBodyPoseCmd(odom_interp);
             robot_interface_->setFootCmd(footend_interp);
