@@ -23,6 +23,7 @@
 #include "legged_traj_plan/robot_interface/DummyElSpiderAirInterfaceROS.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROSVMC.h"
+#include "legged_traj_plan/robot_interface/DummyHexapod201InterfaceROS.h"
 
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 
@@ -55,8 +56,8 @@ protected:
     // Interface
     std::shared_ptr<GridMapInterface> gridmap_interface_;
     std::string robot_interface_type_;
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_;
-    std::shared_ptr<ElSpiderAirInterface> robot_interface_shadow_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_;
+    std::shared_ptr<BaseRobotInterface> robot_interface_shadow_;
     std::shared_ptr<SwingTrajPlannerBase> swing_traj_planner_;
 
     // Config
@@ -84,6 +85,12 @@ public:
             ElSpiderAirInterfaceROSVMCConfig config;
             config.loadParam(nh_, "ElSpiderAirROSVMC");
             robot_interface_ = std::make_shared<ElSpiderAirInterfaceROSVMC>(config);
+        }
+        else if (robot_interface_type_ == "Hexapod201Dummy")
+        {
+            DummyHexapod201InterfaceROSConfig dummy_config;
+            dummy_config.loadParam(nh_, "Hexapod201Dummy");
+            robot_interface_ = std::make_shared<DummyHexapod201InterfaceROS>(dummy_config);
         }
         else
         {

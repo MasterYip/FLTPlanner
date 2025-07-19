@@ -176,6 +176,13 @@ target_link_libraries(elspider_air_raibert_planner
   ${PROJECT_NAME}
 )
 
+# Hexapod201StateSequencePlanner
+add_executable(hexapod201_state_sequence_planner src/hexapod201_state_sequence_planner.cpp)
+target_link_libraries(hexapod201_state_sequence_planner
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
 # UnitreeA1RaibertPlanner
 add_executable(unitree_a1_raibert_planner src/unitree_a1_raibert_planner.cpp)
 target_link_libraries(unitree_a1_raibert_planner

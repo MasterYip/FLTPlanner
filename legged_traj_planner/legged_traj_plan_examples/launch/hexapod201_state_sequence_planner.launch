@@ -1,0 +1,112 @@
+<launch>
+    <!-- Hexapod201 State Sequence Planner -->
+
+    <!-- Demo Select -->
+    <arg name="demo_name" default="4_ushape_barrier" />
+    
+    <!-- Settings -->
+    <!-- Gazebo / Hardware -->
+    <arg name="sim" default="true" />
+    <!-- keyboard / PS5 -->
+    <arg name="teleop_type" default="keyboard" />
+    <!-- Hexapod201Dummy (simplified interface) -->
+    <arg name="robot_interface_type" default="Hexapod201Dummy" />
+    <!-- GridMap -->
+    <arg name="with_ceiling" default="false"/>
+    <arg name="ground_ceiling_boundary" default="0.3" />
+    <!-- ROS bag record (under ~/.ros) -->
+    <arg name="rosbag_record" default="false" />
+    <!-- Rviz visualization -->
+    <arg name="rviz_gui" default="true" />
+    <!-- Output: screen / log -->
+    <arg name="output" default="screen" />
+
+    <!-- Launch -->
+    <!-- Config -->
+    <arg name="grid_map_topic" value="/grid_map" />
+    <!-- Map File (Images) -->
+    <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ground.png" />
+    <!-- Map Def (Timber Pile Generation) -->
+    <arg name="grid_map_def" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/map_def.yaml" />
+    
+    <!-- GridMap (Always use fake map for Hexapod201) -->
+    <arg name="use_fake_map" value="true" />
+    <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="$(arg output)">
+        <param name="image_path" value="$(arg grid_map_file)" />
+        <param name="map_def_path" value="$(arg grid_map_def)" />
+        <param name="topic" value="~image" />
+        <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
+    </node>
+    <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="$(arg output)">
+        <param name="with_ceiling" value="$(arg with_ceiling)" />
+        <param name="image_topic" value="/image_publisher/image" />
+        <param name="map_frame_id" value="odom" />
+        <param name="grid_map_topic" value="$(arg grid_map_topic)" />
+        <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
+    </node>
+
+    <!-- Hexapod201 State Sequence Planner -->
+    <node pkg="legged_traj_plan_examples" type="hexapod201_state_sequence_planner" name="hexapod201_state_sequence_planner" output="$(arg output)">
+        <!-- Robot Interface -->
+        <rosparam command="load" file="$(find legged_traj_plan)/config/robot_interface.yaml"/>
+        <param name="robotInterface" value="$(arg robot_interface_type)" />
+        <param name="$(arg robot_interface_type)/sim" value="$(arg sim)" />
+        
+        <!-- Planner Config (simplified for Hexapod201) -->
+        <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/height_clear_planner.yaml"/>
+        <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/hexapod201_state_sequence_planner.yaml"/>
+        <param name="StateSequencePlanner/demoPath" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/" />
+        
+        <!-- Perception Interface -->
+        <rosparam command="load" file="$(find legged_traj_plan)/config/perception_interface.yaml"/>
+        <!-- Perception Interface Config Override -->
+        <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
+    </node>
+
+    <!-- Robot related -->
+    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/hexapod201/xacro/robot.xacro" />
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
+    
+    <!-- Shadow Robot -->
+    <group ns="shadow">
+        <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/hexapod201/xacro/robot.xacro ns:=shadow"/>
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
+    </group>
+
+    <group if="$(arg rviz_gui)">
+        <!-- Rviz -->
+        <node pkg="rviz" type="rviz" name="rviz_hexapod201" args="-d $(find legged_traj_plan_examples)/config/rviz/hexapod201_state_sequence_planner.rviz" output="$(arg output)" />
+
+        <!-- Teleop -->
+        <group if="$(eval teleop_type == 'keyboard')">
+            <include file="$(find legged_traj_plan_examples)/launch/key_teleop.launch">
+                <arg name="topic_name" value="/cmd_vel" />
+            </include>
+        </group>
+        <group if="$(eval teleop_type == 'PS5')">
+            <node pkg="joy" type="joy_node" name="joy_node" output="$(arg output)" clear_params="true" required="true">
+                <param name="dev" value="/dev/input/js0"/>
+                <param name="dev_ff" value="/dev/input/event20"/>
+                <param name="coalesce_interval" value="0.01"/>
+                <param name="autorepeat_rate" value="100"/>
+                <param name="default_trig_val" value="true"/>
+            </node>
+            <node pkg="legged_traj_plan_examples" type="joy_teleop.py" name="joy_teleop" output="$(arg output)">
+                <param name="cmd_topic" value="/cmd_vel" />
+                <param name="joy_topic" value="/joy" />
+            </node>
+        </group>
+    </group>
+
+    <!-- ROS bag record -->
+    <group if="$(eval rosbag_record == 1)">
+        <node pkg="rosbag" type="record" name="rosbag_record" args="
+            /tf /tf_static 
+            /grid_map 
+            /hexapod201_state_sequence_planner/grid_map_trav_test 
+            /swing_traj_planner_vis 
+            /hexapod/foot_state_fdb 
+            -o hexapod201-$(arg demo_name)" output="$(arg output)" />
+    </group>
+
+</launch>

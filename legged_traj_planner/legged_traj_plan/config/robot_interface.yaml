@@ -64,6 +64,42 @@ ElSpiderAirDummy:
   nominalFootPosShift: [0, 0.10, 0]
   initBodyPose: [0, 0, 0.24, 0, 0, 0]
 
+# Hexapod201 Interfaces (Simplified - no urdf/kinematics)
+Hexapod201Dummy:
+  urdfParamPath: /robot_description
+  jointStateTopic: joint_states
+  jointNamePrefix: "" # empty
+  odomChildFrame: base
+  odomParentFrame: odom
+  enableVis: true
+  # Hexapod201 nominal foot positions (6 legs in tripod configuration)
+  nominalFootPos: [0.30, -0.20, -0.22,   # RF (Right Front)
+                   0.00, -0.25, -0.22,   # RR (Right Rear)
+                   -0.30, -0.20, -0.22,  # FL (Front Left)
+                   0.30, 0.20, -0.22,    # LF (Left Front)
+                   0.00, 0.25, -0.22,    # LR (Left Rear)
+                   -0.30, 0.20, -0.22]   # RL (Rear Left)
+  nominalFootPosShift: [0, 0.08, 0]
+  initBodyPose: [0, 0, 0.22, 0, 0, 0]
+
+# Shadow Hexapod201
+Hexapod201Shadow:
+  urdfParamPath: /shadow/robot_description
+  jointStateTopic: /shadow/joint_states
+  jointNamePrefix: shadow
+  odomChildFrame: shadowbase
+  odomParentFrame: odom
+  enableVis: true
+  # Same as main Hexapod201 (not used for shadow):
+  nominalFootPos: [0.30, -0.20, -0.22,
+                   0.00, -0.25, -0.22,
+                   -0.30, -0.20, -0.22,
+                   0.30, 0.20, -0.22,
+                   0.00, 0.25, -0.22,
+                   -0.30, 0.20, -0.22]
+  nominalFootPosShift: [0, 0.08, 0]
+  initBodyPose: [0, 0, 0.22, 0, 0, 0]
+
 # Shadow
 ElSpiderAirShadow:
   urdfParamPath: /shadow/robot_description

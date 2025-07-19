@@ -204,7 +204,7 @@ public:
             if (swing_traj_planner_config_.enableVis)
             {
                 // Vis current robot state
-                visualizer_.visPoint(Point3D(current_state.base_Pose_Now.position.x, 
+                visualizer_.visSphere(Point3D(current_state.base_Pose_Now.position.x, 
                                            current_state.base_Pose_Now.position.y, 
                                            current_state.base_Pose_Now.position.z));
             }
