@@ -47,6 +47,7 @@ ElSpiderAirROSVMC:
   expFootStateTopicName: /exp_foot_state
   expJointStateTopicName: /exp_joint_state
 
+
 ElSpiderAirDummy:
   urdfParamPath: /robot_description
   jointStateTopic: joint_states
@@ -54,27 +55,12 @@ ElSpiderAirDummy:
   odomChildFrame: base
   odomParentFrame: odom
   enableVis: true
-  nominalFootPos:
-    [
-      0.35,
-      -0.23,
-      -0.24,
-      0.05,
-      -0.29,
-      -0.24,
-      -0.35,
-      -0.23,
-      -0.24,
-      0.35,
-      0.23,
-      -0.24,
-      0.05,
-      0.29,
-      -0.24,
-      -0.35,
-      0.23,
-      -0.24,
-    ]
+  nominalFootPos: [0.35, -0.23, -0.24,
+                0.05, -0.29, -0.24,
+                -0.35, -0.23, -0.24,
+                0.35, 0.23, -0.24,
+                0.05, 0.29, -0.24,
+                -0.35, 0.23, -0.24]
   nominalFootPosShift: [0, 0.10, 0]
   initBodyPose: [0, 0, 0.24, 0, 0, 0]
 
@@ -87,26 +73,12 @@ Hexapod201Dummy:
   odomParentFrame: odom
   enableVis: true
   # Hexapod201 nominal foot positions (6 legs in tripod configuration)
-  nominalFootPos: [
-      0.30,
-      -0.20,
-      -0.22, # RF (Right Front)
-      0.00,
-      -0.25,
-      -0.22, # RR (Right Rear)
-      -0.30,
-      -0.20,
-      -0.22, # FL (Front Left)
-      0.30,
-      0.20,
-      -0.22, # LF (Left Front)
-      0.00,
-      0.25,
-      -0.22, # LR (Left Rear)
-      -0.30,
-      0.20,
-      -0.22,
-    ] # RL (Rear Left)
+  nominalFootPos: [0.30, -0.20, -0.22,   # RF (Right Front)
+                   0.00, -0.25, -0.22,   # RR (Right Rear)
+                   -0.30, -0.20, -0.22,  # FL (Front Left)
+                   0.30, 0.20, -0.22,    # LF (Left Front)
+                   0.00, 0.25, -0.22,    # LR (Left Rear)
+                   -0.30, 0.20, -0.22]   # RL (Rear Left)
   nominalFootPosShift: [0, 0.08, 0]
   initBodyPose: [0, 0, 0.22, 0, 0, 0]
 
@@ -119,27 +91,12 @@ Hexapod201Shadow:
   odomParentFrame: odom
   enableVis: true
   # Same as main Hexapod201 (not used for shadow):
-  nominalFootPos:
-    [
-      0.30,
-      -0.20,
-      -0.22,
-      0.00,
-      -0.25,
-      -0.22,
-      -0.30,
-      -0.20,
-      -0.22,
-      0.30,
-      0.20,
-      -0.22,
-      0.00,
-      0.25,
-      -0.22,
-      -0.30,
-      0.20,
-      -0.22,
-    ]
+  nominalFootPos: [0.30, -0.20, -0.22,
+                   0.00, -0.25, -0.22,
+                   -0.30, -0.20, -0.22,
+                   0.30, 0.20, -0.22,
+                   0.00, 0.25, -0.22,
+                   -0.30, 0.20, -0.22]
   nominalFootPosShift: [0, 0.08, 0]
   initBodyPose: [0, 0, 0.22, 0, 0, 0]
 
@@ -152,27 +109,12 @@ ElSpiderAirShadow:
   odomParentFrame: odom
   enableVis: true
   # Not used for shadow:
-  nominalFootPos:
-    [
-      0.35,
-      -0.23,
-      -0.24,
-      0.05,
-      -0.29,
-      -0.24,
-      -0.35,
-      -0.23,
-      -0.24,
-      0.35,
-      0.23,
-      -0.24,
-      0.05,
-      0.29,
-      -0.24,
-      -0.35,
-      0.23,
-      -0.24,
-    ]
+  nominalFootPos: [0.35, -0.23, -0.24,
+                0.05, -0.29, -0.24,
+                -0.35, -0.23, -0.24,
+                0.35, 0.23, -0.24,
+                0.05, 0.29, -0.24,
+                -0.35, 0.23, -0.24]
   nominalFootPosShift: [0, 0.10, 0]
   initBodyPose: [0, 0, 0.24, 0, 0, 0]
 
@@ -205,21 +147,10 @@ UnitreeA1Dummy:
   odomChildFrame: base
   odomParentFrame: odom
   enableVis: true
-  nominalFootPos:
-    [
-      0.18,
-      -0.13,
-      -0.24,
-      0.18,
-      0.13,
-      -0.24,
-      -0.18,
-      -0.13,
-      -0.24,
-      -0.18,
-      0.13,
-      -0.24,
-    ]
+  nominalFootPos: [0.18, -0.13, -0.24,
+                   0.18, 0.13, -0.24,
+                   -0.18, -0.13, -0.24,
+                   -0.18, 0.13, -0.24]
   nominalFootPosShift: [0, 0, 0]
   initBodyPose: [0, 0, 0.24, 0, 0, 0]
 
@@ -232,20 +163,9 @@ UnitreeA1Shadow:
   odomParentFrame: odom
   enableVis: true
   # Not used for shadow:
-  nominalFootPos:
-    [
-      0.18,
-      -0.13,
-      -0.24,
-      0.18,
-      0.13,
-      -0.24,
-      -0.18,
-      -0.13,
-      -0.24,
-      -0.18,
-      0.13,
-      -0.24,
-    ]
+  nominalFootPos: [0.18, -0.13, -0.24,
+                   0.18, 0.13, -0.24,
+                   -0.18, -0.13, -0.24,
+                   -0.18, 0.13, -0.24]
   nominalFootPosShift: [0, 0, 0]
   initBodyPose: [0, 0, 0.24, 0, 0, 0]
