@@ -254,6 +254,8 @@ public:
         // Parameters
         const double max_step_length = 0.3; // meters
         const double max_yaw_change = M_PI / 4; // radians
+        const double step_duration = 2.0; // seconds
+
         // Traverse the path, interpolate if needed
         for (size_t i = 1; i < path2d.size(); i++) {
             Eigen::Vector2d prev = path2d[i-1];
@@ -288,8 +290,11 @@ public:
                 if (rpy[2] > M_PI) rpy[2] -= 2 * M_PI;
                 if (rpy[2] < -M_PI) rpy[2] += 2 * M_PI;
                 target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy);
+                // Fit the ground
+                gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
+                target_pose = gridmap_extrapolator_.extrapolate(0.0);
                 std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)->setStepBodyPoseCmd(target_pose);
-                ros::Duration(2).sleep(); // Step time, adjust as needed
+                ros::Duration(step_duration).sleep(); // Step time, adjust as needed
             }
         }
         motion_lock_ = false;
