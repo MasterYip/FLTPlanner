@@ -266,16 +266,16 @@ public:
                 double alpha = static_cast<double>(s) / num_steps;
                 Eigen::Vector2d interp = prev + alpha * delta;
                 // Set orientation to face direction of movement
-                double yaw = atan2(delta[1], delta[0]);
-                if (delta[0] < 0) {
-                    yaw += M_PI; // Adjust for backward movement
+                double move_dir = acos(delta[0] / dist);
+                if (delta[1] < 0) {
+                    move_dir = -move_dir; // Adjust for quadrant
                 }
                 pinocchio::SE3 target_pose = body_pose;
                 target_pose.translation()[0] = interp[0];
                 target_pose.translation()[1] = interp[1];
-                // Set yaw in target_pose (keep roll, pitch from body_pose)
+                // Set move_dir in target_pose (keep roll, pitch from body_pose)
                 Eigen::Vector3d rpy = pinocchio::rpy::matrixToRpy(body_pose.rotation());
-                double delta_yaw = yaw - rpy[2];
+                double delta_yaw = move_dir - rpy[2];
                 if (delta_yaw > M_PI) delta_yaw -= 2 * M_PI;
                 if (delta_yaw < -M_PI) delta_yaw += 2 * M_PI;
                 if (delta_yaw > max_yaw_change) {

@@ -221,15 +221,17 @@ class Hexapod201BaseInterface(ABC):
         
         # Convert quaternion to rotation matrix (simplified)
         quat = np.array([
-            self.current_pose.orientation.w,
             self.current_pose.orientation.x,
             self.current_pose.orientation.y,
-            self.current_pose.orientation.z
+            self.current_pose.orientation.z,
+            self.current_pose.orientation.w,
         ])
-        
+        rpy =  euler_from_quaternion(quat)
+        heading_vec = np.array([np.cos(rpy[2]), np.sin(rpy[2]), 0.0])  # Heading direction in XY plane
         # Box size (hexapod body dimensions)
-        box_size = 0.3  # 30cm cube
-        self.visualizer.vis_cube(position, quat, VisStyle(1.0, 0.45, 0.0, 1.0, box_size, box_size, box_size))
+        box_size = [0.6, 0.3, 0.2]  # 30cm cube
+        self.visualizer.vis_cube(position, quat, VisStyle(1.0, 0.45, 0.0, 1.0, box_size[0], box_size[1], box_size[2]))
+        self.visualizer.vis_arrow(position, position + heading_vec * 0.4)
     
     @abstractmethod
     def move_to_pose(self, target_pose: Pose) -> bool:
@@ -305,17 +307,17 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             
             # Get current and target Euler angles
             start_euler = euler_from_quaternion([
-                start_pose.orientation.w,
                 start_pose.orientation.x,
                 start_pose.orientation.y,
-                start_pose.orientation.z
+                start_pose.orientation.z,
+                start_pose.orientation.w,
             ])
             
             target_euler = euler_from_quaternion([
-                target_pose.orientation.w,
                 target_pose.orientation.x,
                 target_pose.orientation.y,
-                target_pose.orientation.z
+                target_pose.orientation.z,
+                target_pose.orientation.w,
             ])
             
             angle_diff = np.array([
@@ -353,10 +355,10 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                     # Interpolate orientation
                     current_euler = start_euler + angle_diff * progress
                     quat = quaternion_from_euler(current_euler[0], current_euler[1], current_euler[2])
-                    self.current_pose.orientation.w = quat[0]
-                    self.current_pose.orientation.x = quat[1]
-                    self.current_pose.orientation.y = quat[2]
-                    self.current_pose.orientation.z = quat[3]
+                    self.current_pose.orientation.w = quat[3]
+                    self.current_pose.orientation.x = quat[0]
+                    self.current_pose.orientation.y = quat[1]
+                    self.current_pose.orientation.z = quat[2]
                     
                     if progress >= 1.0:
                         break
