@@ -1,0 +1,76 @@
+#pragma once
+
+#include <memory>
+#include <vector>
+#include <Eigen/Dense>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <ompl/base/ScopedState.h>
+#include <ompl/base/SpaceInformation.h>
+#include <ompl/base/ProblemDefinition.h>
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
+#include <ompl/geometric/SimpleSetup.h>
+#include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/config.h>
+#include "legged_traj_plan/perception_interface/GridMapInterface.h"
+
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
+
+class Hexapod2dNavRRT {
+public:
+    Hexapod2dNavRRT() = default;
+    ~Hexapod2dNavRRT() = default;
+
+    // Plan a 2D path from start to goal using the traversability layer
+    // start, goal: Eigen::Vector2d (x, y)
+    // gridmap: pointer to GridMapInterface
+    // output_path: vector of Eigen::Vector2d
+    // Returns true if path found
+    bool planPath(const Eigen::Vector2d& start,
+                  const Eigen::Vector2d& goal,
+                  std::shared_ptr<GridMapInterface> gridmap,
+                  std::vector<Eigen::Vector2d>& output_path,
+                  double step_size = 0.1,
+                  double timeout = 2.0) const {
+        auto space = std::make_shared<ob::RealVectorStateSpace>(2);
+        ob::RealVectorBounds bounds(2);
+        // Set bounds from gridmap (or use large default)
+        bounds.setLow(0, -10.0);
+        bounds.setHigh(0, 10.0);
+        bounds.setLow(1, -10.0);
+        bounds.setHigh(1, 10.0);
+        space->setBounds(bounds);
+
+        og::SimpleSetup ss(space);
+        // State validity checker: traversability > threshold
+        ss.setStateValidityChecker([gridmap](const ob::State* state) {
+            const auto* s = state->as<ob::RealVectorStateSpace::StateType>();
+            double x = s->values[0];
+            double y = s->values[1];
+            // Use traversability layer (e.g. "traversability" or "elevation_inpainted")
+            double trav = gridmap->value(grid_map::Position(x, y));
+            return trav > 0.5; // threshold, adjust as needed
+        });
+        ob::ScopedState<> start_state(space);
+        start_state[0] = start.x();
+        start_state[1] = start.y();
+        ob::ScopedState<> goal_state(space);
+        goal_state[0] = goal.x();
+        goal_state[1] = goal.y();
+        ss.setStartAndGoalStates(start_state, goal_state);
+        ss.setOptimizationObjective(std::make_shared<ob::PathLengthOptimizationObjective>(ss.getSpaceInformation()));
+        auto planner = std::make_shared<og::RRTConnect>(ss.getSpaceInformation());
+        planner->setRange(step_size);
+        ss.setPlanner(planner);
+        if (!ss.solve(timeout)) return false;
+        ss.simplifySolution();
+        const auto& path = ss.getSolutionPath().getStates();
+        output_path.clear();
+        for (const auto* state : path) {
+            const auto* s = state->as<ob::RealVectorStateSpace::StateType>();
+            output_path.emplace_back(s->values[0], s->values[1]);
+        }
+        return true;
+    }
+}; 

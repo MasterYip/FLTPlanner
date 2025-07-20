@@ -8,7 +8,6 @@ Panels:
         - /Status1
         - /Vis_SwingTrajPlanner1/Namespaces1
         - /Vis_PyInterface1
-        - /Vis_PyInterface1/Status1
         - /Vis_PyInterface1/Namespaces1
       Splitter Ratio: 0.4445544481277466
     Tree Height: 1356
@@ -156,6 +155,30 @@ Visualization Manager:
         cube: true
       Queue Size: 1
       Value: true
+    - Alpha: 0.30000001192092896
+      Autocompute Intensity Bounds: true
+      Class: grid_map_rviz_plugin/GridMap
+      Color: 200; 200; 200
+      Color Layer: elevation_inpainted_trav
+      Color Transformer: GridMapLayer
+      ColorMap: default
+      Enabled: true
+      Grid Cell Decimation: 1
+      Grid Line Thickness: 0.10000000149011612
+      Height Layer: elevation_inpainted_trav
+      Height Transformer: GridMapLayer
+      History Length: 1
+      Invert ColorMap: false
+      Max Color: 255; 255; 255
+      Max Intensity: 10
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: GridMapTrav
+      Show Grid Lines: true
+      Topic: /hexapod201_state_sequence_planner/grid_map_trav_test
+      Unreliable: false
+      Use ColorMap: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -184,7 +207,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.486040472984314
+      Distance: 1.3621809482574463
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -192,17 +215,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.142864391207695
-        Y: -0.08525530993938446
-        Z: 0.008581427857279778
+        X: 0.029016904532909393
+        Y: -0.13872162997722626
+        Z: 0.3513815701007843
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.28979572653770447
+      Pitch: 0.5697959065437317
       Target Frame: base
-      Yaw: 3.9945454597473145
+      Yaw: 3.8445475101470947
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

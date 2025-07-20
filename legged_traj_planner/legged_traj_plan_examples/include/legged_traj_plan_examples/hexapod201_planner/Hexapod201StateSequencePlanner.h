@@ -38,6 +38,7 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <tf2_ros/transform_listener.h>
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
+#include "Hexapod2dNavRRT.h"
 
 // Simple tripod gait patterns for hexapod (legs 0-5: RF, RR, FL, LF, LR, RL)
 enum class TripodPhase
@@ -141,6 +142,9 @@ private:
     TripodPhase current_tripod_phase_;
     Hexapod201RaibertFootholdPlanner hexapod_raibert_planner_;
 
+    ros::Subscriber nav_goal_sub_;
+    Hexapod2dNavRRT nav_rrt_planner_;
+
 public:
     Hexapod201StateSequencePlanner() : ElSpiderAirPlannerBase(),
                                        state_sequence_planner_(swing_traj_planner_, gridmap_interface_, robot_interface_),
@@ -153,6 +157,7 @@ public:
         rate_ = ros::Rate(config_.rosRate);
         init_time_ = ros::Time::now().toSec();
         cmd_sub_ = nh_.subscribe("/cmd_vel", 1, &Hexapod201StateSequencePlanner::cmd_callback, this);
+        nav_goal_sub_ = nh_.subscribe("/move_base_simple/goal", 1, &Hexapod201StateSequencePlanner::nav_callback, this);
 
         PosList pose_sample_pts;
         int len = 6;
@@ -213,6 +218,42 @@ public:
             motion_lock_ = false;
             gridmap_interface_->unlockMapUpdate();
         }
+    }
+
+    void nav_callback(const geometry_msgs::PoseStamped &msg)
+    {
+        if (motion_lock_) {
+            ROS_WARN("Robot is in motion, ignore new nav goal.");
+            return;
+        }
+        motion_lock_ = true;
+        gridmap_interface_->lockMapUpdate();
+        // Get current robot pose (x, y)
+        pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
+        Eigen::Vector3d pos3d = body_pose.translation();
+        Eigen::Vector2d start(pos3d[0], pos3d[1]);
+        Eigen::Vector2d goal(msg.pose.position.x, msg.pose.position.y);
+        std::vector<Eigen::Vector2d> path2d;
+        if (!nav_rrt_planner_.planPath(start, goal, gridmap_interface_, path2d)) {
+            ROS_WARN("2D RRT path planning failed.");
+            motion_lock_ = false;
+            gridmap_interface_->unlockMapUpdate();
+            return;
+        }
+        ROS_INFO_STREAM("2D RRT path found with " << path2d.size() << " waypoints.");
+        // For each waypoint, generate a robot state and execute
+        for (const auto& pt : path2d) {
+            // Generate a robot state with the track point as goal
+            // Here, we use the current orientation and set the body position to pt
+            pinocchio::SE3 target_pose = body_pose;
+            target_pose.translation()[0] = pt[0];
+            target_pose.translation()[1] = pt[1];
+            // Optionally, update orientation to face next point
+            robot_interface_->setBodyPoseCmd(target_pose);
+            ros::Duration(0.1).sleep(); // Step time, adjust as needed
+        }
+        motion_lock_ = false;
+        gridmap_interface_->unlockMapUpdate();
     }
 
     // Get current robot state and convert to hexapod_State
