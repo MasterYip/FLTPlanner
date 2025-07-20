@@ -241,16 +241,30 @@ public:
             return;
         }
         ROS_INFO_STREAM("2D RRT path found with " << path2d.size() << " waypoints.");
-        // For each waypoint, generate a robot state and execute
-        for (const auto& pt : path2d) {
-            // Generate a robot state with the track point as goal
-            // Here, we use the current orientation and set the body position to pt
-            pinocchio::SE3 target_pose = body_pose;
-            target_pose.translation()[0] = pt[0];
-            target_pose.translation()[1] = pt[1];
-            // Optionally, update orientation to face next point
-            robot_interface_->setBodyPoseCmd(target_pose);
-            ros::Duration(0.1).sleep(); // Step time, adjust as needed
+        // Parameters
+        const double max_step_length = 0.3; // meters
+        // Traverse the path, interpolate if needed
+        for (size_t i = 1; i < path2d.size(); i++) {
+            Eigen::Vector2d prev = path2d[i-1];
+            Eigen::Vector2d curr = path2d[i];
+            Eigen::Vector2d delta = curr - prev;
+            double dist = delta.norm();
+            int num_steps = std::max(1, static_cast<int>(std::ceil(dist / max_step_length)));
+            for (int s = 1; s <= num_steps; ++s) {
+                double alpha = static_cast<double>(s) / num_steps;
+                Eigen::Vector2d interp = prev + alpha * delta;
+                // Set orientation to face direction of movement
+                double yaw = std::atan2(delta[1], delta[0]);
+                pinocchio::SE3 target_pose = body_pose;
+                target_pose.translation()[0] = interp[0];
+                target_pose.translation()[1] = interp[1];
+                // Set yaw in target_pose (keep roll, pitch from body_pose)
+                Eigen::Vector3d rpy = pinocchio::rpy::matrixToRpy(body_pose.rotation());
+                // rpy[2] = yaw;
+                target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy);
+                std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)->setStepBodyPoseCmd(target_pose);
+                ros::Duration(5).sleep(); // Step time, adjust as needed
+            }
         }
         motion_lock_ = false;
         gridmap_interface_->unlockMapUpdate();

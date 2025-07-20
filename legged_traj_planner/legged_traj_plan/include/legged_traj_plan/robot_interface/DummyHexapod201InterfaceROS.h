@@ -337,11 +337,9 @@ public:
             pose_msg.pose.orientation.z = quat.z();
             pose_msg.pose.orientation.w = quat.w();
             pose_cmd_pub.publish(pose_msg);
-        } else 
-        {
-            // For non-Python interface, just set the body pose
-            setBodyPoseCmd(body_pose);
         }
+        // For non-Python interface, just set the body pose
+        setBodyPoseCmd(body_pose);
     }
 
     void setBodyVelCmd(const pinocchio::Motion &body_vel) override

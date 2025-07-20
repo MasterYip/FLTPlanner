@@ -31,17 +31,23 @@ public:
                   const Eigen::Vector2d& goal,
                   std::shared_ptr<GridMapInterface> gridmap,
                   std::vector<Eigen::Vector2d>& output_path,
-                  double step_size = 0.1,
+                  double step_size = 0.2,
                   double timeout = 2.0) const {
         auto space = std::make_shared<ob::RealVectorStateSpace>(2);
         ob::RealVectorBounds bounds(2);
         // Set bounds from gridmap (or use large default)
-        bounds.setLow(0, -10.0);
-        bounds.setHigh(0, 10.0);
-        bounds.setLow(1, -10.0);
-        bounds.setHigh(1, 10.0);
-        space->setBounds(bounds);
+        // print gridmap range
+        auto range = gridmap->getRange();
+        auto position = gridmap->getMap().getPosition();
+        printf("GridMap range: [%f, %f]\n", range.x(), range.y());
+        printf("GridMap position: [%f, %f]\n", position.x(), position.y());
+        bounds.setLow(0, position.x() - range.x() / 2);
+        bounds.setLow(1, position.y() - range.y() / 2);
+        bounds.setHigh(0, position.x() + range.x() / 2);
+        bounds.setHigh(1, position.y() + range.y() / 2);
 
+        space->setBounds(bounds);
+        // Create space information
         og::SimpleSetup ss(space);
         // State validity checker: traversability > threshold
         ss.setStateValidityChecker([gridmap](const ob::State* state) {
@@ -49,8 +55,8 @@ public:
             double x = s->values[0];
             double y = s->values[1];
             // Use traversability layer (e.g. "traversability" or "elevation_inpainted")
-            double trav = gridmap->value(grid_map::Position(x, y));
-            return trav > 0.5; // threshold, adjust as needed
+            double trav = gridmap->value(grid_map::Position(x, y), gridmap->getTravLayerName());
+            return !std::isnan(trav);
         });
         ob::ScopedState<> start_state(space);
         start_state[0] = start.x();
