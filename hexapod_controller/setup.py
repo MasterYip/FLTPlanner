@@ -10,8 +10,8 @@ setup_args = generate_distutils_setup(
     install_requires=['rospy', 'numpy', 'pyads'],
     scripts=[
         'scripts/hexapod201_interface.py',
-        'scripts/hexapod_gait_demo.py',
-        'scripts/test_hexapod_interface.py'
+        'test/hexapod201_ctrl/hexapod_gait_demo.py',
+        'test/hexapod201_ctrl/test_hexapod_interface.py'
     ]
 )
 

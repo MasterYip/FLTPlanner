@@ -166,30 +166,29 @@ class Hexapod201BaseInterface(ABC):
         # dt = (current_time - self.last_cmd_time).to_sec()
         # self.last_cmd_time = current_time
         dt = self.dt  # Use fixed dt for simplicity
-        if dt > 0:
-            # Integrate velocity to get position change
-            linear_vel = np.array([msg.linear.x, msg.linear.y, msg.linear.z])
-            angular_vel = np.array([msg.angular.x, msg.angular.y, msg.angular.z])
-            # Simple Euler integration
-            self.cmd_vel_integration[:3] = linear_vel * dt
-            self.cmd_vel_integration[3:] = angular_vel * dt
-            
-            # Create target pose from current pose + integration
-            self.target_pose.position.x = self.current_pose.position.x + self.cmd_vel_integration[0]
-            self.target_pose.position.y = self.current_pose.position.y + self.cmd_vel_integration[1]
-            self.target_pose.position.z = self.current_pose.position.z + self.cmd_vel_integration[2]
-            
-            # Convert Euler angles to quaternion
-            # BUG: this is not correct
-            roll, pitch, yaw = self.cmd_vel_integration[3], self.cmd_vel_integration[4], self.cmd_vel_integration[5]
-            quat = quaternion_from_euler(roll, pitch, yaw)
-            self.target_pose.orientation.w = quat[3]
-            self.target_pose.orientation.x = quat[0]
-            self.target_pose.orientation.y = quat[1]
-            self.target_pose.orientation.z = quat[2]
+        # Integrate velocity to get position change
+        linear_vel = np.array([msg.linear.x, msg.linear.y, msg.linear.z])
+        angular_vel = np.array([msg.angular.x, msg.angular.y, msg.angular.z])
+        # Simple Euler integration
+        self.cmd_vel_integration[:3] = linear_vel * dt
+        self.cmd_vel_integration[3:] = angular_vel * dt
+        
+        # Create target pose from current pose + integration
+        self.target_pose.position.x = self.current_pose.position.x + self.cmd_vel_integration[0]
+        self.target_pose.position.y = self.current_pose.position.y + self.cmd_vel_integration[1]
+        self.target_pose.position.z = self.current_pose.position.z + self.cmd_vel_integration[2]
+        
+        # Convert Euler angles to quaternion
+        # BUG: this is not correct
+        roll, pitch, yaw = self.cmd_vel_integration[3], self.cmd_vel_integration[4], self.cmd_vel_integration[5]
+        quat = quaternion_from_euler(roll, pitch, yaw)
+        self.target_pose.orientation.w = quat[3]
+        self.target_pose.orientation.x = quat[0]
+        self.target_pose.orientation.y = quat[1]
+        self.target_pose.orientation.z = quat[2]
 
-            # Execute movement
-            self.move_to_pose(self.target_pose)
+        # Execute movement
+        self.move_to_pose(self.target_pose)
     
     def pose_cmd_callback(self, msg: PoseStamped):
         """Handle direct pose commands"""

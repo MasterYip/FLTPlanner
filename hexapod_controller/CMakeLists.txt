@@ -202,8 +202,8 @@ add_dependencies(test_vmc_stance ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/hexapod201_interface.py
-  scripts/hexapod_gait_demo.py
-  scripts/test_hexapod_interface.py
+  test/hexapod201_ctrl/hexapod_gait_demo.py
+  test/hexapod201_ctrl/test_hexapod_interface.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
