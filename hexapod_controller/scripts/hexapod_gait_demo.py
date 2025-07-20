@@ -7,8 +7,8 @@ import argparse
 from geometry_msgs.msg import Twist, PoseStamped, Pose
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
-# Import the hexapod interface
-from .hexapod201_interface import Hexapod201Interface, DummyHexapod201Interface
+import hexapod_controller
+from hexapod201_interface import Hexapod201Interface, DummyHexapod201Interface
 
 
 class HexapodGaitDemo:

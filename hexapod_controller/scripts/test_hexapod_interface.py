@@ -102,7 +102,7 @@ def test_visualization():
         from ros_visualizer import ROSVisualizer, VisStyle
         
         # Create visualizer
-        visualizer = ROSVisualizer(rospy.get_node_handle(), "odom", "test_visualization")
+        visualizer = ROSVisualizer("odom", "test_visualization")
         
         # Test 1: Create a cube
         print("Test 1: Creating cube...")

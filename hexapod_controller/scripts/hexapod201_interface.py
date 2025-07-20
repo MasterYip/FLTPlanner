@@ -14,9 +14,6 @@ from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 # Import the ROS visualizer
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../dependency/ros_visualizer/scripts'))
 from ros_visualizer import ROSVisualizer
 
 
@@ -149,7 +146,7 @@ class Hexapod201BaseInterface(ABC):
         self.cmd_vel_integration = np.zeros(6)  # [x, y, z, roll, pitch, yaw]
         
         # Initialize ROS node
-        rospy.init_node(node_name, anonymous=True)
+        # rospy.init_node(node_name, anonymous=True)
         
         # Publishers and subscribers
         self.pose_pub = rospy.Publisher('/hexapod/current_pose', PoseStamped, queue_size=10)
@@ -160,7 +157,7 @@ class Hexapod201BaseInterface(ABC):
         self.pose_timer = rospy.Timer(rospy.Duration(0.1), self.publish_current_pose)
         
         # Visualization
-        self.visualizer = ROSVisualizer(rospy.get_node_handle(), "odom", "hexapod_visualization")
+        self.visualizer = ROSVisualizer("odom", "hexapod_visualization")
         
         rospy.loginfo(f"{node_name} initialized")
     
@@ -214,7 +211,7 @@ class Hexapod201BaseInterface(ABC):
     def visualize_hexapod_body(self):
         """Visualize hexapod body as a box in RViz"""
         # Clear previous visualization
-        self.visualizer.delCube()
+        self.visualizer.del_cube()
         
         # Create box at current pose
         position = np.array([
@@ -233,7 +230,7 @@ class Hexapod201BaseInterface(ABC):
         
         # Box size (hexapod body dimensions)
         box_size = 0.3  # 30cm cube
-        self.visualizer.visCube(position, quat)
+        self.visualizer.vis_cube(position, quat)
     
     @abstractmethod
     def move_to_pose(self, target_pose: Pose) -> bool:
