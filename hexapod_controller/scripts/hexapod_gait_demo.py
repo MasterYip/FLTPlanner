@@ -3,7 +3,6 @@
 import rospy
 import numpy as np
 import time
-import argparse
 from geometry_msgs.msg import Twist, PoseStamped, Pose
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
@@ -23,9 +22,9 @@ class HexapodGaitDemo:
             plc_ip: PLC IP address for real interface
         """
         self.use_dummy = use_dummy
+        self.wait_time = 5.0  # Default wait time for movements
         
-        # Initialize ROS node
-        rospy.init_node('hexapod_gait_demo', anonymous=True)
+        # ROS node should be initialized before creating this class
         
         # Initialize hexapod interface
         if use_dummy:
@@ -57,24 +56,18 @@ class HexapodGaitDemo:
         # Create velocity commands for different movements
         movements = [
             # Forward movement
-            {'linear': [0.1, 0.0, 0.0], 'angular': [0.0, 0.0, 0.0], 'duration': 5.0},
-            # Stop
-            {'linear': [0.0, 0.0, 0.0], 'angular': [0.0, 0.0, 0.0], 'duration': 2.0},
+            {'linear': [0.5, 0.0, 0.0], 'angular': [0.0, 0.0, 0.0], 'duration': 3.0},
             # Turn left
             {'linear': [0.0, 0.0, 0.0], 'angular': [0.0, 0.0, 0.5], 'duration': 3.0},
-            # Stop
-            {'linear': [0.0, 0.0, 0.0], 'angular': [0.0, 0.0, 0.0], 'duration': 2.0},
             # Sideways movement
-            {'linear': [0.0, 0.1, 0.0], 'angular': [0.0, 0.0, 0.0], 'duration': 5.0},
-            # Stop
-            {'linear': [0.0, 0.0, 0.0], 'angular': [0.0, 0.0, 0.0], 'duration': 2.0},
+            {'linear': [0.0, 0.5, 0.0], 'angular': [0.0, 0.0, 0.0], 'duration': 5.0},
             # Turn right
             {'linear': [0.0, 0.0, 0.0], 'angular': [0.0, 0.0, -0.5], 'duration': 3.0},
             # Stop
-            {'linear': [0.0, 0.0, 0.0], 'angular': [0.0, 0.0, 0.0], 'duration': 2.0},
+            {'linear': [0.0, 0.0, 0.0], 'angular': [0.0, 0.0, 0.0], 'duration': 0.0},
         ]
         
-        rate = rospy.Rate(10)  # 10 Hz
+        rate = rospy.Rate(20)  # 10 Hz
         
         for i, movement in enumerate(movements):
             if not self.demo_running:
@@ -153,17 +146,15 @@ class HexapodGaitDemo:
                 pose_data['orientation'][1],
                 pose_data['orientation'][2]
             )
-            pose_msg.pose.orientation.w = quat[0]
-            pose_msg.pose.orientation.x = quat[1]
-            pose_msg.pose.orientation.y = quat[2]
-            pose_msg.pose.orientation.z = quat[3]
+            pose_msg.pose.orientation.w = quat[3]
+            pose_msg.pose.orientation.x = quat[0]
+            pose_msg.pose.orientation.y = quat[1]
+            pose_msg.pose.orientation.z = quat[2]
             
             # Send pose command
             self.pose_cmd_pub.publish(pose_msg)
             
-            # Wait for movement to complete (longer for real robot)
-            wait_time = 10.0 if not self.use_dummy else 5.0
-            rospy.sleep(wait_time)
+            rospy.sleep(self.wait_time)
         
         self.demo_running = False
         rospy.loginfo("Pose demo completed")
@@ -179,10 +170,10 @@ class HexapodGaitDemo:
         
         # Circle parameters
         radius = 1.0  # meters
-        angular_velocity = 0.2  # rad/s
+        angular_velocity = 0.4  # rad/s
         duration = 20.0  # seconds
         
-        rate = rospy.Rate(10)  # 10 Hz
+        rate = rospy.Rate(2)  # 10 Hz
         start_time = rospy.Time.now()
         
         while (rospy.Time.now() - start_time).to_sec() < duration and self.demo_running:
@@ -190,7 +181,7 @@ class HexapodGaitDemo:
             angle = angular_velocity * elapsed_time
             
             # Calculate position on circle
-            x = radius * np.cos(angle)
+            x = radius * (np.cos(angle)-1)
             y = radius * np.sin(angle)
             
             # Create pose message
@@ -203,11 +194,11 @@ class HexapodGaitDemo:
             pose_msg.pose.position.z = 0.0
             
             # Orient towards movement direction
-            quat = quaternion_from_euler(0.0, 0.0, angle + np.pi/2)
-            pose_msg.pose.orientation.w = quat[0]
-            pose_msg.pose.orientation.x = quat[1]
-            pose_msg.pose.orientation.y = quat[2]
-            pose_msg.pose.orientation.z = quat[3]
+            quat = quaternion_from_euler(0.0, 0.0, angle)
+            pose_msg.pose.orientation.w = quat[3]
+            pose_msg.pose.orientation.x = quat[0]
+            pose_msg.pose.orientation.y = quat[1]
+            pose_msg.pose.orientation.z = quat[2]
             
             # Send pose command
             self.pose_cmd_pub.publish(pose_msg)
@@ -356,31 +347,31 @@ class HexapodGaitDemo:
 
 def main():
     """Main function"""
-    parser = argparse.ArgumentParser(description='Hexapod Gait Demo')
-    parser.add_argument('--dummy', action='store_true', help='Use dummy interface for simulation')
-    parser.add_argument('--plc_ip', type=str, default='5.157.100.214.1.1', help='PLC IP address')
-    parser.add_argument('--demo', type=str, choices=['velocity', 'pose', 'circle', 'gait', 'interactive'], 
-                       default='interactive', help='Demo type to run')
+    # Initialize ROS node first
+    rospy.init_node('hexapod_gait_demo', anonymous=True)
     
-    args = parser.parse_args()
+    # Get parameters from ROS parameter server
+    use_dummy = rospy.get_param('~use_dummy', True)
+    plc_ip = rospy.get_param('~plc_ip', '5.157.100.214.1.1')
+    demo_type = rospy.get_param('~demo', 'interactive')
     
     try:
         # Create demo instance
-        demo = HexapodGaitDemo(use_dummy=args.dummy, plc_ip=args.plc_ip)
+        demo = HexapodGaitDemo(use_dummy=use_dummy, plc_ip=plc_ip)
         
         # Wait a bit for initialization
         rospy.sleep(2.0)
         
         # Run selected demo
-        if args.demo == 'velocity':
+        if demo_type == 'velocity':
             demo.start_velocity_demo()
-        elif args.demo == 'pose':
+        elif demo_type == 'pose':
             demo.start_pose_demo()
-        elif args.demo == 'circle':
+        elif demo_type == 'circle':
             demo.start_circle_demo()
-        elif args.demo == 'gait' and not args.dummy:
+        elif demo_type == 'gait' and not use_dummy:
             demo.start_gait_parameter_demo()
-        elif args.demo == 'interactive':
+        elif demo_type == 'interactive':
             demo.run_interactive_demo()
         else:
             rospy.logwarn("Invalid demo type or not available for dummy interface")

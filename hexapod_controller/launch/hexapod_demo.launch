@@ -12,24 +12,24 @@
   <!-- Launch hexapod interface -->
   <group if="$(arg use_dummy)">
     <node name="dummy_hexapod_interface" pkg="hexapod_controller" type="hexapod201_interface.py" output="screen">
-      <param name="dummy" value="true"/>
-      <param name="node_name" value="dummy_hexapod_interface"/>
+      <param name="~dummy" value="true"/>
+      <param name="~node_name" value="dummy_hexapod_interface"/>
     </node>
   </group>
   
   <group unless="$(arg use_dummy)">
     <node name="real_hexapod_interface" pkg="hexapod_controller" type="hexapod201_interface.py" output="screen">
-      <param name="dummy" value="false"/>
-      <param name="plc_ip" value="$(arg plc_ip)"/>
-      <param name="node_name" value="real_hexapod_interface"/>
+      <param name="~dummy" value="false"/>
+      <param name="~plc_ip" value="$(arg plc_ip)"/>
+      <param name="~node_name" value="real_hexapod_interface"/>
     </node>
   </group>
   
   <!-- Launch demo -->
   <node name="hexapod_gait_demo" pkg="hexapod_controller" type="hexapod_gait_demo.py" output="screen">
-    <param name="use_dummy" value="$(arg use_dummy)"/>
-    <param name="plc_ip" value="$(arg plc_ip)"/>
-    <param name="demo" value="$(arg demo_type)"/>
+    <param name="~use_dummy" value="$(arg use_dummy)"/>
+    <param name="~plc_ip" value="$(arg plc_ip)"/>
+    <param name="~demo" value="$(arg demo_type)"/>
   </node>
   
   <!-- Launch RViz for visualization -->

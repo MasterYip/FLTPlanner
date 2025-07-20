@@ -14,8 +14,7 @@ def test_dummy_interface():
     """Test the dummy hexapod interface"""
     print("Testing Dummy Hexapod Interface...")
     
-    # Initialize ROS node
-    rospy.init_node('test_hexapod_interface', anonymous=True)
+    # ROS node should be initialized before calling this function
     
     # Create dummy interface
     hexapod = DummyHexapod201Interface("test_dummy_interface")
@@ -95,8 +94,7 @@ def test_visualization():
     """Test the visualization system"""
     print("Testing Visualization System...")
     
-    # Initialize ROS node
-    rospy.init_node('test_visualization', anonymous=True)
+    # ROS node should be initialized before calling this function
     # Import and test visualizer
     try:
         from ros_visualizer import ROSVisualizer, VisStyle
@@ -153,6 +151,9 @@ def test_visualization():
 
 def main():
     """Main test function"""
+    # Initialize ROS node first
+    rospy.init_node('test_hexapod_interface', anonymous=True)
+    
     print("=== Hexapod Interface Test Suite ===")
     
     try:

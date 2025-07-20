@@ -12,9 +12,9 @@ from abc import ABC, abstractmethod
 from geometry_msgs.msg import Twist, PoseStamped, Pose
 from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
-
+import copy
 # Import the ROS visualizer
-from ros_visualizer import ROSVisualizer
+from ros_visualizer import ROSVisualizer, VisStyle
 
 
 # 运动模式枚举类
@@ -145,8 +145,7 @@ class Hexapod201BaseInterface(ABC):
         self.last_cmd_time = rospy.Time.now()
         self.cmd_vel_integration = np.zeros(6)  # [x, y, z, roll, pitch, yaw]
         
-        # Initialize ROS node
-        # rospy.init_node(node_name, anonymous=True)
+        # ROS node should be initialized before creating this class
         
         # Publishers and subscribers
         self.pose_pub = rospy.Publisher('/hexapod/current_pose', PoseStamped, queue_size=10)
@@ -155,7 +154,7 @@ class Hexapod201BaseInterface(ABC):
         
         # Timer for publishing current pose
         self.pose_timer = rospy.Timer(rospy.Duration(0.1), self.publish_current_pose)
-        
+        self.dt = 1.0
         # Visualization
         self.visualizer = ROSVisualizer("odom", "hexapod_visualization")
         
@@ -163,18 +162,17 @@ class Hexapod201BaseInterface(ABC):
     
     def cmd_vel_callback(self, msg: Twist):
         """Handle velocity commands by integrating to get target pose"""
-        current_time = rospy.Time.now()
-        dt = (current_time - self.last_cmd_time).to_sec()
-        self.last_cmd_time = current_time
-        
+        # current_time = rospy.Time.now()
+        # dt = (current_time - self.last_cmd_time).to_sec()
+        # self.last_cmd_time = current_time
+        dt = self.dt  # Use fixed dt for simplicity
         if dt > 0:
             # Integrate velocity to get position change
             linear_vel = np.array([msg.linear.x, msg.linear.y, msg.linear.z])
             angular_vel = np.array([msg.angular.x, msg.angular.y, msg.angular.z])
-            
             # Simple Euler integration
-            self.cmd_vel_integration[:3] += linear_vel * dt
-            self.cmd_vel_integration[3:] += angular_vel * dt
+            self.cmd_vel_integration[:3] = linear_vel * dt
+            self.cmd_vel_integration[3:] = angular_vel * dt
             
             # Create target pose from current pose + integration
             self.target_pose.position.x = self.current_pose.position.x + self.cmd_vel_integration[0]
@@ -182,13 +180,14 @@ class Hexapod201BaseInterface(ABC):
             self.target_pose.position.z = self.current_pose.position.z + self.cmd_vel_integration[2]
             
             # Convert Euler angles to quaternion
+            # BUG: this is not correct
             roll, pitch, yaw = self.cmd_vel_integration[3], self.cmd_vel_integration[4], self.cmd_vel_integration[5]
             quat = quaternion_from_euler(roll, pitch, yaw)
-            self.target_pose.orientation.w = quat[0]
-            self.target_pose.orientation.x = quat[1]
-            self.target_pose.orientation.y = quat[2]
-            self.target_pose.orientation.z = quat[3]
-            
+            self.target_pose.orientation.w = quat[3]
+            self.target_pose.orientation.x = quat[0]
+            self.target_pose.orientation.y = quat[1]
+            self.target_pose.orientation.z = quat[2]
+
             # Execute movement
             self.move_to_pose(self.target_pose)
     
@@ -230,7 +229,7 @@ class Hexapod201BaseInterface(ABC):
         
         # Box size (hexapod body dimensions)
         box_size = 0.3  # 30cm cube
-        self.visualizer.vis_cube(position, quat)
+        self.visualizer.vis_cube(position, quat, VisStyle(1.0, 0.45, 0.0, 1.0, box_size, box_size, box_size))
     
     @abstractmethod
     def move_to_pose(self, target_pose: Pose) -> bool:
@@ -265,8 +264,8 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
     
     def __init__(self, node_name: str = "dummy_hexapod201_interface"):
         super().__init__(node_name)
-        self.movement_speed = 0.1  # m/s
-        self.rotation_speed = 0.5  # rad/s
+        self.movement_speed = 1.0  # m/s
+        self.rotation_speed = 1.0  # rad/s
         self.movement_thread = None
         self.movement_lock = threading.Lock()
         
@@ -294,7 +293,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
     def _execute_movement(self):
         """Execute movement in blocking manner"""
         try:
-            start_pose = self.current_pose
+            start_pose = copy.deepcopy(self.current_pose)
             target_pose = self.target_pose
             
             # Calculate distance and angle differences
@@ -341,12 +340,12 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                     current_time = rospy.Time.now()
                     elapsed = (current_time - start_time).to_sec()
                     progress = min(elapsed / total_time, 1.0)
-                    
+
                     # Interpolate position
                     self.current_pose.position.x = start_pose.position.x + pos_diff[0] * progress
                     self.current_pose.position.y = start_pose.position.y + pos_diff[1] * progress
                     self.current_pose.position.z = start_pose.position.z + pos_diff[2] * progress
-                    
+
                     # Interpolate orientation
                     current_euler = start_euler + angle_diff * progress
                     quat = quaternion_from_euler(current_euler[0], current_euler[1], current_euler[2])
@@ -633,20 +632,19 @@ class Hexapod201Interface(Hexapod201BaseInterface):
 
 def main():
     """Main function to run hexapod interface"""
-    import argparse
+    # Initialize ROS node first
+    rospy.init_node('hexapod201_interface', anonymous=True)
     
-    parser = argparse.ArgumentParser(description='Hexapod201 Interface')
-    parser.add_argument('--dummy', action='store_true', help='Use dummy interface for simulation')
-    parser.add_argument('--plc_ip', type=str, default='5.157.100.214.1.1', help='PLC IP address')
-    parser.add_argument('--node_name', type=str, default='hexapod201_interface', help='ROS node name')
-    
-    args = parser.parse_args()
+    # Get parameters from ROS parameter server
+    use_dummy = rospy.get_param('~dummy', False)
+    plc_ip = rospy.get_param('~plc_ip', '5.157.100.214.1.1')
+    node_name = rospy.get_param('~node_name', 'hexapod201_interface')
     
     try:
-        if args.dummy:
-            interface = DummyHexapod201Interface(args.node_name)
+        if use_dummy:
+            interface = DummyHexapod201Interface(node_name)
         else:
-            interface = Hexapod201Interface(args.node_name, args.plc_ip)
+            interface = Hexapod201Interface(node_name, plc_ip)
         
         rospy.loginfo("Hexapod interface started")
         rospy.spin()
