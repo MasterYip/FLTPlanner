@@ -265,7 +265,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
     def __init__(self, node_name: str = "dummy_hexapod201_interface"):
         super().__init__(node_name)
         self.movement_speed = 1.0  # m/s
-        self.rotation_speed = 1.0  # rad/s
+        self.rotation_speed = 10.0  # rad/s
         self.movement_thread = None
         self.movement_lock = threading.Lock()
         
@@ -323,6 +323,10 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                 target_euler[1] - start_euler[1],
                 target_euler[2] - start_euler[2]
             ])
+            if angle_diff[2] > np.pi:
+                angle_diff[2] -= 2 * np.pi
+            elif angle_diff[2] < -np.pi:
+                angle_diff[2] += 2 * np.pi
             
             # Calculate movement time
             pos_distance = np.linalg.norm(pos_diff)

@@ -6,9 +6,11 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /ros_viz1
+        - /Vis_SwingTrajPlanner1
         - /Vis_SwingTrajPlanner1/Namespaces1
-        - /Vis_PyInterface1
         - /Vis_PyInterface1/Namespaces1
+        - /RobotModel1
       Splitter Ratio: 0.4445544481277466
     Tree Height: 1356
   - Class: rviz/Selection
@@ -133,10 +135,11 @@ Visualization Manager:
       Value: false
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /hexapod201_markers
+      Marker Topic: /hexapod201_state_sequence_planner/visualizer_markers
       Name: ros_viz
       Namespaces:
-        {}
+        curve: true
+        sphere: true
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -144,7 +147,7 @@ Visualization Manager:
       Marker Topic: /swing_traj_planner_vis
       Name: Vis_SwingTrajPlanner
       Namespaces:
-        curve: true
+        {}
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -179,6 +182,22 @@ Visualization Manager:
       Unreliable: false
       Use ColorMap: true
       Value: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: false
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+      Name: RobotModel
+      Robot Description: robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: false
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
@@ -207,7 +226,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.3621809482574463
+      Distance: 2.4006283283233643
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -215,17 +234,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.029016904532909393
-        Y: -0.13872162997722626
-        Z: 0.3513815701007843
+        X: 0.06763569265604019
+        Y: -0.35589292645454407
+        Z: 0.3415180444717407
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5697959065437317
+      Pitch: 0.7997958064079285
       Target Frame: base
-      Yaw: 3.8445475101470947
+      Yaw: 3.4395463466644287
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

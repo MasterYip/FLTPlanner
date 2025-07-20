@@ -266,7 +266,10 @@ public:
                 double alpha = static_cast<double>(s) / num_steps;
                 Eigen::Vector2d interp = prev + alpha * delta;
                 // Set orientation to face direction of movement
-                double yaw = std::atan2(delta[1], delta[0]);
+                double yaw = atan2(delta[1], delta[0]);
+                if (delta[0] < 0) {
+                    yaw += M_PI; // Adjust for backward movement
+                }
                 pinocchio::SE3 target_pose = body_pose;
                 target_pose.translation()[0] = interp[0];
                 target_pose.translation()[1] = interp[1];
@@ -275,10 +278,15 @@ public:
                 double delta_yaw = yaw - rpy[2];
                 if (delta_yaw > M_PI) delta_yaw -= 2 * M_PI;
                 if (delta_yaw < -M_PI) delta_yaw += 2 * M_PI;
-                if (std::abs(delta_yaw) > max_yaw_change) {
-                    delta_yaw = std::copysign(max_yaw_change, delta_yaw);
+                if (delta_yaw > max_yaw_change) {
+                    delta_yaw = max_yaw_change;
+                }
+                if (delta_yaw < -max_yaw_change) {
+                    delta_yaw = -max_yaw_change;
                 }
                 rpy[2] += delta_yaw; // Update yaw
+                if (rpy[2] > M_PI) rpy[2] -= 2 * M_PI;
+                if (rpy[2] < -M_PI) rpy[2] += 2 * M_PI;
                 target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy);
                 std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)->setStepBodyPoseCmd(target_pose);
                 ros::Duration(2).sleep(); // Step time, adjust as needed
