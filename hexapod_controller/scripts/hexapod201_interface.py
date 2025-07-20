@@ -149,7 +149,7 @@ class Hexapod201BaseInterface(ABC):
         
         # Publishers and subscribers
         self.pose_pub = rospy.Publisher('/hexapod/current_pose', PoseStamped, queue_size=10)
-        self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
+        # self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.pose_cmd_sub = rospy.Subscriber('/hexapod/pose_cmd', PoseStamped, self.pose_cmd_callback)
         
         # Timer for publishing current pose
@@ -209,7 +209,8 @@ class Hexapod201BaseInterface(ABC):
     def visualize_hexapod_body(self):
         """Visualize hexapod body as a box in RViz"""
         # Clear previous visualization
-        self.visualizer.del_cube()
+        # self.visualizer.del_cube()
+        self.visualizer.del_all()
         
         # Create box at current pose
         position = np.array([
@@ -635,15 +636,23 @@ def main():
     rospy.init_node('hexapod201_interface', anonymous=True)
     
     # Get parameters from ROS parameter server
+    interface_type = rospy.get_param('~interface_type', None)
     use_dummy = rospy.get_param('~dummy', False)
     plc_ip = rospy.get_param('~plc_ip', '5.157.100.214.1.1')
     node_name = rospy.get_param('~node_name', 'hexapod201_interface')
     
     try:
-        if use_dummy:
-            interface = DummyHexapod201Interface(node_name)
+        # Prefer interface_type param if set
+        if interface_type is not None:
+            if interface_type.lower() == 'dummy':
+                interface = DummyHexapod201Interface(node_name)
+            else:
+                interface = Hexapod201Interface(node_name, plc_ip)
         else:
-            interface = Hexapod201Interface(node_name, plc_ip)
+            if use_dummy:
+                interface = DummyHexapod201Interface(node_name)
+            else:
+                interface = Hexapod201Interface(node_name, plc_ip)
         
         rospy.loginfo("Hexapod interface started")
         rospy.spin()

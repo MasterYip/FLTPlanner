@@ -24,6 +24,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
 #include "legged_traj_plan/FootCmd.h"
@@ -43,6 +44,7 @@ struct DummyHexapod201InterfaceROSConfig
     std::string odomChildFrame;
     std::string odomParentFrame;
     bool enableVis;
+    bool usePyInterface;
 
     // Init
     std::vector<double> nominalFootPos;      // size 18: (xyz in base frame) * 6
@@ -59,6 +61,7 @@ struct DummyHexapod201InterfaceROSConfig
         check_digit &= nh.getParam(ns + "/odomChildFrame", odomChildFrame);
         check_digit &= nh.getParam(ns + "/odomParentFrame", odomParentFrame);
         check_digit &= nh.getParam(ns + "/enableVis", enableVis);
+        check_digit &= nh.getParam(ns + "/usePyInterface", usePyInterface);
         check_digit &= nh.getParam(ns + "/nominalFootPos", nominalFootPos);
         check_digit &= nominalFootPos.size() == 18;
         check_digit &= nh.getParam(ns + "/nominalFootPosShift", nominalFootPosShift);
@@ -82,6 +85,7 @@ private:
     ros::Publisher joint_state_pub;
     tf2_ros::TransformBroadcaster odom_pub;
     std::shared_ptr<ros_visualizer::ROSVisualizer> visualizer_;
+    ros::Publisher pose_cmd_pub;
 
     // states
     legged_traj_plan::FootState foot_state_;
@@ -174,9 +178,10 @@ public:
     {
         // Initialize ROS publishers
         joint_state_pub = nh.advertise<sensor_msgs::JointState>(config_.jointStateTopic, 10);
-
-        // Initialize visualizer
-        if (config_.enableVis)
+        if (config_.usePyInterface) {
+            pose_cmd_pub = nh.advertise<geometry_msgs::PoseStamped>("/hexapod/pose_cmd", 10);
+        }
+        if (config_.enableVis && !config_.usePyInterface)
         {
             visualizer_ = std::make_shared<ros_visualizer::ROSVisualizer>(nh, "base", "hexapod201_markers");
         }
@@ -310,10 +315,32 @@ public:
     void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override
     {
         body_pose_ = body_pose;
-        if (config_.enableVis)
-        {
+        if (config_.enableVis && visualizer_) {
             pub_odom(body_pose);
             vis_body_pose(body_pose);
+        }
+    }
+
+    void setStepBodyPoseCmd(const pinocchio::SE3 &body_pose)
+    {
+        if (config_.usePyInterface) {
+            // Publish to python interface
+            geometry_msgs::PoseStamped pose_msg;
+            pose_msg.header.stamp = ros::Time::now();
+            pose_msg.header.frame_id = config_.odomParentFrame;
+            pose_msg.pose.position.x = body_pose.translation()[0];
+            pose_msg.pose.position.y = body_pose.translation()[1];
+            pose_msg.pose.position.z = body_pose.translation()[2];
+            Eigen::Quaterniond quat(body_pose.rotation());
+            pose_msg.pose.orientation.x = quat.x();
+            pose_msg.pose.orientation.y = quat.y();
+            pose_msg.pose.orientation.z = quat.z();
+            pose_msg.pose.orientation.w = quat.w();
+            pose_cmd_pub.publish(pose_msg);
+        } else 
+        {
+            // For non-Python interface, just set the body pose
+            setBodyPoseCmd(body_pose);
         }
     }
 

@@ -21,6 +21,9 @@
     <!-- Output: screen / log -->
     <arg name="output" default="screen" />
 
+    <!-- Add argument to control use of Python interface -->
+    <arg name="use_pyinterface" default="true" />
+
     <!-- Launch -->
     <!-- Config -->
     <arg name="grid_map_topic" value="/grid_map" />
@@ -51,6 +54,7 @@
         <rosparam command="load" file="$(find legged_traj_plan)/config/robot_interface.yaml"/>
         <param name="robotInterface" value="$(arg robot_interface_type)" />
         <param name="$(arg robot_interface_type)/sim" value="$(arg sim)" />
+        <param name="$(arg robot_interface_type)/usePyInterface" value="$(arg use_pyinterface)" />
         
         <!-- Planner Config (simplified for Hexapod201) -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/height_clear_planner.yaml"/>
@@ -62,6 +66,13 @@
         <!-- Perception Interface Config Override -->
         <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
     </node>
+
+    <!-- Start Python interface node if use_pyinterface is true -->
+    <group if="$(arg use_pyinterface)">
+        <node pkg="hexapod_controller" type="hexapod201_interface.py" name="hexapod201_interface" output="$(arg output)">
+            <param name="interface_type" value="dummy" />
+        </node>
+    </group>
 
     <!-- Robot related -->
     <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" />

@@ -6,8 +6,10 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /ros_viz1/Status1
         - /Vis_SwingTrajPlanner1/Namespaces1
+        - /Vis_PyInterface1
+        - /Vis_PyInterface1/Status1
+        - /Vis_PyInterface1/Namespaces1
       Splitter Ratio: 0.4445544481277466
     Tree Height: 1356
   - Class: rviz/Selection
@@ -135,8 +137,7 @@ Visualization Manager:
       Marker Topic: /hexapod201_markers
       Name: ros_viz
       Namespaces:
-        cube: true
-        sphere: true
+        {}
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -145,6 +146,14 @@ Visualization Manager:
       Name: Vis_SwingTrajPlanner
       Namespaces:
         curve: true
+      Queue Size: 1
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /hexapod_visualization
+      Name: Vis_PyInterface
+      Namespaces:
+        cube: true
       Queue Size: 1
       Value: true
   Enabled: true
@@ -183,17 +192,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.07816315442323685
-        Y: -0.12246474623680115
-        Z: -0.2203647643327713
+        X: 0.142864391207695
+        Y: -0.08525530993938446
+        Z: 0.008581427857279778
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2897956073284149
+      Pitch: 0.28979572653770447
       Target Frame: base
-      Yaw: 3.924544095993042
+      Yaw: 3.9945454597473145
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

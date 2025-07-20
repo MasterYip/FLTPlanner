@@ -404,6 +404,8 @@ public:
 
         // Final position setting
         robot_interface_->setFootCmd(footend_interp);
+        // For python interface.
+        std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)->setStepBodyPoseCmd(odom_interp);
     }
 
     double sine_remap(double t)
