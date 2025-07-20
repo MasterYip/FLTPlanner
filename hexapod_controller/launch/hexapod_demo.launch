@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Hexapod Demo Launch File -->
+  
+  <!-- Arguments -->
+  <arg name="use_dummy" default="true" doc="Use dummy interface for simulation"/>
+  <arg name="plc_ip" default="5.157.100.214.1.1" doc="PLC IP address for real hexapod"/>
+  <arg name="demo_type" default="interactive" doc="Demo type: velocity, pose, circle, gait, interactive"/>
+  <arg name="rviz" default="true" doc="Launch RViz for visualization"/>
+  <arg name="rviz_config" default="$(find hexapod_controller)/config/hexapod_demo.rviz" doc="RViz config file"/>
+  
+  <!-- Launch hexapod interface -->
+  <group if="$(arg use_dummy)">
+    <node name="dummy_hexapod_interface" pkg="hexapod_controller" type="hexapod201_interface.py" output="screen">
+      <param name="dummy" value="true"/>
+      <param name="node_name" value="dummy_hexapod_interface"/>
+    </node>
+  </group>
+  
+  <group unless="$(arg use_dummy)">
+    <node name="real_hexapod_interface" pkg="hexapod_controller" type="hexapod201_interface.py" output="screen">
+      <param name="dummy" value="false"/>
+      <param name="plc_ip" value="$(arg plc_ip)"/>
+      <param name="node_name" value="real_hexapod_interface"/>
+    </node>
+  </group>
+  
+  <!-- Launch demo -->
+  <node name="hexapod_gait_demo" pkg="hexapod_controller" type="hexapod_gait_demo.py" output="screen">
+    <param name="use_dummy" value="$(arg use_dummy)"/>
+    <param name="plc_ip" value="$(arg plc_ip)"/>
+    <param name="demo" value="$(arg demo_type)"/>
+  </node>
+  
+  <!-- Launch RViz for visualization -->
+  <group if="$(arg rviz)">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rviz_config)" output="screen"/>
+  </group>
+  
+  <!-- Static transform publisher for odom frame -->
+  <node name="static_transform_publisher" pkg="tf" type="static_transform_publisher" 
+        args="0 0 0 0 0 0 map odom 100"/>
+  
+</launch> 

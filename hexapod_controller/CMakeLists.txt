@@ -27,7 +27,7 @@ find_package(pinocchio REQUIRED)
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -200,7 +200,9 @@ add_dependencies(test_vmc_stance ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 # catkin_install_python(PROGRAMS
-#   scripts/my_python_script
+#   scripts/hexapod201_interface.py
+#   scripts/hexapod_gait_demo.py
+#   scripts/test_hexapod_interface.py
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
