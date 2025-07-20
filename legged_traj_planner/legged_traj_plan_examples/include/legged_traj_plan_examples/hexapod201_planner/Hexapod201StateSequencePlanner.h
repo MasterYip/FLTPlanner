@@ -15,6 +15,7 @@
 /* c system header files */
 
 /* c++ standard library header files */
+#include <algorithm>
 
 /* internal project header files */
 #include <pinocchio/math/rpy.hpp>
@@ -240,9 +241,19 @@ public:
             gridmap_interface_->unlockMapUpdate();
             return;
         }
+        // Visualize the path
+        visualizer_.delAll();
+        std::vector<Eigen::Vector3d> path3d;
+        for (const auto &pt : path2d) {
+            path3d.emplace_back(pt[0], pt[1], pos3d[2]); // Keep z from body pose
+            visualizer_.visSphere(Point3D(pt[0], pt[1], pos3d[2]), 0.05);
+        }
+        visualizer_.visCurve(path3d);
+
         ROS_INFO_STREAM("2D RRT path found with " << path2d.size() << " waypoints.");
         // Parameters
         const double max_step_length = 0.3; // meters
+        const double max_yaw_change = M_PI / 4; // radians
         // Traverse the path, interpolate if needed
         for (size_t i = 1; i < path2d.size(); i++) {
             Eigen::Vector2d prev = path2d[i-1];
@@ -251,6 +262,7 @@ public:
             double dist = delta.norm();
             int num_steps = std::max(1, static_cast<int>(std::ceil(dist / max_step_length)));
             for (int s = 1; s <= num_steps; ++s) {
+                body_pose = robot_interface_->getBodyPoseFdb();
                 double alpha = static_cast<double>(s) / num_steps;
                 Eigen::Vector2d interp = prev + alpha * delta;
                 // Set orientation to face direction of movement
@@ -260,10 +272,16 @@ public:
                 target_pose.translation()[1] = interp[1];
                 // Set yaw in target_pose (keep roll, pitch from body_pose)
                 Eigen::Vector3d rpy = pinocchio::rpy::matrixToRpy(body_pose.rotation());
-                // rpy[2] = yaw;
+                double delta_yaw = yaw - rpy[2];
+                if (delta_yaw > M_PI) delta_yaw -= 2 * M_PI;
+                if (delta_yaw < -M_PI) delta_yaw += 2 * M_PI;
+                if (std::abs(delta_yaw) > max_yaw_change) {
+                    delta_yaw = std::copysign(max_yaw_change, delta_yaw);
+                }
+                rpy[2] += delta_yaw; // Update yaw
                 target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy);
                 std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)->setStepBodyPoseCmd(target_pose);
-                ros::Duration(5).sleep(); // Step time, adjust as needed
+                ros::Duration(2).sleep(); // Step time, adjust as needed
             }
         }
         motion_lock_ = false;
