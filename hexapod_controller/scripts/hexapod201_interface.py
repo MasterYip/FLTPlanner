@@ -670,6 +670,23 @@ def main():
     except Exception as e:
         rospy.logerr(f"Error in main: {str(e)}")
 
+def test_interface():
+    rospy.init_node('test_hexapod201_interface', anonymous=True)
+    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="5.157.100.214.1.1")
+    pose = Pose()
+    pose.position.x = 0.5
+    pose.position.y = 0.0
+    pose.position.z = 0.3
+    quat = quaternion_from_euler(0.0, 0.0, 0.0)
+    pose.orientation.w = quat[3]
+    pose.orientation.x = quat[0]
+    pose.orientation.y = quat[1]
+    pose.orientation.z = quat[2]
+    interface.move_to_pose(pose)
+    rospy.sleep(5)  # Wait for movement to complete
+    current_pose = interface.get_current_pose()
+    rospy.loginfo(f"Current pose after movement: {current_pose}")
 
 if __name__ == "__main__":
     main()
+    # test_interface()
