@@ -70,7 +70,9 @@ Install pyads for PLC communication:
 pip install pyads
 ```
 
-Run the planner:
+Python interface (Base motion only):
+
+![alt text](doc/hexapod201_basenav.png)
 
 ```bash
 roslaunch legged_traj_plan_examples hexapod201_state_sequence_planner.launch \
@@ -78,5 +80,20 @@ robot_interface_type:=Hexapod201Dummy \
 sim:=true \
 teleop_type:=keyboard \
 demo_name:=6_fractal \
-planner_cfg:=height_clear_planner
+planner_cfg:=height_clear_planner \
+use_pyinterface:=true
+```
+
+Cpp Dummy interface (Base motion & Foothold):
+
+![alt text](doc/hexapod201_foothold.png)
+
+```bash
+roslaunch legged_traj_plan_examples hexapod201_state_sequence_planner.launch \
+robot_interface_type:=Hexapod201Dummy \
+sim:=true \
+teleop_type:=PS5 \
+demo_name:=6_fractal \
+planner_cfg:=height_clear_planner \
+use_pyinterface:=false
 ```
