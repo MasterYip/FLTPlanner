@@ -549,10 +549,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             
             # Convert quaternion to Euler angles
             euler = euler_from_quaternion([
-                target_pose.orientation.w,
                 target_pose.orientation.x,
                 target_pose.orientation.y,
-                target_pose.orientation.z
+                target_pose.orientation.z,
+                target_pose.orientation.w
             ])
             self.cmdPose["Roll"] = euler[0]
             self.cmdPose["Pitch"] = euler[1]
@@ -678,10 +678,10 @@ def test_interface():
     pose.position.y = 0.0
     pose.position.z = 0.3
     quat = quaternion_from_euler(0.0, 0.0, 0.0)
-    pose.orientation.w = quat[3]
     pose.orientation.x = quat[0]
     pose.orientation.y = quat[1]
     pose.orientation.z = quat[2]
+    pose.orientation.w = quat[3]
     interface.move_to_pose(pose)
     rospy.sleep(5)  # Wait for movement to complete
     current_pose = interface.get_current_pose()
