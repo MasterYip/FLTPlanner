@@ -74,7 +74,8 @@
     <!-- Start Python interface node if use_pyinterface is true -->
     <group if="$(arg use_pyinterface)">
         <node pkg="hexapod_controller" type="hexapod201_interface.py" name="hexapod201_interface" output="$(arg output)">
-            <param name="interface_type" value="dummy" />
+            <param name="interface_type" value="dummy" if="$(arg sim)"/>
+            <param name="interface_type" value="hardware" unless="$(arg sim)"/>
         </node>
     </group>
 
