@@ -15,6 +15,8 @@ from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import copy
 # Import the ROS visualizer
 from ros_visualizer import ROSVisualizer, VisStyle
+# Import FootState message
+from legged_traj_plan.msg import FootState
 
 
 # 运动模式枚举类
@@ -159,6 +161,7 @@ class Hexapod201BaseInterface(ABC):
         self.pose_pub = rospy.Publisher('/hexapod/current_pose', PoseStamped, queue_size=10)
         # self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.pose_cmd_sub = rospy.Subscriber('/hexapod/pose_cmd', PoseStamped, self.pose_cmd_callback)
+        self.foot_cmd_sub = rospy.Subscriber('/hexapod/foot_cmd', FootState, self.foot_cmd_callback)
         
         # Timer for publishing current pose
         self.pose_timer = rospy.Timer(rospy.Duration(0.1), self.publish_current_pose)
@@ -212,6 +215,67 @@ class Hexapod201BaseInterface(ABC):
 
         # Execute movement
         self.move_to_pose(self.target_pose)
+    
+    def foot_cmd_callback(self, msg: FootState):
+        """Handle foot command messages from C++ interface for free gait control"""
+        try:
+            # Extract foot positions from the FootState message
+            foot_positions = np.zeros((6, 3))
+            foot_velocities = np.zeros((6, 3))
+            foot_efforts = np.zeros((6, 3))
+            contact_states = np.zeros(6, dtype=bool)
+            
+            num_feet = min(len(msg.position), 6)
+            
+            for i in range(num_feet):
+                # Position (convert from m to mm if needed, assuming message is in meters)
+                foot_positions[i, 0] = msg.position[i].x * 1000.0  # Convert m to mm
+                foot_positions[i, 1] = msg.position[i].y * 1000.0
+                foot_positions[i, 2] = msg.position[i].z * 1000.0
+                
+                # Velocity (if available)
+                if i < len(msg.velocity):
+                    foot_velocities[i, 0] = msg.velocity[i].x * 1000.0
+                    foot_velocities[i, 1] = msg.velocity[i].y * 1000.0
+                    foot_velocities[i, 2] = msg.velocity[i].z * 1000.0
+                
+                # Effort (if available)
+                if i < len(msg.effort):
+                    foot_efforts[i, 0] = msg.effort[i].x
+                    foot_efforts[i, 1] = msg.effort[i].y
+                    foot_efforts[i, 2] = msg.effort[i].z
+                
+                # Contact state (if available)
+                if i < len(msg.contact):
+                    contact_states[i] = msg.contact[i]
+                else:
+                    contact_states[i] = True  # Default to contact
+            
+            # Determine foot support flags based on contact state
+            # FootState.contact: true = in contact (support), false = not in contact (swing)
+            foot_flags = np.zeros(6, dtype=int)
+            for i in range(num_feet):
+                if contact_states[i]:
+                    foot_flags[i] = 0  # Support
+                else:
+                    foot_flags[i] = 1  # Swing
+                
+                # Alternative: also consider velocity magnitude for swing detection
+                vel_magnitude = np.linalg.norm(foot_velocities[i])
+                if vel_magnitude > 10.0:  # mm/s threshold
+                    foot_flags[i] = 1  # Swing
+            
+            # Body motion is typically zero for foot-only commands from high-level planners
+            # The C++ side can send body motion through separate pose commands
+            body_motion = np.zeros(6)
+            
+            rospy.loginfo(f"Received FootState for {num_feet} feet, contact: {contact_states[:num_feet]}")
+            
+            # Execute free gait movement with received foot positions
+            self.move_free_gait(body_motion, foot_positions, foot_flags)
+            
+        except Exception as e:
+            rospy.logerr(f"Error processing FootState: {str(e)}")
     
     def pose_cmd_callback(self, msg: PoseStamped):
         """Handle direct pose commands"""

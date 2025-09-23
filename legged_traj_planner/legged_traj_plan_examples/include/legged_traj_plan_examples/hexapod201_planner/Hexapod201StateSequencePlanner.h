@@ -267,6 +267,13 @@ public:
                 body_pose = robot_interface_->getBodyPoseFdb();
                 double alpha = static_cast<double>(s) / num_steps;
                 Eigen::Vector2d interp = prev + alpha * delta;
+                
+                // Create cmd_vel for this step
+                geometry_msgs::Twist step_cmd_vel;
+                step_cmd_vel.linear.x = delta[0] / step_duration;
+                step_cmd_vel.linear.y = delta[1] / step_duration;
+                step_cmd_vel.linear.z = 0.0;
+                
                 // Set orientation to face direction of movement
                 double move_dir = acos(delta[0] / dist);
                 if (delta[1] < 0) {
@@ -290,10 +297,38 @@ public:
                 if (rpy[2] > M_PI) rpy[2] -= 2 * M_PI;
                 if (rpy[2] < -M_PI) rpy[2] += 2 * M_PI;
                 target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy);
+                
+                step_cmd_vel.angular.z = delta_yaw / step_duration;
+                
                 // Fit the ground
                 gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
                 target_pose = gridmap_extrapolator_.extrapolate(0.0);
-                std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)->setStepBodyPoseCmd(target_pose);
+                
+                // Get current hexapod state for Raibert gait planning
+                legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
+                legged_traj_plan::hexapod_State next_state = generateNextTripodState(current_state, step_cmd_vel);
+                
+                // Convert foot positions from world frame to body frame for setStepCmd
+                std::vector<Eigen::Vector3d> footend_positions(6);
+                std::vector<bool> contact_states(6);
+                for (int leg_idx = 0; leg_idx < 6; leg_idx++) {
+                    Eigen::Vector3d world_foot_pos(
+                        next_state.feetPositionNow.foot[leg_idx].x,
+                        next_state.feetPositionNow.foot[leg_idx].y,
+                        next_state.feetPositionNow.foot[leg_idx].z
+                    );
+                    // Transform from world frame to body frame
+                    footend_positions[leg_idx] = point_SE3Act(target_pose, world_foot_pos);
+                    contact_states[leg_idx] = next_state.support_State_Now[leg_idx];
+                }
+                
+                // Use setStepCmd to set both body pose and foot positions
+                std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)->setStepCmd(
+                    target_pose, footend_positions, contact_states);
+                
+                // Switch tripod phase for next step
+                switchTripodPhase();
+                
                 ros::Duration(step_duration).sleep(); // Step time, adjust as needed
             }
         }

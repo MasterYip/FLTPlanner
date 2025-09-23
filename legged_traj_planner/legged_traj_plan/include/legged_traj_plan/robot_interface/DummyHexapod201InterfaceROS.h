@@ -27,9 +27,8 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
-#include "legged_traj_plan/FootCmd.h"
-#include "legged_traj_plan/JointCmd.h"
 #include "legged_traj_plan/FootState.h"
+#include "legged_traj_plan/JointCmd.h"
 #include "ros_visualizer/ros_visualizer.hpp"
 
 /* internal project header files */
@@ -86,6 +85,7 @@ private:
     tf2_ros::TransformBroadcaster odom_pub;
     std::shared_ptr<ros_visualizer::ROSVisualizer> visualizer_;
     ros::Publisher pose_cmd_pub;
+    ros::Publisher footcmd_pub;  // FootState publisher for communication with Python interface
 
     // states
     legged_traj_plan::FootState foot_state_;
@@ -181,6 +181,7 @@ public:
         if (config_.usePyInterface)
         {
             pose_cmd_pub = nh.advertise<geometry_msgs::PoseStamped>("/hexapod/pose_cmd", 10);
+            footcmd_pub = nh.advertise<legged_traj_plan::FootState>("/hexapod/foot_cmd", 10); // FootState publisher
         }
         if (config_.enableVis && !config_.usePyInterface)
         {
@@ -376,8 +377,33 @@ public:
     {
         if (config_.usePyInterface)
         {
-            ROS_WARN("setFootCmd without contact states is not supported in Python interface.");
-            return;
+            legged_traj_plan::FootState footstate;
+            footstate.header.stamp = ros::Time::now();
+            
+            // Add foot names
+            for (int i = 0; i < 6; ++i)
+            {
+                footstate.name.push_back("foot_" + std::to_string(i));
+            }
+            
+            for (int i = 0; i < 6 && i < footendpos.size(); ++i)
+            {
+                geometry_msgs::Point pt;
+                pt.x = footendpos[i][0];
+                pt.y = footendpos[i][1];
+                pt.z = footendpos[i][2];
+                footstate.position.push_back(pt);
+                
+                // Initialize velocity and effort with zeros
+                geometry_msgs::Vector3 vec3;
+                vec3.x = vec3.y = vec3.z = 0.0;
+                footstate.velocity.push_back(vec3);
+                footstate.effort.push_back(vec3);
+                
+                // Default contact state (true = in contact)
+                footstate.contact.push_back(true);
+            }
+            footcmd_pub.publish(footstate);
         }
         else
         {
@@ -402,20 +428,65 @@ public:
                     const std::vector<Eigen::Vector3d> &footendeffort,
                     const std::vector<bool> &contact) override
     {
-        setFootCmd(footendpos);
-
-        if (!config_.usePyInterface)
+        if (config_.usePyInterface)
         {
+            legged_traj_plan::FootState footstate;
+            footstate.header.stamp = ros::Time::now();
+            
+            // Add foot names
+            for (int i = 0; i < 6; ++i)
+            {
+                footstate.name.push_back("foot_" + std::to_string(i));
+            }
+            
+            for (int i = 0; i < 6 && i < footendpos.size(); ++i)
+            {
+                geometry_msgs::Point pt;
+                pt.x = footendpos[i][0];
+                pt.y = footendpos[i][1];
+                pt.z = footendpos[i][2];
+                footstate.position.push_back(pt);
+                
+                geometry_msgs::Vector3 vel;
+                vel.x = (i < footendvel.size()) ? footendvel[i][0] : 0.0;
+                vel.y = (i < footendvel.size()) ? footendvel[i][1] : 0.0;
+                vel.z = (i < footendvel.size()) ? footendvel[i][2] : 0.0;
+                footstate.velocity.push_back(vel);
+                
+                geometry_msgs::Vector3 effort;
+                effort.x = (i < footendeffort.size()) ? footendeffort[i][0] : 0.0;
+                effort.y = (i < footendeffort.size()) ? footendeffort[i][1] : 0.0;
+                effort.z = (i < footendeffort.size()) ? footendeffort[i][2] : 0.0;
+                footstate.effort.push_back(effort);
+                
+                // Contact state
+                bool contact_state = (i < contact.size()) ? contact[i] : true;
+                footstate.contact.push_back(contact_state);
+            }
+            footcmd_pub.publish(footstate);
+        }
+        else
+        {
+            setFootCmd(footendpos);
 
             for (int i = 0; i < 6; ++i)
             {
-                foot_state_.velocity[i].x = footendvel[i][0];
-                foot_state_.velocity[i].y = footendvel[i][1];
-                foot_state_.velocity[i].z = footendvel[i][2];
-                foot_state_.effort[i].x = footendeffort[i][0];
-                foot_state_.effort[i].y = footendeffort[i][1];
-                foot_state_.effort[i].z = footendeffort[i][2];
-                foot_state_.contact[i] = contact[i];
+                if (i < footendvel.size())
+                {
+                    foot_state_.velocity[i].x = footendvel[i][0];
+                    foot_state_.velocity[i].y = footendvel[i][1];
+                    foot_state_.velocity[i].z = footendvel[i][2];
+                }
+                if (i < footendeffort.size())
+                {
+                    foot_state_.effort[i].x = footendeffort[i][0];
+                    foot_state_.effort[i].y = footendeffort[i][1];
+                    foot_state_.effort[i].z = footendeffort[i][2];
+                }
+                if (i < contact.size())
+                {
+                    foot_state_.contact[i] = contact[i];
+                }
             }
         }
     }
