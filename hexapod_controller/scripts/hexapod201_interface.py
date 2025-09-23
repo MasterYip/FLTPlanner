@@ -790,8 +790,8 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         h4 = t**3 - t**2
         
         # Start and end velocities (can be adjusted)
-        start_vel = np.array([0.0, 0.0, 0.0])
-        end_vel = np.array([0.0, 0.0, 0.0])
+        start_vel = np.array([0.0, 0.0, 0.5])
+        end_vel = np.array([0.0, 0.0, -0.5])
         
         # Base trajectory (without height)
         base_pos = h1 * start_pos + h2 * end_pos + h3 * start_vel + h4 * end_vel
@@ -810,7 +810,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         return start_pos + (end_pos - start_pos) * t
     
     def _visualize_feet(self):
-        """Visualize feet as small spheres in RViz"""
+        """Visualize feet as small spheres in RViz with lines connecting to body center"""
         # Get current body position and orientation for coordinate transformation
         body_pos = np.array([
             self.current_pose.position.x,
@@ -845,7 +845,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             foot_pos_world = body_pos + rotation_matrix.dot(foot_pos_body)
             
             # Choose sphere size based on support/swing state
-            sphere_size = 0.03 if self.foot_support_flags[i] == 0 else 0.01  # Larger for support
+            sphere_size = 0.03 if self.foot_support_flags[i] == 0 else 0.02  # Larger for support
             
             # Create sphere style
             style = VisStyle(
@@ -853,8 +853,15 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                 sphere_size, sphere_size, sphere_size
             )
             
-            # Visualize foot
+            # Visualize foot sphere
             self.visualizer.vis_sphere(foot_pos_world, sphere_size, style)
+            
+            # Visualize line connecting body center to foot
+            line_style = VisStyle(
+                foot_colors[i][0], foot_colors[i][1], foot_colors[i][2], 0.6,  # Semi-transparent
+                0.005, 0.005, 0.005  # Thin line
+            )
+            self.visualizer.vis_arrow(body_pos, foot_pos_world, line_style)
 
 
 class Hexapod201Interface(Hexapod201BaseInterface):

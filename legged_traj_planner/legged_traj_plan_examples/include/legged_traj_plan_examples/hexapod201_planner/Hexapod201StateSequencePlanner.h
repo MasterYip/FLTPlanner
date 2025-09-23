@@ -255,8 +255,8 @@ public:
 
         ROS_INFO_STREAM("2D RRT path found with " << path2d.size() << " waypoints.");
         // Parameters
-        const double max_step_length = 0.3;     // meters
-        const double max_yaw_change = M_PI / 4; // radians
+        const double max_step_length = 0.1;     // meters
+        const double max_yaw_change = M_PI / 8; // radians
         const double step_duration = 2.0;       // seconds
 
         // Traverse the path, interpolate if needed
@@ -275,8 +275,8 @@ public:
 
                 // Create cmd_vel for this step
                 geometry_msgs::Twist step_cmd_vel;
-                step_cmd_vel.linear.x = delta[0] / step_duration;
-                step_cmd_vel.linear.y = delta[1] / step_duration;
+                step_cmd_vel.linear.x = alpha*delta[0] / config_.tripodStepDuration / 2;
+                step_cmd_vel.linear.y = alpha*delta[1] / config_.tripodStepDuration / 2;
                 step_cmd_vel.linear.z = 0.0;
 
                 // Set orientation to face direction of movement
@@ -310,7 +310,7 @@ public:
                     rpy[2] += 2 * M_PI;
                 target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy);
 
-                step_cmd_vel.angular.z = delta_yaw / step_duration;
+                step_cmd_vel.angular.z = delta_yaw / config_.tripodStepDuration / 2;
 
                 // Fit the ground
                 gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
