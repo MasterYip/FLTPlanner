@@ -2,7 +2,11 @@
     <!-- Hexapod201 State Sequence Planner -->
 
     <!-- Demo Select -->
-    <arg name="demo_name" default="4_ushape_barrier" />
+    <!-- Demo Select (If sim = false, choose hardware) -->
+    <!-- 1_stairs / 2_stairs / 3_quincuncial_piles / 3_timber_pile / 3_timber_pile_hw
+    / 4_barrier / 4_barrier_vague / 4_ushape_barrier
+    / 5_channel / 6_fractal-->
+    <arg name="demo_name" default="6_fractal" />
     
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
