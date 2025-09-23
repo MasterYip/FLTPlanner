@@ -408,6 +408,9 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         self.swing_height = 80.0  # mm
         self.swing_duration = 1.5  # seconds
         
+        # Cache world positions for support feet (they should not move in world frame)
+        self.support_foot_world_positions = np.zeros((6, 3))  # World frame positions for support feet
+        
         rospy.loginfo("Dummy hexapod interface initialized")
     
     def move_to_pose(self, target_pose: Pose) -> bool:
@@ -610,6 +613,31 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             self.target_foot_positions = foot_positions.copy()
             self.foot_support_flags = foot_flags.copy()
             
+            # Cache world positions for support feet at the start of movement
+            body_pos = np.array([
+                self.current_pose.position.x,
+                self.current_pose.position.y,
+                self.current_pose.position.z
+            ])
+            
+            body_quat = np.array([
+                self.current_pose.orientation.x,
+                self.current_pose.orientation.y,
+                self.current_pose.orientation.z,
+                self.current_pose.orientation.w,
+            ])
+            
+            # Transform support feet to world frame and cache their positions
+            from tf.transformations import quaternion_matrix
+            transform_matrix = quaternion_matrix(body_quat)
+            rotation_matrix = transform_matrix[:3, :3]
+            
+            for i in range(6):
+                if foot_flags[i] == 0:  # Support foot
+                    foot_pos_body = self.foot_positions[i] / 1000.0  # Convert mm to m
+                    foot_pos_world = body_pos + rotation_matrix.dot(foot_pos_body)
+                    self.support_foot_world_positions[i] = foot_pos_world * 1000.0  # Store in mm
+            
             # Start coordinated movement in separate thread
             if self.movement_thread and self.movement_thread.is_alive():
                 self.movement_thread.join()
@@ -685,9 +713,34 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                     if self.foot_support_flags[i] == 1:  # Swing foot
                         # Hermite interpolation for swing phase
                         self.foot_positions[i] = self._hermite_interpolate_foot(i, progress)
-                    else:  # Support foot
-                        # Linear interpolation for support phase
-                        self.foot_positions[i] = self._linear_interpolate_foot(i, progress)
+                    else:  # Support foot - keep stationary in world frame
+                        # Transform cached world position back to current body frame
+                        world_pos = self.support_foot_world_positions[i] / 1000.0  # Convert mm to m
+                        
+                        # Get current body transform
+                        current_body_pos = np.array([
+                            self.current_pose.position.x,
+                            self.current_pose.position.y,
+                            self.current_pose.position.z
+                        ])
+                        
+                        current_body_quat = np.array([
+                            self.current_pose.orientation.x,
+                            self.current_pose.orientation.y,
+                            self.current_pose.orientation.z,
+                            self.current_pose.orientation.w,
+                        ])
+                        
+                        # Transform world position to current body frame
+                        from tf.transformations import quaternion_matrix
+                        transform_matrix = quaternion_matrix(current_body_quat)
+                        rotation_matrix = transform_matrix[:3, :3]
+                        
+                        # World to body transformation: body_pos = R^T * (world_pos - body_pos)
+                        body_relative_pos = world_pos - current_body_pos
+                        foot_pos_body = rotation_matrix.T.dot(body_relative_pos)
+                        
+                        self.foot_positions[i] = foot_pos_body * 1000.0  # Convert back to mm
                 
                 # Visualize feet
                 self._visualize_feet()

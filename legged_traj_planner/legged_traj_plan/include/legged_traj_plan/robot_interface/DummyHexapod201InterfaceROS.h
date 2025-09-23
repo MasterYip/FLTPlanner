@@ -85,7 +85,7 @@ private:
     tf2_ros::TransformBroadcaster odom_pub;
     std::shared_ptr<ros_visualizer::ROSVisualizer> visualizer_;
     ros::Publisher pose_cmd_pub;
-    ros::Publisher footcmd_pub;  // FootState publisher for communication with Python interface
+    ros::Publisher footcmd_pub; // FootState publisher for communication with Python interface
 
     // states
     legged_traj_plan::FootState foot_state_;
@@ -317,7 +317,7 @@ public:
     // Not used in Hexapod201 python interface
     void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override
     {
-        if (!config_.usePyInterface)
+        // if (!config_.usePyInterface)
         {
             body_pose_ = body_pose;
             if (config_.enableVis && visualizer_)
@@ -379,13 +379,13 @@ public:
         {
             legged_traj_plan::FootState footstate;
             footstate.header.stamp = ros::Time::now();
-            
+
             // Add foot names
             for (int i = 0; i < 6; ++i)
             {
                 footstate.name.push_back("foot_" + std::to_string(i));
             }
-            
+
             for (int i = 0; i < 6 && i < footendpos.size(); ++i)
             {
                 geometry_msgs::Point pt;
@@ -393,13 +393,13 @@ public:
                 pt.y = footendpos[i][1];
                 pt.z = footendpos[i][2];
                 footstate.position.push_back(pt);
-                
+
                 // Initialize velocity and effort with zeros
                 geometry_msgs::Vector3 vec3;
                 vec3.x = vec3.y = vec3.z = 0.0;
                 footstate.velocity.push_back(vec3);
                 footstate.effort.push_back(vec3);
-                
+
                 // Default contact state (true = in contact)
                 footstate.contact.push_back(true);
             }
@@ -432,13 +432,13 @@ public:
         {
             legged_traj_plan::FootState footstate;
             footstate.header.stamp = ros::Time::now();
-            
+
             // Add foot names
             for (int i = 0; i < 6; ++i)
             {
                 footstate.name.push_back("foot_" + std::to_string(i));
             }
-            
+
             for (int i = 0; i < 6 && i < footendpos.size(); ++i)
             {
                 geometry_msgs::Point pt;
@@ -446,19 +446,19 @@ public:
                 pt.y = footendpos[i][1];
                 pt.z = footendpos[i][2];
                 footstate.position.push_back(pt);
-                
+
                 geometry_msgs::Vector3 vel;
                 vel.x = (i < footendvel.size()) ? footendvel[i][0] : 0.0;
                 vel.y = (i < footendvel.size()) ? footendvel[i][1] : 0.0;
                 vel.z = (i < footendvel.size()) ? footendvel[i][2] : 0.0;
                 footstate.velocity.push_back(vel);
-                
+
                 geometry_msgs::Vector3 effort;
                 effort.x = (i < footendeffort.size()) ? footendeffort[i][0] : 0.0;
                 effort.y = (i < footendeffort.size()) ? footendeffort[i][1] : 0.0;
                 effort.z = (i < footendeffort.size()) ? footendeffort[i][2] : 0.0;
                 footstate.effort.push_back(effort);
-                
+
                 // Contact state
                 bool contact_state = (i < contact.size()) ? contact[i] : true;
                 footstate.contact.push_back(contact_state);
@@ -533,7 +533,7 @@ public:
                        std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero()), contact);
         }
     }
- 
+
     //// Interface extensions
     std::vector<Eigen::Vector3d>
     getNominalFootholds() const
