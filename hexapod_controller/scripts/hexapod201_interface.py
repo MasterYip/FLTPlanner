@@ -151,6 +151,10 @@ class Hexapod201BaseInterface(ABC):
         self.target_pose.orientation.y = 0.0
         self.target_pose.orientation.z = 0.0
         
+        # Cached pose from pose command - will be used when foot command arrives
+        self.cached_target_pose = None
+        self.has_cached_pose = False
+        
         self.is_moving = False
         self.last_cmd_time = rospy.Time.now()
         self.cmd_vel_integration = np.zeros(6)  # [x, y, z, roll, pitch, yaw]
@@ -216,8 +220,14 @@ class Hexapod201BaseInterface(ABC):
         # Execute movement
         self.move_to_pose(self.target_pose)
     
+    def pose_cmd_callback(self, msg: PoseStamped):
+        """Cache pose command - movement will be triggered by foot state callback"""
+        self.cached_target_pose = msg.pose
+        self.has_cached_pose = True
+        rospy.loginfo("Cached target pose from pose command")
+    
     def foot_cmd_callback(self, msg: FootState):
-        """Handle foot command messages from C++ interface for free gait control"""
+        """Handle foot command and execute movement using cached pose + foot positions"""
         try:
             # Extract foot positions from the FootState message
             foot_positions = np.zeros((6, 3))
@@ -265,22 +275,21 @@ class Hexapod201BaseInterface(ABC):
                 if vel_magnitude > 10.0:  # mm/s threshold
                     foot_flags[i] = 1  # Swing
             
-            # Body motion is typically zero for foot-only commands from high-level planners
-            # The C++ side can send body motion through separate pose commands
-            body_motion = np.zeros(6)
+            # Use cached target pose if available, otherwise use current pose
+            target_pose = self.cached_target_pose if self.has_cached_pose else self.current_pose
             
-            rospy.loginfo(f"Received FootState for {num_feet} feet, contact: {contact_states[:num_feet]}")
+            if self.has_cached_pose:
+                # Clear cached pose after using it
+                self.has_cached_pose = False
+                rospy.loginfo(f"Received FootState for {num_feet} feet, using cached target pose")
+            else:
+                rospy.loginfo(f"Received FootState for {num_feet} feet, no cached pose - using current pose")
             
-            # Execute free gait movement with received foot positions
-            self.move_free_gait(body_motion, foot_positions, foot_flags)
+            # Execute coordinated movement with target pose and foot positions
+            self.move_to_pose_with_feet(target_pose, foot_positions, foot_flags)
             
         except Exception as e:
             rospy.logerr(f"Error processing FootState: {str(e)}")
-    
-    def pose_cmd_callback(self, msg: PoseStamped):
-        """Handle direct pose commands"""
-        self.target_pose = msg.pose
-        self.move_to_pose(self.target_pose)
     
     def publish_current_pose(self, event):
         """Publish current pose for visualization"""
@@ -341,6 +350,17 @@ class Hexapod201BaseInterface(ABC):
         
         Args:
             body_motion: [x, y, z, roll, pitch, yaw] body motion in mm and radians
+            foot_positions: (6, 3) array of foot positions [x, y, z] in mm (robot body frame)
+            foot_flags: (6,) array of foot flags (0=support, 1=swing)
+        """
+        pass
+
+    @abstractmethod
+    def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
+        """Move hexapod to target pose with specific foot positions
+        
+        Args:
+            target_pose: Target body pose
             foot_positions: (6, 3) array of foot positions [x, y, z] in mm (robot body frame)
             foot_flags: (6,) array of foot flags (0=support, 1=swing)
         """
@@ -575,6 +595,116 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             with self.movement_lock:
                 self.is_moving = False
     
+    def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
+        """Move hexapod to target pose with specific foot positions"""
+        with self.movement_lock:
+            if self.is_moving:
+                rospy.logwarn("Coordinated movement already in progress")
+                return False
+            
+            self.is_moving = True
+            self.target_pose = target_pose
+            
+            # Store foot data for coordinated movement
+            self.foot_start_positions = self.foot_positions.copy()
+            self.target_foot_positions = foot_positions.copy()
+            self.foot_support_flags = foot_flags.copy()
+            
+            # Start coordinated movement in separate thread
+            if self.movement_thread and self.movement_thread.is_alive():
+                self.movement_thread.join()
+            
+            self.movement_thread = threading.Thread(target=self._execute_coordinated_movement)
+            self.movement_thread.start()
+            
+            return True
+    
+    def _execute_coordinated_movement(self):
+        """Execute coordinated body pose and foot position movement"""
+        try:
+            start_time = rospy.Time.now()
+            rate = rospy.Rate(50)  # 50 Hz update rate
+            
+            # Store initial body pose
+            start_pose = copy.deepcopy(self.current_pose)
+            target_pose = self.target_pose
+            
+            # Calculate body motion deltas
+            pos_diff = np.array([
+                target_pose.position.x - start_pose.position.x,
+                target_pose.position.y - start_pose.position.y,
+                target_pose.position.z - start_pose.position.z
+            ])
+            
+            start_euler = euler_from_quaternion([
+                start_pose.orientation.x,
+                start_pose.orientation.y,
+                start_pose.orientation.z,
+                start_pose.orientation.w,
+            ])
+            
+            target_euler = euler_from_quaternion([
+                target_pose.orientation.x,
+                target_pose.orientation.y,
+                target_pose.orientation.z,
+                target_pose.orientation.w,
+            ])
+            
+            angle_diff = np.array([
+                target_euler[0] - start_euler[0],
+                target_euler[1] - start_euler[1],
+                target_euler[2] - start_euler[2]
+            ])
+            
+            # Normalize yaw angle difference
+            if angle_diff[2] > np.pi:
+                angle_diff[2] -= 2 * np.pi
+            elif angle_diff[2] < -np.pi:
+                angle_diff[2] += 2 * np.pi
+            
+            while not rospy.is_shutdown():
+                current_time = rospy.Time.now()
+                elapsed = (current_time - start_time).to_sec()
+                progress = min(elapsed / self.swing_duration, 1.0)
+                
+                # Update body pose
+                self.current_pose.position.x = start_pose.position.x + pos_diff[0] * progress
+                self.current_pose.position.y = start_pose.position.y + pos_diff[1] * progress
+                self.current_pose.position.z = start_pose.position.z + pos_diff[2] * progress
+                
+                # Update orientation
+                current_euler = start_euler + angle_diff * progress
+                quat = quaternion_from_euler(current_euler[0], current_euler[1], current_euler[2])
+                self.current_pose.orientation.w = quat[3]
+                self.current_pose.orientation.x = quat[0]
+                self.current_pose.orientation.y = quat[1]
+                self.current_pose.orientation.z = quat[2]
+                
+                # Update foot positions
+                for i in range(6):
+                    if self.foot_support_flags[i] == 1:  # Swing foot
+                        # Hermite interpolation for swing phase
+                        self.foot_positions[i] = self._hermite_interpolate_foot(i, progress)
+                    else:  # Support foot
+                        # Linear interpolation for support phase
+                        self.foot_positions[i] = self._linear_interpolate_foot(i, progress)
+                
+                # Visualize feet
+                self._visualize_feet()
+                
+                if progress >= 1.0:
+                    break
+                
+                rate.sleep()
+            
+            rospy.loginfo("Coordinated movement completed")
+            
+        except Exception as e:
+            rospy.logerr(f"Error in coordinated movement: {str(e)}")
+        finally:
+            with self.movement_lock:
+                self.is_moving = False
+    
     def setCmd(self, **kwargs) -> bool:
         """Set dummy interface parameters"""
         if 'movement_speed' in kwargs:
@@ -662,7 +792,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             foot_pos_world = body_pos + rotation_matrix.dot(foot_pos_body)
             
             # Choose sphere size based on support/swing state
-            sphere_size = 0.08 if self.foot_support_flags[i] == 0 else 0.06  # Larger for support
+            sphere_size = 0.03 if self.foot_support_flags[i] == 0 else 0.01  # Larger for support
             
             # Create sphere style
             style = VisStyle(
@@ -671,7 +801,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             )
             
             # Visualize foot
-            self.visualizer.vis_sphere(foot_pos_world, style, ns=f"foot_{i}")
+            self.visualizer.vis_sphere(foot_pos_world, sphere_size, style)
 
 
 class Hexapod201Interface(Hexapod201BaseInterface):
@@ -956,6 +1086,72 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             
         except Exception as e:
             rospy.logerr(f"Free gait movement failed: {str(e)}")
+            return False
+    
+    def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
+        """Move hexapod to target pose with specific foot positions using free gait"""
+        if not self.plc_connected or not self.cpp_connected:
+            rospy.logerr("PLC or CPP not connected")
+            return False
+        
+        try:
+            # Enable PLC for free gait
+            if not self._enable_plc():
+                return False
+            
+            # Read current parameters
+            if not self._read_plc_parameters():
+                return False
+            
+            # Calculate body motion from current to target pose
+            pos_diff = np.array([
+                (target_pose.position.x - self.current_pose.position.x) * 1000.0,  # Convert to mm
+                (target_pose.position.y - self.current_pose.position.y) * 1000.0,
+                (target_pose.position.z - self.current_pose.position.z) * 1000.0
+            ])
+            
+            # Get current and target Euler angles
+            current_euler = euler_from_quaternion([
+                self.current_pose.orientation.x,
+                self.current_pose.orientation.y,
+                self.current_pose.orientation.z,
+                self.current_pose.orientation.w,
+            ])
+            
+            target_euler = euler_from_quaternion([
+                target_pose.orientation.x,
+                target_pose.orientation.y,
+                target_pose.orientation.z,
+                target_pose.orientation.w,
+            ])
+            
+            angle_diff = np.array([
+                target_euler[0] - current_euler[0],
+                target_euler[1] - current_euler[1], 
+                target_euler[2] - current_euler[2]
+            ])
+            
+            # Normalize yaw angle difference
+            if angle_diff[2] > np.pi:
+                angle_diff[2] -= 2 * np.pi
+            elif angle_diff[2] < -np.pi:
+                angle_diff[2] += 2 * np.pi
+            
+            # Create body motion array
+            body_motion = np.concatenate([pos_diff, angle_diff])
+            
+            # Use the existing free gait method with calculated body motion
+            success = self.move_free_gait(body_motion, foot_positions, foot_flags)
+            
+            if success:
+                # Update current pose to target pose
+                self.current_pose = copy.deepcopy(target_pose)
+                rospy.loginfo("Coordinated pose and foot movement completed")
+            
+            return success
+            
+        except Exception as e:
+            rospy.logerr(f"Coordinated movement failed: {str(e)}")
             return False
     
     def setCmd(self, **kwargs) -> bool:
