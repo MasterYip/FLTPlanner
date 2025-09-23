@@ -178,7 +178,8 @@ public:
     {
         // Initialize ROS publishers
         joint_state_pub = nh.advertise<sensor_msgs::JointState>(config_.jointStateTopic, 10);
-        if (config_.usePyInterface) {
+        if (config_.usePyInterface)
+        {
             pose_cmd_pub = nh.advertise<geometry_msgs::PoseStamped>("/hexapod/pose_cmd", 10);
         }
         if (config_.enableVis && !config_.usePyInterface)
@@ -315,7 +316,8 @@ public:
     void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override
     {
         body_pose_ = body_pose;
-        if (config_.enableVis && visualizer_) {
+        if (config_.enableVis && visualizer_)
+        {
             pub_odom(body_pose);
             vis_body_pose(body_pose);
         }
@@ -323,7 +325,8 @@ public:
 
     void setStepBodyPoseCmd(const pinocchio::SE3 &body_pose)
     {
-        if (config_.usePyInterface) {
+        if (config_.usePyInterface)
+        {
             // Publish to python interface
             geometry_msgs::PoseStamped pose_msg;
             pose_msg.header.stamp = ros::Time::now();
@@ -340,6 +343,24 @@ public:
         }
         // For non-Python interface, just set the body pose
         setBodyPoseCmd(body_pose);
+    }
+
+    /**
+     * @brief Set the Step Cmd object
+     * 
+     * @param body_pose Body pose in odom frame
+     * @param footendpos Foot end positions in body frame
+     * @param contact Foot contact states
+     * @note This function is only effective when usePyInterface is true.
+     */
+    void setStepCmd(const pinocchio::SE3 &body_pose,
+                    const std::vector<Eigen::Vector3d> &footendpos,
+                    const std::vector<bool> &contact)
+    {
+        if (config_.usePyInterface)
+        {
+            
+        }
     }
 
     void setBodyVelCmd(const pinocchio::Motion &body_vel) override

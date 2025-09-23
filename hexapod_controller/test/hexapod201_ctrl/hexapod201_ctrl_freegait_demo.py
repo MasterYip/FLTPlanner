@@ -272,7 +272,9 @@ class RLController:
                         break
 
                     if self.symbol_ReqFlag.value == 1:
-
+                        # Note: All XYZ of the feet positions are in the robot body coordinate system,
+                        # +50mm is putting feets half a movement forward in X direction so that the robot
+                        # will have the supporting feet at -50mm at the end of the movement
                         self.ReqPTCmd["X"] = 100.0         # TA+TM时间()机体前+后-向运动距离 (mm)                                                                
                         self.ReqPTCmd["Y"] = 0.0           # 机体左+右-横向运动距离 (mm)                                                                          
                         self.ReqPTCmd["Z"] = 0.0           # 机体上+下-运动距离 (mm)                                                                              
