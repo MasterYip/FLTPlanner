@@ -273,12 +273,12 @@ public:
                 double alpha = static_cast<double>(s) / num_steps;
                 Eigen::Vector2d interp = prev + alpha * delta;
 
-                // Create cmd_vel for this step
-                geometry_msgs::Twist step_cmd_vel;
-                step_cmd_vel.linear.x = alpha*delta[0] / config_.tripodStepDuration / 2;
-                step_cmd_vel.linear.y = alpha*delta[1] / config_.tripodStepDuration / 2;
-                step_cmd_vel.linear.z = 0.0;
-
+                // Create cmd_vel for this step in world frame
+                geometry_msgs::Twist world_cmd_vel;
+                world_cmd_vel.linear.x = delta[0] / num_steps / config_.tripodStepDuration;
+                world_cmd_vel.linear.y = delta[1] / num_steps / config_.tripodStepDuration;
+                world_cmd_vel.linear.z = 0.0;
+                
                 // Set orientation to face direction of movement
                 double move_dir = acos(delta[0] / dist);
                 if (delta[1] < 0)
@@ -288,29 +288,37 @@ public:
                 pinocchio::SE3 target_pose = body_pose;
                 target_pose.translation()[0] = interp[0];
                 target_pose.translation()[1] = interp[1];
+                
                 // Set move_dir in target_pose (keep roll, pitch from body_pose)
                 Eigen::Vector3d rpy = pinocchio::rpy::matrixToRpy(body_pose.rotation());
                 double delta_yaw = move_dir - rpy[2];
-                if (delta_yaw > M_PI)
-                    delta_yaw -= 2 * M_PI;
-                if (delta_yaw < -M_PI)
-                    delta_yaw += 2 * M_PI;
-                if (delta_yaw > max_yaw_change)
-                {
+                if (delta_yaw > M_PI) delta_yaw -= 2 * M_PI;
+                if (delta_yaw < -M_PI) delta_yaw += 2 * M_PI;
+                if (delta_yaw > max_yaw_change) {
                     delta_yaw = max_yaw_change;
                 }
-                if (delta_yaw < -max_yaw_change)
-                {
+                if (delta_yaw < -max_yaw_change) {
                     delta_yaw = -max_yaw_change;
                 }
                 rpy[2] += delta_yaw; // Update yaw
-                if (rpy[2] > M_PI)
-                    rpy[2] -= 2 * M_PI;
-                if (rpy[2] < -M_PI)
-                    rpy[2] += 2 * M_PI;
+                if (rpy[2] > M_PI) rpy[2] -= 2 * M_PI;
+                if (rpy[2] < -M_PI) rpy[2] += 2 * M_PI;
                 target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy);
-
-                step_cmd_vel.angular.z = delta_yaw / config_.tripodStepDuration / 2;
+                
+                world_cmd_vel.angular.z = delta_yaw / config_.tripodStepDuration;
+                
+                // Transform world frame velocity to base frame velocity
+                geometry_msgs::Twist step_cmd_vel;
+                Eigen::Matrix3d world_to_base_rotation = body_pose.rotation().transpose();
+                Eigen::Vector3d world_linear_vel(world_cmd_vel.linear.x, world_cmd_vel.linear.y, world_cmd_vel.linear.z);
+                Eigen::Vector3d base_linear_vel = world_to_base_rotation * world_linear_vel;
+                
+                step_cmd_vel.linear.x = base_linear_vel[0];
+                step_cmd_vel.linear.y = base_linear_vel[1];
+                step_cmd_vel.linear.z = base_linear_vel[2];
+                step_cmd_vel.angular.x = 0.0;
+                step_cmd_vel.angular.y = 0.0;
+                step_cmd_vel.angular.z = world_cmd_vel.angular.z; // Angular velocity same in both frames
 
                 // Fit the ground
                 gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
@@ -319,6 +327,7 @@ public:
                 // Get current hexapod state for Raibert gait planning
                 legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
                 legged_traj_plan::hexapod_State next_state = generateNextTripodState(current_state, step_cmd_vel);
+                // legged_traj_plan::hexapod_State next_state = generateNextTripodState(current_state, geometry_msgs::Twist());
 
                 // Convert foot positions from world frame to body frame for setStepCmd
                 std::vector<Eigen::Vector3d> footend_positions(6);
