@@ -97,6 +97,11 @@ struct Hexapod201StateSequencePlannerConfig
     // Tripod gait parameters
     double tripodStepDuration;
     double tripodStanceDuration;
+    
+    // Navigation parameters
+    double maxStepLength;
+    double maxYawChange;
+    double navStepDuration;
 
     void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
     {
@@ -106,6 +111,9 @@ struct Hexapod201StateSequencePlannerConfig
         check_digit &= nh.getParam(ns + "/execOnKeyboardCmd", execOnKeyboardCmd);
         check_digit &= nh.getParam(ns + "/tripodStepDuration", tripodStepDuration);
         check_digit &= nh.getParam(ns + "/tripodStanceDuration", tripodStanceDuration);
+        check_digit &= nh.getParam(ns + "/maxStepLength", maxStepLength);
+        check_digit &= nh.getParam(ns + "/maxYawChange", maxYawChange);
+        check_digit &= nh.getParam(ns + "/navStepDuration", navStepDuration);
         if (!check_digit)
         {
             ROS_ERROR("Failed to load Hexapod201StateSequencePlannerConfig.");
@@ -254,10 +262,10 @@ public:
         visualizer_.visCurve(path3d);
 
         ROS_INFO_STREAM("2D RRT path found with " << path2d.size() << " waypoints.");
-        // Parameters
-        const double max_step_length = 0.1;     // meters
-        const double max_yaw_change = M_PI / 8; // radians
-        const double step_duration = 2.0;       // seconds
+        // Parameters from config
+        const double max_step_length = config_.maxStepLength;
+        const double max_yaw_change = config_.maxYawChange;
+        const double step_duration = config_.navStepDuration;
 
         // Traverse the path, interpolate if needed
         for (size_t i = 1; i < path2d.size(); i++)
