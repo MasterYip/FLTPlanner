@@ -20,6 +20,6 @@ StateSequencePlanner:
   # Tripod gait parameters (primary control method)
   tripodStepDuration: 0.6
   tripodStanceDuration: 0.3
-  maxStepLength: 0.2
+  maxStepLength: 0.10
   maxYawChange: 0.5
   navStepDuration: 2.0

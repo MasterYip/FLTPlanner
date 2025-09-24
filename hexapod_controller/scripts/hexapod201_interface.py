@@ -867,7 +867,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
 class Hexapod201Interface(Hexapod201BaseInterface):
     """Real hexapod interface using PLC communication"""
     
-    def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "5.157.100.214.1.1"):
+    def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "192.168.1.115.1.1"):
         super().__init__(node_name)
         self.plc_ip = plc_ip
         self.plc = None
@@ -901,41 +901,43 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     
     def _connect_plc(self):
         """Establish PLC and CPP connections"""
-        try:
-            # PLC connection
-            self.plc = pyads.Connection(self.plc_ip, pyads.PORT_TC3PLC1)
-            self.plc.open()
+        # try:
+
+        # PLC connection
+        rospy.logerr(self.plc_ip)
+        self.plc = pyads.Connection(self.plc_ip, pyads.PORT_TC3PLC1)
+        self.plc.open()
+        
+        # CPP connection for free gait
+        self.cpp = pyads.Connection(self.plc_ip, 351)
+        self.cpp.open()
+
+        # Initialize PLC symbols
+        self.symbol_Cmd_Time = self.plc.get_symbol('MAIN.PTCmd.TM', structure_def=stTime_def)
+        self.symbol_Cmd_Gait = self.plc.get_symbol('MAIN.PTCmd.Gait', structure_def=stGait_def)
+        self.symbol_Cmd_Pose = self.plc.get_symbol('MAIN.PTCmd.Pose', structure_def=stPose_def)
+        self.symbol_CtrlCmd = self.plc.get_symbol('MAIN.CtrlCmd', plc_datatype="UDINT")
+        self.symbol_State = self.plc.get_symbol('MAIN.state', plc_datatype="UDINT")
+        self.symbol_QState = self.plc.get_symbol('MAIN.Q_State')
+        self.symbol_PTActPos = self.plc.get_symbol('MAIN.PTActPos', structure_def=stPose_def)
+
+        # Initialize CPP symbols for free gait
+        self.symbol_ReqPTCmd = self.cpp.get_symbol('CPP.Inputs.ReqPTCmd', structure_def=stPose_def)
+        self.symbol_ReqFlag = self.cpp.get_symbol('CPP.Inputs.ReqFlag')
+        
+        # Enable auto-update for feedback
+        self.symbol_QState.auto_update = True
+        self.symbol_PTActPos.auto_update = True
+        self.symbol_ReqFlag.auto_update = True
+        
+        self.plc_connected = True
+        self.cpp_connected = True
+        rospy.loginfo("PLC and CPP connections established")
             
-            # CPP connection for free gait
-            self.cpp = pyads.Connection(self.plc_ip, 351)
-            self.cpp.open()
-            
-            # Initialize PLC symbols
-            self.symbol_Cmd_Time = self.plc.get_symbol('MAIN.PTCmd.TM', structure_def=stTime_def)
-            self.symbol_Cmd_Gait = self.plc.get_symbol('MAIN.PTCmd.Gait', structure_def=stGait_def)
-            self.symbol_Cmd_Pose = self.plc.get_symbol('MAIN.PTCmd.Pose', structure_def=stPose_def)
-            self.symbol_CtrlCmd = self.plc.get_symbol('MAIN.CtrlCmd', plc_datatype="UDINT")
-            self.symbol_State = self.plc.get_symbol('MAIN.state', plc_datatype="UDINT")
-            self.symbol_QState = self.plc.get_symbol('MAIN.Q_State')
-            self.symbol_PTActPos = self.plc.get_symbol('MAIN.PTActPos', structure_def=stPose_def)
-            
-            # Initialize CPP symbols for free gait
-            self.symbol_ReqPTCmd = self.cpp.get_symbol('CPP.Inputs.ReqPTCmd', structure_def=stPose_def)
-            self.symbol_ReqFlag = self.cpp.get_symbol('CPP.Inputs.ReqFlag')
-            
-            # Enable auto-update for feedback
-            self.symbol_QState.auto_update = True
-            self.symbol_PTActPos.auto_update = True
-            self.symbol_ReqFlag.auto_update = True
-            
-            self.plc_connected = True
-            self.cpp_connected = True
-            rospy.loginfo("PLC and CPP connections established")
-            
-        except Exception as e:
-            rospy.logerr(f"PLC/CPP connection failed: {str(e)}")
-            self.plc_connected = False
-            self.cpp_connected = False
+        # except Exception as e:
+        #     rospy.logerr(f"PLC/CPP connection failed: {str(e)}")
+        #     self.plc_connected = False
+        #     self.cpp_connected = False
     
     def _enable_plc(self):
         """Enable PLC for movement"""
@@ -1293,7 +1295,7 @@ def main():
     # Get parameters from ROS parameter server
     interface_type = rospy.get_param('~interface_type', None)
     use_dummy = rospy.get_param('~dummy', False)
-    plc_ip = rospy.get_param('~plc_ip', '5.157.100.214.1.1')
+    plc_ip = rospy.get_param('~plc_ip', '192.168.1.115.1.1')
     node_name = rospy.get_param('~node_name', 'hexapod201_interface')
     
     try:
@@ -1321,7 +1323,7 @@ def main():
 
 def test_interface():
     rospy.init_node('test_hexapod201_interface', anonymous=True)
-    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="5.157.100.214.1.1")
+    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="192.168.1.115.1.1")
     pose = Pose()
     pose.position.x = 0.5
     pose.position.y = 0.0
