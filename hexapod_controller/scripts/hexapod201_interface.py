@@ -19,6 +19,24 @@ from ros_visualizer import ROSVisualizer, VisStyle
 # Import FootState message
 from legged_traj_plan.msg import FootState
 
+# Hexapod201 Default Configuration Constants
+HEXAPOD201_DEFAULT_FOOT_POSITIONS = np.array([
+    [660, -996.2, -405],  # Foot201 4 - FootElAir 0
+    [0, -1251.2, -405],   # Foot201 5 - FootElAir 1
+    [-660, -996.2, -405], # Foot201 6 - FootElAir 2
+    [660, 996.2, -405],   # Foot201 1 - FootElAir 3
+    [0, 1251.2, -405],    # Foot201 2 - FootElAir 4
+    [-660, 996.2, -405],  # Foot201 3 - FootElAir 5
+])
+
+FOOT_REMAP = [3, 4, 5, 0, 1, 2]  # Remap from FootElAir to Foot201
+
+HEXAPOD201_DEFAULT_BODY_HEIGHT = 0.405  # meters
+HEXAPOD201_DEFAULT_INIT_POSE = {
+    'position': {'x': 0.0, 'y': 0.0, 'z': HEXAPOD201_DEFAULT_BODY_HEIGHT},
+    'orientation': {'w': 1.0, 'x': 0.0, 'y': 0.0, 'z': 0.0}
+}
+
 
 # 运动模式枚举类
 class CtrlCmd(IntEnum):
@@ -134,14 +152,16 @@ class Hexapod201BaseInterface(ABC):
     
     def __init__(self, node_name: str = "hexapod201_interface"):
         self.node_name = node_name
+        
+        # Initialize poses using the extracted constants
         self.current_pose = Pose()
-        self.current_pose.position.x = 0.0
-        self.current_pose.position.y = 0.0
-        self.current_pose.position.z = 0.0
-        self.current_pose.orientation.w = 1.0
-        self.current_pose.orientation.x = 0.0
-        self.current_pose.orientation.y = 0.0
-        self.current_pose.orientation.z = 0.0
+        self.current_pose.position.x = HEXAPOD201_DEFAULT_INIT_POSE['position']['x']
+        self.current_pose.position.y = HEXAPOD201_DEFAULT_INIT_POSE['position']['y']
+        self.current_pose.position.z = HEXAPOD201_DEFAULT_INIT_POSE['position']['z']
+        self.current_pose.orientation.w = HEXAPOD201_DEFAULT_INIT_POSE['orientation']['w']
+        self.current_pose.orientation.x = HEXAPOD201_DEFAULT_INIT_POSE['orientation']['x']
+        self.current_pose.orientation.y = HEXAPOD201_DEFAULT_INIT_POSE['orientation']['y']
+        self.current_pose.orientation.z = HEXAPOD201_DEFAULT_INIT_POSE['orientation']['z']
         
         self.target_pose = Pose()
         self.target_pose.position.x = 0.0
@@ -179,15 +199,8 @@ class Hexapod201BaseInterface(ABC):
         self.foot_positions = np.zeros((6, 3))  # Current foot positions [x, y, z] in mm
         self.target_foot_positions = np.zeros((6, 3))  # Target foot positions [x, y, z] in mm
         self.foot_support_flags = np.zeros(6, dtype=int)  # 0=support, 1=swing
-        self.default_foot_positions = np.array([
-            [660, 996.2, -405],   # Foot 1
-            [0, 1251.2, -405],    # Foot 2
-            [-660, 996.2, -405],  # Foot 3
-            [660, -996.2, -405],  # Foot 4
-            [0, -1251.2, -405],   # Foot 5
-            [-660, -996.2, -405]  # Foot 6
-        ])
-        self.foot_positions = self.default_foot_positions.copy()
+        self.default_foot_positions = HEXAPOD201_DEFAULT_FOOT_POSITIONS.copy()
+        # self.foot_positions = self.default_foot_positions.copy()
         self.target_foot_positions = self.default_foot_positions.copy()
         
         rospy.loginfo(f"{node_name} initialized")
@@ -458,6 +471,9 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         # Cache world positions for support feet (they should not move in world frame)
         self.support_foot_world_positions = np.zeros((6, 3))  # World frame positions for support feet
         
+        # Initialize foot positions using the extracted constants
+        self.foot_positions = HEXAPOD201_DEFAULT_FOOT_POSITIONS.copy()
+        
         rospy.loginfo("Dummy hexapod interface initialized")
     
     def move_to_pose(self, target_pose: Pose) -> bool:
@@ -654,7 +670,6 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             
             self.is_moving = True
             self.target_pose = target_pose
-            
             # Store foot data for coordinated movement
             self.foot_start_positions = self.foot_positions.copy()
             self.target_foot_positions = foot_positions.copy()
@@ -1173,23 +1188,25 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             self.ReqPTCmd["Res"] = 0  # Reserved
             
             # Set foot positions and flags
-            for i in range(6):
+            for j in range(6):
+                i = FOOT_REMAP[j]
                 x_key = f"X{i+1}"
                 y_key = f"Y{i+1}"
                 z_key = f"Z{i+1}"
                 sf_key = f"SF{i+1}"
                 
-                self.ReqPTCmd[x_key] = foot_positions[i, 0]  # mm
-                self.ReqPTCmd[y_key] = foot_positions[i, 1]  # mm
-                self.ReqPTCmd[z_key] = foot_positions[i, 2]  # mm
-                self.ReqPTCmd[sf_key] = foot_flags[i]  # 0=support, 1=swing
+                self.ReqPTCmd[x_key] = foot_positions[j, 0]  # mm
+                self.ReqPTCmd[y_key] = foot_positions[j, 1]  # mm
+                self.ReqPTCmd[z_key] = foot_positions[j, 2]  # mm
+                self.ReqPTCmd[sf_key] = foot_flags[j]  # 0=support, 1=swing
             
             # Send command to CPP
             self.symbol_ReqPTCmd.write(self.ReqPTCmd)
             self.symbol_ReqFlag.write(2)  # Start movement
             
             # Update internal foot positions
-            self.foot_positions = foot_positions.copy()
+            # self.foot_positions = foot_positions.copy()
+            self.update_footpos()
             self.target_foot_positions = foot_positions.copy()
             self.foot_support_flags = foot_flags.copy()
             
@@ -1257,6 +1274,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             
             if success:
                 # Update current pose to target pose
+                # FIXME: this should be updated from odom
                 self.current_pose = copy.deepcopy(target_pose)
                 rospy.loginfo("Coordinated pose and foot movement completed")
             
