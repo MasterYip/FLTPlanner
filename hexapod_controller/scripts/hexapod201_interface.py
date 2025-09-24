@@ -10,6 +10,7 @@ from enum import IntEnum
 from abc import ABC, abstractmethod
 
 from geometry_msgs.msg import Twist, PoseStamped, Pose
+import geometry_msgs.msg  # Add this import for Point and Vector3
 from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import copy
@@ -163,12 +164,13 @@ class Hexapod201BaseInterface(ABC):
         
         # Publishers and subscribers
         self.pose_pub = rospy.Publisher('/hexapod/current_pose', PoseStamped, queue_size=10)
+        self.foot_state_pub = rospy.Publisher('/hexapod/foot_state', FootState, queue_size=10)
         # self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.pose_cmd_sub = rospy.Subscriber('/hexapod/pose_cmd', PoseStamped, self.pose_cmd_callback)
         self.foot_cmd_sub = rospy.Subscriber('/hexapod/foot_cmd', FootState, self.foot_cmd_callback)
         
-        # Timer for publishing current pose
-        self.pose_timer = rospy.Timer(rospy.Duration(0.1), self.publish_current_pose)
+        # Timer for publishing current pose and foot state
+        self.pose_timer = rospy.Timer(rospy.Duration(0.1), self.publish_feedback)
         self.dt = 1.0
         # Visualization
         self.visualizer = ROSVisualizer("odom", "hexapod_visualization")
@@ -328,6 +330,51 @@ class Hexapod201BaseInterface(ABC):
         box_size = [0.6, 0.3, 0.2]  # 30cm cube
         self.visualizer.vis_cube(position, quat, VisStyle(1.0, 0.45, 0.0, 1.0, box_size[0], box_size[1], box_size[2]))
         self.visualizer.vis_arrow(position, position + heading_vec * 0.4)
+    
+    def publish_feedback(self, event):
+        """Publish current pose and foot state feedback"""
+        # Publish current pose
+        pose_msg = PoseStamped()
+        pose_msg.header.stamp = rospy.Time.now()
+        pose_msg.header.frame_id = "odom"
+        pose_msg.pose = self.current_pose
+        self.pose_pub.publish(pose_msg)
+        
+        # Publish current foot state
+        foot_state_msg = FootState()
+        foot_state_msg.header.stamp = rospy.Time.now()
+        foot_state_msg.header.frame_id = "base_link"
+        
+        # Add foot names and data
+        for i in range(6):
+            foot_state_msg.name.append(f"foot_{i}")
+            
+            # Position (convert from mm to m for ROS standard)
+            pos = geometry_msgs.msg.Point()
+            pos.x = self.foot_positions[i, 0] / 1000.0
+            pos.y = self.foot_positions[i, 1] / 1000.0
+            pos.z = self.foot_positions[i, 2] / 1000.0
+            foot_state_msg.position.append(pos)
+            
+            # Velocity (zeros for now)
+            vel = geometry_msgs.msg.Vector3()
+            vel.x = vel.y = vel.z = 0.0
+            foot_state_msg.velocity.append(vel)
+            
+            # Effort (zeros for now)
+            effort = geometry_msgs.msg.Vector3()
+            effort.x = effort.y = effort.z = 0.0
+            foot_state_msg.effort.append(effort)
+            
+            # Contact state (assume all feet in contact by default)
+            contact_state = self.foot_support_flags[i] == 0 if len(self.foot_support_flags) > i else True
+            foot_state_msg.contact.append(contact_state)
+        
+        self.foot_state_pub.publish(foot_state_msg)
+        
+        # Also call visualization (for dummy interface)
+        if hasattr(self, 'visualize_hexapod_body'):
+            self.visualize_hexapod_body()
     
     @abstractmethod
     def move_to_pose(self, target_pose: Pose) -> bool:
@@ -1439,7 +1486,7 @@ def test_pose_with_feet(gait2phase=0):
         rospy.logerr("Failed to execute coordinated movement")
 
 if __name__ == "__main__":
-    main()
+    # main()
     # test_interface()
     # test_pose_with_feet(0)
-    # test_pose_with_feet(1)
+    test_pose_with_feet(1)

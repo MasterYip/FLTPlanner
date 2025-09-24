@@ -82,6 +82,25 @@ Hexapod201Dummy:
   nominalFootPosShift: [0, 0.08, 0]
   initBodyPose: [0, 0, 0.22, 0, 0, 0]
 
+Hexapod201ROS:
+  urdfParamPath: /robot_description
+  # Topic names for communication with Python interface
+  poseCommandTopic: /hexapod/pose_cmd
+  footCommandTopic: /hexapod/foot_cmd
+  currentPoseTopic: /hexapod/current_pose
+  footStateTopic: /hexapod/foot_state
+  # Frame names
+  odomChildFrame: base
+  odomParentFrame: odom
+  # Hexapod201 nominal foot positions (6 legs in tripod configuration) - same as dummy
+  nominalFootPos: [0.30, -0.20, -0.22,   # RF (Right Front)
+                   0.00, -0.25, -0.22,   # RR (Right Rear)
+                   -0.30, -0.20, -0.22,  # FL (Front Left)
+                   0.30, 0.20, -0.22,    # LF (Left Front)
+                   0.00, 0.25, -0.22,    # LR (Left Rear)
+                   -0.30, 0.20, -0.22]   # RL (Rear Left)
+  initBodyPose: [0, 0, 0.22, 0, 0, 0]
+
 # Shadow Hexapod201
 Hexapod201Shadow:
   urdfParamPath: /shadow/robot_description
