@@ -179,7 +179,7 @@ public:
                                                              j * delta - 0.5 * len * delta, 0));
             }
         }
-        gridmap_extrapolator_.init(gridmap_interface_, pose_sample_pts);
+        gridmap_extrapolator_.init(gridmap_interface_, pose_sample_pts, 0.405);
     }
 
     // cmd_vel callback
