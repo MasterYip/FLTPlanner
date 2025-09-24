@@ -13,7 +13,7 @@
     <arg name="sim" default="true" />
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
-    <!-- Hexapod201Dummy (simplified interface) -->
+    <!-- Hexapod201Dummy / Hexapod201ROS (simplified interface) -->
     <arg name="robot_interface_type" default="Hexapod201Dummy" />
     <!-- GridMap -->
     <arg name="with_ceiling" default="false"/>

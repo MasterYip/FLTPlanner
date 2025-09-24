@@ -352,7 +352,7 @@ public:
                 }
 
                 // Use setStepCmd to set both body pose and foot positions
-                std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)->setStepCmd(target_pose, footend_positions, contact_states);
+                std::dynamic_pointer_cast<Hexapod201InterfaceROS>(robot_interface_)->setStepCmd(target_pose, footend_positions, contact_states);
 
                 // Switch tripod phase for next step
                 switchTripodPhase();
@@ -554,7 +554,7 @@ public:
         // Final position setting
         robot_interface_->setFootCmd(footend_interp);
         // For python interface.
-        std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)->setStepBodyPoseCmd(odom_interp);
+        // std::dynamic_pointer_cast<Hexapod201InterfaceROS>(robot_interface_)->setStepBodyPoseCmd(odom_interp);
     }
 
     double sine_remap(double t)

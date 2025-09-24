@@ -1486,7 +1486,7 @@ def test_pose_with_feet(gait2phase=0):
         rospy.logerr("Failed to execute coordinated movement")
 
 if __name__ == "__main__":
-    # main()
+    main()
     # test_interface()
     # test_pose_with_feet(0)
-    test_pose_with_feet(1)
+    # test_pose_with_feet(1)
