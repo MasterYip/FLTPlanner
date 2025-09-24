@@ -930,8 +930,8 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         # Enable auto-update for feedback
         self.symbol_QState.auto_update = True
-        self.symbol_PTActPos.auto_update = True
         self.symbol_ReqFlag.auto_update = True
+        self.symbol_PTActPos.auto_update = True
         
         self.plc_connected = True
         self.cpp_connected = True
@@ -1022,7 +1022,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         # Set movement parameters
         self.cmdTime["TA"] = 0.5  # Acceleration time
-        self.cmdTime["TM"] = 1.5  # Movement time
+        self.cmdTime["TM"] = 2.5  # Movement time
         self.cmdTime["TD"] = 0.0  # Deceleration overlap
         self.cmdTime["TZ"] = 0.0  # Z advance time
         self.symbol_Cmd_Time.write(self.cmdTime)
@@ -1031,8 +1031,8 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.cmdGait["GaitMode"] = 1  # Synchronous gait
         self.cmdGait["GaitDF"] = 0.5  # Duty factor
         self.cmdGait["SwapHigh"] = 80.0  # Swing height (mm)
-        self.cmdGait["LegNum"] = 0  # Force control mode
-        self.cmdGait["ForceMode"] = 0
+        self.cmdGait["LegNum"] = 0  
+        self.cmdGait["ForceMode"] = 0 # Force control mode
         self.cmdGait["Res"] = 0
         self.symbol_Cmd_Gait.write(self.cmdGait)
         
@@ -1043,10 +1043,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         # Convert quaternion to Euler angles
         euler = euler_from_quaternion([
-            target_pose.orientation.w,
             target_pose.orientation.x,
             target_pose.orientation.y,
-            target_pose.orientation.z
+            target_pose.orientation.z,
+            target_pose.orientation.w
         ])
         self.cmdPose["Roll"] = euler[0]
         self.cmdPose["Pitch"] = euler[1]
@@ -1328,14 +1328,14 @@ def test_interface():
     rospy.init_node('test_hexapod201_interface', anonymous=True)
     interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="192.168.1.115.1.1")
     pose = Pose()
-    pose.position.x = 0.5
+    pose.position.x = 0.2
     pose.position.y = 0.0
-    pose.position.z = 0.3
+    pose.position.z = 0.0
     quat = quaternion_from_euler(0.0, 0.0, 0.0)
-    pose.orientation.w = quat[3]
     pose.orientation.x = quat[0]
     pose.orientation.y = quat[1]
     pose.orientation.z = quat[2]
+    pose.orientation.w = quat[3]
     interface.move_to_pose(pose)
     rospy.sleep(5)  # Wait for movement to complete
     current_pose = interface.get_current_pose()
