@@ -1289,6 +1289,40 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             except Exception as e:
                 rospy.logerr(f"Error closing CPP connection: {str(e)}")
 
+    def test_footpos_read(self):
+        """Test reading foot positions from PLC"""
+        if not self.plc_connected:
+            rospy.logerr("PLC not connected")
+            return
+        
+        try:
+            act_pos = self.symbol_PTActPos.read()
+            if act_pos:
+                rospy.loginfo(f"Current Pose from PLC: X={act_pos['X']}, Y={act_pos['Y']}, Z={act_pos['Z']}, Roll={act_pos['Roll']}, Pitch={act_pos['Pitch']}, Yaw={act_pos['Yaw']}")
+            else:
+                rospy.logwarn("No pose data received from PLC")
+        except Exception as e:
+            rospy.logerr(f"Failed to read pose from PLC: {str(e)}")
+
+    def update_footpos(self):
+        """Update foot positions from PLC feedback"""
+        if not self.plc_connected:
+            return
+        
+        try:
+            act_pos = self.symbol_PTActPos.read()
+            if act_pos:
+                self.foot_positions = np.array([
+                    [act_pos['X1'], act_pos['Y1'], act_pos['Z1']],
+                    [act_pos['X2'], act_pos['Y2'], act_pos['Z2']],
+                    [act_pos['X3'], act_pos['Y3'], act_pos['Z3']],
+                    [act_pos['X4'], act_pos['Y4'], act_pos['Z4']],
+                    [act_pos['X5'], act_pos['Y5'], act_pos['Z5']],
+                    [act_pos['X6'], act_pos['Y6'], act_pos['Z6']],
+                ])
+                print("Act Pos", act_pos)
+        except Exception as e:
+            rospy.logwarn(f"Failed to update foot positions from PLC: {str(e)}")
 
 def main():
     """Main function to run hexapod interface"""
@@ -1395,7 +1429,9 @@ def test_pose_with_feet(gait2phase=0):
         rospy.loginfo(f"Final pose: x={current_pose.position.x:.3f}, y={current_pose.position.y:.3f}, z={current_pose.position.z:.3f}")
         
         # Get final foot positions
+        interface.update_footpos()  # Update foot positions from PLC
         final_foot_positions = interface.get_foot_positions()
+        interface.test_footpos_read()  # Read and log current pose from PLC
         rospy.loginfo("Final foot positions:")
         for i, pos in enumerate(final_foot_positions):
             rospy.loginfo(f"  Foot {i+1}: x={pos[0]:.1f}, y={pos[1]:.1f}, z={pos[2]:.1f} mm")

@@ -13,7 +13,8 @@ misc:
 
 StateSequencePlanner:
   rosRate: 50 # Lower rate for simplified planner
-  stepTime: 1.5 # Slower stepping for tripod gait
+  stepTime: 2.0 # Slower stepping for tripod gait
+  navStepDuration: 2.0
 
   execOnKeyboardCmd: false
 
@@ -22,4 +23,3 @@ StateSequencePlanner:
   tripodStanceDuration: 0.3
   maxStepLength: 0.10
   maxYawChange: 0.5
-  navStepDuration: 2.0
