@@ -904,7 +904,6 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         # try:
 
         # PLC connection
-        rospy.logerr(self.plc_ip)
         self.plc = pyads.Connection(self.plc_ip, pyads.PORT_TC3PLC1)
         self.plc.open()
         
@@ -917,7 +916,11 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.symbol_Cmd_Gait = self.plc.get_symbol('MAIN.PTCmd.Gait', structure_def=stGait_def)
         self.symbol_Cmd_Pose = self.plc.get_symbol('MAIN.PTCmd.Pose', structure_def=stPose_def)
         self.symbol_CtrlCmd = self.plc.get_symbol('MAIN.CtrlCmd', plc_datatype="UDINT")
+        self.symbol_CtrlCmd.symbol_type = pyads.PLCTYPE_UDINT
+        self.symbol_CtrlCmd.plc_type = pyads.PLCTYPE_UDINT
         self.symbol_State = self.plc.get_symbol('MAIN.state', plc_datatype="UDINT")
+        self.symbol_State.symbol_type = pyads.PLCTYPE_UDINT
+        self.symbol_State.plc_type = pyads.PLCTYPE_UDINT
         self.symbol_QState = self.plc.get_symbol('MAIN.Q_State')
         self.symbol_PTActPos = self.plc.get_symbol('MAIN.PTActPos', structure_def=stPose_def)
 
@@ -1008,60 +1011,60 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             rospy.logerr("PLC not connected")
             return False
         
-        try:
-            # Enable PLC
-            if not self._enable_plc():
-                return False
-            
-            # Read current parameters
-            if not self._read_plc_parameters():
-                return False
-            
-            # Set movement parameters
-            self.cmdTime["TA"] = 0.5  # Acceleration time
-            self.cmdTime["TM"] = 1.5  # Movement time
-            self.cmdTime["TD"] = 0.0  # Deceleration overlap
-            self.cmdTime["TZ"] = 0.0  # Z advance time
-            self.symbol_Cmd_Time.write(self.cmdTime)
-            
-            # Set gait parameters
-            self.cmdGait["GaitMode"] = 1  # Synchronous gait
-            self.cmdGait["GaitDF"] = 0.5  # Duty factor
-            self.cmdGait["SwapHigh"] = 80.0  # Swing height (mm)
-            self.cmdGait["LegNum"] = 0  # Force control mode
-            self.cmdGait["ForceMode"] = 0
-            self.cmdGait["Res"] = 0
-            self.symbol_Cmd_Gait.write(self.cmdGait)
-            
-            # Set pose parameters
-            self.cmdPose["X"] = target_pose.position.x * 1000  # Convert to mm
-            self.cmdPose["Y"] = target_pose.position.y * 1000
-            self.cmdPose["Z"] = target_pose.position.z * 1000
-            
-            # Convert quaternion to Euler angles
-            euler = euler_from_quaternion([
-                target_pose.orientation.w,
-                target_pose.orientation.x,
-                target_pose.orientation.y,
-                target_pose.orientation.z
-            ])
-            self.cmdPose["Roll"] = euler[0]
-            self.cmdPose["Pitch"] = euler[1]
-            self.cmdPose["Yaw"] = euler[2]
-            
-            self.cmdPose["FG"] = 0  # Movement mode
-            self.cmdPose["Res"] = 0
-            self.symbol_Cmd_Pose.write(self.cmdPose)
-            
-            # Start movement
-            self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)
-            
-            rospy.loginfo(f"Started movement to pose: {target_pose.position}")
-            return True
-            
-        except Exception as e:
-            rospy.logerr(f"Movement failed: {str(e)}")
+        # try:
+        # Enable PLC
+        if not self._enable_plc():
             return False
+        
+        # Read current parameters
+        if not self._read_plc_parameters():
+            return False
+        
+        # Set movement parameters
+        self.cmdTime["TA"] = 0.5  # Acceleration time
+        self.cmdTime["TM"] = 1.5  # Movement time
+        self.cmdTime["TD"] = 0.0  # Deceleration overlap
+        self.cmdTime["TZ"] = 0.0  # Z advance time
+        self.symbol_Cmd_Time.write(self.cmdTime)
+        
+        # Set gait parameters
+        self.cmdGait["GaitMode"] = 1  # Synchronous gait
+        self.cmdGait["GaitDF"] = 0.5  # Duty factor
+        self.cmdGait["SwapHigh"] = 80.0  # Swing height (mm)
+        self.cmdGait["LegNum"] = 0  # Force control mode
+        self.cmdGait["ForceMode"] = 0
+        self.cmdGait["Res"] = 0
+        self.symbol_Cmd_Gait.write(self.cmdGait)
+        
+        # Set pose parameters
+        self.cmdPose["X"] = target_pose.position.x * 1000  # Convert to mm
+        self.cmdPose["Y"] = target_pose.position.y * 1000
+        self.cmdPose["Z"] = target_pose.position.z * 1000
+        
+        # Convert quaternion to Euler angles
+        euler = euler_from_quaternion([
+            target_pose.orientation.w,
+            target_pose.orientation.x,
+            target_pose.orientation.y,
+            target_pose.orientation.z
+        ])
+        self.cmdPose["Roll"] = euler[0]
+        self.cmdPose["Pitch"] = euler[1]
+        self.cmdPose["Yaw"] = euler[2]
+        
+        self.cmdPose["FG"] = 0  # Movement mode
+        self.cmdPose["Res"] = 0
+        self.symbol_Cmd_Pose.write(self.cmdPose)
+        
+        # Start movement
+        self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)
+        
+        rospy.loginfo(f"Started movement to pose: {target_pose.position}")
+        return True
+            
+        # except Exception as e:
+        #     rospy.logerr(f"Movement failed: {str(e)}")
+        #     return False
     
     def move_free_gait(self, body_motion: np.ndarray, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
         """Move hexapod using free gait with custom foothold definitions"""
