@@ -3,6 +3,7 @@
 import rospy
 import numpy as np
 import time
+import math
 from geometry_msgs.msg import Twist, PoseStamped, Pose
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
@@ -116,9 +117,9 @@ class HexapodGaitDemo:
             # Move to the right
             {'position': [1.0, 1.0, 0.0], 'orientation': [0.0, 0.0, 0.0]},
             # Turn 90 degrees
-            {'position': [1.0, 1.0, 0.0], 'orientation': [0.0, 0.0, np.pi/2]},
+            {'position': [1.0, 1.0, 0.0], 'orientation': [0.0, 0.0, math.pi/2]},
             # Move forward again
-            {'position': [2.0, 1.0, 0.0], 'orientation': [0.0, 0.0, np.pi/2]},
+            {'position': [2.0, 1.0, 0.0], 'orientation': [0.0, 0.0, math.pi/2]},
             # Turn back
             {'position': [2.0, 1.0, 0.0], 'orientation': [0.0, 0.0, 0.0]},
             # Return to origin
@@ -181,8 +182,8 @@ class HexapodGaitDemo:
             angle = angular_velocity * elapsed_time
             
             # Calculate position on circle
-            x = radius * (np.cos(angle)-1)
-            y = radius * np.sin(angle)
+            x = radius * (math.cos(angle)-1)
+            y = radius * math.sin(angle)
             
             # Create pose message
             pose_msg = PoseStamped()

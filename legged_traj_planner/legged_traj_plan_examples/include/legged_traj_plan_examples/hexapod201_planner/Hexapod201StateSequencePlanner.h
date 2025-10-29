@@ -11,15 +11,7 @@
 #pragma once
 
 /* related header files */
-// ANSI escape codes for colors
-#define RESET "\033[0m"
-#define RED "\033[31m"
-#define GREEN "\033[32m"
-#define YELLOW "\033[33m"
-#define BLUE "\033[34m"
-#define MAGENTA "\033[35m"
-#define CYAN "\033[36m"
-#define WHITE "\033[37m"
+
 /* c system header files */
 
 /* c++ standard library header files */
@@ -27,13 +19,13 @@
 
 /* internal project header files */
 #include "../elspider_air_planner/ElSpiderAirPlannerBase.h"
-#include "legged_traj_plan/whole_body_planner/CmdVelExtrapolator.h"
-#include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
-#include <pinocchio/math/rpy.hpp>
-
+#include "cout_color_config.h"
 #include "legged_traj_plan/BodyState.h"
 #include "legged_traj_plan/FootState.h"
 #include "legged_traj_plan/hexapod_State.h"
+#include "legged_traj_plan/whole_body_planner/CmdVelExtrapolator.h"
+#include "legged_traj_plan/whole_body_planner/StateSequencePlanner.h"
+#include <pinocchio/math/rpy.hpp>
 
 /* external project header files */
 #include <geometry_msgs/Pose.h>
@@ -150,6 +142,7 @@ private:
   Hexapod201RaibertFootholdPlanner hexapod_raibert_planner_;
 
   ros::Subscriber nav_goal_sub_;
+  ros::Subscriber pose2d_sub_;
   Hexapod2dNavRRT nav_rrt_planner_;
 
 public:
@@ -168,6 +161,9 @@ public:
     nav_goal_sub_ =
         nh_.subscribe("/move_base_simple/goal", 1,
                       &Hexapod201StateSequencePlanner::nav_callback, this);
+    pose2d_sub_ =
+        nh_.subscribe("/initialpose", 1,
+                      &Hexapod201StateSequencePlanner::pose2d_callback, this);
 
     PosList pose_sample_pts;
     int len = 6;
@@ -223,12 +219,6 @@ public:
       gridmap_interface_->unlockMapUpdate();
     }
   }
-
-  /**
-   * @brief 接收2D Nav Goal指令,
-   * @param[in] msg           My Param doc
-   * @author Tipriest (a1503741059@163.com)
-   */
   void nav_callback(const geometry_msgs::PoseStamped &msg) {
     if (motion_lock_) {
       ROS_WARN("Robot is in motion, ignore new nav goal.");
@@ -241,12 +231,7 @@ public:
     Eigen::Vector3d pos3d = body_pose.translation();
     Eigen::Vector2d start(pos3d[0], pos3d[1]);
     Eigen::Vector2d goal(msg.pose.position.x, msg.pose.position.y);
-    std::cout <<RED<< "get nav goal: cur_pose x: " << pos3d[0]
-              << " cur_pose y: " << pos3d[1] << " cur_pose z: " << pos3d[2]
-              << " aim_pose x: " << msg.pose.position.x
-              << " aim_pose y: " << msg.pose.position.y <<RESET<< std::endl;
     std::vector<Eigen::Vector2d> path2d;
-    // 进行二维的轨迹规划
     if (!nav_rrt_planner_.planPath(start, goal, gridmap_interface_, path2d)) {
       ROS_WARN("2D RRT path planning failed.");
       motion_lock_ = false;
@@ -256,7 +241,6 @@ public:
     // Visualize the path
     visualizer_.delAll();
     std::vector<Eigen::Vector3d> path3d;
-    // 令规划的路径的第三个维度一直都是当前的机身高度
     for (const auto &pt : path2d) {
       path3d.emplace_back(pt[0], pt[1], pos3d[2]); // Keep z from body pose
       visualizer_.visSphere(Point3D(pt[0], pt[1], pos3d[2]), 0.05);
@@ -321,6 +305,147 @@ public:
     gridmap_interface_->unlockMapUpdate();
   }
 
+  void periodical_conv(double bound, double &val) {
+    while (val < -abs(bound)) {
+      val += 2 * abs(bound);
+    }
+    while (val > abs(bound)) {
+      val -= 2 * abs(bound);
+    }
+    return;
+  };
+  void clamp(double bound, double &val) {
+    if (val < -abs(bound)) {
+      val = -abs(bound);
+    }
+    if (val > abs(bound)) {
+      val = abs(bound);
+    }
+    return;
+  };
+  double get_cur_yaw() {
+    pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
+    return pinocchio::rpy::matrixToRpy(body_pose.rotation())[2];
+  }
+  // 传入一个稀疏的path_2d，按照其中指定的参数插值成需要到达的点
+  std::vector<Eigen::Vector2d>
+  interplodate_path(std::vector<Eigen::Vector2d> &path2d,
+                    pinocchio::SE3 &body_pose) {
+    // Parameters
+    const double max_step_length = 0.3;      // meters
+    const double max_yaw_change = M_PI / 36; // radians 一次转动约5度yaw角度
+    const double step_duration = 1.0;        // seconds
+    const double admit_yaw_err = 3.0 / 180.0 * M_PI; // seconds
+
+    for (int i = 1; i < path2d.size(); i++) {
+      Eigen::Vector2d last_point = path2d[i - 1];
+      Eigen::Vector2d aim_point = path2d[i];
+      Eigen::Vector2d pos_diff = aim_point - last_point;
+      // 先确定aim_yaw和cur_yaw, 把自己的角度转换到这个线的正方向上
+      double aim_yaw = acos(pos_diff[0] / pos_diff.norm());
+      double cur_yaw = get_cur_yaw();
+      while (abs(aim_yaw - cur_yaw) > admit_yaw_err) {
+        std::cout << "aim_yaw = " << aim_yaw << "cur_yaw = " << cur_yaw
+                  << "yaw_err = " << aim_yaw - cur_yaw << std::endl;
+        // 进行相对位置控制
+        // send_yaw()
+        double yaw_control_command =
+            abs(aim_yaw - cur_yaw) > max_yaw_change
+                ? ((aim_yaw - cur_yaw) > 0 ? max_yaw_change : -max_yaw_change)
+                : aim_yaw - cur_yaw;
+        // 发送yaw轴控制指令,
+        std::cout << "yaw_control_command = " << yaw_control_command
+                  << std::endl;
+        ros::Duration(step_duration).sleep(); // Step time, adjust as needed
+      }
+      // 此时yaw轴角度已经和这段轨迹期望的yaw轴角度一致了
+    }
+    // // Traverse the path, interpolate if needed
+    // // 这里的插值保证先有转动，再进行X方向的前进移动，分开独立进行
+    // // 分别打印插值之前和之后的结果来RVIZ中进行显示
+    // for (size_t i = 1; i < path2d.size(); i++) {
+    //   Eigen::Vector2d prev = path2d[i - 1];
+    //   Eigen::Vector2d curr = path2d[i];
+    //   Eigen::Vector2d delta = curr - prev;
+    //   double dist = delta.norm();
+    //   // std::ceil将返回大于或等于该数的最小整数
+    //   // 计算一下这个OMPL搜索出的路径的上一个点和这个点需要走几步
+    //   // FIXME: 这里可能缺少了一个转动的部分
+    //   int num_steps =
+    //       std::max(1, static_cast<int>(std::ceil(dist / max_step_length)));
+    //   for (int s = 1; s <= num_steps; s++) {
+    //     body_pose = robot_interface_->getBodyPoseFdb();
+    //     double alpha = (double)s / num_steps;
+    //     Eigen::Vector2d interp = prev + alpha * delta;
+    //     // Set orientation to face direction of movement
+    //     double move_dir = acos(delta[0] / dist);
+    //     if (delta[1] < 0) {
+    //       move_dir = -move_dir; // Adjust for quadrant
+    //     }
+    //     pinocchio::SE3 target_pose = body_pose;
+    //     target_pose.translation()[0] = interp[0];
+    //     target_pose.translation()[1] = interp[1];
+    //     // Set move_dir in target_pose (keep roll, pitch from body_pose)
+    //     Eigen::Vector3d rpy =
+    //     pinocchio::rpy::matrixToRpy(body_pose.rotation()); double delta_yaw =
+    //     move_dir - rpy[2];
+    //     // clamp val to -bound to bound
+
+    //     periodical_conv(M_PI, delta_yaw);
+    //     clamp(max_yaw_change, delta_yaw);
+    //     rpy[2] += delta_yaw; // Update yaw
+    //     periodical_conv(M_PI, rpy[2]);
+    //     target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy);
+    //     // Fit the ground
+    //     gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
+    //     target_pose = gridmap_extrapolator_.extrapolate(0.0);
+    //     std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)
+    //         ->setStepBodyPoseCmd(target_pose);
+    //     ros::Duration(step_duration).sleep(); // Step time, adjust as needed
+    //   }
+    // }
+    return;
+  }
+  void pose2d_callback(const geometry_msgs::PoseWithCovarianceStamped &msg) {
+    if (motion_lock_) {
+      ROS_WARN("Robot is in motion, ignore new nav goal.");
+      return;
+    }
+    motion_lock_ = true;
+    gridmap_interface_->lockMapUpdate();
+    // Get current robot pose (x, y)
+    pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
+    Eigen::Vector3d pos3d = body_pose.translation();
+    Eigen::Vector2d start(pos3d[0], pos3d[1]);
+    Eigen::Vector2d goal(msg.pose.pose.position.x, msg.pose.pose.position.y);
+    std::cout << GREEN << "get pose2d goal:"
+              << " cur_pose x: " << pos3d[0] << " cur_pose y: " << pos3d[1]
+              << " cur_pose z: " << pos3d[2] << " aim_pose x: " << goal[0]
+              << " aim_pose y: " << goal[1] << RESET << std::endl;
+    std::vector<Eigen::Vector2d> path2d;
+    // 进行二维的轨迹规划
+    if (!nav_rrt_planner_.planPath(start, goal, gridmap_interface_, path2d)) {
+      ROS_WARN("2D RRT path planning failed.");
+      motion_lock_ = false;
+      gridmap_interface_->unlockMapUpdate();
+      return;
+    }
+    // Visualize the path
+    visualizer_.delAll();
+    std::vector<Eigen::Vector3d> path3d;
+    // 令规划的路径的第三个维度一直都是当前的机身高度
+    for (const auto &pt : path2d) {
+      path3d.emplace_back(pt[0], pt[1], pos3d[2]); // Keep z from body pose
+      visualizer_.visSphere(Point3D(pt[0], pt[1], pos3d[2]), 0.05);
+    }
+    visualizer_.visCurve(path3d);
+
+    ROS_INFO_STREAM("2D RRT path found with " << path2d.size()
+                                              << " waypoints.");
+    interplodate_path(path2d, body_pose);
+    motion_lock_ = false;
+    gridmap_interface_->unlockMapUpdate();
+  }
   // Get current robot state and convert to hexapod_State
   legged_traj_plan::hexapod_State getCurrentHexapodState() {
     legged_traj_plan::hexapod_State hexapodState;
