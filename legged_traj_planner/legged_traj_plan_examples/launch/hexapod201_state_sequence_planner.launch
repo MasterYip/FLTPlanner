@@ -2,7 +2,7 @@
     <!-- Hexapod201 State Sequence Planner -->
 
     <!-- Demo Select -->
-    <arg name="demo_name" default="4_ushape_barrier" />
+    <arg name="demo_name" default="7_bigbox" />
 
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
