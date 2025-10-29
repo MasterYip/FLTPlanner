@@ -3,7 +3,7 @@
 
     <!-- Demo Select -->
     <arg name="demo_name" default="4_ushape_barrier" />
-    
+
     <!-- Settings -->
     <!-- Gazebo / Hardware -->
     <arg name="sim" default="true" />
@@ -31,7 +31,7 @@
     <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ground.png" />
     <!-- Map Def (Timber Pile Generation) -->
     <arg name="grid_map_def" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/map_def.yaml" />
-    
+
     <!-- GridMap (Always use fake map for Hexapod201) -->
     <arg name="use_fake_map" value="true" />
     <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="$(arg output)">
@@ -55,12 +55,12 @@
         <param name="robotInterface" value="$(arg robot_interface_type)" />
         <param name="$(arg robot_interface_type)/sim" value="$(arg sim)" />
         <param name="$(arg robot_interface_type)/usePyInterface" value="$(arg use_pyinterface)" />
-        
+
         <!-- Planner Config (simplified for Hexapod201) -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/swing_traj_planner/height_clear_planner.yaml"/>
         <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/hexapod201_state_sequence_planner.yaml"/>
         <param name="StateSequencePlanner/demoPath" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/" />
-        
+
         <!-- Perception Interface -->
         <rosparam command="load" file="$(find legged_traj_plan)/config/perception_interface.yaml"/>
         <!-- Perception Interface Config Override -->
@@ -77,39 +77,46 @@
     <!-- Robot related -->
     <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" />
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
-    
+
     <!-- Shadow Robot -->
     <group ns="shadow">
         <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro ns:=shadow"/>
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     </group>
 
-    <group if="$(arg rviz_gui)">
-        <!-- Rviz -->
-        <node pkg="rviz" type="rviz" name="rviz_hexapod201" args="-d $(find legged_traj_plan_examples)/config/rviz/hexapod201_state_sequence_planner.rviz" output="$(arg output)" />
 
-        <!-- Teleop -->
-        <group if="$(eval teleop_type == 'keyboard')">
-            <include file="$(find legged_traj_plan_examples)/launch/key_teleop.launch">
-                <arg name="topic_name" value="/cmd_vel" />
-            </include>
-        </group>
-        <group if="$(eval teleop_type == 'PS5')">
-            <node pkg="joy" type="joy_node" name="joy_node" output="$(arg output)" clear_params="true" required="true">
-                <param name="dev" value="/dev/input/js0"/>
-                <param name="dev_ff" value="/dev/input/event20"/>
-                <param name="coalesce_interval" value="0.01"/>
-                <param name="autorepeat_rate" value="100"/>
-                <param name="default_trig_val" value="true"/>
-            </node>
-            <node pkg="legged_traj_plan_examples" type="joy_teleop.py" name="joy_teleop" output="$(arg output)">
-                <param name="cmd_topic" value="/cmd_vel" />
-                <param name="joy_topic" value="/joy" />
-            </node>
-        </group>
+
+
+
+
+    <!-- 使用键盘或者手柄控制 -->
+    <group if="$(eval teleop_type == 'keyboard')">
+        <include file="$(find legged_traj_plan_examples)/launch/key_teleop.launch">
+            <arg name="topic_name" value="/cmd_vel" />
+        </include>
+    </group>
+    <group if="$(eval teleop_type == 'PS5')">
+        <node pkg="joy" type="joy_node" name="joy_node" output="$(arg output)" clear_params="true" required="true">
+            <param name="dev" value="/dev/input/js0"/>
+            <param name="dev_ff" value="/dev/input/event20"/>
+            <param name="coalesce_interval" value="0.01"/>
+            <param name="autorepeat_rate" value="100"/>
+            <param name="default_trig_val" value="true"/>
+        </node>
+        <node pkg="legged_traj_plan_examples" type="joy_teleop.py" name="joy_teleop" output="$(arg output)">
+            <param name="cmd_topic" value="/cmd_vel" />
+            <param name="joy_topic" value="/joy" />
+        </node>
     </group>
 
-    <!-- ROS bag record -->
+
+    <!-- 使用Rviz -->
+    <group if="$(arg rviz_gui)">
+        <node pkg="rviz" type="rviz" name="rviz_hexapod201" args="-d $(find legged_traj_plan_examples)/config/rviz/hexapod201_state_sequence_planner.rviz" output="$(arg output)" />
+    </group>
+
+
+    <!-- 记录ROS BAG -->
     <group if="$(eval rosbag_record == 1)">
         <node pkg="rosbag" type="record" name="rosbag_record" args="
             /tf /tf_static 

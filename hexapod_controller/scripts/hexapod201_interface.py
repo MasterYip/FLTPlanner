@@ -5,6 +5,7 @@ import numpy as np
 import pyads
 import time
 import threading
+import math
 from typing import Dict, Any, Optional, Tuple
 from enum import IntEnum
 from abc import ABC, abstractmethod
@@ -153,13 +154,15 @@ class Hexapod201BaseInterface(ABC):
         self.pose_cmd_sub = rospy.Subscriber('/hexapod/pose_cmd', PoseStamped, self.pose_cmd_callback)
         
         # Timer for publishing current pose
-        self.pose_timer = rospy.Timer(rospy.Duration(0.1), self.publish_current_pose)
+        self.pose_timer = rospy.Timer(rospy.Duration(0, int(1e8)), self.publish_current_pose)
         self.dt = 1.0
         # Visualization
         self.visualizer = ROSVisualizer("odom", "hexapod_visualization")
         
         rospy.loginfo(f"{node_name} initialized")
     
+    # 接收线速度和角速度指令, 根据时间步长dt积分为期望的位置增量，加上当前位置求出期望位置, 之后
+    # 调用self.move_to_pose()函数执行运动
     def cmd_vel_callback(self, msg: Twist):
         """Handle velocity commands by integrating to get target pose"""
         # current_time = rospy.Time.now()
@@ -169,16 +172,17 @@ class Hexapod201BaseInterface(ABC):
         # Integrate velocity to get position change
         linear_vel = np.array([msg.linear.x, msg.linear.y, msg.linear.z])
         angular_vel = np.array([msg.angular.x, msg.angular.y, msg.angular.z])
-        # Simple Euler integration
+        # 将线速度和角速度按照时间步长dt进行积分
         self.cmd_vel_integration[:3] = linear_vel * dt
         self.cmd_vel_integration[3:] = angular_vel * dt
         
-        # Create target pose from current pose + integration
+        # 计算dt时间之后的期望目标位置
         self.target_pose.position.x = self.current_pose.position.x + self.cmd_vel_integration[0]
         self.target_pose.position.y = self.current_pose.position.y + self.cmd_vel_integration[1]
         self.target_pose.position.z = self.current_pose.position.z + self.cmd_vel_integration[2]
         
         # Convert Euler angles to quaternion
+        # FIXME: 这里可能不正确
         # BUG: this is not correct
         roll, pitch, yaw = self.cmd_vel_integration[3], self.cmd_vel_integration[4], self.cmd_vel_integration[5]
         quat = quaternion_from_euler(roll, pitch, yaw)
@@ -190,11 +194,26 @@ class Hexapod201BaseInterface(ABC):
         # Execute movement
         self.move_to_pose(self.target_pose)
     
+    # 直接给出目标位置, 然后调用self.move_to_pose()函数执行运动
     def pose_cmd_callback(self, msg: PoseStamped):
         """Handle direct pose commands"""
+        quat = np.array([
+            self.current_pose.orientation.x,
+            self.current_pose.orientation.y,
+            self.current_pose.orientation.z,
+            self.current_pose.orientation.w,
+        ])
+        rospy.loginfo(f"Dummy received pose_cmd x: {self.current_pose.position.x:.2f}, "
+                      f" y: {self.current_pose.position.y:.2f}, "
+                      f" z: {self.current_pose.position.z:.2f}, "
+                      f" r: {quat[0]*180/3.1415926535:.2f},"
+                      f" p: {quat[1]*180/3.1415926535:.2f},"
+                      f" y: {quat[2]*180/3.1415926535:.2f}")
         self.target_pose = msg.pose
         self.move_to_pose(self.target_pose)
     
+    
+    # 发布当前位置, 将当前位置在odom坐标系下发布, 并可视化一个长方体形状的六足机体
     def publish_current_pose(self, event):
         """Publish current pose for visualization"""
         pose_msg = PoseStamped()
@@ -227,7 +246,7 @@ class Hexapod201BaseInterface(ABC):
             self.current_pose.orientation.w,
         ])
         rpy =  euler_from_quaternion(quat)
-        heading_vec = np.array([np.cos(rpy[2]), np.sin(rpy[2]), 0.0])  # Heading direction in XY plane
+        heading_vec = np.array([math.cos(rpy[2]), math.sin(rpy[2]), 0.0])  # Heading direction in XY plane
         # Box size (hexapod body dimensions)
         box_size = [0.6, 0.3, 0.2]  # 30cm cube
         self.visualizer.vis_cube(position, quat, VisStyle(1.0, 0.45, 0.0, 1.0, box_size[0], box_size[1], box_size[2]))
@@ -267,7 +286,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
     def __init__(self, node_name: str = "dummy_hexapod201_interface"):
         super().__init__(node_name)
         self.movement_speed = 1.0  # m/s
-        self.rotation_speed = 10.0  # rad/s
+        self.rotation_speed = 0.5  # rad/s # FIXME:
         self.movement_thread = None
         self.movement_lock = threading.Lock()
         
@@ -306,6 +325,8 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             ])
             
             # Get current and target Euler angles
+            # FIXME: 这里需要确认这个得到的euler是什么顺序, r, p, y吗
+            # 需要确认一下是不是弧度的
             start_euler = euler_from_quaternion([
                 start_pose.orientation.x,
                 start_pose.orientation.y,
@@ -319,24 +340,29 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                 target_pose.orientation.z,
                 target_pose.orientation.w,
             ])
-            
             angle_diff = np.array([
                 target_euler[0] - start_euler[0],
                 target_euler[1] - start_euler[1],
                 target_euler[2] - start_euler[2]
             ])
-            if angle_diff[2] > np.pi:
-                angle_diff[2] -= 2 * np.pi
-            elif angle_diff[2] < -np.pi:
-                angle_diff[2] += 2 * np.pi
+            # FIXME: 确实，这里只有yaw应该生效, 但是这种方式也比较粗暴
+            while(angle_diff[2] > math.pi):
+                angle_diff[2] -= 2 * math.pi
+            while(angle_diff[2] < -math.pi):
+                angle_diff[2] += 2 * math.pi
+
             
             # Calculate movement time
+            # FIXME: 这里求的是
             pos_distance = np.linalg.norm(pos_diff)
             angle_distance = np.linalg.norm(angle_diff)
             
             pos_time = pos_distance / self.movement_speed if pos_distance > 0 else 0
+            print("pos time = ", pos_time)
             angle_time = angle_distance / self.rotation_speed if angle_distance > 0 else 0
+            print("angle time = ", angle_time)
             total_time = max(pos_time, angle_time)
+            print("total time = ", total_time)
             
             if total_time > 0:
                 start_time = rospy.Time.now()
@@ -359,6 +385,12 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                     self.current_pose.orientation.x = quat[0]
                     self.current_pose.orientation.y = quat[1]
                     self.current_pose.orientation.z = quat[2]
+                    # rospy.loginfo(
+                    #     f"Dummy has moved to x: {self.current_pose.position.x:.2f}, "
+                    #     f"y: {self.current_pose.position.y:.2f}, "
+                    #     f"z: {self.current_pose.position.z:.2f}, "
+                    #     f"r: {current_euler[0]:.2f}, p: {current_euler[1]:.2f}, y: {current_euler[2]:.2f}"
+                    # )
                     
                     if progress >= 1.0:
                         break
