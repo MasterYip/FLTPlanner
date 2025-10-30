@@ -27,6 +27,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Odometry.h>
+#include <nav_msgs/Path.h>
 #include <pinocchio/math/rpy.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
@@ -82,7 +83,7 @@ private:
   ros::Publisher joint_state_pub;
   tf2_ros::TransformBroadcaster odom_pub;
   std::shared_ptr<ros_visualizer::ROSVisualizer> visualizer_;
-  ros::Publisher pose_cmd_pub;
+  ros::Publisher pose_cmd_pub, path_cmd_pub;
 
   // states
   legged_traj_plan::FootState foot_state_;
@@ -171,6 +172,8 @@ public:
     if (config_.usePyInterface) {
       pose_cmd_pub =
           nh.advertise<geometry_msgs::PoseStamped>("/hexapod/pose_cmd", 10);
+      path_cmd_pub =
+          nh.advertise<nav_msgs::Path>("/hexapod/path_cmd", 10);
     }
     if (config_.enableVis && !config_.usePyInterface) {
       visualizer_ = std::make_shared<ros_visualizer::ROSVisualizer>(
@@ -327,6 +330,14 @@ public:
     }
     // For non-Python interface, just set the body pose
     setBodyPoseCmd(body_pose);
+  }
+
+  void setStepBodyPathCmd(const nav_msgs::Path& body_path) {
+    if (config_.usePyInterface) {
+      path_cmd_pub.publish(body_path);
+    }
+    // For non-Python interface, just set the body pose
+    // setBodyPoseCmd(body_pose);
   }
 
   void setBodyVelCmd(const pinocchio::Motion &body_vel) override {

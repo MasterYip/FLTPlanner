@@ -462,15 +462,25 @@ public:
     visualizer_.visCurve(path3d);
 
     ROS_INFO_STREAM("2D RRT path found with " << path2d.size() << " points");
-    path2d = interpolate_path(path2d, 0.3);
+    path2d = interpolate_path(path2d, 0.30);
     ROS_INFO_STREAM("After interp, there is " << path2d.size() << " points");
     path3d.clear();
     for (const auto &pt : path2d) {
       path3d.emplace_back(pt[0], pt[1], pos3d[2]); // Keep z from body pose
     }
-    ros_visualizer::VisStyle _style = ros_visualizer::VisStyle(0.0, 1, 0, 1, 0.05, 0.05, 0.05);
+    ros_visualizer::VisStyle _style =
+        ros_visualizer::VisStyle(0.0, 1, 0, 1, 0.05, 0.05, 0.05);
     visualizer_.visSphere(path3d, _style);
-
+    nav_msgs::Path nav_path;
+    for (int i = 0; i < path2d.size(); i++) {
+      geometry_msgs::PoseStamped pose;
+      pose.pose.position.x = path2d[i][0];
+      pose.pose.position.y = path2d[i][1];
+      pose.pose.position.z = 0.0;
+      nav_path.poses.push_back(pose);
+    }
+    std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)
+        ->setStepBodyPathCmd(nav_path);
     motion_lock_ = false;
     gridmap_interface_->unlockMapUpdate();
   }
