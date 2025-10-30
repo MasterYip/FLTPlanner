@@ -1,15 +1,16 @@
 <launch>
     <!-- Hexapod201 State Sequence Planner -->
 
+    
+    <!-- Settings -->
+    <!-- Gazebo / Hardware -->
+    <arg name="sim" default="true" />
     <!-- Demo Select (If sim = false, choose hardware) -->
     <!-- 1_stairs / 2_stairs / 3_quincuncial_piles / 3_timber_pile / 3_timber_pile_hw
     / 4_barrier / 4_barrier_vague / 4_ushape_barrier
     / 5_channel / 6_fractal-->
-    <arg name="demo_name" default="7_bigbox" />
-
-    <!-- Settings -->
-    <!-- Gazebo / Hardware -->
-    <arg name="sim" default="true" />
+    <arg name="demo_name" default="7_prj201" if="$(arg sim)"/>
+    <arg name="demo_name" default="7_prj201_hardware" unless="$(arg sim)"/>
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
     <!-- Hexapod201Dummy / Hexapod201ROS (simplified interface) -->
@@ -113,7 +114,8 @@
 
     <!-- 使用Rviz -->
     <group if="$(arg rviz_gui)">
-        <node pkg="rviz" type="rviz" name="rviz_hexapod201" args="-d $(find legged_traj_plan_examples)/config/rviz/hexapod201_state_sequence_planner.rviz" output="$(arg output)" />
+        <node pkg="rviz" type="rviz" name="rviz_hexapod201" args="-d $(find legged_traj_plan_examples)/config/rviz/hexapod201_state_sequence_planner_sim.rviz" output="$(arg output)" if="$(arg sim)"/>
+        <node pkg="rviz" type="rviz" name="rviz_hexapod201" args="-d $(find legged_traj_plan_examples)/config/rviz/hexapod201_state_sequence_planner.rviz" output="$(arg output)" unless="$(arg sim)"/>
     </group>
 
 

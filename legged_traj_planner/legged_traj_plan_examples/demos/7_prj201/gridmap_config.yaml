@@ -1,0 +1,29 @@
+resolution: 0.025           # 网格地图分辨率
+min_height: 0.0             # 
+max_height: 1.0
+min_height_ceiling: 1
+max_height_ceiling: 1
+elevation_layer: elevation_inpainted
+ceiling_layer: ceiling
+map_position_x: 3.2
+map_position_y: 0.0
+
+GridMapInterface: # NOTE: this override config in perception_interface.yaml
+  normalTangentCrtic: 0.7
+  groundLayerName: elevation_inpainted
+  sdfEnable: false
+
+grid_map_filters:
+  # Compute surface normals.
+  - 
+    name: surface_normals_area
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      input_layer: elevation_inpainted
+      algorithm: area
+      output_layers_prefix: normal_
+      radius: 0.05
+      normal_vector_positive_axis: z
+      parallelization_enabled: true
+      thread_number: 4
+      # thread_number: -1 doesn't limit the number of threads to be used
