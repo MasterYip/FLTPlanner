@@ -13,6 +13,7 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   topicName: /elevation_mapping/elevation_map_raw
   groundLayerName: elevation_inpainted
   topicNameCeiling: /elevation_mapping/elevation_map_raw
+  sdfEnable: false
 
 grid_map_filters:
   # Compute surface normals.

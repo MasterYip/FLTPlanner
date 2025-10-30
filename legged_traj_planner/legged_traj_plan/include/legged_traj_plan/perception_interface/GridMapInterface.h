@@ -40,6 +40,7 @@ struct GridMapInterfaceConfig
 
     // SDF
     double sdfMargin{0.3};
+    bool sdfEnable{true}; // New configuration to enable/disable SDF updates
 
     // TravMap
     double normalTangentCrtic{0.5};
@@ -59,6 +60,7 @@ struct GridMapInterfaceConfig
         check_digit &= nh.getParam(ns + "/enableHeightFilter", enableHeightFilter);
         check_digit &= nh.getParam(ns + "/maxHeight", maxHeight);
         check_digit &= nh.getParam(ns + "/minHeight", minHeight);
+        check_digit &= nh.getParam(ns + "/sdfEnable", sdfEnable); // Load sdfEnable parameter
     }
 };
 

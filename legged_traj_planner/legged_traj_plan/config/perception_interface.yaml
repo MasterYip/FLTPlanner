@@ -8,3 +8,4 @@ GridMapInterface:
   enableHeightFilter: false
   maxHeight: 0.1
   minHeight: -100.0
+  sdfEnable: true
