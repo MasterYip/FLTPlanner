@@ -74,13 +74,13 @@ stPose_def = (
     ("Roll", pyads.PLCTYPE_REAL, 1),
     ("Pitch", pyads.PLCTYPE_REAL, 1),
     ("Yaw", pyads.PLCTYPE_REAL, 1),
-    ("FG", pyads.PLCTYPE_DINT, 1),
-    ("Res", pyads.PLCTYPE_DINT, 1),
+    ("FG", pyads.PLCTYPE_DINT, 1),#FIXME: ?
+    ("Res", pyads.PLCTYPE_DINT, 1),#FIXME: ?
 
-    ("X1", pyads.PLCTYPE_REAL, 1),
+    ("X1", pyads.PLCTYPE_REAL, 1),# 1号腿足端位置
     ("Y1", pyads.PLCTYPE_REAL, 1),
     ("Z1", pyads.PLCTYPE_REAL, 1),
-    ("SF1", pyads.PLCTYPE_DINT, 1),
+    ("SF1", pyads.PLCTYPE_DINT, 1),# 1号腿支撑项还是摆动项#FIXME: 支撑0?1?
 
     ("X2", pyads.PLCTYPE_REAL, 1),
     ("Y2", pyads.PLCTYPE_REAL, 1),
@@ -240,7 +240,7 @@ class RLController:
 
                     self.cmdTime["TA"] = 0.5          # 减速时间 TA (s)
                     self.cmdTime["TM"] = 1.5          # 摆动时间 TM (s)
-                    self.cmdTime["TD"] = 0.0            # 支撑重叠时间 TA (s)
+                    self.cmdTime["TD"] = 0.0            # 支撑重叠时间 TD (s)
                     self.cmdTime["TZ"] = 0.0            # Z向提前时间 TZ (s)
                     self.symbol_Cmd_Time.write(self.cmdTime)
 

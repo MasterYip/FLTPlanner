@@ -43,7 +43,7 @@
     <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="$(arg output)">
         <param name="with_ceiling" value="$(arg with_ceiling)" />
         <param name="image_topic" value="/image_publisher/image" />
-        <param name="map_frame_id" value="odom" />
+        <param name="map_frame_id" value="world" />
         <param name="grid_map_topic" value="$(arg grid_map_topic)" />
         <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
     </node>

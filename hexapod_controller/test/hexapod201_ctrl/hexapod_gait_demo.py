@@ -135,7 +135,7 @@ class HexapodGaitDemo:
             # Create pose message
             pose_msg = PoseStamped()
             pose_msg.header.stamp = rospy.Time.now()
-            pose_msg.header.frame_id = "odom"
+            pose_msg.header.frame_id = "world"
             
             pose_msg.pose.position.x = pose_data['position'][0]
             pose_msg.pose.position.y = pose_data['position'][1]
@@ -188,7 +188,7 @@ class HexapodGaitDemo:
             # Create pose message
             pose_msg = PoseStamped()
             pose_msg.header.stamp = rospy.Time.now()
-            pose_msg.header.frame_id = "odom"
+            pose_msg.header.frame_id = "world"
             
             pose_msg.pose.position.x = x
             pose_msg.pose.position.y = y
@@ -210,7 +210,7 @@ class HexapodGaitDemo:
         if self.demo_running:
             pose_msg = PoseStamped()
             pose_msg.header.stamp = rospy.Time.now()
-            pose_msg.header.frame_id = "odom"
+            pose_msg.header.frame_id = "world"
             pose_msg.pose.position.x = 0.0
             pose_msg.pose.position.y = 0.0
             pose_msg.pose.position.z = 0.0
@@ -257,7 +257,7 @@ class HexapodGaitDemo:
             # Move forward with this gait
             pose_msg = PoseStamped()
             pose_msg.header.stamp = rospy.Time.now()
-            pose_msg.header.frame_id = "odom"
+            pose_msg.header.frame_id = "world"
             pose_msg.pose.position.x = 0.5
             pose_msg.pose.position.y = 0.0
             pose_msg.pose.position.z = 0.0

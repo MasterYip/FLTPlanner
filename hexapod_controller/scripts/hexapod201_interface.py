@@ -157,7 +157,7 @@ class Hexapod201BaseInterface(ABC):
         self.pose_timer = rospy.Timer(rospy.Duration(0, int(1e8)), self.publish_current_pose)
         self.dt = 1.0
         # Visualization
-        self.visualizer = ROSVisualizer("odom", "hexapod_visualization")
+        self.visualizer = ROSVisualizer("world", "hexapod_visualization")
         
         rospy.loginfo(f"{node_name} initialized")
     
