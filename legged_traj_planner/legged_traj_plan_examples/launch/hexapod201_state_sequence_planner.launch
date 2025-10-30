@@ -81,8 +81,8 @@
     </group>
 
     <!-- Robot related -->
-    <!-- <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" /> -->
-    <!-- <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" /> -->
+    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(arg sim)"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" if="$(arg sim)"/>
 
     <!-- Shadow Robot -->
     <group ns="shadow">
