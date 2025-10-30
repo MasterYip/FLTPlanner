@@ -91,6 +91,7 @@ void GridMapInterface::update(bool block, double sdf_margin)
         if (map_.exists(ceiling_layer))
             ROS_INFO("GridMap_Interface - Ceiling Layer Initializing...");
     }
+    updateTravMap();
     if (config_.sdfEnable) // Check if SDF updates are enabled
     {
         updateSDF(ground_layer, 0, sdf_margin);
@@ -99,7 +100,6 @@ void GridMapInterface::update(bool block, double sdf_margin)
             updateSDF(ceiling_layer, 1, sdf_margin);
         }
     }
-    updateTravMap();
 
     //// Debug
     // TravMap Visualization
