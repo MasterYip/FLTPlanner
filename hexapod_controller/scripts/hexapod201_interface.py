@@ -6,17 +6,18 @@ import pyads
 import time
 import threading
 import math
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 from enum import IntEnum
 from abc import ABC, abstractmethod
 
-from geometry_msgs.msg import Twist, PoseStamped, Pose
+from geometry_msgs.msg import Twist, PoseStamped, Pose, _PoseStamped
 import geometry_msgs.msg  # Add this import for Point and Vector3
 from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
+from nav_msgs.msg import Odometry, Path
 import copy
 # Import the ROS visualizer
-from ros_visualizer import ROSVisualizer, VisStyle
+from ros_visualizer import ROSVisualizer, VisStyle  # pyright: ignore[reportAttributeAccessIssue]
 # Import FootState message
 from legged_traj_plan.msg import FootState
 
@@ -189,6 +190,7 @@ class Hexapod201BaseInterface(ABC):
         # self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.pose_cmd_sub = rospy.Subscriber('/hexapod/pose_cmd', PoseStamped, self.pose_cmd_callback)
         self.foot_cmd_sub = rospy.Subscriber('/hexapod/foot_cmd', FootState, self.foot_cmd_callback)
+        self.pose_cmd_sub = rospy.Subscriber('/hexapod/path_cmd', Path, self.follow_virtual_trajectory)
         
         # Timer for publishing current pose and foot state
         self.pose_timer = rospy.Timer(rospy.Duration(0, int(1e8)), self.publish_feedback)
@@ -402,6 +404,16 @@ class Hexapod201BaseInterface(ABC):
         pass
     
     @abstractmethod
+    def follow_trajectory(self, trajectory: Path) -> bool:
+        """Move hexapod to target pose - to be implemented by subclasses"""
+        pass
+    
+    @abstractmethod
+    def follow_virtual_trajectory(self, trajectory: Path) -> bool:
+        """Move hexapod to target pose - to be implemented by subclasses"""
+        pass
+    
+    @abstractmethod
     def setCmd(self, **kwargs) -> bool:
         """Set detailed command parameters - to be implemented by subclasses"""
         pass
@@ -461,9 +473,24 @@ class Hexapod201BaseInterface(ABC):
 
 class DummyHexapod201Interface(Hexapod201BaseInterface):
     """Dummy interface for simulation/testing"""
+
+    def cleanup(self):
+        """Dummy cleanup method"""
+        rospy.loginfo("Dummy interface cleanup called")
     
     def __init__(self, node_name: str = "dummy_hexapod201_interface"):
         super().__init__(node_name)
+        self.movement_lock = threading.Lock()  # Add this line to define movement_lock
+
+    def follow_trajectory(self, trajectory: Path) -> bool:
+        """Simulate following a trajectory"""
+        rospy.loginfo("Dummy interface following trajectory")
+        return True
+
+    def follow_virtual_trajectory(self, trajectory: Path) -> bool:
+        """Simulate virtual following of a trajectory"""
+        rospy.loginfo("Dummy interface virtually following trajectory")
+        return True
         self.movement_speed = 1.0  # m/s
         self.rotation_speed = 0.5  # rad/s # FIXME:
         self.movement_thread = None
@@ -949,8 +976,10 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
 class Hexapod201Interface(Hexapod201BaseInterface):
     """Real hexapod interface using PLC communication"""
     
-    def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "192.168.1.115.1.1"):
+    def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = ""):
         super().__init__(node_name)
+        
+        self.robot_pose_sub = rospy.Subscriber('/Odometry', Odometry, self._robot_pose_sub_callback)
         self.plc_ip = plc_ip
         self.plc = None
         self.plc_connected = False
@@ -976,6 +1005,14 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.cmdGait = None
         self.cmdPose = None
         
+        # 判断一个位置到了没有的容许误差
+        self.admit_pose_limit = 0.10 # 0.10m
+        self.admit_angle_limit = 4.0 / 180.0 * math.pi # 4° degree
+        
+        # 判断一个位置到了没有的容许误差
+        self.admit_pose_limit = 0.10 # 0.10m
+        self.admit_angle_limit = 4.0 / 180.0 * math.pi # 4° degree
+        
         # Connect to PLC and CPP
         self._connect_plc()
         
@@ -986,7 +1023,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         # try:
 
         # PLC connection
-        self.plc = pyads.Connection(self.plc_ip, pyads.PORT_TC3PLC1)
+        self.plc = pyads.Connection(self.plc_ip, pyads.PORT_TC3PLC1, '192.168.3.101')
         self.plc.open()
         
         # CPP connection for free gait
@@ -1005,7 +1042,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.symbol_State.plc_type = pyads.PLCTYPE_UDINT
         self.symbol_QState = self.plc.get_symbol('MAIN.Q_State')
         self.symbol_PTActPos = self.plc.get_symbol('MAIN.PTActPos', structure_def=stPose_def)
-
+        self.symbol_PTCmdPos = self.plc.get_symbol('MAIN.PTCmdPos', structure_def=stPose_def)
         # Initialize CPP symbols for free gait
         self.symbol_ReqPTCmd = self.cpp.get_symbol('CPP.Inputs.ReqPTCmd', structure_def=stPose_def)
         self.symbol_ReqFlag = self.cpp.get_symbol('CPP.Inputs.ReqFlag')
@@ -1014,6 +1051,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.symbol_QState.auto_update = True
         self.symbol_ReqFlag.auto_update = True
         self.symbol_PTActPos.auto_update = True
+        self.symbol_PTCmdPos.auto_update = True
         
         self.plc_connected = True
         self.cpp_connected = True
@@ -1024,19 +1062,29 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         #     self.plc_connected = False
         #     self.cpp_connected = False
     
+    def _robot_pose_sub_callback(self, msg: Odometry):
+        self.current_pose.position = msg.pose.pose.position
+        self.current_pose.orientation = msg.pose.pose.orientation
+        print(f"robot current pose updated! "
+              f"x: {self.current_pose.position.x}"
+              f"x: {self.current_pose.position.y}"
+              f"x: {self.current_pose.position.z}")
+        
+        return
     def _enable_plc(self):
         """Enable PLC for movement"""
         if not self.plc_connected:
             return False
         
         try:
-            self.symbol_State.write(State.ENABLE)
-            
+            print("start self.symbol_State.write(State.ENABLE)")
+            self.symbol_State.write(State.ENABLE) # pyright: ignore[reportOptionalMemberAccess]
+            print("finish self.symbol_State.write(State.ENABLE)")
             # Wait for enable
             timeout = 10.0
             start_time = rospy.Time.now()
             while (rospy.Time.now() - start_time).to_sec() < timeout:
-                if self.symbol_QState.value == State.FEEDMOV:
+                if self.symbol_QState.value == State.FEEDMOV: # type: ignore
                     rospy.loginfo("PLC enabled successfully")
                     return True
                 rospy.sleep(0.1)
@@ -1055,11 +1103,11 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         try:
             if self.cmdTime is None:
-                self.cmdTime = self.symbol_Cmd_Time.read()
+                self.cmdTime = self.symbol_Cmd_Time.read() # type: ignore
             if self.cmdGait is None:
-                self.cmdGait = self.symbol_Cmd_Gait.read()
+                self.cmdGait = self.symbol_Cmd_Gait.read() # type: ignore
             if self.cmdPose is None:
-                self.cmdPose = self.symbol_Cmd_Pose.read()
+                self.cmdPose = self.symbol_Cmd_Pose.read() # type: ignore
             
             return True
         except Exception as e:
@@ -1072,7 +1120,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             return
         
         try:
-            act_pos = self.symbol_PTActPos.read()
+            act_pos = self.symbol_PTActPos.read() # type: ignore
             if act_pos:
                 self.current_pose.position.x = act_pos["X"]
                 self.current_pose.position.y = act_pos["Y"]
@@ -1236,6 +1284,180 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         except Exception as e:
             rospy.logerr(f"Free gait movement failed: {str(e)}")
             return False
+    def calPosDisDiff3d(self, a:Pose, b:Pose):
+        return pow(pow(a.position.x - b.position.x, 2)+
+                   pow(a.position.y - b.position.y, 2)+
+                   pow(a.position.z - b.position.z, 2), 0.5)
+    def calPosDisDiff2d(self, a:Pose, b:Pose):
+        return pow(pow(a.position.x - b.position.x, 2)+
+                    pow(a.position.y - b.position.y, 2), 0.5)
+    def calPosYawDiff2d(self, a: Pose, b: Pose) -> float:
+        """Calculate the angular difference (yaw) between two poses in 2D."""
+        quat_a = [a.orientation.x, a.orientation.y, a.orientation.z, a.orientation.w]
+        quat_b = [b.orientation.x, b.orientation.y, b.orientation.z, b.orientation.w]
+    
+        # Convert quaternions to Euler angles
+        _, _, yaw_a = euler_from_quaternion(quat_a)
+        _, _, yaw_b = euler_from_quaternion(quat_b)
+    
+        # Calculate angular difference
+        angle_diff = yaw_b - yaw_a
+        while angle_diff > math.pi:
+            angle_diff -= 2 * math.pi
+        while angle_diff < -math.pi:
+            angle_diff += 2 * math.pi
+    
+        return angle_diff
+    
+    def calPosYaw2d(self, a: Pose) -> float:
+        """Calculate the angular difference (yaw) between two poses in 2D."""
+        quat_a = [a.orientation.x, a.orientation.y, a.orientation.z, a.orientation.w]
+    
+        # Convert quaternions to Euler angles
+        _, _, yaw_a = euler_from_quaternion(quat_a)
+        
+        while yaw_a > math.pi:
+            yaw_a -= 2 * math.pi
+        while yaw_a < -math.pi:
+            yaw_a += 2 * math.pi
+        return yaw_a
+        
+    def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped):
+        if not self._read_plc_parameters():
+            return False
+        # 加载运动参数
+        # Set movement parameters
+        self.cmdTime["TA"] = 1.5  # type: ignore   # Acceleration time  一步迈过去的加速时间
+        self.cmdTime["TM"] = 2.5  # type: ignore   # Movement time
+        self.cmdTime["TD"] = 0.0  # type: ignore   # Deceleration overlap
+        self.cmdTime["TZ"] = 0.2  # type: ignore   # Z advance time(s)z项提前抬起来
+        self.symbol_Cmd_Time.write(self.cmdTime) # type: ignore
+        
+        # Set gait parameters
+        self.cmdGait["GaitMode"] = 1  # type: ignore    # Synchronous gait 1 是正常的2 3 6 步态
+        self.cmdGait["GaitDF"] = 0.5  # type: ignore     # Duty factor 0.5就是2步态 0.667 就是三步态 0.833就是六步态
+        self.cmdGait["SwapHigh"] = 100.0  # type: ignore     # Swing height (mm) 摆动高度
+        self.cmdGait["LegNum"] = 0  # type: ignore    # Force control mode # 单腿运动的时候控制这个，这个先给0
+        self.cmdGait["ForceMode"] = 0 # type: ignore    # 无力控是0
+        self.cmdGait["Res"] = 0  # type: ignore        # 0 无意义
+        self.symbol_Cmd_Gait.write(self.cmdGait)  # type: ignore 
+        
+        # Set pose parameters
+        self.cmdPose["X"] = min(400, (aim_pose.pose.position.x - cur_pose.position.x) * 1000) # type: ignore    # Convert to mm
+        self.cmdPose["Y"] = min(200, (aim_pose.pose.position.y - cur_pose.position.y) * 1000)  # type: ignore   
+        self.cmdPose["Z"] = 0.0  # type: ignore   
+        print(f"[move to] cmdPose set is: x: {(aim_pose.pose.position.x - cur_pose.position.x) * 1000}, y: {(aim_pose.pose.position.y - cur_pose.position.y) * 1000}")
+        
+        # Convert quaternion to Euler angles
+        # euler = euler_from_quaternion([
+        #     target_pose.orientation.x,
+        #     target_pose.orientation.y,
+        #     target_pose.orientation.z,
+        #     target_pose.orientation.w
+        # ])
+        self.cmdPose["Roll"] = 0.0  # type: ignore   
+        self.cmdPose["Pitch"] = 0.0 # type: ignore   
+        self.cmdPose["Yaw"] = 0.0   # type: ignore   
+        
+        self.cmdPose["FG"] = 0  # type: ignore   # Movement mode 在发送的时候代表走一步停一下，1代表连续走
+        self.cmdPose["Res"] = 0 # type: ignore    # Res = 0, 代表自动计算步长等参数
+        self.symbol_Cmd_Pose.write(self.cmdPose) # type: ignore    # write相当于发送
+        
+        # Start movement
+        self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV) # type: ignore
+        time.sleep(0.005)
+        cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+        while cur_beifu_Cmd["FG"] != 0: # type: ignore
+            # print(f"cur_beifu_Cmd['FG'] != 0, sendCtrlCmd.STOP_MOV, cur_beifu_Cmd['FG'] is {cur_beifu_Cmd['FG']}")
+            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            time.sleep(0.005)
+            self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV) # type: ignore
+        
+        # rospy.loginfo(f"Started movement to pose: {target_pose.position}")
+        return True
+    
+
+        
+    def follow_trajectory(self, trajectory: Path) -> bool:
+        if trajectory.poses is None:
+            rospy.logerr("Trajectory poses are None")
+            return False
+        while self.symbol_QState.value != 2:  # type: ignore
+            print(f"cur symbol_QState is: {self.symbol_QState}, try to enable PLC")
+            if self.symbol_QState.value  == 7:  # type: ignore   
+                print(f"try to enable plc")
+                if self._enable_plc():
+                    print("enable plc success, continue")
+                else:
+                    print("enable plc failed")
+            else:
+                print(f"error symbol_QState: {self.symbol_QState}, cann't enbale PCL, return false")
+                return False
+        cur_step:int = 0
+        while cur_step < len(trajectory.poses):
+            aim_pose = trajectory.poses[cur_step]
+            print(f"[follow_traj]cur_step= {cur_step} aim_pose x= {aim_pose.position.x}"
+                  f"y= {aim_pose.position.y} z= {aim_pose.position.z}")
+            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            if cur_beifu_Cmd["FG"]==CtrlCmd.IDLE:
+                # 拿一下机器人当前的位置
+                cur_pose:Pose = self.get_current_pose()
+                print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z}")
+                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit:
+                    # 说明已经到达了当前点
+                    print(f"[follow_traj]has arrived aim_pose x: {aim_pose.position.x}, y: {aim_pose.position.y}, z: {aim_pose.position.z}")
+                    cur_step += 1
+                else:
+                    print(f"[follow_traj]begin move to aim_pose x: {aim_pose.position.x}, y: {aim_pose.position.y}, z: {aim_pose.position.z}")
+                    self.move_to_pos(cur_pose, aim_pose)
+            
+        return True
+    
+    def follow_virtual_trajectory(self, trajectory: Path) -> bool:
+        if trajectory.poses is None:
+            rospy.logerr("Trajectory poses are None")
+            return False
+        while self.symbol_QState.value != 2:  # type: ignore
+            print(f"cur symbol_QState is: {self.symbol_QState}, try to enable PLC")
+            if self.symbol_QState.value  == 7:  # type: ignore
+                print(f"try to enable plc")
+                if self._enable_plc():
+                    print("enable plc success, continue")
+                else:
+                    print("enable plc failed")
+            else:
+                print(f"error symbol_QState: {self.symbol_QState}, cann't enbale PCL, return false")
+                return False
+        cur_step:int = 0
+        while cur_step < len(trajectory.poses):
+            aim_pose = trajectory.poses[cur_step]
+            print(f"[follow_traj]aim_pose x= {aim_pose.pose.position.x}"
+                  f"y= {aim_pose.pose.position.y} z= {aim_pose.pose.position.z}"
+                  f"yaw= {self.calPosYaw2d(aim_pose)/math.pi*180.0} cur_step= {cur_step} ")
+            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            if cur_beifu_Cmd["FG"]==CtrlCmd.IDLE:
+                # 拿一下机器人当前的位置
+                cur_pose:Pose = self.get_current_pose()
+                print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
+                # 模拟实际的SLAM反馈中到达目标点的判断函数, 认为走出一步之后就到达了目标点
+                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYawDiff2d(aim_pose, cur_pose)) <= self.admit_angle_limit:
+                    # 说明已经到达了当前点
+                    print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                    cur_step += 1
+                else:
+                    print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                    
+                    self.move_to_pos(cur_pose, aim_pose)
+                    # 虚拟地将移动后的期望位置更新为机器人的当前位置
+                    self.current_pose.position.x = aim_pose.pose.position.x
+                    self.current_pose.position.y = aim_pose.pose.position.y
+                    self.current_pose.position.z = aim_pose.pose.position.z
+            
+        return True
+    
+    
+    
+    
     
     def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
         """Move hexapod to target pose with specific foot positions using free gait"""
@@ -1304,6 +1526,247 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             rospy.logerr(f"Coordinated movement failed: {str(e)}")
             return False
     
+    def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
+        """Move hexapod to target pose with specific foot positions using free gait"""
+        if not self.plc_connected or not self.cpp_connected:
+            rospy.logerr("PLC or CPP not connected")
+            return False
+        
+        try:
+            # Enable PLC for free gait
+            if not self._enable_plc():
+                return False
+            
+            # Read current parameters
+            if not self._read_plc_parameters():
+                return False
+            
+            # Calculate body motion from current to target pose
+            pos_diff = np.array([
+                (target_pose.position.x - self.current_pose.position.x) * 1000.0,  # Convert to mm
+                (target_pose.position.y - self.current_pose.position.y) * 1000.0,
+                (target_pose.position.z - self.current_pose.position.z) * 1000.0
+            ])
+            
+            # Get current and target Euler angles
+            current_euler = euler_from_quaternion([
+                self.current_pose.orientation.x,
+                self.current_pose.orientation.y,
+                self.current_pose.orientation.z,
+                self.current_pose.orientation.w,
+            ])
+            
+            target_euler = euler_from_quaternion([
+                target_pose.orientation.x,
+                target_pose.orientation.y,
+                target_pose.orientation.z,
+                target_pose.orientation.w,
+            ])
+            
+            angle_diff = np.array([
+                target_euler[0] - current_euler[0],
+                target_euler[1] - current_euler[1], 
+                target_euler[2] - current_euler[2]
+            ])
+            
+            # Normalize yaw angle difference
+            if angle_diff[2] > np.pi:
+                angle_diff[2] -= 2 * np.pi
+            elif angle_diff[2] < -np.pi:
+                angle_diff[2] += 2 * np.pi
+            
+            # Create body motion array
+            body_motion = np.concatenate([pos_diff, angle_diff])
+            
+            # Use the existing free gait method with calculated body motion
+            success = self.move_free_gait(body_motion, foot_positions, foot_flags)
+            
+            if success:
+                # Update current pose to target pose
+                # FIXME: this should be updated from odom
+                self.current_pose = copy.deepcopy(target_pose)
+                rospy.loginfo("Coordinated pose and foot movement completed")
+            
+            return success
+            
+        except Exception as e:
+            rospy.logerr(f"Coordinated movement failed: {str(e)}")
+            return False
+    def calPosDisDiff3d(self, a:Pose, b:Pose):
+        return pow(pow(a.position.x - b.position.x, 2)+
+                   pow(a.position.y - b.position.y, 2)+
+                   pow(a.position.z - b.position.z, 2), 0.5)
+    def calPosDisDiff2d(self, a:Pose, b:Pose):
+        return pow(pow(a.position.x - b.position.x, 2)+
+                    pow(a.position.y - b.position.y, 2), 0.5)
+    def calPosYawDiff2d(self, a: Pose, b: Pose) -> float:
+        """Calculate the angular difference (yaw) between two poses in 2D."""
+        quat_a = [a.orientation.x, a.orientation.y, a.orientation.z, a.orientation.w]
+        quat_b = [b.orientation.x, b.orientation.y, b.orientation.z, b.orientation.w]
+    
+        # Convert quaternions to Euler angles
+        _, _, yaw_a = euler_from_quaternion(quat_a)
+        _, _, yaw_b = euler_from_quaternion(quat_b)
+    
+        # Calculate angular difference
+        angle_diff = yaw_b - yaw_a
+        while angle_diff > math.pi:
+            angle_diff -= 2 * math.pi
+        while angle_diff < -math.pi:
+            angle_diff += 2 * math.pi
+    
+        return angle_diff
+    
+    def calPosYaw2d(self, a: Pose) -> float:
+        """Calculate the angular difference (yaw) between two poses in 2D."""
+        quat_a = [a.orientation.x, a.orientation.y, a.orientation.z, a.orientation.w]
+    
+        # Convert quaternions to Euler angles
+        _, _, yaw_a = euler_from_quaternion(quat_a)
+        
+        while yaw_a > math.pi:
+            yaw_a -= 2 * math.pi
+        while yaw_a < -math.pi:
+            yaw_a += 2 * math.pi
+        return yaw_a
+        
+    def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped):
+        if not self._read_plc_parameters():
+            return False
+        # 加载运动参数
+        # Set movement parameters
+        self.cmdTime["TA"] = 1.5  # type: ignore   # Acceleration time  一步迈过去的加速时间
+        self.cmdTime["TM"] = 2.5  # type: ignore   # Movement time
+        self.cmdTime["TD"] = 0.0  # type: ignore   # Deceleration overlap
+        self.cmdTime["TZ"] = 0.2  # type: ignore   # Z advance time(s)z项提前抬起来
+        self.symbol_Cmd_Time.write(self.cmdTime) # type: ignore
+        
+        # Set gait parameters
+        self.cmdGait["GaitMode"] = 1  # type: ignore    # Synchronous gait 1 是正常的2 3 6 步态
+        self.cmdGait["GaitDF"] = 0.5  # type: ignore     # Duty factor 0.5就是2步态 0.667 就是三步态 0.833就是六步态
+        self.cmdGait["SwapHigh"] = 100.0  # type: ignore     # Swing height (mm) 摆动高度
+        self.cmdGait["LegNum"] = 0  # type: ignore    # Force control mode # 单腿运动的时候控制这个，这个先给0
+        self.cmdGait["ForceMode"] = 0 # type: ignore    # 无力控是0
+        self.cmdGait["Res"] = 0  # type: ignore        # 0 无意义
+        self.symbol_Cmd_Gait.write(self.cmdGait)  # type: ignore 
+        
+        # Set pose parameters
+        self.cmdPose["X"] = min(400, (aim_pose.pose.position.x - cur_pose.position.x) * 1000) # type: ignore    # Convert to mm
+        self.cmdPose["Y"] = min(200, (aim_pose.pose.position.y - cur_pose.position.y) * 1000)  # type: ignore   
+        self.cmdPose["Z"] = 0.0  # type: ignore   
+        print(f"[move to] cmdPose set is: x: {(aim_pose.pose.position.x - cur_pose.position.x) * 1000}, y: {(aim_pose.pose.position.y - cur_pose.position.y) * 1000}")
+        
+        # Convert quaternion to Euler angles
+        # euler = euler_from_quaternion([
+        #     target_pose.orientation.x,
+        #     target_pose.orientation.y,
+        #     target_pose.orientation.z,
+        #     target_pose.orientation.w
+        # ])
+        self.cmdPose["Roll"] = 0.0  # type: ignore   
+        self.cmdPose["Pitch"] = 0.0 # type: ignore   
+        self.cmdPose["Yaw"] = 0.0   # type: ignore   
+        
+        self.cmdPose["FG"] = 0  # type: ignore   # Movement mode 在发送的时候代表走一步停一下，1代表连续走
+        self.cmdPose["Res"] = 0 # type: ignore    # Res = 0, 代表自动计算步长等参数
+        self.symbol_Cmd_Pose.write(self.cmdPose) # type: ignore    # write相当于发送
+        
+        # Start movement
+        self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV) # type: ignore
+        time.sleep(0.005)
+        cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+        while cur_beifu_Cmd["FG"] != 0: # type: ignore
+            # print(f"cur_beifu_Cmd['FG'] != 0, sendCtrlCmd.STOP_MOV, cur_beifu_Cmd['FG'] is {cur_beifu_Cmd['FG']}")
+            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            time.sleep(0.005)
+            self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV) # type: ignore
+        
+        # rospy.loginfo(f"Started movement to pose: {target_pose.position}")
+        return True
+    
+
+        
+    def follow_trajectory(self, trajectory: Path) -> bool:
+        if trajectory.poses is None:
+            rospy.logerr("Trajectory poses are None")
+            return False
+        while self.symbol_QState.value != 2:  # type: ignore
+            print(f"cur symbol_QState is: {self.symbol_QState}, try to enable PLC")
+            if self.symbol_QState.value  == 7:  # type: ignore   
+                print(f"try to enable plc")
+                if self._enable_plc():
+                    print("enable plc success, continue")
+                else:
+                    print("enable plc failed")
+            else:
+                print(f"error symbol_QState: {self.symbol_QState}, cann't enbale PCL, return false")
+                return False
+        cur_step:int = 0
+        while cur_step < len(trajectory.poses):
+            aim_pose = trajectory.poses[cur_step]
+            print(f"[follow_traj]cur_step= {cur_step} aim_pose x= {aim_pose.position.x}"
+                  f"y= {aim_pose.position.y} z= {aim_pose.position.z}")
+            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            if cur_beifu_Cmd["FG"]==CtrlCmd.IDLE:
+                # 拿一下机器人当前的位置
+                cur_pose:Pose = self.get_current_pose()
+                print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z}")
+                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit:
+                    # 说明已经到达了当前点
+                    print(f"[follow_traj]has arrived aim_pose x: {aim_pose.position.x}, y: {aim_pose.position.y}, z: {aim_pose.position.z}")
+                    cur_step += 1
+                else:
+                    print(f"[follow_traj]begin move to aim_pose x: {aim_pose.position.x}, y: {aim_pose.position.y}, z: {aim_pose.position.z}")
+                    self.move_to_pos(cur_pose, aim_pose)
+            
+        return True
+    
+    def follow_virtual_trajectory(self, trajectory: Path) -> bool:
+        if trajectory.poses is None:
+            rospy.logerr("Trajectory poses are None")
+            return False
+        while self.symbol_QState.value != 2:  # type: ignore
+            print(f"cur symbol_QState is: {self.symbol_QState}, try to enable PLC")
+            if self.symbol_QState.value  == 7:  # type: ignore
+                print(f"try to enable plc")
+                if self._enable_plc():
+                    print("enable plc success, continue")
+                else:
+                    print("enable plc failed")
+            else:
+                print(f"error symbol_QState: {self.symbol_QState}, cann't enbale PCL, return false")
+                return False
+        cur_step:int = 0
+        while cur_step < len(trajectory.poses):
+            aim_pose = trajectory.poses[cur_step]
+            print(f"[follow_traj]aim_pose x= {aim_pose.pose.position.x}"
+                  f"y= {aim_pose.pose.position.y} z= {aim_pose.pose.position.z}"
+                  f"yaw= {self.calPosYaw2d(aim_pose)/math.pi*180.0} cur_step= {cur_step} ")
+            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            if cur_beifu_Cmd["FG"]==CtrlCmd.IDLE:
+                # 拿一下机器人当前的位置
+                cur_pose:Pose = self.get_current_pose()
+                print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
+                # 模拟实际的SLAM反馈中到达目标点的判断函数, 认为走出一步之后就到达了目标点
+                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYawDiff2d(aim_pose, cur_pose)) <= self.admit_angle_limit:
+                    # 说明已经到达了当前点
+                    print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                    cur_step += 1
+                else:
+                    print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                    
+                    self.move_to_pos(cur_pose, aim_pose)
+                    # 虚拟地将移动后的期望位置更新为机器人的当前位置
+                    self.current_pose.position.x = aim_pose.pose.position.x
+                    self.current_pose.position.y = aim_pose.pose.position.y
+                    self.current_pose.position.z = aim_pose.pose.position.z
+            
+        return True
+    
+    
+    
+    
+    
     def setCmd(self, **kwargs) -> bool:
         """Set detailed movement parameters"""
         if not self.plc_connected:
@@ -1313,29 +1776,29 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         try:
             # Time parameters
             if 'TA' in kwargs:
-                self.cmdTime["TA"] = kwargs['TA']
+                self.cmdTime["TA"] = kwargs['TA'] # type: ignore
             if 'TM' in kwargs:
-                self.cmdTime["TM"] = kwargs['TM']
+                self.cmdTime["TM"] = kwargs['TM'] # type: ignore
             if 'TD' in kwargs:
-                self.cmdTime["TD"] = kwargs['TD']
+                self.cmdTime["TD"] = kwargs['TD'] # type: ignore
             if 'TZ' in kwargs:
-                self.cmdTime["TZ"] = kwargs['TZ']
+                self.cmdTime["TZ"] = kwargs['TZ'] # type: ignore
             
             # Gait parameters
             if 'GaitMode' in kwargs:
-                self.cmdGait["GaitMode"] = kwargs['GaitMode']
+                self.cmdGait["GaitMode"] = kwargs['GaitMode'] # type: ignore
             if 'GaitDF' in kwargs:
-                self.cmdGait["GaitDF"] = kwargs['GaitDF']
+                self.cmdGait["GaitDF"] = kwargs['GaitDF'] # type: ignore
             if 'SwapHigh' in kwargs:
-                self.cmdGait["SwapHigh"] = kwargs['SwapHigh']
+                self.cmdGait["SwapHigh"] = kwargs['SwapHigh'] # type: ignore
             if 'ForceMode' in kwargs:
-                self.cmdGait["ForceMode"] = kwargs['ForceMode']
+                self.cmdGait["ForceMode"] = kwargs['ForceMode'] # type: ignore
             
             # Write parameters to PLC
             if self.cmdTime:
-                self.symbol_Cmd_Time.write(self.cmdTime)
+                self.symbol_Cmd_Time.write(self.cmdTime) # type: ignore
             if self.cmdGait:
-                self.symbol_Cmd_Gait.write(self.cmdGait)
+                self.symbol_Cmd_Gait.write(self.cmdGait) # type: ignore
             
             rospy.loginfo(f"Movement parameters updated: {kwargs}")
             return True
@@ -1350,7 +1813,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             return False
         
         try:
-            self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV)
+            self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV) # type: ignore
             rospy.loginfo("Movement stopped")
             return True
         except Exception as e:
@@ -1361,7 +1824,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         """Cleanup PLC and CPP connections"""
         if self.plc_connected and self.plc:
             try:
-                self.symbol_State.write(State.DISENABLE)
+                self.symbol_State.write(State.DISENABLE) # type: ignore
                 self.plc.close()
                 rospy.loginfo("PLC connection closed")
             except Exception as e:
@@ -1423,15 +1886,19 @@ def main():
     try:
         # Prefer interface_type param if set
         if interface_type is not None:
-            if interface_type.lower() == 'dummy':
-                interface = DummyHexapod201Interface(node_name)
+            if isinstance(interface_type, str) and interface_type.lower() == 'dummy':
+                interface = DummyHexapod201Interface(str(node_name))
+                print("DummyHexapod201Interface")
             else:
-                interface = Hexapod201Interface(node_name, plc_ip)
+                interface = Hexapod201Interface(str(node_name), str(plc_ip))
+                print("Hexapod201Interface")
         else:
             if use_dummy:
-                interface = DummyHexapod201Interface(node_name)
+                interface = DummyHexapod201Interface(str(node_name))
+                print("DummyHexapod201Interface")
             else:
-                interface = Hexapod201Interface(node_name, plc_ip)
+                interface = Hexapod201Interface(str(node_name), str(plc_ip))
+                print("Hexapod201Interface")
         
         rospy.loginfo("Hexapod interface started")
         rospy.spin()
@@ -1447,7 +1914,7 @@ def test_interface():
     rospy.init_node('test_hexapod201_interface', anonymous=True)
     interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="192.168.1.115.1.1")
     pose = Pose()
-    pose.position.x = 0.2
+    pose.position.x = 0.1
     pose.position.y = 0.0
     pose.position.z = 0.0
     quat = quaternion_from_euler(0.0, 0.0, 0.0)

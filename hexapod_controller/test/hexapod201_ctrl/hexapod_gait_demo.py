@@ -352,8 +352,8 @@ def main():
     rospy.init_node('hexapod_gait_demo', anonymous=True)
     
     # Get parameters from ROS parameter server
-    use_dummy = rospy.get_param('~use_dummy', True)
-    plc_ip = rospy.get_param('~plc_ip', '5.157.100.214.1.1')
+    use_dummy = bool(rospy.get_param('~use_dummy', True))
+    plc_ip = str(rospy.get_param('~plc_ip', '5.157.100.214.1.1'))
     demo_type = rospy.get_param('~demo', 'interactive')
     
     try:
