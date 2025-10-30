@@ -30,6 +30,10 @@
 #include <pinocchio/math/rpy.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
+#include <nav_msgs/Odometry.h>
+#include "legged_traj_plan/FootState.h"
+#include "legged_traj_plan/JointCmd.h"
+#include "ros_visualizer/ros_visualizer.hpp"
 #include <tf2_ros/transform_broadcaster.h>
 
 /* internal project header files */
@@ -78,11 +82,12 @@ private:
   ros::NodeHandle nh;
   DummyHexapod201InterfaceROSConfig config_;
 
-  // ROS Publishers
-  ros::Publisher joint_state_pub;
-  tf2_ros::TransformBroadcaster odom_pub;
-  std::shared_ptr<ros_visualizer::ROSVisualizer> visualizer_;
-  ros::Publisher pose_cmd_pub;
+    // ROS Publishers
+    ros::Publisher joint_state_pub;
+    tf2_ros::TransformBroadcaster odom_pub;
+    std::shared_ptr<ros_visualizer::ROSVisualizer> visualizer_;
+    ros::Publisher pose_cmd_pub;
+    ros::Publisher footcmd_pub; // FootState publisher for communication with Python interface
 
   // states
   legged_traj_plan::FootState foot_state_;
@@ -163,19 +168,20 @@ private:
   }
 
 public:
-  DummyHexapod201InterfaceROS(const DummyHexapod201InterfaceROSConfig &config)
-      : BaseRobotInterface(config.urdf), config_(config) {
-    // Initialize ROS publishers
-    joint_state_pub =
-        nh.advertise<sensor_msgs::JointState>(config_.jointStateTopic, 10);
-    if (config_.usePyInterface) {
-      pose_cmd_pub =
-          nh.advertise<geometry_msgs::PoseStamped>("/hexapod/pose_cmd", 10);
-    }
-    if (config_.enableVis && !config_.usePyInterface) {
-      visualizer_ = std::make_shared<ros_visualizer::ROSVisualizer>(
-          nh, "base", "hexapod201_markers");
-    }
+    DummyHexapod201InterfaceROS(const DummyHexapod201InterfaceROSConfig &config)
+        : BaseRobotInterface(config.urdf), config_(config)
+    {
+        // Initialize ROS publishers
+        joint_state_pub = nh.advertise<sensor_msgs::JointState>(config_.jointStateTopic, 10);
+        if (config_.usePyInterface)
+        {
+            pose_cmd_pub = nh.advertise<geometry_msgs::PoseStamped>("/hexapod/pose_cmd", 10);
+            footcmd_pub = nh.advertise<legged_traj_plan::FootState>("/hexapod/foot_cmd", 10); // FootState publisher
+        }
+        if (config_.enableVis && !config_.usePyInterface)
+        {
+            visualizer_ = std::make_shared<ros_visualizer::ROSVisualizer>(nh, "base", "hexapod201_markers");
+        }
 
     // Init State
     nominal_footholds.clear();
@@ -300,38 +306,28 @@ public:
 
   const pinocchio::Motion &getBodyVelFdb() const override { return body_vel_; }
 
-  //// Overrides - Command Interface
-  void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override {
-    body_pose_ = body_pose;
-    if (config_.enableVis && visualizer_) {
-      pub_odom(body_pose);
-      vis_body_pose(body_pose);
+    //// Overrides - Command Interface
+    // Not used in Hexapod201 python interface
+    void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override
+    {
+        // if (!config_.usePyInterface)
+        {
+            body_pose_ = body_pose;
+            if (config_.enableVis && visualizer_)
+            {
+                pub_odom(body_pose);
+                vis_body_pose(body_pose);
+            }
+        }
     }
-  }
 
-  void setStepBodyPoseCmd(const pinocchio::SE3 &body_pose) {
-    if (config_.usePyInterface) {
-      // Publish to python interface
-      geometry_msgs::PoseStamped pose_msg;
-      pose_msg.header.stamp = ros::Time::now();
-      pose_msg.header.frame_id = config_.odomParentFrame;
-      pose_msg.pose.position.x = body_pose.translation()[0];
-      pose_msg.pose.position.y = body_pose.translation()[1];
-      pose_msg.pose.position.z = body_pose.translation()[2];
-      Eigen::Quaterniond quat(body_pose.rotation());
-      pose_msg.pose.orientation.x = quat.x();
-      pose_msg.pose.orientation.y = quat.y();
-      pose_msg.pose.orientation.z = quat.z();
-      pose_msg.pose.orientation.w = quat.w();
-      pose_cmd_pub.publish(pose_msg);
+    void setBodyVelCmd(const pinocchio::Motion &body_vel) override
+    {
+        if (!config_.usePyInterface)
+        {
+            body_vel_ = body_vel;
+        }
     }
-    // For non-Python interface, just set the body pose
-    setBodyPoseCmd(body_pose);
-  }
-
-  void setBodyVelCmd(const pinocchio::Motion &body_vel) override {
-    body_vel_ = body_vel;
-  }
 
   void setJointCmd(const std::vector<double> &q) override {
     if (q.size() >= 18) {
@@ -364,39 +360,172 @@ public:
     setJointCmd(q, contact);
   }
 
-  void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override {
-    for (int i = 0; i < 6 && i < footendpos.size(); ++i) {
-      geometry_msgs::Point pt;
-      pt.x = footendpos[i][0];
-      pt.y = footendpos[i][1];
-      pt.z = footendpos[i][2];
-      foot_state_.position[i] = pt;
+    // Used in Hexapod201 python interface
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos) override
+    {
+        if (config_.usePyInterface)
+        {
+            legged_traj_plan::FootState footstate;
+            footstate.header.stamp = ros::Time::now();
+
+            // Add foot names
+            for (int i = 0; i < 6; ++i)
+            {
+                footstate.name.push_back("foot_" + std::to_string(i));
+            }
+
+            for (int i = 0; i < 6 && i < footendpos.size(); ++i)
+            {
+                geometry_msgs::Point pt;
+                pt.x = footendpos[i][0];
+                pt.y = footendpos[i][1];
+                pt.z = footendpos[i][2];
+                footstate.position.push_back(pt);
+
+                // Initialize velocity and effort with zeros
+                geometry_msgs::Vector3 vec3;
+                vec3.x = vec3.y = vec3.z = 0.0;
+                footstate.velocity.push_back(vec3);
+                footstate.effort.push_back(vec3);
+
+                // Default contact state (true = in contact)
+                footstate.contact.push_back(true);
+            }
+            footcmd_pub.publish(footstate);
+        }
+        else
+        {
+            for (int i = 0; i < 6 && i < footendpos.size(); ++i)
+            {
+                geometry_msgs::Point pt;
+                pt.x = footendpos[i][0];
+                pt.y = footendpos[i][1];
+                pt.z = footendpos[i][2];
+                foot_state_.position[i] = pt;
+            }
+
+            if (config_.enableVis)
+            {
+                vis_foot_positions(footendpos);
+            }
+        }
     }
 
-    if (config_.enableVis) {
-      vis_foot_positions(footendpos);
+    void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
+                    const std::vector<Eigen::Vector3d> &footendvel,
+                    const std::vector<Eigen::Vector3d> &footendeffort,
+                    const std::vector<bool> &contact) override
+    {
+        if (config_.usePyInterface)
+        {
+            legged_traj_plan::FootState footstate;
+            footstate.header.stamp = ros::Time::now();
+
+            // Add foot names
+            for (int i = 0; i < 6; ++i)
+            {
+                footstate.name.push_back("foot_" + std::to_string(i));
+            }
+
+            for (int i = 0; i < 6 && i < footendpos.size(); ++i)
+            {
+                geometry_msgs::Point pt;
+                pt.x = footendpos[i][0];
+                pt.y = footendpos[i][1];
+                pt.z = footendpos[i][2];
+                footstate.position.push_back(pt);
+
+                geometry_msgs::Vector3 vel;
+                vel.x = (i < footendvel.size()) ? footendvel[i][0] : 0.0;
+                vel.y = (i < footendvel.size()) ? footendvel[i][1] : 0.0;
+                vel.z = (i < footendvel.size()) ? footendvel[i][2] : 0.0;
+                footstate.velocity.push_back(vel);
+
+                geometry_msgs::Vector3 effort;
+                effort.x = (i < footendeffort.size()) ? footendeffort[i][0] : 0.0;
+                effort.y = (i < footendeffort.size()) ? footendeffort[i][1] : 0.0;
+                effort.z = (i < footendeffort.size()) ? footendeffort[i][2] : 0.0;
+                footstate.effort.push_back(effort);
+
+                // Contact state
+                bool contact_state = (i < contact.size()) ? contact[i] : true;
+                footstate.contact.push_back(contact_state);
+            }
+            footcmd_pub.publish(footstate);
+        }
+        else
+        {
+            setFootCmd(footendpos);
+
+            for (int i = 0; i < 6; ++i)
+            {
+                if (i < footendvel.size())
+                {
+                    foot_state_.velocity[i].x = footendvel[i][0];
+                    foot_state_.velocity[i].y = footendvel[i][1];
+                    foot_state_.velocity[i].z = footendvel[i][2];
+                }
+                if (i < footendeffort.size())
+                {
+                    foot_state_.effort[i].x = footendeffort[i][0];
+                    foot_state_.effort[i].y = footendeffort[i][1];
+                    foot_state_.effort[i].z = footendeffort[i][2];
+                }
+                if (i < contact.size())
+                {
+                    foot_state_.contact[i] = contact[i];
+                }
+            }
+        }
     }
-  }
 
-  void setFootCmd(const std::vector<Eigen::Vector3d> &footendpos,
-                  const std::vector<Eigen::Vector3d> &footendvel,
-                  const std::vector<Eigen::Vector3d> &footendeffort,
-                  const std::vector<bool> &contact) override {
-    setFootCmd(footendpos);
-
-    for (int i = 0; i < 6; ++i) {
-      foot_state_.velocity[i].x = footendvel[i][0];
-      foot_state_.velocity[i].y = footendvel[i][1];
-      foot_state_.velocity[i].z = footendvel[i][2];
-      foot_state_.effort[i].x = footendeffort[i][0];
-      foot_state_.effort[i].y = footendeffort[i][1];
-      foot_state_.effort[i].z = footendeffort[i][2];
-      foot_state_.contact[i] = contact[i];
+    // Special function for Hexapod201 with Python interface
+    void setStepBodyPoseCmd(const pinocchio::SE3 &body_pose)
+    {
+        if (config_.usePyInterface)
+        {
+            // Publish to python interface
+            geometry_msgs::PoseStamped pose_msg;
+            pose_msg.header.stamp = ros::Time::now();
+            pose_msg.header.frame_id = config_.odomParentFrame;
+            pose_msg.pose.position.x = body_pose.translation()[0];
+            pose_msg.pose.position.y = body_pose.translation()[1];
+            pose_msg.pose.position.z = body_pose.translation()[2];
+            Eigen::Quaterniond quat(body_pose.rotation());
+            pose_msg.pose.orientation.x = quat.x();
+            pose_msg.pose.orientation.y = quat.y();
+            pose_msg.pose.orientation.z = quat.z();
+            pose_msg.pose.orientation.w = quat.w();
+            pose_cmd_pub.publish(pose_msg);
+        }
+        // For non-Python interface, just set the body pose
+        setBodyPoseCmd(body_pose);
     }
-  }
 
-  //// Interface extensions
-  std::vector<Eigen::Vector3d> getNominalFootholds() const {
-    return nominal_footholds;
-  }
+    /**
+     * @brief Set the Step Cmd object
+     *
+     * @param body_pose Body pose in odom frame
+     * @param footendpos Foot end positions in body frame
+     * @param contact Foot contact states
+     * @note This function is only effective when usePyInterface is true.
+     */
+    void setStepCmd(const pinocchio::SE3 &body_pose,
+                    const std::vector<Eigen::Vector3d> &footendpos,
+                    const std::vector<bool> &contact)
+    {
+        if (config_.usePyInterface)
+        {
+            setStepBodyPoseCmd(body_pose);
+            setFootCmd(footendpos, std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero()),
+                       std::vector<Eigen::Vector3d>(6, Eigen::Vector3d::Zero()), contact);
+        }
+    }
+
+    //// Interface extensions
+    std::vector<Eigen::Vector3d>
+    getNominalFootholds() const
+    {
+        return nominal_footholds;
+    }
 };

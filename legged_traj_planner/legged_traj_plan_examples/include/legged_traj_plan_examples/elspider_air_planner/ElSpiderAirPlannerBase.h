@@ -24,6 +24,7 @@
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROS.h"
 #include "legged_traj_plan/robot_interface/ElSpiderAirInterfaceROSVMC.h"
 #include "legged_traj_plan/robot_interface/DummyHexapod201InterfaceROS.h"
+#include "legged_traj_plan/robot_interface/Hexapod201InterfaceROS.h"
 
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 
@@ -91,6 +92,12 @@ public:
             DummyHexapod201InterfaceROSConfig dummy_config;
             dummy_config.loadParam(nh_, "Hexapod201Dummy");
             robot_interface_ = std::make_shared<DummyHexapod201InterfaceROS>(dummy_config);
+        }
+        else if (robot_interface_type_ == "Hexapod201ROS")
+        {
+            Hexapod201InterfaceROSConfig config;
+            config.loadParam(nh_, "Hexapod201ROS");
+            robot_interface_ = std::make_shared<Hexapod201InterfaceROS>(config);
         }
         else
         {
