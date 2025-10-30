@@ -13,7 +13,7 @@
     <!-- keyboard / PS5 -->
     <arg name="teleop_type" default="keyboard" />
     <!-- Hexapod201Dummy / Hexapod201ROS (simplified interface) -->
-    <arg name="robot_interface_type" default="Hexapod201Dummy" />
+    <arg name="robot_interface_type" default="Hexapod201ROS" />
     <!-- GridMap -->
     <arg name="with_ceiling" default="false"/>
     <arg name="ground_ceiling_boundary" default="0.3" />
@@ -36,14 +36,13 @@
     <arg name="grid_map_def" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/map_def.yaml" />
 
     <!-- GridMap (Always use fake map for Hexapod201) -->
-    <arg name="use_fake_map" value="true" />
-    <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="$(arg output)">
+    <node pkg="legged_traj_plan_examples" type="image_publisher.py" name="image_publisher" output="$(arg output)" if="$(arg sim)">
         <param name="image_path" value="$(arg grid_map_file)" />
         <param name="map_def_path" value="$(arg grid_map_def)" />
         <param name="topic" value="~image" />
         <rosparam command="load" file="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/gridmap_config.yaml" />
     </node>
-    <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="$(arg output)">
+    <node pkg="legged_traj_plan_examples" type="image_to_gridmap" name="image_to_gridmap" output="$(arg output)" if="$(arg sim)">
         <param name="with_ceiling" value="$(arg with_ceiling)" />
         <param name="image_topic" value="/image_publisher/image" />
         <param name="map_frame_id" value="world" />

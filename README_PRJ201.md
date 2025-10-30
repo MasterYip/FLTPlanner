@@ -70,7 +70,7 @@ Install pyads for PLC communication:
 pip install pyads
 ```
 
-Python interface (Base motion only):
+### Python interface (Base motion & Foothold):
 
 ![alt text](doc/hexapod201_basenav.png)
 
@@ -84,18 +84,30 @@ planner_cfg:=height_clear_planner \
 use_pyinterface:=true
 ```
 
-New ROS interface:
+**New ROS interface**:
+1. Simulation with fake map
 ```bash
 roslaunch legged_traj_plan_examples hexapod201_state_sequence_planner.launch \
 robot_interface_type:=Hexapod201ROS \
 sim:=true \
 teleop_type:=keyboard \
-demo_name:=6_fractal \
+demo_name:=7_bigbox \
 planner_cfg:=height_clear_planner \
 use_pyinterface:=true
 ```
 
-Cpp Dummy interface (Base motion & Foothold):
+2. Real robot with real map
+```bash
+roslaunch legged_traj_plan_examples hexapod201_state_sequence_planner.launch \
+robot_interface_type:=Hexapod201ROS \
+sim:=false \
+teleop_type:=keyboard \
+demo_name:=7_bigbox \
+planner_cfg:=height_clear_planner \
+use_pyinterface:=true
+```
+
+### Cpp Dummy interface (Base motion & Foothold):
 
 ![alt text](doc/hexapod201_foothold.png)
 
