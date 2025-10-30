@@ -25,7 +25,9 @@ sudo apt install \
 ros-$ROS_DISTRO-ros-industrial-cmake-boilerplate \
 ros-$ROS_DISTRO-costmap-2d \
 ros-$ROS_DISTRO-octomap \
+ros-$ROS_DISTRO-octomap-msgs \
 ros-$ROS_DISTRO-ompl \
+ros-$ROS_DISTRO-serial \
 ros-$ROS_DISTRO-pcl-ros \
 python3-catkin-tools \
 qtbase5-dev \
