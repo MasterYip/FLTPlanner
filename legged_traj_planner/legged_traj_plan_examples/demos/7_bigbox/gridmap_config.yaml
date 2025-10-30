@@ -10,6 +10,9 @@ map_position_y: 0.0
 
 GridMapInterface: # NOTE: this override config in perception_interface.yaml
   normalTangentCrtic: 0.7
+  topicName: /elevation_mapping/elevation_map_raw
+  groundLayerName: elevation_inpainted
+  topicNameCeiling: /elevation_mapping/elevation_map_raw
 
 grid_map_filters:
   # Compute surface normals.

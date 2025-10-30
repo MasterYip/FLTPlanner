@@ -29,7 +29,9 @@
 
     <!-- Launch -->
     <!-- Config -->
-    <arg name="grid_map_topic" value="/grid_map" />
+    <arg name="grid_map_topic" value="/grid_map" if="$(arg sim)"/>
+    <arg name="grid_map_topic" value="/elevation_mapping/elevation_map_raw" unless="$(arg sim)"/>
+
     <!-- Map File (Images) -->
     <arg name="grid_map_file" value="$(find legged_traj_plan_examples)/demos/$(arg demo_name)/terrain_ground.png" />
     <!-- Map Def (Timber Pile Generation) -->
@@ -78,18 +80,14 @@
     </group>
 
     <!-- Robot related -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" />
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
+    <!-- <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" /> -->
+    <!-- <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" /> -->
 
     <!-- Shadow Robot -->
     <group ns="shadow">
         <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro ns:=shadow"/>
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" />
     </group>
-
-
-
-
 
 
     <!-- 使用键盘或者手柄控制 -->
