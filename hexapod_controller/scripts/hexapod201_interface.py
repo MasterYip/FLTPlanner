@@ -199,10 +199,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 return False
             
             # Set movement parameters
-            self.cmdTime["TA"] = 0.5  # type: ignore # Acceleration time
-            self.cmdTime["TM"] = 2.5  # type: ignore # Movement time
+            self.cmdTime["TA"] = 1.5  # type: ignore # Acceleration time
+            self.cmdTime["TM"] = 1.5  # type: ignore # Movement time
             self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
-            self.cmdTime["TZ"] = 0.5  # type: ignore # Z advance time
+            self.cmdTime["TZ"] = 0.2  # type: ignore # Z advance time
             self.symbol_Cmd_Time.write(self.cmdTime) # type: ignore
             
             # Set gait parameters
@@ -231,7 +231,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             self.cmdPose["Yaw"] = euler[2]   # type: ignore 
             
             self.cmdPose["FG"] = 0  # type: ignore   # Movement mode
-            self.cmdPose["Res"] = 1 # type: ignore 
+            self.cmdPose["Res"] = 0 # type: ignore 
             self.symbol_Cmd_Pose.write(self.cmdPose)  # type: ignore 
             
             # Start movement
@@ -261,7 +261,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             
             # Set free gait parameters
             self.cmdTime["TA"] = 1.0  # type: ignore # Acceleration time
-            self.cmdTime["TM"] = 2.5  # type: ignore # Movement time
+            self.cmdTime["TM"] = 1.5  # type: ignore # Movement time
             self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
             self.cmdTime["TZ"] = 0.5  # type: ignore # Z advance time
             self.symbol_Cmd_Time.write(self.cmdTime)
@@ -339,7 +339,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         # 加载运动参数
         # Set movement parameters
         self.cmdTime["TA"] = 1.5  # type: ignore   # Acceleration time  一步迈过去的加速时间
-        self.cmdTime["TM"] = 2.5  # type: ignore   # Movement time
+        self.cmdTime["TM"] = 1.5  # type: ignore   # Movement time
         self.cmdTime["TD"] = 0.0  # type: ignore   # Deceleration overlap
         self.cmdTime["TZ"] = 0.2  # type: ignore   # Z advance time(s)z项提前抬起来
         self.symbol_Cmd_Time.write(self.cmdTime) # type: ignore
@@ -354,7 +354,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.symbol_Cmd_Gait.write(self.cmdGait)  # type: ignore 
         
         # Set pose parameters
-        self.cmdPose["X"] = max(-400, min(400, (aim_pose.pose.position.x - cur_pose.position.x) * 1000)) # type: ignore    # Convert to mm
+        self.cmdPose["X"] = max(-380, min(380, (aim_pose.pose.position.x - cur_pose.position.x) * 1000)) # type: ignore    # Convert to mm
         self.cmdPose["Y"] = max(-100, min(100, (aim_pose.pose.position.y - cur_pose.position.y) * 1000))  # type: ignore   
 
         self.cmdPose["Z"] = 0.0  # type: ignore
@@ -363,7 +363,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         if(use_virtual_odom):
             # 虚拟地将移动后的期望位置更新为机器人的当前位置
-            self.current_pose.position.x += max(-0.4, min(0.4, aim_pose.pose.position.x - cur_pose.position.x))
+            self.current_pose.position.x += max(-0.38, min(0.38, aim_pose.pose.position.x - cur_pose.position.x))
             self.current_pose.position.y += max(-0.1, min(0.1, aim_pose.pose.position.y - cur_pose.position.y))
             self.current_pose.position.z = aim_pose.pose.position.z
         # Convert quaternion to Euler angles
@@ -378,7 +378,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.cmdPose["Yaw"] = 0.0   # type: ignore   
         
         self.cmdPose["FG"] = 0  # type: ignore   # Movement mode 在发送的时候代表走一步停一下，1代表连续走
-        self.cmdPose["Res"] = 1 # type: ignore    # Res = 0, 代表自动计算步长等参数
+        self.cmdPose["Res"] = 0 # type: ignore    # Res = 0, 代表自动计算步长等参数
         self.symbol_Cmd_Pose.write(self.cmdPose) # type: ignore    # write相当于发送
         
         # Start movement
@@ -400,7 +400,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         # 加载运动参数
         # Set movement parameters
         self.cmdTime["TA"] = 1.5  # type: ignore   # Acceleration time  一步迈过去的加速时间
-        self.cmdTime["TM"] = 2.5  # type: ignore   # Movement time
+        self.cmdTime["TM"] = 1.5  # type: ignore   # Movement time
         self.cmdTime["TD"] = 0.0  # type: ignore   # Deceleration overlap
         self.cmdTime["TZ"] = 0.2  # type: ignore   # Z advance time(s)z项提前抬起来
         self.symbol_Cmd_Time.write(self.cmdTime) # type: ignore
@@ -428,9 +428,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.cmdPose["Roll"] = 0.0  # type: ignore   
         self.cmdPose["Pitch"] = 0.0 # type: ignore   
         yaw_diff:float = self.calPosYawDiff2d(aim_pose.pose, self.current_pose)
-        self.cmdPose["Yaw"] = max(-5.0/180.0*math.pi, min(5.0/180.0*math.pi, yaw_diff))   # type: ignore   
+        yaw_control = -yaw_diff
+        self.cmdPose["Yaw"] = max(-5.0/180.0*math.pi, min(5.0/180.0*math.pi, yaw_control))   # type: ignore   
     
-        print(f"[move to] cmdPose set is: yaw: {yaw_diff}")
+        print(f"[move to] cmdPose set is: yaw: {yaw_control}")
         print(f"[move to] cmdPose set is clamped to: yaw: {self.cmdPose['Yaw']}")         # type: ignore   
         
         if(use_virtual_odom):
@@ -442,7 +443,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
 
 
         self.cmdPose["FG"] = 0  # type: ignore   # Movement mode 在发送的时候代表走一步停一下，1代表连续走
-        self.cmdPose["Res"] = 1 # type: ignore    # Res = 0, 代表自动计算步长等参数
+        self.cmdPose["Res"] = 0 # type: ignore    # Res = 0, 代表自动计算步长等参数
         self.symbol_Cmd_Pose.write(self.cmdPose) # type: ignore    # write相当于发送
         
         # Start movement
