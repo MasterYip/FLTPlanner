@@ -497,8 +497,10 @@ public:
 
         ros::Duration(step_duration).sleep(); // Step time, adjust as needed
         while (plc_in_motion_) {
+          ros::Duration(0.1).sleep();
           ros::spinOnce();
         }
+        ros::spinOnce();
       }
     }
     motion_lock_ = false;
