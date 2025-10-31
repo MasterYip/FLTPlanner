@@ -11,16 +11,6 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
     
     def __init__(self, node_name: str = "dummy_hexapod201_interface"):
         super().__init__(node_name)
-        self.movement_lock = threading.Lock()  # Add this line to define movement_lock
-
-    def follow_trajectory(self, trajectory: Path) -> bool:
-        """Simulate following a trajectory"""
-        rospy.loginfo("Dummy interface following trajectory")
-        return True
-
-    def follow_virtual_trajectory(self, trajectory: Path) -> bool:
-        """Simulate virtual following of a trajectory"""
-        rospy.loginfo("Dummy interface virtually following trajectory")
         self.movement_speed = 1.0  # m/s
         self.rotation_speed = 0.5  # rad/s # FIXME:
         self.movement_thread = None
@@ -39,6 +29,17 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         self.foot_positions = HEXAPOD201_DEFAULT_FOOT_POSITIONS.copy()
         
         rospy.loginfo("Dummy hexapod interface initialized")
+
+    def follow_trajectory(self, trajectory: Path) -> bool:
+        """Simulate following a trajectory"""
+        rospy.loginfo("Dummy interface following trajectory")
+        return True
+
+    def follow_virtual_trajectory(self, trajectory: Path) -> bool:
+        """Simulate virtual following of a trajectory"""
+        rospy.loginfo("Dummy interface virtually following trajectory")
+        return True
+
     
     def move_to_pose(self, target_pose: Pose) -> bool:
         """Simulate movement to target pose"""

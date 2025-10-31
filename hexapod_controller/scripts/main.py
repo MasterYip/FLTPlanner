@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-
 from hexapod201_interface import *
-from hexapod201_dummy_interface import *
+from hexapod201_dummy_interface import DummyHexapod201Interface
+
 
 def main():
     """Main function to run hexapod interface"""
