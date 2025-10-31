@@ -15,6 +15,9 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   groundLayerName: elevation_inpainted
   sdfEnable: false
   travErodeRad: 0.0
+  centerBoxAlwaysTrav: true
+  centerBoxWidth: 1.6
+  centerBoxLen: 1.6
 
 # FIXME: this is not working temporarily
 # grid_map_filters:

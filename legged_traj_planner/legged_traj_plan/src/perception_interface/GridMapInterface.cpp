@@ -14,6 +14,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <grid_map_ros/GridMapRosConverter.hpp>
 #include <grid_map_sdf/SignedDistanceField.hpp>
+#include <grid_map_core/GridMapMath.hpp>
 
 GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
                                    std::string topic_name,
@@ -124,25 +125,23 @@ void GridMapInterface::updateTravMap(void)
     try
     {
         map_.add(ground_layer_trav, map_.get(ground_layer));
-        
+
         // First pass: apply traversability criteria
         for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
         {
             bool valid = true;
             double normal_tan_ = std::sqrt(std::pow(map_.at(ground_norm_x_layer, *iterator), 2) + std::pow(map_.at(ground_norm_y_layer, *iterator), 2)) / map_.at(ground_norm_z_layer, *iterator);
             valid &= normal_tan_ < config_.normalTangentCrtic;
-            valid &= config_.enableHeightFilter ? map_.at(ground_layer, *iterator) < config_.maxHeight 
-                        && map_.at(ground_layer, *iterator) > config_.minHeight : true;
+            valid &= config_.enableHeightFilter ? map_.at(ground_layer, *iterator) < config_.maxHeight && map_.at(ground_layer, *iterator) > config_.minHeight : true;
             if (!valid)
                 map_.at(ground_layer_trav, *iterator) = std::nan("");
         }
-        std::string erode_layer = ground_layer_trav + "erode";
-        map_.add(erode_layer, map_.get(ground_layer_trav));
+
         // Second pass: apply erosion if travErodeRad > 0
         if (config_.travErodeRad > 0.0)
         {
-            grid_map::Matrix travLayer = map_.get(ground_layer_trav);
-            
+            grid_map::Matrix travLayerCopy = map_.get(ground_layer_trav);
+
             for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
             {
                 if (!std::isnan(map_.at(ground_layer_trav, *iterator)))
@@ -150,25 +149,55 @@ void GridMapInterface::updateTravMap(void)
                     // Check if any cell within erosion radius is invalid
                     grid_map::Position center;
                     map_.getPosition(*iterator, center);
-                    
+
                     bool shouldErode = false;
                     for (grid_map::CircleIterator circleIterator(map_, center, config_.travErodeRad);
                          !circleIterator.isPastEnd(); ++circleIterator)
                     {
-                        if (std::isnan(map_.at(ground_layer_trav, *circleIterator)))
+                        if (std::isnan(travLayerCopy((*circleIterator)(0), (*circleIterator)(1))))
                         {
                             shouldErode = true;
                             break;
                         }
                     }
-                    
+
                     if (shouldErode)
                     {
-                        map_.at(erode_layer, *iterator) = std::nan("");
+                        map_.at(ground_layer_trav, *iterator) = std::nan("");
                     }
                 }
             }
-            map_.get(ground_layer_trav) = map_.get(erode_layer);
+        }
+
+        // Third pass: ensure center box area is always traversable
+        if (config_.centerBoxAlwaysTrav && config_.centerBoxWidth > 0.0 && config_.centerBoxLen > 0.0)
+        {
+            grid_map::Position mapCenter = map_.getPosition();
+            grid_map::Length boxSize(config_.centerBoxLen, config_.centerBoxWidth);
+            
+            // Get start index and size for submap iterator using grid_map namespace function
+            grid_map::Index submapTopLeftIndex;
+            grid_map::Size submapBufferSize;
+            grid_map::Position submapPosition;
+            grid_map::Length submapLength;
+            grid_map::Index requestedIndexInSubmap;
+            
+            bool isValidSubmap = grid_map::getSubmapInformation(
+                submapTopLeftIndex, submapBufferSize, submapPosition, submapLength, requestedIndexInSubmap,
+                mapCenter, boxSize, map_.getLength(), map_.getPosition(), map_.getResolution(), 
+                map_.getSize(), map_.getStartIndex());
+            
+            if (isValidSubmap)
+            {
+                for (grid_map::SubmapIterator iterator(map_, submapTopLeftIndex, submapBufferSize);
+                     !iterator.isPastEnd(); ++iterator)
+                {
+                    if (!std::isnan(map_.at(ground_layer, *iterator)))
+                    {
+                        map_.at(ground_layer_trav, *iterator) = map_.at(ground_layer, *iterator);
+                    }
+                }
+            }
         }
     }
     catch (const std::exception &e)

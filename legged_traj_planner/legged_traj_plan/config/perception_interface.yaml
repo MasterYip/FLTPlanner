@@ -10,3 +10,6 @@ GridMapInterface:
   minHeight: -100.0
   sdfEnable: true
   travErodeRad: 0.0
+  centerBoxAlwaysTrav: false
+  centerBoxWidth: 1.6
+  centerBoxLen: 1.6

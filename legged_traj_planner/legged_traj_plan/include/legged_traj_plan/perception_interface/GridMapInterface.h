@@ -49,6 +49,11 @@ struct GridMapInterfaceConfig
     double minHeight{0.0};
     double travErodeRad{0.1}; // Erosion radius for traversability map
 
+    // Center box (robot projection area)
+    bool centerBoxAlwaysTrav{false};
+    double centerBoxWidth{1.0};
+    double centerBoxLen{1.0};
+
     void loadParam(ros::NodeHandle &nh, std::string ns = "GridMapInterface")
     {
         bool check_digit = true;
@@ -61,8 +66,11 @@ struct GridMapInterfaceConfig
         check_digit &= nh.getParam(ns + "/enableHeightFilter", enableHeightFilter);
         check_digit &= nh.getParam(ns + "/maxHeight", maxHeight);
         check_digit &= nh.getParam(ns + "/minHeight", minHeight);
-        check_digit &= nh.getParam(ns + "/sdfEnable", sdfEnable); // Load sdfEnable parameter
+        check_digit &= nh.getParam(ns + "/sdfEnable", sdfEnable);       // Load sdfEnable parameter
         check_digit &= nh.getParam(ns + "/travErodeRad", travErodeRad); // Load travErodeRad parameter
+        check_digit &= nh.getParam(ns + "/centerBoxAlwaysTrav", centerBoxAlwaysTrav);
+        check_digit &= nh.getParam(ns + "/centerBoxWidth", centerBoxWidth);
+        check_digit &= nh.getParam(ns + "/centerBoxLen", centerBoxLen);
     }
 };
 
