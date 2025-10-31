@@ -13,6 +13,9 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   groundLayerName: elevation_inpainted
   sdfEnable: false
   travErodeRad: 0.5
+  centerBoxAlwaysTrav: false
+  centerBoxWidth: 1.6
+  centerBoxLen: 1.6
 
 grid_map_filters:
   # Compute surface normals.
