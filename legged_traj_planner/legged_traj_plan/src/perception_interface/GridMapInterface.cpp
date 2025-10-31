@@ -219,7 +219,7 @@ void GridMapInterface::updateFootholdMap(void)
         for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
         {
             bool valid = true;
-            double normal_tan_ = std::sqrt(std::pow(map_.at(ground_norm_x_layer, *iterator), 2) + std::pow(map_.at(ground_norm_y_layer, *iterator), 2)) / map_.at(ground_norm_z_layer, *iterator);
+            double normal_tan_ = std::sqrt(std::pow(map_.at(ground_norm_noblur_x, *iterator), 2) + std::pow(map_.at(ground_norm_noblur_y, *iterator), 2)) / map_.at(ground_norm_noblur_z, *iterator);
             valid &= normal_tan_ < config_.footholdNormalTangentCrtic;
             valid &= config_.footholdEnableHeightFilter ? map_.at(ground_layer, *iterator) < config_.footholdMaxHeight && map_.at(ground_layer, *iterator) > config_.footholdMinHeight : true;
             if (!valid)

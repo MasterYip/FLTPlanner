@@ -111,6 +111,9 @@ private:
     std::string ground_norm_x_layer = {"normal_x"};
     std::string ground_norm_y_layer = {"normal_y"};
     std::string ground_norm_z_layer = {"normal_z"};
+    std::string ground_norm_noblur_x = {"normal_noblur_x"};
+    std::string ground_norm_noblur_y = {"normal_noblur_y"};
+    std::string ground_norm_noblur_z = {"normal_noblur_z"};
     std::string ground_layer_trav;
     std::string ground_layer_foothold;
     std::string ceiling_layer;

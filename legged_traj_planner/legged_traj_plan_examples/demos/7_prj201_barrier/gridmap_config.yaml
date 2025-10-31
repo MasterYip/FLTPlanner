@@ -5,18 +5,18 @@ min_height_ceiling: 1
 max_height_ceiling: 1
 elevation_layer: elevation_inpainted
 ceiling_layer: ceiling
-map_position_x: 3.0
+map_position_x: 1.5
 map_position_y: 0.0
 
 GridMapInterface: # NOTE: this override config in perception_interface.yaml
-  normalTangentCrtic: 0.5
+  normalTangentCrtic: 0.8
   groundLayerName: elevation_inpainted
   sdfEnable: false
   travErodeRad: 0.0
   centerBoxAlwaysTrav: false
   centerBoxWidth: 1.6
   centerBoxLen: 1.6
-  enableHeightFilter: true
+  enableHeightFilter: false
   maxHeight: 0.1
   minHeight: -100.0
   # Foothold map parameters
@@ -31,15 +31,22 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
 
 grid_map_filters:
   # Compute surface normals.
-  - 
-    name: surface_normals_area
+  - name: surface_normals_area
     type: gridMapFilters/NormalVectorsFilter
     params:
       input_layer: elevation_inpainted
       algorithm: area
       output_layers_prefix: normal_
-      radius: 0.05
+      radius: 0.4
       normal_vector_positive_axis: z
       parallelization_enabled: true
       thread_number: 4
       # thread_number: -1 doesn't limit the number of threads to be used
+  # Compute surface normals.
+  - name: surface_normals_noblur
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      input_layer: elevation_inpainted
+      output_layers_prefix: normal_noblur_
+      radius: 0.1
+      normal_vector_positive_axis: z
