@@ -1,21 +1,24 @@
-resolution: 0.025           # 网格地图分辨率
+resolution: 0.05           # 网格地图分辨率
 min_height: 0.0             # 
-max_height: 1.0
+max_height: 0.3
 min_height_ceiling: 1
 max_height_ceiling: 1
 elevation_layer: elevation_inpainted
 ceiling_layer: ceiling
-map_position_x: 3.2
+map_position_x: 3.0
 map_position_y: 0.0
 
 GridMapInterface: # NOTE: this override config in perception_interface.yaml
-  normalTangentCrtic: 0.7
+  normalTangentCrtic: 0.2
   groundLayerName: elevation_inpainted
   sdfEnable: false
   travErodeRad: 0.0
   centerBoxAlwaysTrav: false
   centerBoxWidth: 1.6
   centerBoxLen: 1.6
+  enableHeightFilter: true
+  maxHeight: 0.1
+  minHeight: -100.0
 
 grid_map_filters:
   # Compute surface normals.
