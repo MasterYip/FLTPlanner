@@ -209,19 +209,26 @@ struct Hexapod201StateSequencePlannerConfig
   double maxYawChange;
   double navStepDuration;
 
-  void loadParams(ros::NodeHandle &nh,
-                  std::string ns = "StateSequencePlanner")
+  // Pose control parameters
+  bool keepPoseHorizontal;
+  bool keepConstBaseFootZ;
+  double keepConstBaseFootZValue;
+
+  void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
   {
     bool check_digit = true;
     check_digit &= nh.getParam(ns + "/rosRate", rosRate);
     check_digit &= nh.getParam(ns + "/stepTime", stepTime);
     check_digit &= nh.getParam(ns + "/execOnKeyboardCmd", execOnKeyboardCmd);
     check_digit &= nh.getParam(ns + "/tripodStepDuration", tripodStepDuration);
-    check_digit &=
-        nh.getParam(ns + "/tripodStanceDuration", tripodStanceDuration);
+    check_digit &= nh.getParam(ns + "/tripodStanceDuration", tripodStanceDuration);
     check_digit &= nh.getParam(ns + "/maxStepLength", maxStepLength);
     check_digit &= nh.getParam(ns + "/maxYawChange", maxYawChange);
     check_digit &= nh.getParam(ns + "/navStepDuration", navStepDuration);
+    // Load new pose control parameters
+    check_digit &= nh.getParam(ns + "/keepPoseHorizontal", keepPoseHorizontal);
+    check_digit &= nh.getParam(ns + "/keepConstBaseFootZ", keepConstBaseFootZ);
+    check_digit &= nh.getParam(ns + "/keepConstBaseFootZValue", keepConstBaseFootZValue);
     if (!check_digit)
     {
       ROS_ERROR("Failed to load Hexapod201StateSequencePlannerConfig.");
@@ -477,6 +484,16 @@ public:
         gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
         target_pose = gridmap_extrapolator_.extrapolate(0.0);
 
+        // Apply keepPoseHorizontal: set roll and pitch to 0
+        if (config_.keepPoseHorizontal)
+        {
+          Eigen::Vector3d rpy_horizontal = pinocchio::rpy::matrixToRpy(target_pose.rotation());
+          rpy_horizontal[0] = 0.0; // roll = 0
+          rpy_horizontal[1] = 0.0; // pitch = 0
+          // keep yaw unchanged: rpy_horizontal[2] remains the same
+          target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy_horizontal);
+        }
+
         // Get current hexapod state for Raibert gait planning
         legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
 
@@ -506,6 +523,13 @@ public:
           // Transform from world frame to body frame
           footend_positions[leg_idx] =
               point_SE3Act(target_pose, world_foot_pos);
+          
+          // Apply keepConstBaseFootZ: set Z in base frame to constant value
+          if (config_.keepConstBaseFootZ)
+          {
+            footend_positions[leg_idx][2] = config_.keepConstBaseFootZValue;
+          }
+          
           contact_states[leg_idx] = next_state.support_State_Now[leg_idx];
         }
 

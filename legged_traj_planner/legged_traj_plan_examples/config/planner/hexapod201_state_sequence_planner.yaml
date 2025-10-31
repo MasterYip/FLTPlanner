@@ -23,3 +23,8 @@ StateSequencePlanner:
   tripodStanceDuration: 0.3
   maxStepLength: 0.10
   maxYawChange: 0.5
+
+  # Pose control parameters
+  keepPoseHorizontal: true
+  keepConstBaseFootZ: false
+  keepConstBaseFootZValue: 0.405
