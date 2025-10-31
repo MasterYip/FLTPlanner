@@ -11,7 +11,7 @@ def main():
     # Get parameters from ROS parameter server
     interface_type = rospy.get_param('~interface_type', None)
     use_dummy = rospy.get_param('~dummy', False)
-    plc_ip = rospy.get_param('~plc_ip', '192.168.1.115.1.1')
+    plc_ip = rospy.get_param('~plc_ip', '5.157.100.214.1.1')
     node_name = rospy.get_param('~node_name', 'hexapod201_interface')
     
     try:
@@ -43,7 +43,7 @@ def main():
 
 def test_interface():
     rospy.init_node('test_hexapod201_interface', anonymous=True)
-    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="192.168.1.115.1.1")
+    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="5.157.100.214.1.1")
     pose = Pose()
     pose.position.x = 0.1
     pose.position.y = 0.0
@@ -61,7 +61,7 @@ def test_interface():
 def test_pose_with_feet(gait2phase=0):
     """Test move_to_pose_with_feet method"""
     rospy.init_node('test_hexapod_pose_with_feet', anonymous=True)
-    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="192.168.1.115.1.1")
+    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="5.157.100.214.1.1")
     
     # Define target pose - move forward 0.2m and turn 30 degrees
     target_pose = Pose()

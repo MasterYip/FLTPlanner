@@ -29,15 +29,15 @@ FOOT_REMAP = [3, 4, 5, 0, 1, 2]  # Remap from FootElAir to Foot201
 class Hexapod201Interface(Hexapod201BaseInterface):
     """Real hexapod interface using PLC communication"""
     
-    def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = ""):
+    def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "5.157.100.214.1.1"):
         super().__init__(node_name)
         
         self.robot_pose_sub = rospy.Subscriber('/Odometry', Odometry, self._robot_pose_sub_callback)
         self.plc_ip = plc_ip
         self.plc = None
         self.plc_connected = False
-        self.cpp = None
-        self.cpp_connected = False
+        # self.cpp = None
+        # self.cpp_connected = False
         
         # PLC symbols
         self.symbol_Cmd_Time = None
@@ -48,10 +48,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.symbol_QState = None
         self.symbol_PTActPos = None
         
-        # CPP symbols for free gait
-        self.symbol_ReqPTCmd = None
-        self.symbol_ReqFlag = None
-        self.ReqPTCmd = None
+        # # CPP symbols for free gait
+        # self.symbol_ReqPTCmd = None
+        # self.symbol_ReqFlag = None
+        # self.ReqPTCmd = None
         
         # Movement parameters
         self.cmdTime = None
@@ -61,11 +61,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         # 判断一个位置到了没有的容许误差
         self.admit_pose_limit = 0.10 # 0.10m
         self.admit_angle_limit = 4.0 / 180.0 * math.pi # 4° degree
-        
-        # 判断一个位置到了没有的容许误差
-        self.admit_pose_limit = 0.10 # 0.10m
-        self.admit_angle_limit = 4.0 / 180.0 * math.pi # 4° degree
-        
+                
         # Connect to PLC and CPP
         self._connect_plc()
         
@@ -73,47 +69,55 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     
     def _connect_plc(self):
         """Establish PLC and CPP connections"""
-        # try:
+        try:
 
-        # PLC connection
-        self.plc = pyads.Connection(self.plc_ip, pyads.PORT_TC3PLC1, '192.168.3.101')
-        self.plc.open()
-        
-        # CPP connection for free gait
-        self.cpp = pyads.Connection(self.plc_ip, 351)
-        self.cpp.open()
-
-        # Initialize PLC symbols
-        self.symbol_Cmd_Time = self.plc.get_symbol('MAIN.PTCmd.TM', structure_def=stTime_def)
-        self.symbol_Cmd_Gait = self.plc.get_symbol('MAIN.PTCmd.Gait', structure_def=stGait_def)
-        self.symbol_Cmd_Pose = self.plc.get_symbol('MAIN.PTCmd.Pose', structure_def=stPose_def)
-        self.symbol_CtrlCmd = self.plc.get_symbol('MAIN.CtrlCmd', plc_datatype="UDINT")
-        self.symbol_CtrlCmd.symbol_type = pyads.PLCTYPE_UDINT
-        self.symbol_CtrlCmd.plc_type = pyads.PLCTYPE_UDINT
-        self.symbol_State = self.plc.get_symbol('MAIN.state', plc_datatype="UDINT")
-        self.symbol_State.symbol_type = pyads.PLCTYPE_UDINT
-        self.symbol_State.plc_type = pyads.PLCTYPE_UDINT
-        self.symbol_QState = self.plc.get_symbol('MAIN.Q_State')
-        self.symbol_PTActPos = self.plc.get_symbol('MAIN.PTActPos', structure_def=stPose_def)
-        self.symbol_PTCmdPos = self.plc.get_symbol('MAIN.PTCmdPos', structure_def=stPose_def)
-        # Initialize CPP symbols for free gait
-        self.symbol_ReqPTCmd = self.cpp.get_symbol('CPP.Inputs.ReqPTCmd', structure_def=stPose_def)
-        self.symbol_ReqFlag = self.cpp.get_symbol('CPP.Inputs.ReqFlag')
-        
-        # Enable auto-update for feedback
-        self.symbol_QState.auto_update = True
-        self.symbol_ReqFlag.auto_update = True
-        self.symbol_PTActPos.auto_update = True
-        self.symbol_PTCmdPos.auto_update = True
-        
-        self.plc_connected = True
-        self.cpp_connected = True
-        rospy.loginfo("PLC and CPP connections established")
+            # PLC connection
+            self.plc = pyads.Connection(self.plc_ip, pyads.PORT_TC3PLC1, '192.168.3.101')
+            self.plc.open()
             
-        # except Exception as e:
-        #     rospy.logerr(f"PLC/CPP connection failed: {str(e)}")
-        #     self.plc_connected = False
-        #     self.cpp_connected = False
+            # # CPP connection for free gait
+            # self.cpp = pyads.Connection(self.plc_ip, 351)
+            # self.cpp.open()
+
+            # Initialize PLC symbols
+            self.symbol_Cmd_Time = self.plc.get_symbol('MAIN.PTCmd.TM', structure_def=stTime_def)
+            self.symbol_Cmd_Gait = self.plc.get_symbol('MAIN.PTCmd.Gait', structure_def=stGait_def)
+            self.symbol_Cmd_Pose = self.plc.get_symbol('MAIN.PTCmd.Pose', structure_def=stPose_def)
+            self.symbol_CtrlCmd = self.plc.get_symbol('MAIN.CtrlCmd', plc_datatype="UDINT")
+            self.symbol_CtrlCmd.symbol_type = pyads.PLCTYPE_UDINT
+            self.symbol_CtrlCmd.plc_type = pyads.PLCTYPE_UDINT
+            self.symbol_State = self.plc.get_symbol('MAIN.state', plc_datatype="UDINT")
+            self.symbol_State.symbol_type = pyads.PLCTYPE_UDINT
+            self.symbol_State.plc_type = pyads.PLCTYPE_UDINT
+            self.symbol_QState = self.plc.get_symbol('MAIN.Q_State')
+            self.symbol_QState.symbol_type = pyads.PLCTYPE_UDINT
+            self.symbol_QState.plc_type = pyads.PLCTYPE_UDINT
+            self.symbol_PTActPos = self.plc.get_symbol('MAIN.PTActPos', structure_def=stPose_def)
+            self.symbol_PTCmdPos = self.plc.get_symbol('MAIN.PTCmdPos', structure_def=stPose_def)
+            
+            
+            # # Initialize CPP symbols for free gait
+            # self.symbol_ReqPTCmd = self.cpp.get_symbol('CPP.Inputs.ReqPTCmd', structure_def=stPose_def)
+            # self.symbol_ReqFlag = self.cpp.get_symbol('CPP.Inputs.ReqFlag')
+            
+            # Enable auto-update for feedback
+            self.symbol_QState.auto_update = True    # Q的意思是输出状态, 状态指当前单步, 连续， 停止还是别的状态
+            # self.symbol_ReqFlag.auto_update = True
+            self.symbol_PTActPos.auto_update = True  # PT的意思是平台
+            self.symbol_PTCmdPos.auto_update = True
+            
+            self.plc_connected = True
+            # self.cpp_connected = True
+            rospy.logdebug("PLC connection established......................................................")
+            rospy.logdebug("PLC connection established")
+            rospy.logdebug("PLC connection established")
+            rospy.logdebug("PLC connection established")
+            rospy.loginfo("PLC and CPP connections established")
+            
+        except Exception as e:
+            rospy.logerr(f"PLC/CPP connection failed: {str(e)}")
+            self.plc_connected = False
+            # self.cpp_connected = False
     
     def _robot_pose_sub_callback(self, msg: Odometry):
         self.current_pose.position = msg.pose.pose.position
@@ -194,60 +198,60 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             rospy.logerr("PLC not connected")
             return False
         
-        # try:
-        # Enable PLC
-        if not self._enable_plc():
-            return False
-        
-        # Read current parameters
-        if not self._read_plc_parameters():
-            return False
-        
-        # Set movement parameters
-        self.cmdTime["TA"] = 0.5  # Acceleration time
-        self.cmdTime["TM"] = 2.5  # Movement time
-        self.cmdTime["TD"] = 0.0  # Deceleration overlap
-        self.cmdTime["TZ"] = 0.0  # Z advance time
-        self.symbol_Cmd_Time.write(self.cmdTime)
-        
-        # Set gait parameters
-        self.cmdGait["GaitMode"] = 1  # Synchronous gait
-        self.cmdGait["GaitDF"] = 0.5  # Duty factor
-        self.cmdGait["SwapHigh"] = 80.0  # Swing height (mm)
-        self.cmdGait["LegNum"] = 0  
-        self.cmdGait["ForceMode"] = 0 # Force control mode
-        self.cmdGait["Res"] = 0
-        self.symbol_Cmd_Gait.write(self.cmdGait)
-        
-        # Set pose parameters
-        self.cmdPose["X"] = target_pose.position.x * 1000  # Convert to mm
-        self.cmdPose["Y"] = target_pose.position.y * 1000
-        self.cmdPose["Z"] = target_pose.position.z * 1000
-        
-        # Convert quaternion to Euler angles
-        euler = euler_from_quaternion([
-            target_pose.orientation.x,
-            target_pose.orientation.y,
-            target_pose.orientation.z,
-            target_pose.orientation.w
-        ])
-        self.cmdPose["Roll"] = euler[0]
-        self.cmdPose["Pitch"] = euler[1]
-        self.cmdPose["Yaw"] = euler[2]
-        
-        self.cmdPose["FG"] = 0  # Movement mode
-        self.cmdPose["Res"] = 0
-        self.symbol_Cmd_Pose.write(self.cmdPose)
-        
-        # Start movement
-        self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)
-        
-        rospy.loginfo(f"Started movement to pose: {target_pose.position}")
-        return True
+        try:
+            # Enable PLC
+            if not self._enable_plc():
+                return False
             
-        # except Exception as e:
-        #     rospy.logerr(f"Movement failed: {str(e)}")
-        #     return False
+            # Read current parameters
+            if not self._read_plc_parameters():
+                return False
+            
+            # Set movement parameters
+            self.cmdTime["TA"] = 0.5  # type: ignore # Acceleration time
+            self.cmdTime["TM"] = 2.5  # type: ignore # Movement time
+            self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
+            self.cmdTime["TZ"] = 0.5  # type: ignore # Z advance time
+            self.symbol_Cmd_Time.write(self.cmdTime) # type: ignore
+            
+            # Set gait parameters
+            self.cmdGait["GaitMode"] = 1  # type: ignore # Synchronous gait
+            self.cmdGait["GaitDF"] = 0.5  # type: ignore # Duty factor
+            self.cmdGait["SwapHigh"] = 100.0  # type: ignore # Swing height (mm)
+            self.cmdGait["LegNum"] = 0  # type: ignore # Force control mode
+            self.cmdGait["ForceMode"] = 0  # type: ignore 
+            self.cmdGait["Res"] = 0  # type: ignore 
+            self.symbol_Cmd_Gait.write(self.cmdGait)  # type: ignore 
+            
+            # Set pose parameters
+            self.cmdPose["X"] = min(400, target_pose.position.x * 1000)  # type: ignore  # Convert to mm
+            self.cmdPose["Y"] = min(200, target_pose.position.y * 1000)  # type: ignore 
+            self.cmdPose["Z"] = target_pose.position.z * 1000  # type: ignore 
+            
+            # Convert quaternion to Euler angles
+            euler = euler_from_quaternion([
+                target_pose.orientation.x,
+                target_pose.orientation.y,
+                target_pose.orientation.z,
+                target_pose.orientation.w
+            ])
+            self.cmdPose["Roll"] = euler[0]  # type: ignore 
+            self.cmdPose["Pitch"] = euler[1] # type: ignore 
+            self.cmdPose["Yaw"] = euler[2]   # type: ignore 
+            
+            self.cmdPose["FG"] = 0  # type: ignore   # Movement mode
+            self.cmdPose["Res"] = 0 # type: ignore 
+            self.symbol_Cmd_Pose.write(self.cmdPose)  # type: ignore 
+            
+            # Start movement
+            self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)  # type: ignore 
+            
+            rospy.loginfo(f"Started movement to pose: {target_pose.position}")
+            return True
+            
+        except Exception as e:
+            rospy.logerr(f"Movement failed: {str(e)}")
+            return False
     
     def move_free_gait(self, body_motion: np.ndarray, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
         """Move hexapod using free gait with custom foothold definitions"""
@@ -337,42 +341,8 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         except Exception as e:
             rospy.logerr(f"Free gait movement failed: {str(e)}")
             return False
-    def calPosDisDiff3d(self, a:Pose, b:Pose) -> float:
-        return pow(pow(a.position.x - b.position.x, 2)+
-                   pow(a.position.y - b.position.y, 2)+
-                   pow(a.position.z - b.position.z, 2), 0.5)
-    def calPosDisDiff2d(self, a:Pose, b:Pose) -> float:
-        return pow(pow(a.position.x - b.position.x, 2)+
-                    pow(a.position.y - b.position.y, 2), 0.5)
-    def calPosYawDiff2d(self, a: Pose, b: Pose) -> float:
-        """Calculate the angular difference (yaw) between two poses in 2D."""
-        quat_a = [a.orientation.x, a.orientation.y, a.orientation.z, a.orientation.w]
-        quat_b = [b.orientation.x, b.orientation.y, b.orientation.z, b.orientation.w]
     
-        # Convert quaternions to Euler angles
-        _, _, yaw_a = euler_from_quaternion(quat_a)
-        _, _, yaw_b = euler_from_quaternion(quat_b)
-    
-        # Calculate angular difference
-        angle_diff = yaw_b - yaw_a
-        while angle_diff > math.pi:
-            angle_diff -= 2 * math.pi
-        while angle_diff < -math.pi:
-            angle_diff += 2 * math.pi
-    
-        return angle_diff
-    def calPosYaw2d(self, a: Pose) -> float:
-        """Calculate the angular difference (yaw) between two poses in 2D."""
-        quat_a = [a.orientation.x, a.orientation.y, a.orientation.z, a.orientation.w]
-    
-        # Convert quaternions to Euler angles
-        _, _, yaw_a = euler_from_quaternion(quat_a)
-        
-        while yaw_a > math.pi:
-            yaw_a -= 2 * math.pi
-        while yaw_a < -math.pi:
-            yaw_a += 2 * math.pi
-        return yaw_a
+
         
     def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped):
         if not self._read_plc_parameters():
@@ -464,6 +434,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         return True
     
     def follow_virtual_trajectory(self, trajectory: Path) -> bool:
+        print("entered: [follow_virtual_trajectory]")
         if trajectory.poses is None:
             rospy.logerr("Trajectory poses are None")
             return False
@@ -635,12 +606,12 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             except Exception as e:
                 rospy.logerr(f"Error closing PLC connection: {str(e)}")
         
-        if self.cpp_connected and self.cpp:
-            try:
-                self.cpp.close()
-                rospy.loginfo("CPP connection closed")
-            except Exception as e:
-                rospy.logerr(f"Error closing CPP connection: {str(e)}")
+        # if self.cpp_connected and self.cpp:
+        #     try:
+        #         self.cpp.close()
+        #         rospy.loginfo("CPP connection closed")
+        #     except Exception as e:
+        #         rospy.logerr(f"Error closing CPP connection: {str(e)}")
 
     def test_footpos_read(self):
         """Test reading foot positions from PLC"""

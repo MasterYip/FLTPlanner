@@ -27,6 +27,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
+#include <nav_msgs/Path.h>
 #include "legged_traj_plan/FootState.h"
 
 /* internal project header files */
@@ -38,6 +39,7 @@ struct Hexapod201InterfaceROSConfig
 
     // Topic names for communication with Python interface
     std::string poseCommandTopic;      // Command topic to send pose commands
+    std::string pathCommandTopic;      // Command topic to send path commands
     std::string footCommandTopic;      // Command topic to send foot commands
     std::string currentPoseTopic;      // Feedback topic to receive current pose
     std::string footStateTopic;        // Feedback topic to receive foot states
@@ -58,6 +60,8 @@ struct Hexapod201InterfaceROSConfig
         
         // Topic configuration
         nh.param(ns + "/poseCommandTopic", poseCommandTopic, std::string("/hexapod/pose_cmd"));
+        nh.param(ns + "/pathCommandTopic", pathCommandTopic,
+                 std::string("/hexapod/path_cmd"));
         nh.param(ns + "/footCommandTopic", footCommandTopic, std::string("/hexapod/foot_cmd"));
         nh.param(ns + "/currentPoseTopic", currentPoseTopic, std::string("/hexapod/current_pose"));
         nh.param(ns + "/footStateTopic", footStateTopic, std::string("/hexapod/foot_state"));
@@ -83,7 +87,7 @@ private:
     Hexapod201InterfaceROSConfig config_;
 
     // ROS Publishers (Commands to Python interface)
-    ros::Publisher pose_cmd_pub_;
+    ros::Publisher pose_cmd_pub_, path_cmd_pub_;
     ros::Publisher foot_cmd_pub_;
 
     // ROS Subscribers (Feedback from Python interface)
@@ -141,6 +145,7 @@ public:
 
     //// Overrides - Command Interface (Send commands to Python interface)
     void setBodyPoseCmd(const pinocchio::SE3 &body_pose) override;
+    void setStepBodyPathCmd(const nav_msgs::Path &body_path) override;
     void setBodyVelCmd(const pinocchio::Motion &body_vel) override;
     void setJointCmd(const std::vector<double> &q) override;
     void setJointCmd(const std::vector<Eigen::Vector3d> &q) override;

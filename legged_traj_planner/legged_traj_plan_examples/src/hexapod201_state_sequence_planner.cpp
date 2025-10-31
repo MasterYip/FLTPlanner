@@ -9,7 +9,13 @@
  *
  */
 
+#include "legged_traj_plan_examples/backward.hpp"
 #include "legged_traj_plan_examples/hexapod201_planner/Hexapod201StateSequencePlanner.h"
+namespace backward {
+
+backward::SignalHandling sh;
+
+} // namespace backward
 
 int main(int argc, char **argv)
 {

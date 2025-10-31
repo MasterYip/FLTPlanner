@@ -87,6 +87,7 @@ Hexapod201ROS:
   urdfParamPath: /robot_description
   # Topic names for communication with Python interface
   poseCommandTopic: /hexapod/pose_cmd
+  pathCommandTopic: /hexapod/path_cmd
   footCommandTopic: /hexapod/foot_cmd
   currentPoseTopic: /hexapod/current_pose
   footStateTopic: /hexapod/foot_state

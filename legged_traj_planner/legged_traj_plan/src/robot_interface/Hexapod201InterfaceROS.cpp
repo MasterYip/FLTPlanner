@@ -19,6 +19,8 @@ Hexapod201InterfaceROS::Hexapod201InterfaceROS(const Hexapod201InterfaceROSConfi
 {
     // Initialize publishers (commands to Python interface)
     pose_cmd_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(config_.poseCommandTopic, 10);
+    path_cmd_pub_ =
+        nh_.advertise<nav_msgs::Path>(config_.pathCommandTopic, 10);
     foot_cmd_pub_ = nh_.advertise<legged_traj_plan::FootState>(config_.footCommandTopic, 10);
 
     // Initialize subscribers (feedback from Python interface)
@@ -199,6 +201,11 @@ void Hexapod201InterfaceROS::setBodyPoseCmd(const pinocchio::SE3 &body_pose)
     ROS_DEBUG("Published pose command: pos=(%f,%f,%f), quat=(%f,%f,%f,%f)",
               pose_msg.pose.position.x, pose_msg.pose.position.y, pose_msg.pose.position.z,
               quat.x(), quat.y(), quat.z(), quat.w());
+}
+
+void Hexapod201InterfaceROS::setStepBodyPathCmd(
+    const nav_msgs::Path &body_path) {
+  path_cmd_pub_.publish(body_path);
 }
 
 void Hexapod201InterfaceROS::setBodyVelCmd(const pinocchio::Motion &body_vel)

@@ -1,7 +1,7 @@
 import copy
 import threading
 from hexapod201_base_interface import *
-
+import time
 class DummyHexapod201Interface(Hexapod201BaseInterface):
     """Dummy interface for simulation/testing"""
 
@@ -22,6 +22,11 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         self.swing_height = 80.0  # mm
         self.swing_duration = 1.5  # seconds
         
+        # 判断一个位置到了没有的容许误差
+        self.admit_pose_limit = 0.10 # 0.10m
+        self.admit_angle_limit = 4.0 / 180.0 * math.pi # 4° degree
+
+        
         # Cache world positions for support feet (they should not move in world frame)
         self.support_foot_world_positions = np.zeros((6, 3))  # World frame positions for support feet
         
@@ -36,9 +41,40 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         return True
 
     def follow_virtual_trajectory(self, trajectory: Path) -> bool:
-        """Simulate virtual following of a trajectory"""
-        rospy.loginfo("Dummy interface virtually following trajectory")
+        if trajectory.poses is None:
+            rospy.logerr("Trajectory poses are None")
+            return False
+        print("virtually enable plc")
+        cur_step:int = 0
+        while cur_step < len(trajectory.poses):
+            aim_pose = trajectory.poses[cur_step]
+            print(f"[follow_traj] aim_pose x= {aim_pose.pose.position.x}"
+                  f"y= {aim_pose.pose.position.y} z= {aim_pose.pose.position.z}"
+                  f"yaw= {self.calPosYaw2d(aim_pose)/math.pi*180.0} cur_step= {cur_step} ")
+            print("virtually read plc state, cur_beifu_Cmd['FG']==CtrlCmd.IDLE")
+            if True:
+                # 拿一下机器人当前的位置
+                cur_pose:Pose = self.get_current_pose()
+                print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
+                # 模拟实际的SLAM反馈中到达目标点的判断函数, 认为走出一步之后就到达了目标点
+                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYawDiff2d(aim_pose, cur_pose)) <= self.admit_angle_limit:
+                    # 说明已经到达了当前点
+                    print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                    cur_step += 1
+                else:
+                    print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                    
+                    # self.move_to_pos(cur_pose, aim_pose)
+                    time.sleep(1.0)
+                    print("[follow_traj]has finished this step")
+                    
+                    # 虚拟地将移动后的期望位置更新为机器人的当前位置
+                    self.current_pose.position.x = aim_pose.pose.position.x
+                    self.current_pose.position.y = aim_pose.pose.position.y
+                    self.current_pose.position.z = aim_pose.pose.position.z
+            
         return True
+
 
     
     def move_to_pose(self, target_pose: Pose) -> bool:

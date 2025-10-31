@@ -28,6 +28,7 @@
 #include "legged_traj_search/geo_utils/polyhedra.hpp"
 #include <Eigen/Dense>
 #include <sensor_msgs/JointState.h>
+#include <nav_msgs/Path.h>
 /* internal project header files */
 
 class BaseRobotInterface {
@@ -171,6 +172,11 @@ public:
   // Virtual Command Interface - to be implemented by derived classes
   virtual void setBodyPoseCmd(const pinocchio::SE3 &body_pose) {
     throw std::runtime_error("setBodyPoseCmd not implemented in derived class");
+  }
+  // Virtual Command Interface - to be implemented by derived classes
+  virtual void setStepBodyPathCmd(const nav_msgs::Path &body_path) {
+    throw std::runtime_error(
+        "setStepBodyPathCmd not implemented in derived class");
   }
 
   virtual void setBodyVelCmd(const pinocchio::Motion &body_vel) {

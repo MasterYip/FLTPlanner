@@ -70,7 +70,7 @@ class Hexapod201BaseInterface(ABC):
         # self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.pose_cmd_sub = rospy.Subscriber('/hexapod/pose_cmd', PoseStamped, self.pose_cmd_callback)
         self.foot_cmd_sub = rospy.Subscriber('/hexapod/foot_cmd', FootState, self.foot_cmd_callback)
-        self.pose_cmd_sub = rospy.Subscriber('/hexapod/path_cmd', Path, self.follow_virtual_trajectory)
+        self.path_cmd_sub = rospy.Subscriber('/hexapod/path_cmd', Path, self.follow_virtual_trajectory)
         
         # Timer for publishing current pose and foot state
         self.pose_timer = rospy.Timer(rospy.Duration(0, int(1e8)), self.publish_feedback)
@@ -277,6 +277,70 @@ class Hexapod201BaseInterface(ABC):
         # Also call visualization (for dummy interface)
         if hasattr(self, 'visualize_hexapod_body'):
             self.visualize_hexapod_body()
+        # self.visualize_hexapod_body()
+    
+    def calPosDisDiff3d(self, a:Pose, b:Pose) -> float:
+        """Calculate 3D distance between two poses, handling Pose and PoseStamped."""
+        if isinstance(a, PoseStamped):
+            a = a.pose
+        if isinstance(b, PoseStamped):
+            b = b.pose
+        return pow(pow(a.position.x - b.position.x, 2) +
+                   pow(a.position.y - b.position.y, 2) +
+                   pow(a.position.z - b.position.z, 2), 0.5)
+    
+    def calPosDisDiff2d(self, a:Pose, b:Pose) -> float:
+        """Calculate 2D distance between two poses, handling Pose and PoseStamped."""
+        if isinstance(a, PoseStamped):
+            a = a.pose
+        if isinstance(b, PoseStamped):
+            b = b.pose
+        return pow(pow(a.position.x - b.position.x, 2) +
+                    pow(a.position.y - b.position.y, 2), 0.5)
+    
+    def calPosYawDiff2d(self, a: Pose, b: Pose) -> float:
+        def extract_quaternion(pose):
+            if isinstance(pose, Pose):
+                return [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]
+            elif isinstance(pose, PoseStamped):
+                return [pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w]
+            else:
+                raise TypeError("Input must be of type Pose or PoseStamped")
+        
+        quat_a = extract_quaternion(a)
+        quat_b = extract_quaternion(b)
+    
+        # Convert quaternions to Euler angles
+        _, _, yaw_a = euler_from_quaternion(quat_a)
+        _, _, yaw_b = euler_from_quaternion(quat_b)
+    
+        # Calculate angular difference
+        angle_diff = yaw_b - yaw_a
+        while angle_diff > math.pi:
+            angle_diff -= 2 * math.pi
+        while angle_diff < -math.pi:
+            angle_diff += 2 * math.pi
+    
+        return angle_diff
+    
+    def calPosYaw2d(self, a: Pose) -> float:
+        """Calculate the angular difference (yaw) between two poses in 2D."""
+        if isinstance(a, Pose):
+            quat_a = [a.orientation.x, a.orientation.y, a.orientation.z, a.orientation.w]
+        elif isinstance(a, PoseStamped):
+            quat_a = [a.pose.orientation.x, a.pose.orientation.y, a.pose.orientation.z, a.pose.orientation.w]
+        else:
+            raise TypeError("Input must be of type Pose or PoseStamped")
+        # Convert quaternions to Euler angles
+        _, _, yaw_a = euler_from_quaternion(quat_a)
+        
+        while yaw_a > math.pi:
+            yaw_a -= 2 * math.pi
+        while yaw_a < -math.pi:
+            yaw_a += 2 * math.pi
+        return yaw_a
+    
+    
     
     @abstractmethod
     def move_to_pose(self, target_pose: Pose) -> bool:

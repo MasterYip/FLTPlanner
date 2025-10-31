@@ -332,10 +332,11 @@ public:
         }
     }
 
-    void setStepBodyPathCmd(const nav_msgs::Path &body_path) {
-      if (config_.usePyInterface) {
-        path_cmd_pub.publish(body_path);
-      }
+    void setStepBodyPathCmd(const nav_msgs::Path &body_path) override {
+      path_cmd_pub.publish(body_path);
+      // if (config_.usePyInterface) {
+      //   path_cmd_pub.publish(body_path);
+      // }
       // For non-Python interface, just set the body pose
       // setBodyPoseCmd(body_pose);
     }
