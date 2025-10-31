@@ -30,6 +30,7 @@ GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
     occupiedPublisher_ = nh_.advertise<sensor_msgs::PointCloud2>("sdf/occupied_space", 1);
     map_.setFrameId("map");
     ground_layer_trav = ground_layer + "_trav";
+    ground_layer_foothold = ground_layer + "_foothold";
 
     update();
 }
@@ -51,6 +52,7 @@ GridMapInterface::GridMapInterface(ros::NodeHandle &nh,
     map_.setFrameId("map");
     map_ceiling_.setFrameId("map");
     ground_layer_trav = ground_layer + "_trav";
+    ground_layer_foothold = ground_layer + "_foothold";
 
     update();
 }
@@ -93,6 +95,7 @@ void GridMapInterface::update(bool block, double sdf_margin)
             ROS_INFO("GridMap_Interface - Ceiling Layer Initializing...");
     }
     updateTravMap();
+    updateFootholdMap();
     if (config_.sdfEnable) // Check if SDF updates are enabled
     {
         updateSDF(ground_layer, 0, sdf_margin);
@@ -174,19 +177,19 @@ void GridMapInterface::updateTravMap(void)
         {
             grid_map::Position mapCenter = map_.getPosition();
             grid_map::Length boxSize(config_.centerBoxLen, config_.centerBoxWidth);
-            
+
             // Get start index and size for submap iterator using grid_map namespace function
             grid_map::Index submapTopLeftIndex;
             grid_map::Size submapBufferSize;
             grid_map::Position submapPosition;
             grid_map::Length submapLength;
             grid_map::Index requestedIndexInSubmap;
-            
+
             bool isValidSubmap = grid_map::getSubmapInformation(
                 submapTopLeftIndex, submapBufferSize, submapPosition, submapLength, requestedIndexInSubmap,
-                mapCenter, boxSize, map_.getLength(), map_.getPosition(), map_.getResolution(), 
+                mapCenter, boxSize, map_.getLength(), map_.getPosition(), map_.getResolution(),
                 map_.getSize(), map_.getStartIndex());
-            
+
             if (isValidSubmap)
             {
                 for (grid_map::SubmapIterator iterator(map_, submapTopLeftIndex, submapBufferSize);
@@ -203,6 +206,92 @@ void GridMapInterface::updateTravMap(void)
     catch (const std::exception &e)
     {
         ROS_WARN_STREAM("Failed to update trav map!");
+    }
+}
+
+void GridMapInterface::updateFootholdMap(void)
+{
+    try
+    {
+        map_.add(ground_layer_foothold, map_.get(ground_layer));
+
+        // First pass: apply foothold traversability criteria
+        for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
+        {
+            bool valid = true;
+            double normal_tan_ = std::sqrt(std::pow(map_.at(ground_norm_noblur_x, *iterator), 2) + std::pow(map_.at(ground_norm_noblur_y, *iterator), 2)) / map_.at(ground_norm_noblur_z, *iterator);
+            valid &= normal_tan_ < config_.footholdNormalTangentCrtic;
+            valid &= config_.footholdEnableHeightFilter ? map_.at(ground_layer, *iterator) < config_.footholdMaxHeight && map_.at(ground_layer, *iterator) > config_.footholdMinHeight : true;
+            if (!valid)
+                map_.at(ground_layer_foothold, *iterator) = std::nan("");
+        }
+
+        // Second pass: apply erosion if footholdErodeRad > 0
+        if (config_.footholdErodeRad > 0.0)
+        {
+            grid_map::Matrix footholdLayerCopy = map_.get(ground_layer_foothold);
+
+            for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
+            {
+                if (!std::isnan(map_.at(ground_layer_foothold, *iterator)))
+                {
+                    // Check if any cell within erosion radius is invalid
+                    grid_map::Position center;
+                    map_.getPosition(*iterator, center);
+
+                    bool shouldErode = false;
+                    for (grid_map::CircleIterator circleIterator(map_, center, config_.footholdErodeRad);
+                         !circleIterator.isPastEnd(); ++circleIterator)
+                    {
+                        if (std::isnan(footholdLayerCopy((*circleIterator)(0), (*circleIterator)(1))))
+                        {
+                            shouldErode = true;
+                            break;
+                        }
+                    }
+
+                    if (shouldErode)
+                    {
+                        map_.at(ground_layer_foothold, *iterator) = std::nan("");
+                    }
+                }
+            }
+        }
+
+        // Third pass: ensure center box area is always traversable for foothold
+        if (config_.footholdCenterBoxAlwaysTrav && config_.footholdCenterBoxWidth > 0.0 && config_.footholdCenterBoxLen > 0.0)
+        {
+            grid_map::Position mapCenter = map_.getPosition();
+            grid_map::Length boxSize(config_.footholdCenterBoxLen, config_.footholdCenterBoxWidth);
+
+            // Get start index and size for submap iterator using grid_map namespace function
+            grid_map::Index submapTopLeftIndex;
+            grid_map::Size submapBufferSize;
+            grid_map::Position submapPosition;
+            grid_map::Length submapLength;
+            grid_map::Index requestedIndexInSubmap;
+
+            bool isValidSubmap = grid_map::getSubmapInformation(
+                submapTopLeftIndex, submapBufferSize, submapPosition, submapLength, requestedIndexInSubmap,
+                mapCenter, boxSize, map_.getLength(), map_.getPosition(), map_.getResolution(),
+                map_.getSize(), map_.getStartIndex());
+
+            if (isValidSubmap)
+            {
+                for (grid_map::SubmapIterator iterator(map_, submapTopLeftIndex, submapBufferSize);
+                     !iterator.isPastEnd(); ++iterator)
+                {
+                    if (!std::isnan(map_.at(ground_layer, *iterator)))
+                    {
+                        map_.at(ground_layer_foothold, *iterator) = map_.at(ground_layer, *iterator);
+                    }
+                }
+            }
+        }
+    }
+    catch (const std::exception &e)
+    {
+        ROS_WARN_STREAM("Failed to update foothold map!");
     }
 }
 

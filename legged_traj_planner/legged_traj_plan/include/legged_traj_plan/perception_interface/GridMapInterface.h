@@ -54,6 +54,16 @@ struct GridMapInterfaceConfig
     double centerBoxWidth{1.0};
     double centerBoxLen{1.0};
 
+    // Foothold map parameters
+    double footholdNormalTangentCrtic{0.8};
+    bool footholdEnableHeightFilter{false};
+    double footholdMaxHeight{0.0};
+    double footholdMinHeight{0.0};
+    double footholdErodeRad{0.05};
+    bool footholdCenterBoxAlwaysTrav{false};
+    double footholdCenterBoxWidth{0.8};
+    double footholdCenterBoxLen{0.8};
+
     void loadParam(ros::NodeHandle &nh, std::string ns = "GridMapInterface")
     {
         bool check_digit = true;
@@ -71,6 +81,15 @@ struct GridMapInterfaceConfig
         check_digit &= nh.getParam(ns + "/centerBoxAlwaysTrav", centerBoxAlwaysTrav);
         check_digit &= nh.getParam(ns + "/centerBoxWidth", centerBoxWidth);
         check_digit &= nh.getParam(ns + "/centerBoxLen", centerBoxLen);
+        // Load foothold parameters
+        check_digit &= nh.getParam(ns + "/footholdNormalTangentCrtic", footholdNormalTangentCrtic);
+        check_digit &= nh.getParam(ns + "/footholdEnableHeightFilter", footholdEnableHeightFilter);
+        check_digit &= nh.getParam(ns + "/footholdMaxHeight", footholdMaxHeight);
+        check_digit &= nh.getParam(ns + "/footholdMinHeight", footholdMinHeight);
+        check_digit &= nh.getParam(ns + "/footholdErodeRad", footholdErodeRad);
+        check_digit &= nh.getParam(ns + "/footholdCenterBoxAlwaysTrav", footholdCenterBoxAlwaysTrav);
+        check_digit &= nh.getParam(ns + "/footholdCenterBoxWidth", footholdCenterBoxWidth);
+        check_digit &= nh.getParam(ns + "/footholdCenterBoxLen", footholdCenterBoxLen);
     }
 };
 
@@ -92,7 +111,11 @@ private:
     std::string ground_norm_x_layer = {"normal_x"};
     std::string ground_norm_y_layer = {"normal_y"};
     std::string ground_norm_z_layer = {"normal_z"};
+    std::string ground_norm_noblur_x = {"normal_noblur_x"};
+    std::string ground_norm_noblur_y = {"normal_noblur_y"};
+    std::string ground_norm_noblur_z = {"normal_noblur_z"};
     std::string ground_layer_trav;
+    std::string ground_layer_foothold;
     std::string ceiling_layer;
     std::string torso_ref_layer = {"torso_ref"};
     std::atomic<bool> map_update_lock_{false};
@@ -120,6 +143,7 @@ public:
     void callback_ceiling(const grid_map_msgs::GridMap &msg);
     void update(bool block = true, double sdf_margin = 0.3); // FIXME: this should larger than robot height?
     void updateTravMap(void);
+    void updateFootholdMap(void);
     void updateSDF(const std::string &layer_name, uint index = 0, double margin = 0.2);
     double value(const grid_map::Position &position, const std::string &layer_name = "");
     double sdfValue(const grid_map::Position3 &position, const std::string &mode = "min");
@@ -130,6 +154,7 @@ public:
     grid_map::GridMap &getMap() { return map_; };
     std::string getGroundLayerName() { return ground_layer; };
     std::string getTravLayerName() { return ground_layer_trav; };
+    std::string getFootholdLayerName() { return ground_layer_foothold; };
     std::string getCeilingLayerName() { return ceiling_layer; };
     // Map Lock
     void lockMapUpdate() { map_update_lock_ = true; }

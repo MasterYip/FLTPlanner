@@ -91,7 +91,7 @@ roslaunch legged_traj_plan_examples hexapod201_state_sequence_planner.launch \
 robot_interface_type:=Hexapod201ROS \
 sim:=true \
 teleop_type:=keyboard \
-demo_name:=7_prj201 \
+demo_name:=7_prj201_barrier \
 planner_cfg:=height_clear_planner \
 use_pyinterface:=true
 ```

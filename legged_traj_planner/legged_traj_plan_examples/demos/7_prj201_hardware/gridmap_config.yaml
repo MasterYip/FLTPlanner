@@ -19,7 +19,7 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   centerBoxWidth: 1.6
   centerBoxLen: 1.6
 
-# FIXME: this is not working temporarily
+# FIXME: this is not working for hardware, only works for image2gridmap node
 # grid_map_filters:
 #   # Compute surface normals.
 #   - name: surface_normals_area

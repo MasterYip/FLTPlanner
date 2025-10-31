@@ -13,3 +13,12 @@ GridMapInterface:
   centerBoxAlwaysTrav: false
   centerBoxWidth: 1.6
   centerBoxLen: 1.6
+  # Foothold map parameters
+  footholdNormalTangentCrtic: 0.8
+  footholdEnableHeightFilter: false
+  footholdMaxHeight: 0.1
+  footholdMinHeight: -100.0
+  footholdErodeRad: 0.05
+  footholdCenterBoxAlwaysTrav: false
+  footholdCenterBoxWidth: 0.8
+  footholdCenterBoxLen: 0.8
