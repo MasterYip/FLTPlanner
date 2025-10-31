@@ -1,4 +1,4 @@
-resolution: 0.025           # 网格地图分辨率
+resolution: 0.1           # 网格地图分辨率
 min_height: 0.0             # 
 max_height: 1.0
 min_height_ceiling: 1
@@ -9,24 +9,30 @@ map_position_x: 3.2
 map_position_y: 0.0
 
 GridMapInterface: # NOTE: this override config in perception_interface.yaml
-  normalTangentCrtic: 0.7
+  normalTangentCrtic: 0.2
   topicName: /elevation_mapping/elevation_map_raw
   topicNameCeiling: /elevation_mapping/elevation_map_raw
   groundLayerName: elevation_inpainted
   sdfEnable: false
-  travErodeRad: 2.0
+  travErodeRad: 0.0
 
-grid_map_filters:
-  # Compute surface normals.
-  - 
-    name: surface_normals_area
-    type: gridMapFilters/NormalVectorsFilter
-    params:
-      input_layer: elevation_inpainted
-      algorithm: area
-      output_layers_prefix: normal_
-      radius: 0.05
-      normal_vector_positive_axis: z
-      parallelization_enabled: true
-      thread_number: 4
-      # thread_number: -1 doesn't limit the number of threads to be used
+# FIXME: this is not working temporarily
+# grid_map_filters:
+#   # Compute surface normals.
+#   - name: surface_normals_area
+#     type: gridMapFilters/NormalVectorsFilter
+#     params:
+#       input_layer: elevation_inpainted
+#       algorithm: area
+#       output_layers_prefix: normal_
+#       radius: 0.4
+#       normal_vector_positive_axis: z
+#       parallelization_enabled: true
+#       thread_number: 4
+#       # thread_number: -1 doesn't limit the number of threads to be used
+#   - name: mean_in_radius
+#     type: gridMapFilters/MeanInRadiusFilter
+#     params:
+#       input_layer: elevation_inpainted
+#       output_layer: elevation_inpainted2
+#       radius: 0.8
