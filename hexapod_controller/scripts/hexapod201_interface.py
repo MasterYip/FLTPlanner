@@ -344,7 +344,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     
 
         
-    def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped):
+    def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped, use_virtual_odom):
         if not self._read_plc_parameters():
             return False
         # 加载运动参数
@@ -361,15 +361,22 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.cmdGait["SwapHigh"] = 100.0  # type: ignore     # Swing height (mm) 摆动高度
         self.cmdGait["LegNum"] = 0  # type: ignore    # Force control mode # 单腿运动的时候控制这个，这个先给0
         self.cmdGait["ForceMode"] = 0 # type: ignore    # 无力控是0
-        self.cmdGait["Res"] = 0  # type: ignore        # 0 无意义
+        self.cmdGait["Res"] = 1  # type: ignore        # 给0的话倍福的程序会再算一次足端的步长啥的，所以最好给1
         self.symbol_Cmd_Gait.write(self.cmdGait)  # type: ignore 
         
         # Set pose parameters
-        self.cmdPose["X"] = min(400, (aim_pose.pose.position.x - cur_pose.position.x) * 1000) # type: ignore    # Convert to mm
-        self.cmdPose["Y"] = min(200, (aim_pose.pose.position.y - cur_pose.position.y) * 1000)  # type: ignore   
-        self.cmdPose["Z"] = 0.0  # type: ignore   
+        self.cmdPose["X"] = max(-400, min(400, (aim_pose.pose.position.x - cur_pose.position.x) * 1000)) # type: ignore    # Convert to mm
+        self.cmdPose["Y"] = max(-100, min(100, (aim_pose.pose.position.y - cur_pose.position.y) * 1000))  # type: ignore   
+
+        self.cmdPose["Z"] = 0.0  # type: ignore
         print(f"[move to] cmdPose set is: x: {(aim_pose.pose.position.x - cur_pose.position.x) * 1000}, y: {(aim_pose.pose.position.y - cur_pose.position.y) * 1000}")
+        print(f"[move to] cmdPose set is clamped to: x: {self.cmdPose['X']}, y: {self.cmdPose['Y']}")
         
+        if(use_virtual_odom):
+            # 虚拟地将移动后的期望位置更新为机器人的当前位置
+            self.current_pose.position.x += max(-0.4, min(0.4, aim_pose.pose.position.x - cur_pose.position.x))
+            self.current_pose.position.y += max(-0.1, min(0.1, aim_pose.pose.position.y - cur_pose.position.y))
+            self.current_pose.position.z = aim_pose.pose.position.z
         # Convert quaternion to Euler angles
         # euler = euler_from_quaternion([
         #     target_pose.orientation.x,
@@ -416,20 +423,21 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         cur_step:int = 0
         while cur_step < len(trajectory.poses):
             aim_pose = trajectory.poses[cur_step]
-            print(f"[follow_traj]cur_step= {cur_step} aim_pose x= {aim_pose.position.x}"
-                  f"y= {aim_pose.position.y} z= {aim_pose.position.z}")
+            print(f"[follow_traj]aim_pose x= {aim_pose.pose.position.x}"
+                  f"y= {aim_pose.pose.position.y} z= {aim_pose.pose.position.z}"
+                  f"yaw= {self.calPosYaw2d(aim_pose)/math.pi*180.0} cur_step= {cur_step} ")
             cur_beifu_Cmd = self.symbol_PTCmdPos.read()
             if cur_beifu_Cmd["FG"]==CtrlCmd.IDLE:
                 # 拿一下机器人当前的位置
                 cur_pose:Pose = self.get_current_pose()
-                print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z}")
+                print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
                 if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit:
                     # 说明已经到达了当前点
-                    print(f"[follow_traj]has arrived aim_pose x: {aim_pose.position.x}, y: {aim_pose.position.y}, z: {aim_pose.position.z}")
+                    print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
                     cur_step += 1
                 else:
-                    print(f"[follow_traj]begin move to aim_pose x: {aim_pose.position.x}, y: {aim_pose.position.y}, z: {aim_pose.position.z}")
-                    self.move_to_pos(cur_pose, aim_pose)
+                    print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                    self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=False)
             
         return True
     
@@ -468,11 +476,8 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 else:
                     print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
                     
-                    self.move_to_pos(cur_pose, aim_pose)
-                    # 虚拟地将移动后的期望位置更新为机器人的当前位置
-                    self.current_pose.position.x = aim_pose.pose.position.x
-                    self.current_pose.position.y = aim_pose.pose.position.y
-                    self.current_pose.position.z = aim_pose.pose.position.z
+                    self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=True)
+                    
             
         return True
     

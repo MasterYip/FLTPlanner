@@ -70,7 +70,7 @@ class Hexapod201BaseInterface(ABC):
         # self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.pose_cmd_sub = rospy.Subscriber('/hexapod/pose_cmd', PoseStamped, self.pose_cmd_callback)
         self.foot_cmd_sub = rospy.Subscriber('/hexapod/foot_cmd', FootState, self.foot_cmd_callback)
-        self.path_cmd_sub = rospy.Subscriber('/hexapod/path_cmd', Path, self.follow_virtual_trajectory)
+        self.path_cmd_sub = rospy.Subscriber('/hexapod/path_cmd', Path, self.follow_trajectory)
         
         # Timer for publishing current pose and foot state
         self.pose_timer = rospy.Timer(rospy.Duration(0, int(1e8)), self.publish_feedback)

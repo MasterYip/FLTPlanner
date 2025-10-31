@@ -9,15 +9,15 @@ map_position_x: 3.2
 map_position_y: 0.0
 
 GridMapInterface: # NOTE: this override config in perception_interface.yaml
-  normalTangentCrtic: 0.2
+  normalTangentCrtic: 0.5
   topicName: /elevation_mapping/elevation_map_raw
   topicNameCeiling: /elevation_mapping/elevation_map_raw
   groundLayerName: elevation_inpainted
   sdfEnable: false
-  travErodeRad: 0.0
+  travErodeRad: 1.7
   centerBoxAlwaysTrav: true
-  centerBoxWidth: 1.6
-  centerBoxLen: 1.6
+  centerBoxWidth: 2.0
+  centerBoxLen: 2.0
 
 # FIXME: this is not working for hardware, only works for image2gridmap node
 # grid_map_filters:
