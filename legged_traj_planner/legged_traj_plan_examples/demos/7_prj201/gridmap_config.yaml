@@ -12,6 +12,7 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   normalTangentCrtic: 0.7
   groundLayerName: elevation_inpainted
   sdfEnable: false
+  travErodeRad: 0.5
 
 grid_map_filters:
   # Compute surface normals.
