@@ -26,5 +26,5 @@ StateSequencePlanner:
 
   # Pose control parameters
   keepPoseHorizontal: true
-  keepConstBaseFootZ: false
-  keepConstBaseFootZValue: 0.405
+  keepConstBaseFootZ: true # If ture, base height is kept constant too
+  keepConstBaseFootZValue: -0.405

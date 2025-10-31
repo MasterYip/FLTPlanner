@@ -493,6 +493,11 @@ public:
           // keep yaw unchanged: rpy_horizontal[2] remains the same
           target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy_horizontal);
         }
+        // Apply keepConstBaseFootZ: set base height to constant value
+        if (config_.keepConstBaseFootZ)
+        {
+          target_pose.translation()[2] = 0.0-config_.keepConstBaseFootZValue;
+        }
 
         // Get current hexapod state for Raibert gait planning
         legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
