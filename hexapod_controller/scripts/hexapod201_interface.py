@@ -100,7 +100,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         # Enable auto-update for feedback
         self.symbol_QState.auto_update = True    # Q的意思是输出状态, 状态指当前单步, 连续， 停止还是别的状态
-        # self.symbol_ReqFlag.auto_update = True
+        self.symbol_ReqFlag.auto_update = True
         self.symbol_PTActPos.auto_update = True  # PT的意思是平台
         self.symbol_PTCmdPos.auto_update = True
         
@@ -259,10 +259,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 return False
             
             # Set free gait parameters
-            self.cmdTime["TA"] = 0.5  # Acceleration time
-            self.cmdTime["TM"] = 1.5  # Swing time
-            self.cmdTime["TD"] = 0.0  # Support overlap time
-            self.cmdTime["TZ"] = 0.0  # Z advance time
+            self.cmdTime["TA"] = 1.0  # type: ignore # Acceleration time
+            self.cmdTime["TM"] = 2.5  # type: ignore # Movement time
+            self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
+            self.cmdTime["TZ"] = 0.5  # type: ignore # Z advance time
             self.symbol_Cmd_Time.write(self.cmdTime)
             
             # Set gait parameters for free gait
@@ -284,7 +284,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 if self.symbol_ReqFlag.value == 1:
                     break
                 rospy.sleep(0.1)
-            else:
+            if self.symbol_ReqFlag.value != 1:
                 rospy.logwarn("CPP not ready for free gait command")
                 return False
             
@@ -487,6 +487,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 return False
             
             # Calculate body motion from current to target pose
+            # FIXME: current pose should be read from odom
             pos_diff = np.array([
                 (target_pose.position.x - self.current_pose.position.x) * 1000.0,  # Convert to mm
                 (target_pose.position.y - self.current_pose.position.y) * 1000.0,

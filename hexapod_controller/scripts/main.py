@@ -63,14 +63,16 @@ def test_pose_with_feet(gait2phase=0):
     rospy.init_node('test_hexapod_pose_with_feet', anonymous=True)
     interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="5.157.100.214.1.1")
     
+    input("Press Enter to continue")
     # Define target pose - move forward 0.2m and turn 30 degrees
     target_pose = Pose()
     target_pose.position.x = 0.2
     target_pose.position.y = 0.0
-    target_pose.position.z = 0.05  # Lift body slightly
+    # FIXME
+    target_pose.position.z = 0.405  # Lift body slightly
     
     # Convert 30 degrees to radians and create quaternion
-    yaw_angle = math.pi / 6  # 30 degrees in radians
+    yaw_angle = 0  # 30 degrees in radians
     quat = quaternion_from_euler(0.0, 0.0, yaw_angle)
     target_pose.orientation.x = quat[0]
     target_pose.orientation.y = quat[1]
@@ -80,12 +82,12 @@ def test_pose_with_feet(gait2phase=0):
     # Define custom foot positions (in mm, body frame)
     # Move some feet to new positions for stepping pattern
     foot_positions = np.array([
-        [760, 1096.2, -405],   # Foot 1 - step forward
-        [0, 1251.2, -405],     # Foot 2 - keep in place
-        [-560, 1096.2, -405], # Foot 3 - step back slightly
-        [760, -896.2, -405],  # Foot 4 - step forward
-        [0, -1251.2, -405],   # Foot 5 - keep in place  
-        [-560, -896.2, -405]  # Foot 6 - step back slightly
+        [760, -1096.2, -405],   # Foot 1 - step forward
+        [0, -1251.2, -405],     # Foot 2 - keep in place
+        [-560, -1096.2, -405], # Foot 3 - step back slightly
+        [760, 896.2, -405],  # Foot 4 - step forward
+        [0, 1251.2, -405],   # Foot 5 - keep in place  
+        [-560, 896.2, -405]  # Foot 6 - step back slightly
     ])
     
     # Define foot support flags (0=support, 1=swing)
