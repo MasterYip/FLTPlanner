@@ -447,12 +447,12 @@ public:
 
         // Get current hexapod state for Raibert gait planning
         legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
-        
+
         // Option to use either basic Raibert or terrain-aware planner
         // Change this flag to switch between planners
         bool use_terrain_aware = true;
         legged_traj_plan::hexapod_State next_state;
-        
+
         if (use_terrain_aware)
         {
           next_state = generateTerrainAwareNextTripodState(current_state, step_cmd_vel);
@@ -785,7 +785,7 @@ public:
   // Enhanced tripod gait generation with terrain-aware foothold planning
   legged_traj_plan::hexapod_State
   generateTerrainAwareNextTripodState(const legged_traj_plan::hexapod_State &current_state,
-                                     const geometry_msgs::Twist &cmd_vel)
+                                      const geometry_msgs::Twist &cmd_vel)
   {
     legged_traj_plan::hexapod_State next_state = current_state;
 
@@ -817,7 +817,7 @@ public:
             robot_interface_->getNominalFoothold(i);
         Eigen::Vector3d target_foothold =
             hexapod_terrainaware_planner_.computeOptimalFoothold(next_pose, velocity,
-                                                           nominal_foothold, gridmap_interface_, i);
+                                                                 nominal_foothold, gridmap_interface_, i);
 
         // Set target foothold in world frame with terrain-aware height
         next_state.feetPositionNow.foot[i].x = target_foothold[0];
