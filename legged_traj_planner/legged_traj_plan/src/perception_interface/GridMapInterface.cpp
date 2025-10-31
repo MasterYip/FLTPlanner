@@ -124,6 +124,8 @@ void GridMapInterface::updateTravMap(void)
     try
     {
         map_.add(ground_layer_trav, map_.get(ground_layer));
+        
+        // First pass: apply traversability criteria
         for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
         {
             bool valid = true;
@@ -133,6 +135,40 @@ void GridMapInterface::updateTravMap(void)
                         && map_.at(ground_layer, *iterator) > config_.minHeight : true;
             if (!valid)
                 map_.at(ground_layer_trav, *iterator) = std::nan("");
+        }
+        std::string erode_layer = ground_layer_trav + "erode";
+        map_.add(erode_layer, map_.get(ground_layer_trav));
+        // Second pass: apply erosion if travErodeRad > 0
+        if (config_.travErodeRad > 0.0)
+        {
+            grid_map::Matrix travLayer = map_.get(ground_layer_trav);
+            
+            for (grid_map::GridMapIterator iterator(map_); !iterator.isPastEnd(); ++iterator)
+            {
+                if (!std::isnan(map_.at(ground_layer_trav, *iterator)))
+                {
+                    // Check if any cell within erosion radius is invalid
+                    grid_map::Position center;
+                    map_.getPosition(*iterator, center);
+                    
+                    bool shouldErode = false;
+                    for (grid_map::CircleIterator circleIterator(map_, center, config_.travErodeRad);
+                         !circleIterator.isPastEnd(); ++circleIterator)
+                    {
+                        if (std::isnan(map_.at(ground_layer_trav, *circleIterator)))
+                        {
+                            shouldErode = true;
+                            break;
+                        }
+                    }
+                    
+                    if (shouldErode)
+                    {
+                        map_.at(erode_layer, *iterator) = std::nan("");
+                    }
+                }
+            }
+            map_.get(ground_layer_trav) = map_.get(erode_layer);
         }
     }
     catch (const std::exception &e)

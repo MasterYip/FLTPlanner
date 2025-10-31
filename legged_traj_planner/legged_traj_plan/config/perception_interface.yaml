@@ -9,3 +9,4 @@ GridMapInterface:
   maxHeight: 0.1
   minHeight: -100.0
   sdfEnable: true
+  travErodeRad: 0.1

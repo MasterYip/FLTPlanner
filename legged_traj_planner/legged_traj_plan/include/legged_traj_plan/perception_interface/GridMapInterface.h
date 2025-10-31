@@ -47,6 +47,7 @@ struct GridMapInterfaceConfig
     bool enableHeightFilter{false};
     double maxHeight{0.0};
     double minHeight{0.0};
+    double travErodeRad{0.1}; // Erosion radius for traversability map
 
     void loadParam(ros::NodeHandle &nh, std::string ns = "GridMapInterface")
     {
@@ -61,6 +62,7 @@ struct GridMapInterfaceConfig
         check_digit &= nh.getParam(ns + "/maxHeight", maxHeight);
         check_digit &= nh.getParam(ns + "/minHeight", minHeight);
         check_digit &= nh.getParam(ns + "/sdfEnable", sdfEnable); // Load sdfEnable parameter
+        check_digit &= nh.getParam(ns + "/travErodeRad", travErodeRad); // Load travErodeRad parameter
     }
 };
 
