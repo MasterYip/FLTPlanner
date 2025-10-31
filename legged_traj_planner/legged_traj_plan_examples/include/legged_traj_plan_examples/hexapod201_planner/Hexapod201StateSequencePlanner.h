@@ -81,6 +81,95 @@ struct Hexapod201RaibertFootholdPlanner
   }
 };
 
+// Enhanced Raibert foothold planner with terrain awareness
+struct Hexapod201TerrainAwareRaibertPlanner
+{
+  double step_time;
+  double stance_time;
+  Eigen::Vector3d velocity_gain;
+  double search_radius;
+  double grid_resolution;
+
+  Hexapod201TerrainAwareRaibertPlanner(double step_t = 0.4, double stance_t = 0.2, double search_r = 0.3)
+      : step_time(step_t), stance_time(stance_t), velocity_gain(0.5, 0.5, 0.0), search_radius(search_r), grid_resolution(0.05)
+  {
+  }
+
+  Eigen::Vector3d computeOptimalFoothold(const pinocchio::SE3 &body_pose,
+                                         const Eigen::Vector3d &body_velocity,
+                                         const Eigen::Vector3d &nominal_foothold,
+                                         std::shared_ptr<GridMapInterface> gridmap_interface,
+                                         int leg_index)
+  {
+    // Step 1: Compute Raibert heuristic target
+    double foothold_time = step_time / 2.0 + stance_time / 2.0;
+    Eigen::Vector3d velocity_offset = velocity_gain.cwiseProduct(body_velocity) * foothold_time;
+
+    // Transform nominal foothold to world frame
+    Eigen::Vector3d world_nominal = point_SE3Act(body_pose.inverse(), nominal_foothold);
+    Eigen::Vector3d raibert_target = world_nominal + velocity_offset;
+
+    // Step 2: Search for closest traversable area using circle iterator
+    grid_map::GridMap &map = gridmap_interface->getMap();
+    std::string trav_layer = gridmap_interface->getTravLayerName();
+
+    // Check if target position is already traversable
+    grid_map::Position target_pos(raibert_target[0], raibert_target[1]);
+    if (map.isInside(target_pos) && !std::isnan(map.atPosition(trav_layer, target_pos)))
+    {
+      // Target is traversable, use it directly with terrain height
+      double terrain_height = gridmap_interface->value(target_pos);
+      return Eigen::Vector3d(raibert_target[0], raibert_target[1], terrain_height);
+    }
+
+    // Step 3: Use circle iterator to find closest traversable point
+    double best_distance = std::numeric_limits<double>::max();
+    Eigen::Vector3d best_foothold = world_nominal; // Fallback to nominal
+    bool found_traversable = false;
+
+    // Search in expanding circles
+    for (double radius = grid_resolution; radius <= search_radius; radius += grid_resolution)
+    {
+      for (grid_map::CircleIterator iterator(map, target_pos, radius);
+           !iterator.isPastEnd(); ++iterator)
+      {
+        grid_map::Position current_pos;
+        map.getPosition(*iterator, current_pos);
+
+        // Check if this position is traversable
+        if (!std::isnan(map.at(trav_layer, *iterator)))
+        {
+          double distance = (current_pos - target_pos).norm();
+          if (distance < best_distance)
+          {
+            best_distance = distance;
+            double terrain_height = map.at(gridmap_interface->getGroundLayerName(), *iterator);
+            best_foothold = Eigen::Vector3d(current_pos[0], current_pos[1], terrain_height);
+            found_traversable = true;
+          }
+        }
+      }
+
+      // If we found a traversable point in this radius, use it
+      if (found_traversable)
+        break;
+    }
+
+    // Step 4: Return result
+    if (found_traversable)
+    {
+      return best_foothold;
+    }
+    else
+    {
+      // No traversable area found, return nominal with terrain height
+      grid_map::Position nominal_pos(world_nominal[0], world_nominal[1]);
+      double terrain_height = gridmap_interface->value(nominal_pos);
+      return Eigen::Vector3d(world_nominal[0], world_nominal[1], terrain_height);
+    }
+  }
+};
+
 // For robot state recording
 struct RobotProfile
 {
@@ -158,6 +247,7 @@ private:
   // Tripod gait state
   TripodPhase current_tripod_phase_;
   Hexapod201RaibertFootholdPlanner hexapod_raibert_planner_;
+  Hexapod201TerrainAwareRaibertPlanner hexapod_terrainaware_planner_;
 
   Hexapod2dNavRRT nav_rrt_planner_;
 
@@ -168,7 +258,8 @@ public:
                                 robot_interface_),
         visualizer_(nh_, "world", "visualizer_markers"), rate_(100),
         current_tripod_phase_(TripodPhase::PHASE_135),
-        hexapod_raibert_planner_(0.4, 0.2)
+        hexapod_raibert_planner_(0.4, 0.2),
+        hexapod_terrainaware_planner_(0.4, 0.2, 0.3)
   {
     config_.loadParams(nh_);
     rate_ = ros::Rate(config_.rosRate);
@@ -356,8 +447,20 @@ public:
 
         // Get current hexapod state for Raibert gait planning
         legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
-        legged_traj_plan::hexapod_State next_state = generateNextTripodState(current_state, step_cmd_vel);
-        // legged_traj_plan::hexapod_State next_state = generateNextTripodState(current_state, geometry_msgs::Twist());
+        
+        // Option to use either basic Raibert or terrain-aware planner
+        // Change this flag to switch between planners
+        bool use_terrain_aware = true;
+        legged_traj_plan::hexapod_State next_state;
+        
+        if (use_terrain_aware)
+        {
+          next_state = generateTerrainAwareNextTripodState(current_state, step_cmd_vel);
+        }
+        else
+        {
+          next_state = generateNextTripodState(current_state, step_cmd_vel);
+        }
 
         // Convert foot positions from world frame to body frame for setStepCmd
         std::vector<Eigen::Vector3d> footend_positions(6);
@@ -631,7 +734,7 @@ public:
     return hexapodState;
   }
 
-  // Tripod gait generation
+  // Basic tripod gait generation using original Raibert planner
   legged_traj_plan::hexapod_State
   generateNextTripodState(const legged_traj_plan::hexapod_State &current_state,
                           const geometry_msgs::Twist &cmd_vel)
@@ -656,7 +759,7 @@ public:
       next_state.support_State_Now[i] = contact_pattern[i];
     }
 
-    // Update foot positions using Raibert heuristic for swing legs
+    // Update foot positions using basic Raibert heuristic for swing legs
     Eigen::Vector3d velocity(cmd_vel.linear.x, cmd_vel.linear.y, 0.0);
     for (int i = 0; i < 6; i++)
     {
@@ -673,6 +776,53 @@ public:
         next_state.feetPositionNow.foot[i].y = target_foothold[1];
         next_state.feetPositionNow.foot[i].z = gridmap_interface_->value(
             grid_map::Position(target_foothold[0], target_foothold[1]));
+      }
+    }
+
+    return next_state;
+  }
+
+  // Enhanced tripod gait generation with terrain-aware foothold planning
+  legged_traj_plan::hexapod_State
+  generateTerrainAwareNextTripodState(const legged_traj_plan::hexapod_State &current_state,
+                                     const geometry_msgs::Twist &cmd_vel)
+  {
+    legged_traj_plan::hexapod_State next_state = current_state;
+
+    // Get current pose and update the extrapolator
+    pinocchio::SE3 current_pose = XYZRPY2SE3(current_state.base_Pose_Now);
+    gridmap_extrapolator_.update(current_pose, cmd_vel);
+
+    // Use terrain-aware pose extrapolation
+    double dt = config_.tripodStepDuration;
+    pinocchio::SE3 next_pose = gridmap_extrapolator_.extrapolate(dt);
+
+    next_state.base_Pose_Now = SE32XYZRPY(next_pose);
+
+    // Set contact pattern based on current tripod phase
+    std::array<bool, 6> contact_pattern =
+        getTripodContactPattern(current_tripod_phase_);
+    for (int i = 0; i < 6; i++)
+    {
+      next_state.support_State_Now[i] = contact_pattern[i];
+    }
+
+    // Update foot positions using terrain-aware Raibert heuristic for swing legs
+    Eigen::Vector3d velocity(cmd_vel.linear.x, cmd_vel.linear.y, 0.0);
+    for (int i = 0; i < 6; i++)
+    {
+      if (!contact_pattern[i]) // Swing leg
+      {
+        Eigen::Vector3d nominal_foothold =
+            robot_interface_->getNominalFoothold(i);
+        Eigen::Vector3d target_foothold =
+            hexapod_terrainaware_planner_.computeOptimalFoothold(next_pose, velocity,
+                                                           nominal_foothold, gridmap_interface_, i);
+
+        // Set target foothold in world frame with terrain-aware height
+        next_state.feetPositionNow.foot[i].x = target_foothold[0];
+        next_state.feetPositionNow.foot[i].y = target_foothold[1];
+        next_state.feetPositionNow.foot[i].z = target_foothold[2];
       }
     }
 

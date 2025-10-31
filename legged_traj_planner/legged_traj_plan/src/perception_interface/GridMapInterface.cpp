@@ -174,19 +174,19 @@ void GridMapInterface::updateTravMap(void)
         {
             grid_map::Position mapCenter = map_.getPosition();
             grid_map::Length boxSize(config_.centerBoxLen, config_.centerBoxWidth);
-            
+
             // Get start index and size for submap iterator using grid_map namespace function
             grid_map::Index submapTopLeftIndex;
             grid_map::Size submapBufferSize;
             grid_map::Position submapPosition;
             grid_map::Length submapLength;
             grid_map::Index requestedIndexInSubmap;
-            
+
             bool isValidSubmap = grid_map::getSubmapInformation(
                 submapTopLeftIndex, submapBufferSize, submapPosition, submapLength, requestedIndexInSubmap,
-                mapCenter, boxSize, map_.getLength(), map_.getPosition(), map_.getResolution(), 
+                mapCenter, boxSize, map_.getLength(), map_.getPosition(), map_.getResolution(),
                 map_.getSize(), map_.getStartIndex());
-            
+
             if (isValidSubmap)
             {
                 for (grid_map::SubmapIterator iterator(map_, submapTopLeftIndex, submapBufferSize);
