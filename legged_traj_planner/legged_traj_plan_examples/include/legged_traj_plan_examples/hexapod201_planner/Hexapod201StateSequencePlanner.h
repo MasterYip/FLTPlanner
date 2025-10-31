@@ -109,23 +109,33 @@ struct Hexapod201TerrainAwareRaibertPlanner
     Eigen::Vector3d world_nominal = point_SE3Act(body_pose.inverse(), nominal_foothold);
     Eigen::Vector3d raibert_target = world_nominal + velocity_offset;
 
-    // Step 2: Search for closest traversable area using circle iterator
+    // Step 2: Search for closest valid foothold area using foothold layer
     grid_map::GridMap &map = gridmap_interface->getMap();
-    std::string trav_layer = gridmap_interface->getTravLayerName();
+    std::string foothold_layer = gridmap_interface->getFootholdLayerName();
 
-    // Check if target position is already traversable
-    grid_map::Position target_pos(raibert_target[0], raibert_target[1]);
-    if (map.isInside(target_pos) && !std::isnan(map.atPosition(trav_layer, target_pos)))
+    // Check if foothold layer exists
+    if (!map.exists(foothold_layer))
     {
-      // Target is traversable, use it directly with terrain height
+      ROS_WARN_STREAM("Foothold layer '" << foothold_layer << "' does not exist, falling back to ground layer");
+      // Fallback to using terrain height from ground layer
+      grid_map::Position target_pos(raibert_target[0], raibert_target[1]);
       double terrain_height = gridmap_interface->value(target_pos);
       return Eigen::Vector3d(raibert_target[0], raibert_target[1], terrain_height);
     }
 
-    // Step 3: Use circle iterator to find closest traversable point
+    // Check if target position is already a valid foothold
+    grid_map::Position target_pos(raibert_target[0], raibert_target[1]);
+    if (map.isInside(target_pos) && !std::isnan(map.atPosition(foothold_layer, target_pos)))
+    {
+      // Target is a valid foothold, use it directly with foothold layer height
+      double foothold_height = map.atPosition(foothold_layer, target_pos);
+      return Eigen::Vector3d(raibert_target[0], raibert_target[1], foothold_height);
+    }
+
+    // Step 3: Use circle iterator to find closest valid foothold
     double best_distance = std::numeric_limits<double>::max();
     Eigen::Vector3d best_foothold = world_nominal; // Fallback to nominal
-    bool found_traversable = false;
+    bool found_valid_foothold = false;
 
     // Search in expanding circles
     for (double radius = grid_resolution; radius <= search_radius; radius += grid_resolution)
@@ -136,33 +146,33 @@ struct Hexapod201TerrainAwareRaibertPlanner
         grid_map::Position current_pos;
         map.getPosition(*iterator, current_pos);
 
-        // Check if this position is traversable
-        if (!std::isnan(map.at(trav_layer, *iterator)))
+        // Check if this position is a valid foothold
+        if (!std::isnan(map.at(foothold_layer, *iterator)))
         {
           double distance = (current_pos - target_pos).norm();
           if (distance < best_distance)
           {
             best_distance = distance;
-            double terrain_height = map.at(gridmap_interface->getGroundLayerName(), *iterator);
-            best_foothold = Eigen::Vector3d(current_pos[0], current_pos[1], terrain_height);
-            found_traversable = true;
+            double foothold_height = map.at(foothold_layer, *iterator);
+            best_foothold = Eigen::Vector3d(current_pos[0], current_pos[1], foothold_height);
+            found_valid_foothold = true;
           }
         }
       }
 
-      // If we found a traversable point in this radius, use it
-      if (found_traversable)
+      // If we found a valid foothold in this radius, use it
+      if (found_valid_foothold)
         break;
     }
 
     // Step 4: Return result
-    if (found_traversable)
+    if (found_valid_foothold)
     {
       return best_foothold;
     }
     else
     {
-      // No traversable area found, return nominal with terrain height
+      // No valid foothold found, return nominal with terrain height from ground layer
       grid_map::Position nominal_pos(world_nominal[0], world_nominal[1]);
       double terrain_height = gridmap_interface->value(nominal_pos);
       return Eigen::Vector3d(world_nominal[0], world_nominal[1], terrain_height);

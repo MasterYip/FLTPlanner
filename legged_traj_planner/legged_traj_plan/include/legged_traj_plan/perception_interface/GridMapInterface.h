@@ -151,6 +151,7 @@ public:
     grid_map::GridMap &getMap() { return map_; };
     std::string getGroundLayerName() { return ground_layer; };
     std::string getTravLayerName() { return ground_layer_trav; };
+    std::string getFootholdLayerName() { return ground_layer_foothold; };
     std::string getCeilingLayerName() { return ceiling_layer; };
     // Map Lock
     void lockMapUpdate() { map_update_lock_ = true; }

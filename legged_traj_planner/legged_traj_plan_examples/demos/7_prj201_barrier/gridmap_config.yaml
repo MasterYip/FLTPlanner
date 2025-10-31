@@ -9,7 +9,7 @@ map_position_x: 3.0
 map_position_y: 0.0
 
 GridMapInterface: # NOTE: this override config in perception_interface.yaml
-  normalTangentCrtic: 0.2
+  normalTangentCrtic: 0.5
   groundLayerName: elevation_inpainted
   sdfEnable: false
   travErodeRad: 0.0
@@ -19,6 +19,15 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   enableHeightFilter: true
   maxHeight: 0.1
   minHeight: -100.0
+  # Foothold map parameters
+  footholdNormalTangentCrtic: 0.2
+  footholdEnableHeightFilter: true
+  footholdMaxHeight: 0.1
+  footholdMinHeight: -100.0
+  footholdErodeRad: 0.05
+  footholdCenterBoxAlwaysTrav: false
+  footholdCenterBoxWidth: 0.8
+  footholdCenterBoxLen: 0.8
 
 grid_map_filters:
   # Compute surface normals.
