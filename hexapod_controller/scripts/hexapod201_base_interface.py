@@ -70,7 +70,7 @@ class Hexapod201BaseInterface(ABC):
         # self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.pose_cmd_sub = rospy.Subscriber('/hexapod/pose_cmd', PoseStamped, self.pose_cmd_callback)
         self.foot_cmd_sub = rospy.Subscriber('/hexapod/foot_cmd', FootState, self.foot_cmd_callback)
-        self.path_cmd_sub = rospy.Subscriber('/hexapod/path_cmd', Path, self.follow_trajectory)
+        self.path_cmd_sub = rospy.Subscriber('/hexapod/path_cmd', Path, self.follow_virtual_trajectory)
         
         # Timer for publishing current pose and foot state
         self.pose_timer = rospy.Timer(rospy.Duration(0, int(1e8)), self.publish_feedback)
@@ -297,7 +297,8 @@ class Hexapod201BaseInterface(ABC):
             b = b.pose
         return pow(pow(a.position.x - b.position.x, 2) +
                     pow(a.position.y - b.position.y, 2), 0.5)
-    
+        
+    # return yaw_b - yaw_a
     def calPosYawDiff2d(self, a: Pose, b: Pose) -> float:
         def extract_quaternion(pose):
             if isinstance(pose, Pose):
@@ -323,6 +324,7 @@ class Hexapod201BaseInterface(ABC):
     
         return angle_diff
     
+    
     def calPosYaw2d(self, a: Pose) -> float:
         """Calculate the angular difference (yaw) between two poses in 2D."""
         if isinstance(a, Pose):
@@ -340,6 +342,11 @@ class Hexapod201BaseInterface(ABC):
             yaw_a += 2 * math.pi
         return yaw_a
     
+    
+    def _calQuanfromyaw(self, yaw: float) -> geometry_msgs.msg.Quaternion:
+        """Convert yaw angle to a quaternion."""
+        quat = quaternion_from_euler(0.0, 0.0, yaw)
+        return geometry_msgs.msg.Quaternion(*quat)
     
     
     @abstractmethod

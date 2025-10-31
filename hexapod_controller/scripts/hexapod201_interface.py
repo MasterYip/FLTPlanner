@@ -60,7 +60,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         # 判断一个位置到了没有的容许误差
         self.admit_pose_limit = 0.10 # 0.10m
-        self.admit_angle_limit = 4.0 / 180.0 * math.pi # 4° degree
+        self.admit_yaw_limit = 4.0 / 180.0 * math.pi # 4° degree
                 
         # Connect to PLC and CPP
         self._connect_plc()
@@ -128,6 +128,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
               f"x: {self.current_pose.position.z}")
         
         return
+    
     def _enable_plc(self):
         """Enable PLC for movement"""
         if not self.plc_connected:
@@ -240,7 +241,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             self.cmdPose["Yaw"] = euler[2]   # type: ignore 
             
             self.cmdPose["FG"] = 0  # type: ignore   # Movement mode
-            self.cmdPose["Res"] = 0 # type: ignore 
+            self.cmdPose["Res"] = 1 # type: ignore 
             self.symbol_Cmd_Pose.write(self.cmdPose)  # type: ignore 
             
             # Start movement
@@ -341,9 +342,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         except Exception as e:
             rospy.logerr(f"Free gait movement failed: {str(e)}")
             return False
-    
-
-        
+            
     def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped, use_virtual_odom):
         if not self._read_plc_parameters():
             return False
@@ -361,7 +360,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.cmdGait["SwapHigh"] = 100.0  # type: ignore     # Swing height (mm) 摆动高度
         self.cmdGait["LegNum"] = 0  # type: ignore    # Force control mode # 单腿运动的时候控制这个，这个先给0
         self.cmdGait["ForceMode"] = 0 # type: ignore    # 无力控是0
-        self.cmdGait["Res"] = 1  # type: ignore        # 给0的话倍福的程序会再算一次足端的步长啥的，所以最好给1
+        self.cmdGait["Res"] = 0  # type: ignore        # 给0的话倍福的程序会再算一次足端的步长啥的，所以最好给1
         self.symbol_Cmd_Gait.write(self.cmdGait)  # type: ignore 
         
         # Set pose parameters
@@ -389,7 +388,71 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.cmdPose["Yaw"] = 0.0   # type: ignore   
         
         self.cmdPose["FG"] = 0  # type: ignore   # Movement mode 在发送的时候代表走一步停一下，1代表连续走
-        self.cmdPose["Res"] = 0 # type: ignore    # Res = 0, 代表自动计算步长等参数
+        self.cmdPose["Res"] = 1 # type: ignore    # Res = 0, 代表自动计算步长等参数
+        self.symbol_Cmd_Pose.write(self.cmdPose) # type: ignore    # write相当于发送
+        
+        # Start movement
+        self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV) # type: ignore
+        time.sleep(0.005)
+        cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+        while cur_beifu_Cmd["FG"] != 0: # type: ignore
+            # print(f"cur_beifu_Cmd['FG'] != 0, sendCtrlCmd.STOP_MOV, cur_beifu_Cmd['FG'] is {cur_beifu_Cmd['FG']}")
+            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            time.sleep(0.005)
+            self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV) # type: ignore
+        
+        # rospy.loginfo(f"Started movement to pose: {target_pose.position}")
+        return True
+    
+    def move_to_yaw(self, cur_pose: Pose, aim_pose: PoseStamped, use_virtual_odom):
+        if not self._read_plc_parameters():
+            return False
+        # 加载运动参数
+        # Set movement parameters
+        self.cmdTime["TA"] = 1.5  # type: ignore   # Acceleration time  一步迈过去的加速时间
+        self.cmdTime["TM"] = 2.5  # type: ignore   # Movement time
+        self.cmdTime["TD"] = 0.0  # type: ignore   # Deceleration overlap
+        self.cmdTime["TZ"] = 0.2  # type: ignore   # Z advance time(s)z项提前抬起来
+        self.symbol_Cmd_Time.write(self.cmdTime) # type: ignore
+        
+        # Set gait parameters
+        self.cmdGait["GaitMode"] = 1  # type: ignore    # Synchronous gait 1 是正常的2 3 6 步态
+        self.cmdGait["GaitDF"] = 0.5  # type: ignore     # Duty factor 0.5就是2步态 0.667 就是三步态 0.833就是六步态
+        self.cmdGait["SwapHigh"] = 100.0  # type: ignore     # Swing height (mm) 摆动高度
+        self.cmdGait["LegNum"] = 0  # type: ignore    # Force control mode # 单腿运动的时候控制这个，这个先给0
+        self.cmdGait["ForceMode"] = 0 # type: ignore    # 无力控是0
+        self.cmdGait["Res"] = 0  # type: ignore        # 给0的话倍福的程序会再算一次足端的步长啥的，所以最好给1
+        self.symbol_Cmd_Gait.write(self.cmdGait)  # type: ignore 
+        
+        # Set pose parameters
+        self.cmdPose["X"] = 0.0 # type: ignore    # Convert to mm
+        self.cmdPose["Y"] = 0.0  # type: ignore   
+        self.cmdPose["Z"] = 0.0  # type: ignore
+        # Convert quaternion to Euler angles
+        # euler = euler_from_quaternion([
+        #     target_pose.orientation.x,
+        #     target_pose.orientation.y,
+        #     target_pose.orientation.z,
+        #     target_pose.orientation.w
+        # ])
+        self.cmdPose["Roll"] = 0.0  # type: ignore   
+        self.cmdPose["Pitch"] = 0.0 # type: ignore   
+        yaw_diff:float = self.calPosYawDiff2d(aim_pose.pose, self.current_pose)
+        self.cmdPose["Yaw"] = max(-5.0/180.0*math.pi, min(5.0/180.0*math.pi, yaw_diff))   # type: ignore   
+    
+        print(f"[move to] cmdPose set is: yaw: {yaw_diff}")
+        print(f"[move to] cmdPose set is clamped to: yaw: {self.cmdPose['Yaw']}")         # type: ignore   
+        
+        if(use_virtual_odom):
+            # 虚拟地将移动后的期望位置更新为机器人的当前位置
+            last_yaw:float =  self.calPosYaw2d(self.current_pose)
+            cur_yaw:float = last_yaw + self.cmdPose['Yaw']
+            cur_yaw_quant = self._calQuanfromyaw(cur_yaw)
+            self.current_pose.orientation = cur_yaw_quant
+
+
+        self.cmdPose["FG"] = 0  # type: ignore   # Movement mode 在发送的时候代表走一步停一下，1代表连续走
+        self.cmdPose["Res"] = 1 # type: ignore    # Res = 0, 代表自动计算步长等参数
         self.symbol_Cmd_Pose.write(self.cmdPose) # type: ignore    # write相当于发送
         
         # Start movement
@@ -406,6 +469,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         return True
     
     def follow_trajectory(self, trajectory: Path) -> bool:
+        print("entered: [follow_trajectory]")
         if trajectory.poses is None:
             rospy.logerr("Trajectory poses are None")
             return False
@@ -418,7 +482,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 else:
                     print("enable plc failed")
             else:
-                print(f"error symbol_QState: {self.symbol_QState}, cann't enbale PCL, return false")
+                print(f"error symbol_QState: {self.symbol_QState}, can't enbale PLC, return false")
                 return False
         cur_step:int = 0
         while cur_step < len(trajectory.poses):
@@ -431,13 +495,18 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 # 拿一下机器人当前的位置
                 cur_pose:Pose = self.get_current_pose()
                 print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
-                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit:
+                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYaw2d(cur_pose))<self.admit_yaw_limit:
                     # 说明已经到达了当前点
                     print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
                     cur_step += 1
                 else:
-                    print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
-                    self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=False)
+                    # 如果有yaw角度diff 优先动yaw
+                    if abs(self.calPosYaw2d(cur_pose)) > self.admit_yaw_limit:
+                        print(f"[follow_traj]begin move to yaw: 0.0")
+                        self.move_to_yaw(cur_pose, aim_pose, use_virtual_odom=False)
+                    else:
+                        print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                        self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=False)
             
         return True
     
@@ -469,16 +538,19 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 cur_pose:Pose = self.get_current_pose()
                 print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
                 # 模拟实际的SLAM反馈中到达目标点的判断函数, 认为走出一步之后就到达了目标点
-                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYawDiff2d(aim_pose, cur_pose)) <= self.admit_angle_limit:
+                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYaw2d(cur_pose))<self.admit_yaw_limit:
                     # 说明已经到达了当前点
                     print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
                     cur_step += 1
                 else:
-                    print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
-                    
-                    self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=True)
-                    
-            
+                    # 如果有yaw角度diff 优先动yaw
+                    if abs(self.calPosYaw2d(cur_pose)) > self.admit_yaw_limit:
+                        print(f"[follow_traj]begin move to yaw: 0.0")
+                        self.move_to_yaw(cur_pose, aim_pose, use_virtual_odom=True)
+                    else:
+                        print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                        self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=True)
+
         return True
     
     def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
