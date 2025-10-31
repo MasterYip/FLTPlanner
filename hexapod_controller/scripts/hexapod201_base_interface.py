@@ -12,6 +12,7 @@ from nav_msgs.msg import Odometry, Path
 from ros_visualizer import ROSVisualizer, VisStyle  # pyright: ignore[reportAttributeAccessIssue]
 # Import FootState message
 from legged_traj_plan.msg import FootState
+from std_msgs.msg import Bool
 
 # Hexapod201 Default Configuration Constants
 HEXAPOD201_DEFAULT_FOOT_POSITIONS = np.array([
@@ -67,6 +68,7 @@ class Hexapod201BaseInterface(ABC):
         # Publishers and subscribers
         self.pose_pub = rospy.Publisher('/hexapod/current_pose', PoseStamped, queue_size=10)
         self.foot_state_pub = rospy.Publisher('/hexapod/foot_state', FootState, queue_size=10)
+        self.robot_is_moving_pub = rospy.Publisher('/robot_is_moving', Bool, queue_size=10)
         # self.cmd_vel_sub = rospy.Subscriber('/cmd_vel', Twist, self.cmd_vel_callback)
         self.pose_cmd_sub = rospy.Subscriber('/hexapod/pose_cmd', PoseStamped, self.pose_cmd_callback)
         self.foot_cmd_sub = rospy.Subscriber('/hexapod/foot_cmd', FootState, self.foot_cmd_callback)
@@ -273,7 +275,10 @@ class Hexapod201BaseInterface(ABC):
             foot_state_msg.contact.append(contact_state)
         
         self.foot_state_pub.publish(foot_state_msg)
-        
+
+        # Robot is moving status
+        self.robot_is_moving_pub.publish(Bool(self.robot_is_moving()))
+
         # Also call visualization (for dummy interface)
         if hasattr(self, 'visualize_hexapod_body'):
             self.visualize_hexapod_body()
@@ -388,7 +393,10 @@ class Hexapod201BaseInterface(ABC):
             foot_flags: (6,) array of foot flags (0=support, 1=swing)
         """
         pass
-    
+
+    def robot_is_moving(self):
+        return self.is_moving
+
     def set_default_foot_positions(self, positions: np.ndarray):
         """Set default foot positions for support stance"""
         if positions.shape == (6, 3):

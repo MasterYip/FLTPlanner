@@ -232,6 +232,7 @@ private:
   geometry_msgs::Twist cmd_;
   ros::Subscriber nav_goal_sub_;
   ros::Subscriber pose2d_sub_;
+  ros::Subscriber plc_in_motion_sub_;
 
   // Interface
   StateSequencePlanner state_sequence_planner_;
@@ -240,6 +241,7 @@ private:
 
   // Status
   bool motion_lock_ = false;
+  bool plc_in_motion_ = false;
 
   // Benchmarking
   double init_time_ = 0.0;
@@ -276,6 +278,9 @@ public:
     pose2d_sub_ =
         nh_.subscribe("/initialpose", 1,
                       &Hexapod201StateSequencePlanner::pose2d_callback, this);
+    plc_in_motion_sub_ =
+        nh_.subscribe("/robot_is_moving", 1,
+                      &Hexapod201StateSequencePlanner::plc_in_motion_callback, this);
 
     PosList pose_sample_pts;
     int len = 6;
@@ -330,6 +335,10 @@ public:
       motion_lock_ = false;
       gridmap_interface_->unlockMapUpdate();
     }
+  }
+
+  void plc_in_motion_callback(const std_msgs::Bool::ConstPtr& msg) {
+    plc_in_motion_ = msg->data;
   }
 
   void nav_callback(const geometry_msgs::PoseStamped &msg) {
@@ -487,7 +496,9 @@ public:
         switchTripodPhase();
 
         ros::Duration(step_duration).sleep(); // Step time, adjust as needed
-        ros::spinOnce();
+        while (plc_in_motion_) {
+          ros::spinOnce();
+        }
       }
     }
     motion_lock_ = false;
