@@ -18,7 +18,7 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   centerBoxAlwaysTrav: true
   centerBoxWidth: 2.0
   centerBoxLen: 2.0
-  enableHeightFilter: true
+  enableHeightFilter: false
   maxHeight: 0.6
   minHeight: -100.0
   # Foothold map parameters

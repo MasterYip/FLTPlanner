@@ -95,14 +95,14 @@ Hexapod201ROS:
   odomChildFrame: base
   odomParentFrame: odom
   # Hexapod201 nominal foot positions (6 legs) - same as dummy, converted from Python constants
-  nominalFootPos: [0.660, -0.9962, -0.405,   # Foot201 4 (FootElAir 0)
-                   0.00, -1.2512, -0.405,    # Foot201 5 (FootElAir 1)
-                   -0.660, -0.9962, -0.405,  # Foot201 6 (FootElAir 2)
-                   0.660, 0.9962, -0.405,    # Foot201 1 (FootElAir 3)
-                   0.00, 1.2512, -0.405,     # Foot201 2 (FootElAir 4)
-                   -0.660, 0.9962, -0.405]   # Foot201 3 (FootElAir 5)
+  nominalFootPos: [0.660, -0.977, -0.500,   # Foot201 4 (FootElAir 0)
+                   0.00, -1.232, -0.500,    # Foot201 5 (FootElAir 1)
+                   -0.660, -0.977, -0.500,  # Foot201 6 (FootElAir 2)
+                   0.660, 0.977, -0.500,    # Foot201 1 (FootElAir 3)
+                   0.00, 1.232, -0.500,     # Foot201 2 (FootElAir 4)
+                   -0.660, 0.977, -0.500]   # Foot201 3 (FootElAir 5)
   nominalFootPosShift: [0, 0.0, 0]
-  initBodyPose: [0, 0, 0.405, 0, 0, 0]
+  initBodyPose: [0, 0, 0.500, 0, 0, 0]
 
 # Shadow Hexapod201
 Hexapod201Shadow:

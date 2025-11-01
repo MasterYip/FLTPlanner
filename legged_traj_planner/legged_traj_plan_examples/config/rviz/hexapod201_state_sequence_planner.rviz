@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /GridMapFoot1
         - /Vis_SwingTrajPlanner1/Namespaces1
         - /Vis_PyInterface1/Namespaces1
       Splitter Ratio: 0.4445544481277466
@@ -103,7 +102,7 @@ Visualization Manager:
       Unreliable: false
       Use ColorMap: false
       Value: false
-    - Alpha: 0.10000000149011612
+    - Alpha: 0.20000000298023224
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
@@ -507,9 +506,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6497970819473267
+      Pitch: 0.7097970247268677
       Target Frame: base
-      Yaw: 1.6645344495773315
+      Yaw: 2.6895344257354736
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

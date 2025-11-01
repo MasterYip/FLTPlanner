@@ -139,7 +139,8 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         """Enable PLC for movement"""
         if not self.plc_connected:
             return False
-        
+        if self.symbol_QState.value == State.FEEDMOV:
+            return True
         try:
             print("start self.symbol_State.write(State.ENABLE)")
             self.symbol_State.write(State.ENABLE) # pyright: ignore[reportOptionalMemberAccess]
@@ -544,7 +545,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             # Set gait parameters for free gait
             self.cmdGait["GaitMode"] = 5  # Free gait mode
             self.cmdGait["GaitDF"] = 0.5  # Duty factor
-            self.cmdGait["SwapHigh"] = 400.0  # Swing height (mm)
+            self.cmdGait["SwapHigh"] = 100.0  # Swing height (mm)
             self.cmdGait["LegNum"] = 0  # Leg number
             self.cmdGait["ForceMode"] = 0  # Force control mode
             self.cmdGait["Res"] = 0

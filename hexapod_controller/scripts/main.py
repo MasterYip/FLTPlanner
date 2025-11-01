@@ -66,7 +66,7 @@ def test_pose_with_feet(gait2phase=0):
     input("Press Enter to continue")
     # Define target pose - move forward 0.2m and turn 30 degrees
     target_pose = Pose()
-    target_pose.position.x = 0.2
+    target_pose.position.x = 0.0
     target_pose.position.y = 0.0
     # FIXME
     target_pose.position.z = 0.405  # Lift body slightly
@@ -114,7 +114,7 @@ def test_pose_with_feet(gait2phase=0):
         rospy.loginfo(f"Final pose: x={current_pose.position.x:.3f}, y={current_pose.position.y:.3f}, z={current_pose.position.z:.3f}")
         
         # Get final foot positions
-        interface.update_footpos()  # Update foot positions from PLC
+        interface._update_footpos_from_plc()  # Update foot positions from PLC
         final_foot_positions = interface.get_foot_positions()
         interface.test_footpos_read()  # Read and log current pose from PLC
         rospy.loginfo("Final foot positions:")
