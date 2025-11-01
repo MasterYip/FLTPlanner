@@ -21,7 +21,7 @@ import copy
 from ros_visualizer import ROSVisualizer, VisStyle  # pyright: ignore[reportAttributeAccessIssue]
 # Import FootState message
 from legged_traj_plan.msg import FootState
-
+from std_msgs.msg import Bool
 
 FOOT_REMAP = [3, 4, 5, 0, 1, 2]  # Remap from FootElAir to Foot201
 
@@ -107,8 +107,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.plc_connected = True
         self.cpp_connected = True
         rospy.loginfo("PLC and CPP connections established")
-
-    
+ 
     def _robot_pose_sub_callback(self, msg: Odometry):
         self.current_pose.position = msg.pose.pose.position
         self.current_pose.orientation = msg.pose.pose.orientation
@@ -116,9 +115,8 @@ class Hexapod201Interface(Hexapod201BaseInterface):
               f"x: {self.current_pose.position.x}"
               f"x: {self.current_pose.position.y}"
               f"x: {self.current_pose.position.z}")
-        
         return
-    
+
     def _enable_plc(self):
         """Enable PLC for movement"""
         if not self.plc_connected:
@@ -162,6 +160,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             rospy.logerr(f"Failed to read PLC parameters: {str(e)}")
             return False
     
+    # Not used
     def _update_current_pose_from_plc(self):
         """Update current pose from PLC feedback"""
         if not self.plc_connected:
@@ -333,7 +332,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         except Exception as e:
             rospy.logerr(f"Free gait movement failed: {str(e)}")
             return False
-            
+    
     def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped, use_virtual_odom):
         if not self._read_plc_parameters():
             return False
@@ -604,7 +603,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             if success:
                 # Update current pose to target pose
                 # FIXME: this should be updated from odom
-                self.current_pose = copy.deepcopy(target_pose)
+                # self.current_pose = copy.deepcopy(target_pose)
                 rospy.loginfo("Coordinated pose and foot movement completed")
             
             return success
@@ -729,3 +728,6 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 print("Act Pos", act_pos)
         except Exception as e:
             rospy.logwarn(f"Failed to update foot positions from PLC: {str(e)}")
+
+    def robot_is_moving(self):
+        return not self.symbol_ReqFlag.value
