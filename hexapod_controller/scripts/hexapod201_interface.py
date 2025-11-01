@@ -318,11 +318,12 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             
             # Send command to CPP
             self.symbol_ReqPTCmd.write(self.ReqPTCmd)
+            # Start movement
             self.symbol_ReqFlag.write(2)  # Start movement
             
             # Update internal foot positions
             # self.foot_positions = foot_positions.copy()
-            self.update_footpos()
+            self._update_footpos_from_plc()
             self.target_foot_positions = foot_positions.copy()
             self.foot_support_flags = foot_flags.copy()
             
@@ -697,7 +698,19 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         except Exception as e:
             rospy.logerr(f"Failed to read pose from PLC: {str(e)}")
 
-    def update_footpos(self):
+    # Update
+    def update_feedback(self, event):
+        """Periodic update of feedback from PLC"""
+        if not self.plc_connected:
+            return
+
+        # Update current pose
+        self._update_current_pose_from_plc()
+        
+        # Update foot positions
+        self._update_footpos_from_plc()
+
+    def _update_footpos_from_plc(self):
         """Update foot positions from PLC feedback"""
         if not self.plc_connected:
             return

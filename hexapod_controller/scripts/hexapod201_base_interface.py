@@ -61,6 +61,7 @@ class Hexapod201BaseInterface(ABC):
         self.is_moving = False
         self.last_cmd_time = rospy.Time.now()
         self.cmd_vel_integration = np.zeros(6)  # [x, y, z, roll, pitch, yaw]
+        self.dt = 1.0
         
         # ROS node should be initialized before creating this class
         
@@ -73,8 +74,10 @@ class Hexapod201BaseInterface(ABC):
         self.path_cmd_sub = rospy.Subscriber('/hexapod/path_cmd', Path, self.follow_trajectory)
         
         # Timer for publishing current pose and foot state
-        self.pose_timer = rospy.Timer(rospy.Duration(0, int(1e8)), self.publish_feedback)
-        self.dt = 1.0
+        self.pub_timer = rospy.Timer(rospy.Duration(0, int(1e8)), self.publish_feedback)
+        self.update_timer = rospy.Timer(rospy.Duration(0, int(5e7)), self.update_feedback)
+        
+
         # Visualization
         self.visualizer = ROSVisualizer("world", "hexapod_visualization")
         
@@ -194,18 +197,6 @@ class Hexapod201BaseInterface(ABC):
             rospy.logerr(f"Error processing FootState: {str(e)}")
     
     
-    # 发布当前位置, 将当前位置在odom坐标系下发布, 并可视化一个长方体形状的六足机体
-    def publish_current_pose(self, event):
-        """Publish current pose for visualization"""
-        pose_msg = PoseStamped()
-        pose_msg.header.stamp = rospy.Time.now()
-        pose_msg.header.frame_id = "odom"
-        pose_msg.pose = self.current_pose
-        self.pose_pub.publish(pose_msg)
-        
-        # Visualize hexapod body as a box
-        self.visualize_hexapod_body()
-    
     def visualize_hexapod_body(self):
         """Visualize hexapod body as a box in RViz"""
         # Clear previous visualization
@@ -233,6 +224,12 @@ class Hexapod201BaseInterface(ABC):
         self.visualizer.vis_cube(position, quat, VisStyle(1.0, 0.45, 0.0, 1.0, box_size[0], box_size[1], box_size[2]))
         self.visualizer.vis_arrow(position, position + heading_vec * 0.4)
     
+    def update_feedback(self, event):
+        """Update internal state for feedback publishing"""
+        # This function can be expanded to update the current pose and foot states
+        # For now, it just ensures that the publish_feedback function is called periodically
+        pass
+
     def publish_feedback(self, event):
         """Publish current pose and foot state feedback"""
         # Publish current pose
@@ -246,7 +243,6 @@ class Hexapod201BaseInterface(ABC):
         foot_state_msg = FootState()
         foot_state_msg.header.stamp = rospy.Time.now()
         foot_state_msg.header.frame_id = "base_link"
-        
         # Add foot names and data
         for i in range(6):
             foot_state_msg.name.append(f"foot_{i}")
@@ -271,13 +267,12 @@ class Hexapod201BaseInterface(ABC):
             # Contact state (assume all feet in contact by default)
             contact_state = self.foot_support_flags[i] == 0 if len(self.foot_support_flags) > i else True
             foot_state_msg.contact.append(contact_state)
-        
         self.foot_state_pub.publish(foot_state_msg)
         
-        # Also call visualization (for dummy interface)
+        # Visualization
         if hasattr(self, 'visualize_hexapod_body'):
             self.visualize_hexapod_body()
-        # self.visualize_hexapod_body()
+
     
     def calPosDisDiff3d(self, a:Pose, b:Pose) -> float:
         """Calculate 3D distance between two poses, handling Pose and PoseStamped."""
@@ -420,3 +415,17 @@ class Hexapod201BaseInterface(ABC):
     def get_target_pose(self) -> Pose:
         """Get target pose"""
         return self.target_pose
+
+    ## Debug
+    
+    # 发布当前位置, 将当前位置在odom坐标系下发布, 并可视化一个长方体形状的六足机体
+    def publish_current_pose(self, event):
+        """Publish current pose for visualization"""
+        pose_msg = PoseStamped()
+        pose_msg.header.stamp = rospy.Time.now()
+        pose_msg.header.frame_id = "odom"
+        pose_msg.pose = self.current_pose
+        self.pose_pub.publish(pose_msg)
+        
+        # Visualize hexapod body as a box
+        self.visualize_hexapod_body()
