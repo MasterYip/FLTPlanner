@@ -62,7 +62,7 @@ void GridMapInterface::callback(const grid_map_msgs::GridMap &msg)
     if (!map_update_lock_)
     {
         grid_map::GridMapRosConverter::fromMessage(msg, map_);
-        
+
         // Replace NaN values in ground_layer with 0
         if (map_.exists(ground_layer))
         {
@@ -74,7 +74,7 @@ void GridMapInterface::callback(const grid_map_msgs::GridMap &msg)
                 }
             }
         }
-        
+
         update();
     }
 }

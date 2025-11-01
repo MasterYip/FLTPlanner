@@ -324,9 +324,9 @@ class Hexapod201BaseInterface(ABC):
         self.pose_pub.publish(pose_msg)
         
         # Visualize hexapod body as a box
-        self.visualize_hexapod_body()
+        self._vis_body()
     
-    def visualize_hexapod_body(self):
+    def _vis_body(self):
         """Visualize hexapod body as a box in RViz"""
         # Clear previous visualization
         # self.visualizer.del_cube()
@@ -395,8 +395,8 @@ class Hexapod201BaseInterface(ABC):
         self.foot_state_pub.publish(foot_state_msg)
         
         # Also call visualization (for dummy interface)
-        if hasattr(self, 'visualize_hexapod_body'):
-            self.visualize_hexapod_body()
+        if hasattr(self, '_vis_body'):
+            self._vis_body()
     
     @abstractmethod
     def move_to_pose(self, target_pose: Pose) -> bool:
@@ -693,7 +693,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                         self.foot_positions[i] = self._linear_interpolate_foot(i, progress)
                 
                 # Visualize feet
-                self._visualize_feet()
+                self._vis_feet()
                 
                 if progress >= 1.0:
                     break
@@ -852,7 +852,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                         self.foot_positions[i] = foot_pos_body * 1000.0  # Convert back to mm
                 
                 # Visualize feet
-                self._visualize_feet()
+                self._vis_feet()
                 
                 if progress >= 1.0:
                     break
@@ -918,7 +918,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         
         return start_pos + (end_pos - start_pos) * t
     
-    def _visualize_feet(self):
+    def _vis_feet(self):
         """Visualize feet as small spheres in RViz with lines connecting to body center"""
         # Get current body position and orientation for coordinate transformation
         body_pos = np.array([

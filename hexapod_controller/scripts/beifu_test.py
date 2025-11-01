@@ -224,9 +224,9 @@ class Hexapod201BaseInterface(ABC):
         self.pose_pub.publish(pose_msg)
         
         # Visualize hexapod body as a box
-        self.visualize_hexapod_body()
+        self._vis_body()
     
-    def visualize_hexapod_body(self):
+    def _vis_body(self):
         """Visualize hexapod body as a box in RViz"""
         # Clear previous visualization
         # self.visualizer.del_cube()

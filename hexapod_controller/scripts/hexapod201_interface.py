@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from deprecated import deprecated
 import rospy
 import numpy as np
 
@@ -21,7 +22,7 @@ import copy
 from ros_visualizer import ROSVisualizer, VisStyle  # pyright: ignore[reportAttributeAccessIssue]
 # Import FootState message
 from legged_traj_plan.msg import FootState
-
+from std_msgs.msg import Bool
 
 FOOT_REMAP = [3, 4, 5, 0, 1, 2]  # Remap from FootElAir to Foot201
 
@@ -66,7 +67,25 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self._connect_plc()
         
         rospy.loginfo("Real hexapod interface initialized")
-    
+
+    def cleanup(self):
+        """Cleanup PLC and CPP connections"""
+        if self.plc_connected and self.plc:
+            try:
+                self.symbol_State.write(State.DISENABLE) # type: ignore
+                self.plc.close()
+                rospy.loginfo("PLC connection closed")
+            except Exception as e:
+                rospy.logerr(f"Error closing PLC connection: {str(e)}")
+        
+        if self.cpp_connected and self.cpp:
+            try:
+                self.cpp.close()
+                rospy.loginfo("CPP connection closed")
+            except Exception as e:
+                rospy.logerr(f"Error closing CPP connection: {str(e)}")
+
+    # PLC related methods
     def _connect_plc(self):
         """Establish PLC and CPP connections"""
         
@@ -115,18 +134,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.plc_connected = True
         self.cpp_connected = True
         rospy.loginfo("PLC and CPP connections established")
-
-    
-    def _robot_pose_sub_callback(self, msg: Odometry):
-        self.current_pose.position = msg.pose.pose.position
-        self.current_pose.orientation = msg.pose.pose.orientation
-        print(f"robot current pose updated! "
-              f"x: {self.current_pose.position.x}"
-              f"x: {self.current_pose.position.y}"
-              f"x: {self.current_pose.position.z}")
-        
-        return
-    
+ 
     def _enable_plc(self):
         """Enable PLC for movement"""
         if not self.plc_connected:
@@ -170,6 +178,30 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             rospy.logerr(f"Failed to read PLC parameters: {str(e)}")
             return False
     
+    # Callbacks
+    def _robot_pose_sub_callback(self, msg: Odometry):
+        self.current_pose.position = msg.pose.pose.position
+        self.current_pose.orientation = msg.pose.pose.orientation
+        print(f"robot current pose updated! "
+              f"x: {self.current_pose.position.x}"
+              f"x: {self.current_pose.position.y}"
+              f"x: {self.current_pose.position.z}")
+        return
+
+    # Timer callbacks
+    def update_feedback(self, event):
+        """Periodic update of feedback from PLC"""
+        super().update_feedback(event)
+        
+        if not self.plc_connected:
+            return
+        # Update current pose (use odom for now)
+        # self._update_current_pose_from_plc()
+        
+        # Update foot positions
+        self._update_footpos_from_plc()
+
+    @deprecated("PLC pose is not correct, update from odom instead.")
     def _update_current_pose_from_plc(self):
         """Update current pose from PLC feedback"""
         if not self.plc_connected:
@@ -191,6 +223,29 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         except Exception as e:
             rospy.logwarn(f"Failed to read current pose from PLC: {str(e)}")
     
+    def _update_footpos_from_plc(self):
+        """Update foot positions from PLC feedback"""
+        if not self.plc_connected:
+            return
+        
+        try:
+            act_pos = self.symbol_PTActPos.read()
+            if act_pos:
+                self.foot_positions = np.array([
+                    [act_pos['X1'], act_pos['Y1'], act_pos['Z1']],
+                    [act_pos['X2'], act_pos['Y2'], act_pos['Z2']],
+                    [act_pos['X3'], act_pos['Y3'], act_pos['Z3']],
+                    [act_pos['X4'], act_pos['Y4'], act_pos['Z4']],
+                    [act_pos['X5'], act_pos['Y5'], act_pos['Z5']],
+                    [act_pos['X6'], act_pos['Y6'], act_pos['Z6']],
+                ])
+                print("Act Pos", act_pos)
+        except Exception as e:
+            rospy.logwarn(f"Failed to update foot positions from PLC: {str(e)}")
+
+
+    # Motion Interface
+    # Simple movement methods
     def move_to_pose(self, target_pose: Pose) -> bool:
         """Move hexapod to target pose using PLC"""
         if not self.plc_connected:
@@ -252,95 +307,6 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             rospy.logerr(f"Movement failed: {str(e)}")
             return False
     
-    def move_free_gait(self, body_motion: np.ndarray, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
-        """Move hexapod using free gait with custom foothold definitions"""
-        if not self.plc_connected or not self.cpp_connected:
-            rospy.logerr("PLC or CPP not connected")
-            return False
-        
-        try:
-            # Enable PLC for free gait
-            if not self._enable_plc():
-                return False
-            
-            # Read current parameters
-            if not self._read_plc_parameters():
-                return False
-            
-            # Set free gait parameters
-            self.cmdTime["TA"] = 1.0  # type: ignore # Acceleration time
-            self.cmdTime["TM"] = 1.5  # type: ignore # Movement time
-            self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
-            self.cmdTime["TZ"] = 0.5  # type: ignore # Z advance time
-            self.symbol_Cmd_Time.write(self.cmdTime)
-            
-            # Set gait parameters for free gait
-            self.cmdGait["GaitMode"] = 5  # Free gait mode
-            self.cmdGait["GaitDF"] = 0.5  # Duty factor
-            self.cmdGait["SwapHigh"] = 80.0  # Swing height (mm)
-            self.cmdGait["LegNum"] = 0  # Leg number
-            self.cmdGait["ForceMode"] = 0  # Force control mode
-            self.cmdGait["Res"] = 0
-            self.symbol_Cmd_Gait.write(self.cmdGait)
-            
-            # Start remote free gait movement
-            self.symbol_CtrlCmd.write(CtrlCmd.REMOTE_MOV)
-            
-            # Wait for CPP to be ready for command
-            timeout = 5.0
-            start_time = rospy.Time.now()
-            while (rospy.Time.now() - start_time).to_sec() < timeout:
-                if self.symbol_ReqFlag.value == 1:
-                    break
-                rospy.sleep(0.1)
-            if self.symbol_ReqFlag.value != 1:
-                rospy.logwarn("CPP not ready for free gait command")
-                return False
-            
-            # Prepare free gait command
-            if self.ReqPTCmd is None:
-                self.ReqPTCmd = self.symbol_ReqPTCmd.read()
-            
-            # Set body motion
-            self.ReqPTCmd["X"] = body_motion[0]  # mm
-            self.ReqPTCmd["Y"] = body_motion[1]  # mm
-            self.ReqPTCmd["Z"] = body_motion[2]  # mm
-            self.ReqPTCmd["Roll"] = body_motion[3]  # rad
-            self.ReqPTCmd["Pitch"] = body_motion[4]  # rad
-            self.ReqPTCmd["Yaw"] = body_motion[5]  # rad
-            self.ReqPTCmd["FG"] = 0  # Movement flag
-            self.ReqPTCmd["Res"] = 0  # Reserved
-            
-            # Set foot positions and flags
-            for j in range(6):
-                i = FOOT_REMAP[j]
-                x_key = f"X{i+1}"
-                y_key = f"Y{i+1}"
-                z_key = f"Z{i+1}"
-                sf_key = f"SF{i+1}"
-                
-                self.ReqPTCmd[x_key] = foot_positions[j, 0]  # mm
-                self.ReqPTCmd[y_key] = foot_positions[j, 1]  # mm
-                self.ReqPTCmd[z_key] = foot_positions[j, 2]  # mm
-                self.ReqPTCmd[sf_key] = foot_flags[j]  # 0=support, 1=swing
-            
-            # Send command to CPP
-            self.symbol_ReqPTCmd.write(self.ReqPTCmd)
-            self.symbol_ReqFlag.write(2)  # Start movement
-            
-            # Update internal foot positions
-            # self.foot_positions = foot_positions.copy()
-            self.update_footpos()
-            self.target_foot_positions = foot_positions.copy()
-            self.foot_support_flags = foot_flags.copy()
-            
-            rospy.loginfo(f"Started free gait movement with body motion: {body_motion}")
-            return True
-            
-        except Exception as e:
-            rospy.logerr(f"Free gait movement failed: {str(e)}")
-            return False
-            
     def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped, use_virtual_odom):
         if not self._read_plc_parameters():
             return False
@@ -466,7 +432,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         # rospy.loginfo(f"Started movement to pose: {target_pose.position}")
         return True
-    
+
     def follow_trajectory(self, trajectory: Path) -> bool:
         print("entered: [follow_trajectory]")
         if trajectory.poses is None:
@@ -552,6 +518,97 @@ class Hexapod201Interface(Hexapod201BaseInterface):
 
         return True
     
+    # Free gait methods
+    def move_free_gait(self, body_motion: np.ndarray, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
+        """Move hexapod using free gait with custom foothold definitions"""
+        if not self.plc_connected or not self.cpp_connected:
+            rospy.logerr("PLC or CPP not connected")
+            return False
+        
+        try:
+            # Enable PLC for free gait
+            if not self._enable_plc():
+                return False
+            
+            # Read current parameters
+            if not self._read_plc_parameters():
+                return False
+            
+            # Set free gait parameters
+            self.cmdTime["TA"] = 1.0  # type: ignore # Acceleration time
+            self.cmdTime["TM"] = 1.5  # type: ignore # Movement time
+            self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
+            self.cmdTime["TZ"] = 0.5  # type: ignore # Z advance time
+            self.symbol_Cmd_Time.write(self.cmdTime)
+            
+            # Set gait parameters for free gait
+            self.cmdGait["GaitMode"] = 5  # Free gait mode
+            self.cmdGait["GaitDF"] = 0.5  # Duty factor
+            self.cmdGait["SwapHigh"] = 80.0  # Swing height (mm)
+            self.cmdGait["LegNum"] = 0  # Leg number
+            self.cmdGait["ForceMode"] = 0  # Force control mode
+            self.cmdGait["Res"] = 0
+            self.symbol_Cmd_Gait.write(self.cmdGait)
+            
+            # Start remote free gait movement
+            self.symbol_CtrlCmd.write(CtrlCmd.REMOTE_MOV)
+            
+            # Wait for CPP to be ready for command
+            timeout = 5.0
+            start_time = rospy.Time.now()
+            while (rospy.Time.now() - start_time).to_sec() < timeout:
+                if self.symbol_ReqFlag.value == 1:
+                    break
+                rospy.sleep(0.1)
+            if self.symbol_ReqFlag.value != 1:
+                rospy.logwarn("CPP not ready for free gait command")
+                return False
+            
+            # Prepare free gait command
+            if self.ReqPTCmd is None:
+                self.ReqPTCmd = self.symbol_ReqPTCmd.read()
+            
+            # Set body motion
+            self.ReqPTCmd["X"] = body_motion[0]  # mm
+            self.ReqPTCmd["Y"] = body_motion[1]  # mm
+            self.ReqPTCmd["Z"] = body_motion[2]  # mm
+            self.ReqPTCmd["Roll"] = body_motion[3]  # rad
+            self.ReqPTCmd["Pitch"] = body_motion[4]  # rad
+            self.ReqPTCmd["Yaw"] = body_motion[5]  # rad
+            self.ReqPTCmd["FG"] = 0  # Movement flag
+            self.ReqPTCmd["Res"] = 0  # Reserved
+            
+            # Set foot positions and flags
+            for j in range(6):
+                i = FOOT_REMAP[j]
+                x_key = f"X{i+1}"
+                y_key = f"Y{i+1}"
+                z_key = f"Z{i+1}"
+                sf_key = f"SF{i+1}"
+                
+                self.ReqPTCmd[x_key] = foot_positions[j, 0]  # mm
+                self.ReqPTCmd[y_key] = foot_positions[j, 1]  # mm
+                self.ReqPTCmd[z_key] = foot_positions[j, 2]  # mm
+                self.ReqPTCmd[sf_key] = foot_flags[j]  # 0=support, 1=swing
+            
+            # Send command to CPP
+            self.symbol_ReqPTCmd.write(self.ReqPTCmd)
+            # Start movement
+            self.symbol_ReqFlag.write(2)  # Start movement
+            
+            # Update internal foot positions
+            # self.foot_positions = foot_positions.copy()
+            self._update_footpos_from_plc()
+            self.target_foot_positions = foot_positions.copy()
+            self.foot_support_flags = foot_flags.copy()
+            
+            rospy.loginfo(f"Started free gait movement with body motion: {body_motion}")
+            return True
+            
+        except Exception as e:
+            rospy.logerr(f"Free gait movement failed: {str(e)}")
+            return False
+
     def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
         """Move hexapod to target pose with specific foot positions using free gait"""
         if not self.plc_connected or not self.cpp_connected:
@@ -611,7 +668,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             if success:
                 # Update current pose to target pose
                 # FIXME: this should be updated from odom
-                self.current_pose = copy.deepcopy(target_pose)
+                # self.current_pose = copy.deepcopy(target_pose)
                 rospy.loginfo("Coordinated pose and foot movement completed")
             
             return success
@@ -686,23 +743,12 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         rospy.loginfo("Joint encoder timer callback triggered")
 
-    def cleanup(self):
-        """Cleanup PLC and CPP connections"""
-        if self.plc_connected and self.plc:
-            try:
-                self.symbol_State.write(State.DISENABLE) # type: ignore
-                self.plc.close()
-                rospy.loginfo("PLC connection closed")
-            except Exception as e:
-                rospy.logerr(f"Error closing PLC connection: {str(e)}")
-        
-        if self.cpp_connected and self.cpp:
-            try:
-                self.cpp.close()
-                rospy.loginfo("CPP connection closed")
-            except Exception as e:
-                rospy.logerr(f"Error closing CPP connection: {str(e)}")
+    # Setter/Getter
+    def robot_is_moving(self):
+        """Check if the robot is currently moving based on PLC state"""
+        return not self.symbol_ReqFlag.value
 
+    # Debug
     def test_footpos_read(self):
         """Test reading foot positions from PLC"""
         if not self.plc_connected:
@@ -717,23 +763,3 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                 rospy.logwarn("No pose data received from PLC")
         except Exception as e:
             rospy.logerr(f"Failed to read pose from PLC: {str(e)}")
-
-    def update_footpos(self):
-        """Update foot positions from PLC feedback"""
-        if not self.plc_connected:
-            return
-        
-        try:
-            act_pos = self.symbol_PTActPos.read()
-            if act_pos:
-                self.foot_positions = np.array([
-                    [act_pos['X1'], act_pos['Y1'], act_pos['Z1']],
-                    [act_pos['X2'], act_pos['Y2'], act_pos['Z2']],
-                    [act_pos['X3'], act_pos['Y3'], act_pos['Z3']],
-                    [act_pos['X4'], act_pos['Y4'], act_pos['Z4']],
-                    [act_pos['X5'], act_pos['Y5'], act_pos['Z5']],
-                    [act_pos['X6'], act_pos['Y6'], act_pos['Z6']],
-                ])
-                print("Act Pos", act_pos)
-        except Exception as e:
-            rospy.logwarn(f"Failed to update foot positions from PLC: {str(e)}")
