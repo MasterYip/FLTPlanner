@@ -32,7 +32,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "5.157.100.214.1.1"):
         super().__init__(node_name)
         
-        self.robot_pose_sub = rospy.Subscriber('/Odometry', Odometry, self._robot_pose_sub_callback)
+        self.joint_encoder_timer = rospy.Timer(rospy.Duration(0, int(2e7)), self.joint_encoder_timer_callback)
         self.plc_ip = plc_ip
         self.plc = None
         self.plc_connected = False
@@ -93,6 +93,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.symbol_QState.plc_type = pyads.PLCTYPE_UDINT
         self.symbol_PTActPos = self.plc.get_symbol('MAIN.PTActPos', structure_def=stPose_def)
         self.symbol_PTCmdPos = self.plc.get_symbol('MAIN.PTCmdPos', structure_def=stPose_def)
+        self.symbol_QJointPos = self.plc.get_symbol('MAIN.Q_JointPos', structure_def=stJointPos_def)
+        self.symbol_QPTVel_Force = self.plc.get_symbol('MAIN.Q_PTVelForce', structure_def=stPose_def)
+        self.symbol_QJointVel = self.plc.get_symbol('MAIN.Q_JointVel', structure_def=stJointPos_def)
+        
         
         # Initialize CPP symbols for free gait
         self.symbol_ReqPTCmd = self.cpp.get_symbol('CPP.Inputs.ReqPTCmd', structure_def=stPose_def)
@@ -103,7 +107,11 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.symbol_ReqFlag.auto_update = True
         self.symbol_PTActPos.auto_update = True  # PT的意思是平台
         self.symbol_PTCmdPos.auto_update = True
+        self.symbol_QJointPos.auto_update = True
+        self.symbol_QPTVel_Force.auto_update = True
+        self.symbol_QJointVel.auto_update = True
         
+          
         self.plc_connected = True
         self.cpp_connected = True
         rospy.loginfo("PLC and CPP connections established")
@@ -664,7 +672,20 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         except Exception as e:
             rospy.logerr(f"Failed to stop movement: {str(e)}")
             return False
-    
+    def joint_encoder_timer_callback(self, event):
+        """Default callback for joint encoder timer."""
+        # joint_values: List[float]
+        # joint_values = self.symbol_QJointPos.read()
+        # self.cmdPose = self.symbol_Cmd_Pose.read()
+        # zhicheng1:int = self.cmdPose["SF1"]
+        # zuduanli1:int = self.symbol_QPTVel_Force.read()["Z1"] # ["Z1"]要不就read 
+        # jishensudux =self.symbol_QPTVel_Force.value["X"]
+        # jishensuduy =self.symbol_QPTVel_Force.value["Y"]
+        # guanjiesudu = self.symbol_QJointVel.value[""]
+        
+        
+        rospy.loginfo("Joint encoder timer callback triggered")
+
     def cleanup(self):
         """Cleanup PLC and CPP connections"""
         if self.plc_connected and self.plc:

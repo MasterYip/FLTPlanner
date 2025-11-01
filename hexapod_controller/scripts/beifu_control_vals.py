@@ -74,7 +74,7 @@ stPose_def = (
     ("X1", pyads.PLCTYPE_REAL, 1),
     ("Y1", pyads.PLCTYPE_REAL, 1),
     ("Z1", pyads.PLCTYPE_REAL, 1),
-    ("SF1", pyads.PLCTYPE_DINT, 1),
+    ("SF1", pyads.PLCTYPE_DINT, 1), # 0代表支撑 1代表摆动
 
     ("X2", pyads.PLCTYPE_REAL, 1),
     ("Y2", pyads.PLCTYPE_REAL, 1),
@@ -109,3 +109,39 @@ stXYZ_def = (
     ("Z", pyads.PLCTYPE_REAL, 1),
     ("SF", pyads.PLCTYPE_DINT, 1),
 )
+
+
+# Additional structure for free gait foothold definition
+stJointPos_def = (
+    ("A1", pyads.PLCTYPE_REAL, 1), # 左前
+    ("B1", pyads.PLCTYPE_REAL, 1),
+    ("C1", pyads.PLCTYPE_REAL, 1),
+    ("F1", pyads.PLCTYPE_DINT, 1), # F在别的变量里代表是摆动还是支撑，在这里是保留的，是为了字节对齐还有一些其他的东西
+
+    ("A2", pyads.PLCTYPE_REAL, 1), # 左中
+    ("B2", pyads.PLCTYPE_REAL, 1),
+    ("C2", pyads.PLCTYPE_REAL, 1),
+    ("F2", pyads.PLCTYPE_DINT, 1),
+
+    ("A3", pyads.PLCTYPE_REAL, 1), # 左后
+    ("B3", pyads.PLCTYPE_REAL, 1),
+    ("C3", pyads.PLCTYPE_REAL, 1),
+    ("F3", pyads.PLCTYPE_DINT, 1),
+
+    ("A4", pyads.PLCTYPE_REAL, 1),
+    ("B4", pyads.PLCTYPE_REAL, 1),
+    ("C4", pyads.PLCTYPE_REAL, 1),
+    ("F4", pyads.PLCTYPE_DINT, 1),
+
+    ("A5", pyads.PLCTYPE_REAL, 1),
+    ("B5", pyads.PLCTYPE_REAL, 1),
+    ("C5", pyads.PLCTYPE_REAL, 1),
+    ("F5", pyads.PLCTYPE_DINT, 1),
+
+    ("A6", pyads.PLCTYPE_REAL, 1),
+    ("B6", pyads.PLCTYPE_REAL, 1),
+    ("C6", pyads.PLCTYPE_REAL, 1),
+    ("F6", pyads.PLCTYPE_DINT, 1),
+
+)
+
