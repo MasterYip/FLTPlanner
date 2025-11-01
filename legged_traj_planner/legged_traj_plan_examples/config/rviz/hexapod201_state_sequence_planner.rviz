@@ -102,7 +102,7 @@ Visualization Manager:
       Unreliable: false
       Use ColorMap: false
       Value: false
-    - Alpha: 0.30000001192092896
+    - Alpha: 0.20000000298023224
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
@@ -125,6 +125,30 @@ Visualization Manager:
       Topic: /hexapod201_state_sequence_planner/grid_map_trav_test
       Unreliable: false
       Use ColorMap: false
+      Value: true
+    - Alpha: 0.20000000298023224
+      Autocompute Intensity Bounds: true
+      Class: grid_map_rviz_plugin/GridMap
+      Color: 200; 200; 200
+      Color Layer: elevation_inpainted
+      Color Transformer: GridMapLayer
+      ColorMap: jet
+      Enabled: true
+      Grid Cell Decimation: 1
+      Grid Line Thickness: 0.10000000149011612
+      Height Layer: elevation_inpainted_foothold
+      Height Transformer: ""
+      History Length: 1
+      Invert ColorMap: false
+      Max Color: 255; 255; 255
+      Max Intensity: 10
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: GridMapFoot
+      Show Grid Lines: true
+      Topic: /hexapod201_state_sequence_planner/grid_map_trav_test
+      Unreliable: false
+      Use ColorMap: true
       Value: true
     - Alpha: 0.30000001192092896
       Autocompute Intensity Bounds: true
@@ -177,6 +201,7 @@ Visualization Manager:
       Namespaces:
         arrow: true
         cube: true
+        sphere: true
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -473,17 +498,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.1698220819234848
-        Y: 0.11622335016727448
-        Z: 0.6906049847602844
+        X: 1.1531399488449097
+        Y: 0.4010396897792816
+        Z: 0.6971564292907715
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.784796953201294
+      Pitch: 0.7097970247268677
       Target Frame: base
-      Yaw: 2.7795348167419434
+      Yaw: 2.6895344257354736
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

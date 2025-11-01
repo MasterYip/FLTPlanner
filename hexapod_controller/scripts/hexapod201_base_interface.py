@@ -77,7 +77,8 @@ class Hexapod201BaseInterface(ABC):
         
         # Timer for publishing current pose and foot state
         self.pub_timer = rospy.Timer(rospy.Duration(0, int(1e8)), self.publish_feedback)
-        self.update_timer = rospy.Timer(rospy.Duration(0, int(5e7)), self.update_feedback)
+        # FIXME: High update rate may cause error in PLC connection
+        self.update_timer = rospy.Timer(rospy.Duration(0, int(5e8)), self.update_feedback)
         
 
         # Visualization
