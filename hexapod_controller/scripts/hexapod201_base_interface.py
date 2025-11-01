@@ -91,7 +91,11 @@ class Hexapod201BaseInterface(ABC):
         # self.foot_positions = self.default_foot_positions.copy()
         self.target_foot_positions = self.default_foot_positions.copy()
 
-    
+    @abstractmethod
+    def cleanup(self):
+        """cleanup method"""
+        pass
+
     # Callbacks
     def cmd_vel_callback(self, msg: Twist):
         """
@@ -207,7 +211,9 @@ class Hexapod201BaseInterface(ABC):
         """Update internal state for feedback publishing"""
         # This function can be expanded to update the current pose and foot states
         # For now, it just ensures that the publish_feedback function is called periodically
-        pass
+
+        # Visualization
+        self.vis_update()
 
     def publish_feedback(self, event):
         """Publish current pose and foot state feedback"""
@@ -250,10 +256,6 @@ class Hexapod201BaseInterface(ABC):
 
         # Robot is moving status
         self.robot_is_moving_pub.publish(Bool(self.robot_is_moving()))
-
-        # Visualization
-        if hasattr(self, '_vis_body'):
-            self._vis_body()
 
     # Motion Interface
     @abstractmethod
@@ -400,7 +402,11 @@ class Hexapod201BaseInterface(ABC):
         quat = quaternion_from_euler(0.0, 0.0, yaw)
         return geometry_msgs.msg.Quaternion(*quat)
     
-    # Visualization    
+    # Visualization
+    def vis_update(self):
+        self._vis_body()
+        self._vis_feet()
+
     def _vis_body(self):
         """Visualize hexapod body as a box in RViz"""
         # Clear previous visualization

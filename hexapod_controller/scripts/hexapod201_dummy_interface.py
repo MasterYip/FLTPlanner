@@ -4,10 +4,6 @@ from hexapod201_base_interface import *
 import time
 class DummyHexapod201Interface(Hexapod201BaseInterface):
     """Dummy interface for simulation/testing"""
-
-    def cleanup(self):
-        """Dummy cleanup method"""
-        rospy.loginfo("Dummy interface cleanup called")
     
     def __init__(self, node_name: str = "dummy_hexapod201_interface"):
         super().__init__(node_name)
@@ -35,6 +31,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         
         rospy.loginfo("Dummy hexapod interface initialized")
 
+    # Motion Interface
     def follow_trajectory(self, trajectory: Path) -> bool:
         """Simulate following a trajectory"""
         rospy.loginfo("Dummy interface following trajectory")
@@ -74,8 +71,6 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                     self.current_pose.position.z = aim_pose.pose.position.z
             
         return True
-
-
     
     def move_to_pose(self, target_pose: Pose) -> bool:
         """Simulate movement to target pose"""
@@ -454,6 +449,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         rospy.loginfo("Dummy movement stopped")
         return True
 
+    # Utils
     def _hermite_interpolate_foot(self, foot_idx: int, t: float) -> np.ndarray:
         """Hermite interpolation for swing phase foot trajectory"""
         start_pos = self.foot_start_positions[foot_idx]
