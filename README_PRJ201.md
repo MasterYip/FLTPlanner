@@ -96,7 +96,19 @@ planner_cfg:=height_clear_planner \
 use_pyinterface:=true
 ```
 
-2. Real robot with real map
+2. Simulation with fake map with real command
+```bash
+roslaunch legged_traj_plan_examples hexapod201_state_sequence_planner.launch \
+robot_interface_type:=Hexapod201ROS \
+sim:=true \
+teleop_type:=keyboard \
+interface_type:=dummy_with_real_cmd \
+demo_name:=7_prj201_barrier \
+planner_cfg:=height_clear_planner \
+use_pyinterface:=true
+```
+
+3. Real robot with real map
 ```bash
 roslaunch legged_traj_plan_examples hexapod201_state_sequence_planner.launch \
 robot_interface_type:=Hexapod201ROS \

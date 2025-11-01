@@ -27,6 +27,9 @@
 
     <!-- Add argument to control use of Python interface -->
     <arg name="use_pyinterface" default="true" />
+    <!-- Add argument for interface type with new dummy_with_real_cmd option -->
+    <arg name="interface_type" default="dummy" if="$(arg sim)" />
+    <arg name="interface_type" default="hardware" unless="$(arg sim)" />
 
     <!-- Launch -->
     <!-- Config -->
@@ -75,8 +78,7 @@
     <!-- Start Python interface node if use_pyinterface is true -->
     <group if="$(arg use_pyinterface)">
         <node pkg="hexapod_controller" type="main.py" name="hexapod201_interface" output="$(arg output)">
-            <param name="interface_type" value="dummy" if="$(arg sim)"/>
-            <param name="interface_type" value="hardware" unless="$(arg sim)"/>
+            <param name="interface_type" value="$(arg interface_type)" />
         </node>
     </group>
 

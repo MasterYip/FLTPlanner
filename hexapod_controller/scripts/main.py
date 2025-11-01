@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from hexapod201_interface import *
 from hexapod201_dummy_interface import DummyHexapod201Interface
+from hexapod201_dummy_with_real_cmd import DummyWithRealCmdHexapod201Interface
 
 
 def main():
@@ -20,6 +21,9 @@ def main():
             if isinstance(interface_type, str) and interface_type.lower() == 'dummy':
                 interface = DummyHexapod201Interface(str(node_name))
                 print("DummyHexapod201Interface")
+            elif isinstance(interface_type, str) and interface_type.lower() == 'dummy_with_real_cmd':
+                interface = DummyWithRealCmdHexapod201Interface(str(node_name), str(plc_ip))
+                print("DummyWithRealCmdHexapod201Interface")
             else:
                 interface = Hexapod201Interface(str(node_name), str(plc_ip))
                 print("Hexapod201Interface")
