@@ -16,7 +16,7 @@
 
 /* c++ standard library header files */
 #include <algorithm>
-
+#include <memory>
 /* internal project header files */
 #include "../elspider_air_planner/ElSpiderAirPlannerBase.h"
 #include "cout_color_config.h"
@@ -76,6 +76,9 @@ struct Hexapod201StateSequencePlannerConfig
   bool keepConstBaseFootZ;
   double keepConstBaseFootZValue;
 
+  // Gait planner configuration
+  Hexapod201GaitPlannerConfig gaitPlannerConfig;
+
   void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
   {
     bool check_digit = true;
@@ -91,6 +94,10 @@ struct Hexapod201StateSequencePlannerConfig
     check_digit &= nh.getParam(ns + "/keepPoseHorizontal", keepPoseHorizontal);
     check_digit &= nh.getParam(ns + "/keepConstBaseFootZ", keepConstBaseFootZ);
     check_digit &= nh.getParam(ns + "/keepConstBaseFootZValue", keepConstBaseFootZValue);
+
+    // Load gait planner configuration
+    gaitPlannerConfig.loadParams(nh, ns + "/GaitPlanner");
+
     if (!check_digit)
     {
       ROS_ERROR("Failed to load Hexapod201StateSequencePlannerConfig.");
@@ -103,7 +110,7 @@ class Hexapod201StateSequencePlanner : public ElSpiderAirPlannerBase
 private:
   ros::Rate rate_;
   Hexapod201StateSequencePlannerConfig config_;
-  Hexapod201GaitPlanner gait_planner_;
+  std::unique_ptr<Hexapod201GaitPlanner> gait_planner_;
 
   // Cmd
   ros::Subscriber cmd_sub_;
@@ -134,11 +141,14 @@ public:
         state_sequence_planner_(swing_traj_planner_, gridmap_interface_,
                                 robot_interface_),
         visualizer_(nh_, "world", "visualizer_markers"),
-        rate_(100),
-        gait_planner_(HexapodGaitType::GAIT_2, 0.4, 0.2)
+        rate_(100)
   {
     config_.loadParams(nh_);
     rate_ = ros::Rate(config_.rosRate);
+    
+    // Initialize gait planner with loaded configuration
+    gait_planner_ = std::make_unique<Hexapod201GaitPlanner>(config_.gaitPlannerConfig);
+    
     init_time_ = ros::Time::now().toSec();
     cmd_sub_ = nh_.subscribe(
         "/cmd_vel", 1, &Hexapod201StateSequencePlanner::cmd_callback, this);
@@ -250,7 +260,6 @@ public:
       ros::spinOnce();
     }
   }
-
 
   //=== Callbacks ===//
   void cmd_callback(const geometry_msgs::Twist &msg)
@@ -637,7 +646,7 @@ public:
     next_state.base_Pose_Now = SE32XYZRPY(next_pose);
 
     // Get contact pattern from gait planner
-    std::array<bool, 6> contact_pattern = gait_planner_.getCurrentContactPattern();
+    std::array<bool, 6> contact_pattern = gait_planner_->getCurrentContactPattern();
     for (int i = 0; i < 6; i++)
     {
       next_state.support_State_Now[i] = contact_pattern[i];
@@ -650,7 +659,7 @@ public:
       if (!contact_pattern[i]) // Swing leg
       {
         Eigen::Vector3d nominal_foothold = robot_interface_->getNominalFoothold(i);
-        Eigen::Vector3d target_foothold = gait_planner_.computeTerrainAwareFoothold(
+        Eigen::Vector3d target_foothold = gait_planner_->computeTerrainAwareFoothold(
             next_pose, velocity, nominal_foothold, gridmap_interface_, i);
 
         // Set target foothold in world frame with terrain-aware height
@@ -661,11 +670,10 @@ public:
     }
 
     // Advance gait phase for next step
-    gait_planner_.advancePhase();
+    gait_planner_->advancePhase();
 
     return next_state;
   }
-
 
   //=== Utils Functions ===//
 
@@ -802,5 +810,4 @@ public:
     //   }
     // }
   }
-
 };

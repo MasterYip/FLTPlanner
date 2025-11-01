@@ -28,6 +28,106 @@ enum class HexapodGaitType
     GAIT_6  // 6-gait: moves 1 foot at once
 };
 
+// Configuration for basic Raibert foothold planner
+struct Hexapod201RaibertFootholdPlannerConfig
+{
+    double stepTime;
+    double stanceTime;
+    double velocityGainX;
+    double velocityGainY;
+    double velocityGainZ;
+
+    void loadParams(ros::NodeHandle &nh, std::string ns = "Hexapod201RaibertFootholdPlanner")
+    {
+        bool check_digit = true;
+        check_digit &= nh.getParam(ns + "/stepTime", stepTime);
+        check_digit &= nh.getParam(ns + "/stanceTime", stanceTime);
+        check_digit &= nh.getParam(ns + "/velocityGainX", velocityGainX);
+        check_digit &= nh.getParam(ns + "/velocityGainY", velocityGainY);
+        check_digit &= nh.getParam(ns + "/velocityGainZ", velocityGainZ);
+        if (!check_digit)
+        {
+            ROS_ERROR("Failed to load Hexapod201RaibertFootholdPlannerConfig.");
+        }
+    }
+};
+
+// Configuration for terrain-aware Raibert planner
+struct Hexapod201TerrainAwareRaibertPlannerConfig
+{
+    double stepTime;
+    double stanceTime;
+    double velocityGainX;
+    double velocityGainY;
+    double velocityGainZ;
+    double searchRadius;
+    double gridResolution;
+    int maxSearchIterations;
+    double minFootholdScore;
+
+    void loadParams(ros::NodeHandle &nh, std::string ns = "Hexapod201TerrainAwareRaibertPlanner")
+    {
+        bool check_digit = true;
+        check_digit &= nh.getParam(ns + "/stepTime", stepTime);
+        check_digit &= nh.getParam(ns + "/stanceTime", stanceTime);
+        check_digit &= nh.getParam(ns + "/velocityGainX", velocityGainX);
+        check_digit &= nh.getParam(ns + "/velocityGainY", velocityGainY);
+        check_digit &= nh.getParam(ns + "/velocityGainZ", velocityGainZ);
+        check_digit &= nh.getParam(ns + "/searchRadius", searchRadius);
+        check_digit &= nh.getParam(ns + "/gridResolution", gridResolution);
+        check_digit &= nh.getParam(ns + "/maxSearchIterations", maxSearchIterations);
+        check_digit &= nh.getParam(ns + "/minFootholdScore", minFootholdScore);
+        if (!check_digit)
+        {
+            ROS_ERROR("Failed to load Hexapod201TerrainAwareRaibertPlannerConfig.");
+        }
+    }
+};
+
+// Main gait planner configuration
+struct Hexapod201GaitPlannerConfig
+{
+    std::string gaitType;
+    double stepDuration;
+    double stanceDuration;
+
+    // Sub-configurations
+    Hexapod201RaibertFootholdPlannerConfig raibertConfig;
+    Hexapod201TerrainAwareRaibertPlannerConfig terrainAwareConfig;
+
+    void loadParams(ros::NodeHandle &nh, std::string ns = "GaitPlanner")
+    {
+        bool check_digit = true;
+        check_digit &= nh.getParam(ns + "/gaitType", gaitType);
+        check_digit &= nh.getParam(ns + "/stepDuration", stepDuration);
+        check_digit &= nh.getParam(ns + "/stanceDuration", stanceDuration);
+
+        // Load sub-configurations
+        raibertConfig.loadParams(nh, ns + "/Hexapod201RaibertFootholdPlanner");
+        terrainAwareConfig.loadParams(nh, ns + "/Hexapod201TerrainAwareRaibertPlanner");
+
+        if (!check_digit)
+        {
+            ROS_ERROR("Failed to load Hexapod201GaitPlannerConfig.");
+        }
+    }
+
+    HexapodGaitType getGaitTypeEnum() const
+    {
+        if (gaitType == "GAIT_2")
+            return HexapodGaitType::GAIT_2;
+        else if (gaitType == "GAIT_3")
+            return HexapodGaitType::GAIT_3;
+        else if (gaitType == "GAIT_6")
+            return HexapodGaitType::GAIT_6;
+        else
+        {
+            ROS_WARN_STREAM("Unknown gait type: " << gaitType << ", defaulting to GAIT_2");
+            return HexapodGaitType::GAIT_2;
+        }
+    }
+};
+
 // Tripod gait phases for 2-gait
 enum class TripodPhase
 {
@@ -57,12 +157,11 @@ enum class SingleLegPhase
 // Basic Raibert heuristic for hexapod foothold placement
 struct Hexapod201RaibertFootholdPlanner
 {
-    double step_time;
-    double stance_time;
+    Hexapod201RaibertFootholdPlannerConfig config_;
     Eigen::Vector3d velocity_gain;
 
-    Hexapod201RaibertFootholdPlanner(double step_t = 0.4, double stance_t = 0.2)
-        : step_time(step_t), stance_time(stance_t), velocity_gain(0.5, 0.5, 0.0)
+    Hexapod201RaibertFootholdPlanner(const Hexapod201RaibertFootholdPlannerConfig &config)
+        : config_(config), velocity_gain(config.velocityGainX, config.velocityGainY, config.velocityGainZ)
     {
     }
 
@@ -73,7 +172,7 @@ struct Hexapod201RaibertFootholdPlanner
     {
         // Raibert heuristic: foothold = nominal + velocity_gain * body_velocity *
         // (step_time/2 + stance_time/2)
-        double foothold_time = step_time / 2.0 + stance_time / 2.0;
+        double foothold_time = config_.stepTime / 2.0 + config_.stanceTime / 2.0;
         Eigen::Vector3d velocity_offset =
             velocity_gain.cwiseProduct(body_velocity) * foothold_time;
 
@@ -89,14 +188,11 @@ struct Hexapod201RaibertFootholdPlanner
 // Enhanced Raibert foothold planner with terrain awareness
 struct Hexapod201TerrainAwareRaibertPlanner
 {
-    double step_time;
-    double stance_time;
+    Hexapod201TerrainAwareRaibertPlannerConfig config_;
     Eigen::Vector3d velocity_gain;
-    double search_radius;
-    double grid_resolution;
 
-    Hexapod201TerrainAwareRaibertPlanner(double step_t = 0.4, double stance_t = 0.2, double search_r = 0.3)
-        : step_time(step_t), stance_time(stance_t), velocity_gain(0.5, 0.5, 0.0), search_radius(search_r), grid_resolution(0.05)
+    Hexapod201TerrainAwareRaibertPlanner(const Hexapod201TerrainAwareRaibertPlannerConfig &config)
+        : config_(config), velocity_gain(config.velocityGainX, config.velocityGainY, config.velocityGainZ)
     {
     }
 
@@ -107,7 +203,7 @@ struct Hexapod201TerrainAwareRaibertPlanner
                                            int leg_index)
     {
         // Step 1: Compute Raibert heuristic target
-        double foothold_time = step_time / 2.0 + stance_time / 2.0;
+        double foothold_time = config_.stepTime / 2.0 + config_.stanceTime / 2.0;
         Eigen::Vector3d velocity_offset = velocity_gain.cwiseProduct(body_velocity) * foothold_time;
 
         // Transform nominal foothold to world frame
@@ -141,24 +237,27 @@ struct Hexapod201TerrainAwareRaibertPlanner
         double best_distance = std::numeric_limits<double>::max();
         Eigen::Vector3d best_foothold = world_nominal; // Fallback to nominal
         bool found_valid_foothold = false;
+        int iterations = 0;
 
         // Search in expanding circles
-        for (double radius = grid_resolution; radius <= search_radius; radius += grid_resolution)
+        for (double radius = config_.gridResolution; radius <= config_.searchRadius; radius += config_.gridResolution)
         {
             for (grid_map::CircleIterator iterator(map, target_pos, radius);
-                 !iterator.isPastEnd(); ++iterator)
+                 !iterator.isPastEnd() && iterations < config_.maxSearchIterations; ++iterator, ++iterations)
             {
                 grid_map::Position current_pos;
                 map.getPosition(*iterator, current_pos);
 
                 // Check if this position is a valid foothold
-                if (!std::isnan(map.at(foothold_layer, *iterator)))
+                // FIXME: actually is not score but height, this should be fixed later
+                double foothold_score = map.at(foothold_layer, *iterator);
+                if (!std::isnan(foothold_score) && foothold_score >= config_.minFootholdScore)
                 {
                     double distance = (current_pos - target_pos).norm();
                     if (distance < best_distance)
                     {
                         best_distance = distance;
-                        double foothold_height = map.at(foothold_layer, *iterator);
+                        double foothold_height = foothold_score; // Use score as height for now
                         best_foothold = Eigen::Vector3d(current_pos[0], current_pos[1], foothold_height);
                         found_valid_foothold = true;
                     }
@@ -190,6 +289,7 @@ struct Hexapod201TerrainAwareRaibertPlanner
 class Hexapod201GaitPlanner
 {
 private:
+    Hexapod201GaitPlannerConfig config_;
     HexapodGaitType gait_type_;
 
     // Phase states for different gait types
@@ -206,17 +306,16 @@ private:
     double stance_duration_;
 
 public:
-    Hexapod201GaitPlanner(HexapodGaitType gait_type = HexapodGaitType::GAIT_2,
-                          double step_duration = 0.4,
-                          double stance_duration = 0.2)
-        : gait_type_(gait_type),
+    Hexapod201GaitPlanner(const Hexapod201GaitPlannerConfig &config)
+        : config_(config),
+          gait_type_(config.getGaitTypeEnum()),
           tripod_phase_(TripodPhase::PHASE_135),
           wave_phase_(WaveGaitPhase::PHASE_01),
           single_leg_phase_(SingleLegPhase::LEG_0),
-          raibert_planner_(step_duration, stance_duration),
-          terrain_aware_planner_(step_duration, stance_duration, 0.3),
-          step_duration_(step_duration),
-          stance_duration_(stance_duration)
+          raibert_planner_(config.raibertConfig),
+          terrain_aware_planner_(config.terrainAwareConfig),
+          step_duration_(config.stepDuration),
+          stance_duration_(config.stanceDuration)
     {
     }
 

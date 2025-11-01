@@ -28,3 +28,30 @@ StateSequencePlanner:
   keepPoseHorizontal: true
   keepConstBaseFootZ: true # If ture, base height is kept constant too
   keepConstBaseFootZValue: -0.405
+
+  # Gait planner configuration
+  GaitPlanner:
+    # Gait type: GAIT_2 (tripod), GAIT_3 (wave), GAIT_6 (single-leg)
+    gaitType: "GAIT_2"
+    stepDuration: 0.6
+    stanceDuration: 0.3
+    
+    # Basic Raibert foothold planner settings
+    Hexapod201RaibertFootholdPlanner:
+      stepTime: 0.6
+      stanceTime: 0.3
+      velocityGainX: 0.5
+      velocityGainY: 0.5
+      velocityGainZ: 0.0
+    
+    # Terrain-aware Raibert planner settings
+    Hexapod201TerrainAwareRaibertPlanner:
+      stepTime: 0.6
+      stanceTime: 0.3
+      velocityGainX: 0.5
+      velocityGainY: 0.5
+      velocityGainZ: 0.0
+      searchRadius: 0.3
+      gridResolution: 0.05
+      maxSearchIterations: 100
+      minFootholdScore: 0.5
