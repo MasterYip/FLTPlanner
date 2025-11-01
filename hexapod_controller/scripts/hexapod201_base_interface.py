@@ -91,7 +91,6 @@ class Hexapod201BaseInterface(ABC):
         # self.foot_positions = self.default_foot_positions.copy()
         self.target_foot_positions = self.default_foot_positions.copy()
 
-    @abstractmethod
     def cleanup(self):
         """cleanup method"""
         pass

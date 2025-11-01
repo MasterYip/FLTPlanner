@@ -183,9 +183,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     # Timer callbacks
     def update_feedback(self, event):
         """Periodic update of feedback from PLC"""
+        super().update_feedback(event)
+        
         if not self.plc_connected:
             return
-
         # Update current pose (use odom for now)
         # self._update_current_pose_from_plc()
         

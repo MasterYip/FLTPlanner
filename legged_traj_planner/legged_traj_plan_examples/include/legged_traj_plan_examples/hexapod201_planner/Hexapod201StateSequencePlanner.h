@@ -496,7 +496,7 @@ public:
         // Apply keepConstBaseFootZ: set base height to constant value
         if (config_.keepConstBaseFootZ)
         {
-          target_pose.translation()[2] = 0.0-config_.keepConstBaseFootZValue;
+          target_pose.translation()[2] = 0.0 - config_.keepConstBaseFootZValue;
         }
 
         // Get current hexapod state for Raibert gait planning
@@ -528,13 +528,13 @@ public:
           // Transform from world frame to body frame
           footend_positions[leg_idx] =
               point_SE3Act(target_pose, world_foot_pos);
-          
+
           // Apply keepConstBaseFootZ: set Z in base frame to constant value
           if (config_.keepConstBaseFootZ)
           {
             footend_positions[leg_idx][2] = config_.keepConstBaseFootZValue;
           }
-          
+
           contact_states[leg_idx] = next_state.support_State_Now[leg_idx];
         }
 
