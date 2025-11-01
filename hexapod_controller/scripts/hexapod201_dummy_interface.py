@@ -15,7 +15,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         # Free gait specific parameters
         self.foot_start_positions = np.zeros((6, 3))
         self.swing_phase = np.zeros(6)  # 0-1 swing phase for each foot
-        self.swing_height = 80.0  # mm
+        self.swing_height = 400.0  # mm
         self.swing_duration = 1.5  # seconds
         
         # 判断一个位置到了没有的容许误差

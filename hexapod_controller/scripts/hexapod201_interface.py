@@ -536,7 +536,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             # Set gait parameters for free gait
             self.cmdGait["GaitMode"] = 5  # Free gait mode
             self.cmdGait["GaitDF"] = 0.5  # Duty factor
-            self.cmdGait["SwapHigh"] = 80.0  # Swing height (mm)
+            self.cmdGait["SwapHigh"] = 400.0  # Swing height (mm)
             self.cmdGait["LegNum"] = 0  # Leg number
             self.cmdGait["ForceMode"] = 0  # Force control mode
             self.cmdGait["Res"] = 0
