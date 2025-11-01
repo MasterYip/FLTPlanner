@@ -260,7 +260,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                         self.foot_positions[i] = self._linear_interpolate_foot(i, progress)
                 
                 # Visualize feet
-                self._visualize_feet()
+                self._vis_feet()
                 
                 if progress >= 1.0:
                     break
@@ -419,7 +419,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                         self.foot_positions[i] = foot_pos_body * 1000.0  # Convert back to mm
                 
                 # Visualize feet
-                self._visualize_feet()
+                self._vis_feet()
                 
                 if progress >= 1.0:
                     break
@@ -485,56 +485,3 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         
         return start_pos + (end_pos - start_pos) * t
     
-    def _visualize_feet(self):
-        """Visualize feet as small spheres in RViz with lines connecting to body center"""
-        # Get current body position and orientation for coordinate transformation
-        body_pos = np.array([
-            self.current_pose.position.x,
-            self.current_pose.position.y,
-            self.current_pose.position.z
-        ])
-        
-        body_quat = np.array([
-            self.current_pose.orientation.x,
-            self.current_pose.orientation.y,
-            self.current_pose.orientation.z,
-            self.current_pose.orientation.w,
-        ])
-        
-        # Convert body quaternion to rotation matrix for coordinate transformation
-        from tf.transformations import quaternion_matrix
-        transform_matrix = quaternion_matrix(body_quat)
-        rotation_matrix = transform_matrix[:3, :3]
-        
-        foot_colors = [
-            [1.0, 0.0, 0.0, 1.0],  # Red
-            [0.0, 1.0, 0.0, 1.0],  # Green
-            [0.0, 0.0, 1.0, 1.0],  # Blue
-            [1.0, 1.0, 0.0, 1.0],  # Yellow
-            [1.0, 0.0, 1.0, 1.0],  # Magenta
-            [0.0, 1.0, 1.0, 1.0],  # Cyan
-        ]
-        
-        for i in range(6):
-            # Transform foot position from body frame to world frame
-            foot_pos_body = self.foot_positions[i] / 1000.0  # Convert mm to m
-            foot_pos_world = body_pos + rotation_matrix.dot(foot_pos_body)
-            
-            # Choose sphere size based on support/swing state
-            sphere_size = 0.03 if self.foot_support_flags[i] == 0 else 0.02  # Larger for support
-            
-            # Create sphere style
-            style = VisStyle(
-                foot_colors[i][0], foot_colors[i][1], foot_colors[i][2], foot_colors[i][3],
-                sphere_size, sphere_size, sphere_size
-            )
-            
-            # Visualize foot sphere
-            self.visualizer.vis_sphere(foot_pos_world, sphere_size, style)
-            
-            # Visualize line connecting body center to foot
-            line_style = VisStyle(
-                foot_colors[i][0], foot_colors[i][1], foot_colors[i][2], 0.6,  # Semi-transparent
-                0.005, 0.005, 0.005  # Thin line
-            )
-            self.visualizer.vis_arrow(body_pos, foot_pos_world, line_style)
