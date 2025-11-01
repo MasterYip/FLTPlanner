@@ -134,12 +134,15 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.plc_connected = True
         self.cpp_connected = True
         rospy.loginfo("PLC and CPP connections established")
- 
+
+    def _is_plc_enabled(self):
+        return self.symbol_QState.value == State.FEEDMOV
+
     def _enable_plc(self):
         """Enable PLC for movement"""
         if not self.plc_connected:
             return False
-        if self.symbol_QState.value == State.FEEDMOV:
+        if self._is_plc_enabled():
             return True
         try:
             print("start self.symbol_State.write(State.ENABLE)")
@@ -166,18 +169,14 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         if not self.plc_connected:
             return False
         
-        try:
-            if self.cmdTime is None:
-                self.cmdTime = self.symbol_Cmd_Time.read() # type: ignore
-            if self.cmdGait is None:
-                self.cmdGait = self.symbol_Cmd_Gait.read() # type: ignore
-            if self.cmdPose is None:
-                self.cmdPose = self.symbol_Cmd_Pose.read() # type: ignore
+        if self.cmdTime is None:
+            self.cmdTime = self.symbol_Cmd_Time.read() # type: ignore
+        if self.cmdGait is None:
+            self.cmdGait = self.symbol_Cmd_Gait.read() # type: ignore
+        if self.cmdPose is None:
+            self.cmdPose = self.symbol_Cmd_Pose.read() # type: ignore
             
-            return True
-        except Exception as e:
-            rospy.logerr(f"Failed to read PLC parameters: {str(e)}")
-            return False
+        return True
     
     # Callbacks
     def _robot_pose_sub_callback(self, msg: Odometry):
@@ -194,7 +193,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         """Periodic update of feedback from PLC"""
         super().update_feedback(event)
         
-        if not self.plc_connected:
+        if not self.plc_connected or not self._is_plc_enabled():
             return
         # Update current pose (use odom for now)
         # self._update_current_pose_from_plc()
@@ -226,24 +225,19 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     
     def _update_footpos_from_plc(self):
         """Update foot positions from PLC feedback"""
-        if not self.plc_connected:
+        if not self.plc_connected or not self._is_plc_enabled():
             return
         
-        try:
-            act_pos = self.symbol_PTActPos.read()
-            if act_pos:
-                self.foot_positions = np.array([
-                    [act_pos['X1'], act_pos['Y1'], act_pos['Z1']],
-                    [act_pos['X2'], act_pos['Y2'], act_pos['Z2']],
-                    [act_pos['X3'], act_pos['Y3'], act_pos['Z3']],
-                    [act_pos['X4'], act_pos['Y4'], act_pos['Z4']],
-                    [act_pos['X5'], act_pos['Y5'], act_pos['Z5']],
-                    [act_pos['X6'], act_pos['Y6'], act_pos['Z6']],
-                ])
-                # print("Act Pos", act_pos)
-        except Exception as e:
-            rospy.logwarn(f"Failed to update foot positions from PLC: {str(e)}")
-
+        act_pos = self.symbol_PTActPos.read()
+        if act_pos:
+            self.foot_positions = np.array([
+                [act_pos['X1'], act_pos['Y1'], act_pos['Z1']],
+                [act_pos['X2'], act_pos['Y2'], act_pos['Z2']],
+                [act_pos['X3'], act_pos['Y3'], act_pos['Z3']],
+                [act_pos['X4'], act_pos['Y4'], act_pos['Z4']],
+                [act_pos['X5'], act_pos['Y5'], act_pos['Z5']],
+                [act_pos['X6'], act_pos['Y6'], act_pos['Z6']],
+            ])
 
     # Motion Interface
     # Simple movement methods
@@ -525,90 +519,87 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         if not self.plc_connected or not self.cpp_connected:
             rospy.logerr("PLC or CPP not connected")
             return False
-        
-        try:
-            # Enable PLC for free gait
-            if not self._enable_plc():
-                return False
-            
-            # Read current parameters
-            if not self._read_plc_parameters():
-                return False
-            
-            # Set free gait parameters
-            self.cmdTime["TA"] = 1.0  # type: ignore # Acceleration time
-            self.cmdTime["TM"] = 1.5  # type: ignore # Movement time
-            self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
-            self.cmdTime["TZ"] = 0.5  # type: ignore # Z advance time
-            self.symbol_Cmd_Time.write(self.cmdTime)
-            
-            # Set gait parameters for free gait
-            self.cmdGait["GaitMode"] = 5  # Free gait mode
-            self.cmdGait["GaitDF"] = 0.5  # Duty factor
-            self.cmdGait["SwapHigh"] = 100.0  # Swing height (mm)
-            self.cmdGait["LegNum"] = 0  # Leg number
-            self.cmdGait["ForceMode"] = 0  # Force control mode
-            self.cmdGait["Res"] = 0
-            self.symbol_Cmd_Gait.write(self.cmdGait)
-            
-            # Start remote free gait movement
-            self.symbol_CtrlCmd.write(CtrlCmd.REMOTE_MOV)
-            
-            # Wait for CPP to be ready for command
-            timeout = 5.0
-            start_time = rospy.Time.now()
-            while (rospy.Time.now() - start_time).to_sec() < timeout:
-                if self.symbol_ReqFlag.value == 1:
-                    break
-                rospy.sleep(0.1)
-            if self.symbol_ReqFlag.value != 1:
-                rospy.logwarn("CPP not ready for free gait command")
-                return False
-            
-            # Prepare free gait command
-            if self.ReqPTCmd is None:
-                self.ReqPTCmd = self.symbol_ReqPTCmd.read()
-            
-            # Set body motion
-            self.ReqPTCmd["X"] = body_motion[0]  # mm
-            self.ReqPTCmd["Y"] = body_motion[1]  # mm
-            self.ReqPTCmd["Z"] = body_motion[2]  # mm
-            self.ReqPTCmd["Roll"] = body_motion[3]  # rad
-            self.ReqPTCmd["Pitch"] = body_motion[4]  # rad
-            self.ReqPTCmd["Yaw"] = body_motion[5]  # rad
-            self.ReqPTCmd["FG"] = 0  # Movement flag
-            self.ReqPTCmd["Res"] = 0  # Reserved
-            
-            # Set foot positions and flags
-            for j in range(6):
-                i = FOOT_REMAP[j]
-                x_key = f"X{i+1}"
-                y_key = f"Y{i+1}"
-                z_key = f"Z{i+1}"
-                sf_key = f"SF{i+1}"
-                
-                self.ReqPTCmd[x_key] = foot_positions[j, 0]  # mm
-                self.ReqPTCmd[y_key] = foot_positions[j, 1]  # mm
-                self.ReqPTCmd[z_key] = foot_positions[j, 2]  # mm
-                self.ReqPTCmd[sf_key] = foot_flags[j]  # 0=support, 1=swing
-            
-            # Send command to CPP
-            self.symbol_ReqPTCmd.write(self.ReqPTCmd)
-            # Start movement
-            self.symbol_ReqFlag.write(2)  # Start movement
-            
-            # Update internal foot positions
-            # self.foot_positions = foot_positions.copy()
-            self._update_footpos_from_plc()
-            self.target_foot_positions = foot_positions.copy()
-            self.foot_support_flags = foot_flags.copy()
-            
-            rospy.loginfo(f"Started free gait movement with body motion: {body_motion}")
-            return True
-            
-        except Exception as e:
-            rospy.logerr(f"Free gait movement failed: {str(e)}")
+
+        # Enable PLC for free gait
+        if not self._enable_plc():
             return False
+        
+        # Read current parameters
+        if not self._read_plc_parameters():
+            return False
+        
+        # Set free gait parameters
+        self.cmdTime["TA"] = 1.0  # type: ignore # Acceleration time
+        self.cmdTime["TM"] = 1.5  # type: ignore # Movement time
+        self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
+        self.cmdTime["TZ"] = 0.5  # type: ignore # Z advance time
+        self.symbol_Cmd_Time.write(self.cmdTime)
+        
+        # Set gait parameters for free gait
+        self.cmdGait["GaitMode"] = 5  # Free gait mode
+        self.cmdGait["GaitDF"] = 0.5  # Duty factor
+        self.cmdGait["SwapHigh"] = 100.0  # Swing height (mm)
+        self.cmdGait["LegNum"] = 0  # Leg number
+        self.cmdGait["ForceMode"] = 0  # Force control mode
+        self.cmdGait["Res"] = 0
+        self.symbol_Cmd_Gait.write(self.cmdGait)
+        
+        # Start remote free gait movement
+        self.symbol_CtrlCmd.write(CtrlCmd.REMOTE_MOV)
+        
+        # Wait for CPP to be ready for command
+        timeout = 5.0
+        start_time = rospy.Time.now()
+        self.symbol_ReqFlag.write(0)
+        while (rospy.Time.now() - start_time).to_sec() < timeout:
+            if self.symbol_ReqFlag.value == 1:
+                break
+            rospy.sleep(0.1)
+        if self.symbol_ReqFlag.value != 1:
+            rospy.logwarn("CPP not ready for free gait command")
+            return False
+        
+        # Prepare free gait command
+        if self.ReqPTCmd is None:
+            self.ReqPTCmd = self.symbol_ReqPTCmd.read()
+        
+        # Set body motion
+        self.ReqPTCmd["X"] = body_motion[0]  # mm
+        self.ReqPTCmd["Y"] = body_motion[1]  # mm
+        self.ReqPTCmd["Z"] = body_motion[2]  # mm
+        self.ReqPTCmd["Roll"] = body_motion[3]  # rad
+        self.ReqPTCmd["Pitch"] = body_motion[4]  # rad
+        self.ReqPTCmd["Yaw"] = body_motion[5]  # rad
+        self.ReqPTCmd["FG"] = 0  # Movement flag
+        self.ReqPTCmd["Res"] = 0  # Reserved
+        
+        # Set foot positions and flags
+        for j in range(6):
+            i = FOOT_REMAP[j]
+            x_key = f"X{i+1}"
+            y_key = f"Y{i+1}"
+            z_key = f"Z{i+1}"
+            sf_key = f"SF{i+1}"
+            
+            self.ReqPTCmd[x_key] = foot_positions[j, 0]  # mm
+            self.ReqPTCmd[y_key] = foot_positions[j, 1]  # mm
+            self.ReqPTCmd[z_key] = foot_positions[j, 2]  # mm
+            self.ReqPTCmd[sf_key] = foot_flags[j]  # 0=support, 1=swing
+        
+        # Send command to CPP
+        self.symbol_ReqPTCmd.write(self.ReqPTCmd)
+        # Start movement
+        self.symbol_ReqFlag.write(2)  # Start movement
+        
+        # Update internal foot positions
+        # self.foot_positions = foot_positions.copy()
+        self._update_footpos_from_plc()
+        self.target_foot_positions = foot_positions.copy()
+        self.foot_support_flags = foot_flags.copy()
+        
+        rospy.loginfo(f"Started free gait movement with body motion: {body_motion}")
+        return True
+            
 
     def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
         """Move hexapod to target pose with specific foot positions using free gait"""
@@ -616,67 +607,64 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             rospy.logerr("PLC or CPP not connected")
             return False
         
-        try:
-            # Enable PLC for free gait
-            if not self._enable_plc():
-                return False
-            
-            # Read current parameters
-            if not self._read_plc_parameters():
-                return False
-            
-            # Calculate body motion from current to target pose
-            # FIXME: current pose should be read from odom
-            pos_diff = np.array([
-                (target_pose.position.x - self.current_pose.position.x) * 1000.0,  # Convert to mm
-                (target_pose.position.y - self.current_pose.position.y) * 1000.0,
-                (target_pose.position.z - self.current_pose.position.z) * 1000.0
-            ])
-            
-            # Get current and target Euler angles
-            current_euler = euler_from_quaternion([
-                self.current_pose.orientation.x,
-                self.current_pose.orientation.y,
-                self.current_pose.orientation.z,
-                self.current_pose.orientation.w,
-            ])
-            
-            target_euler = euler_from_quaternion([
-                target_pose.orientation.x,
-                target_pose.orientation.y,
-                target_pose.orientation.z,
-                target_pose.orientation.w,
-            ])
-            
-            angle_diff = np.array([
-                target_euler[0] - current_euler[0],
-                target_euler[1] - current_euler[1], 
-                target_euler[2] - current_euler[2]
-            ])
-            
-            # Normalize yaw angle difference
-            if angle_diff[2] > math.pi:
-                angle_diff[2] -= 2 * math.pi
-            elif angle_diff[2] < -math.pi:
-                angle_diff[2] += 2 * math.pi
-            
-            # Create body motion array
-            body_motion = np.concatenate([pos_diff, angle_diff])
-            
-            # Use the existing free gait method with calculated body motion
-            success = self.move_free_gait(body_motion, foot_positions, foot_flags)
-            
-            if success:
-                # Update current pose to target pose
-                # FIXME: this should be updated from odom
-                # self.current_pose = copy.deepcopy(target_pose)
-                rospy.loginfo("Coordinated pose and foot movement completed")
-            
-            return success
-            
-        except Exception as e:
-            rospy.logerr(f"Coordinated movement failed: {str(e)}")
+        # Enable PLC for free gait
+        if not self._enable_plc():
             return False
+        
+        # Read current parameters
+        if not self._read_plc_parameters():
+            return False
+        
+        # Calculate body motion from current to target pose
+        # FIXME: current pose should be read from odom
+        pos_diff = np.array([
+            (target_pose.position.x - self.current_pose.position.x) * 1000.0,  # Convert to mm
+            (target_pose.position.y - self.current_pose.position.y) * 1000.0,
+            (target_pose.position.z - self.current_pose.position.z) * 1000.0
+        ])
+        
+        # Get current and target Euler angles
+        current_euler = euler_from_quaternion([
+            self.current_pose.orientation.x,
+            self.current_pose.orientation.y,
+            self.current_pose.orientation.z,
+            self.current_pose.orientation.w,
+        ])
+        
+        target_euler = euler_from_quaternion([
+            target_pose.orientation.x,
+            target_pose.orientation.y,
+            target_pose.orientation.z,
+            target_pose.orientation.w,
+        ])
+        
+        angle_diff = np.array([
+            target_euler[0] - current_euler[0],
+            target_euler[1] - current_euler[1], 
+            target_euler[2] - current_euler[2]
+        ])
+        
+        # Normalize yaw angle difference
+        if angle_diff[2] > math.pi:
+            angle_diff[2] -= 2 * math.pi
+        elif angle_diff[2] < -math.pi:
+            angle_diff[2] += 2 * math.pi
+        
+        # Create body motion array
+        body_motion = np.concatenate([pos_diff, angle_diff])
+        
+        # Use the existing free gait method with calculated body motion
+        success = self.move_free_gait(body_motion, foot_positions, foot_flags)
+        
+        if success:
+            # Update current pose to target pose
+            # FIXME: this should be updated from odom
+            # self.current_pose = copy.deepcopy(target_pose)
+            rospy.loginfo("Coordinated pose and foot movement completed")
+        
+        return success
+        
+
 
     def setCmd(self, **kwargs) -> bool:
         """Set detailed movement parameters"""

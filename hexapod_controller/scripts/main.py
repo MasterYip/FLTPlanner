@@ -82,12 +82,12 @@ def test_pose_with_feet(gait2phase=0):
     # Define custom foot positions (in mm, body frame)
     # Move some feet to new positions for stepping pattern
     foot_positions = np.array([
-        [760, -1096.2, -405],   # Foot 1 - step forward
-        [0, -1251.2, -405],     # Foot 2 - keep in place
-        [-560, -1096.2, -405], # Foot 3 - step back slightly
-        [760, 896.2, -405],  # Foot 4 - step forward
-        [0, 1251.2, -405],   # Foot 5 - keep in place  
-        [-560, 896.2, -405]  # Foot 6 - step back slightly
+        [660, -997, -500],   # Foot 1 - step forward
+        [0, -1232, -500],     # Foot 2 - keep in place
+        [-660, -997, -500], # Foot 3 - step back slightly
+        [660, 997, -500],  # Foot 4 - step forward
+        [0, 1232, -500],   # Foot 5 - keep in place  
+        [-660, 997, -500]  # Foot 6 - step back slightly
     ])
     
     # Define foot support flags (0=support, 1=swing)
@@ -104,24 +104,28 @@ def test_pose_with_feet(gait2phase=0):
     
     # Execute coordinated movement
     success = interface.move_to_pose_with_feet(target_pose, foot_positions, foot_flags)
+    rospy.sleep(4)
+    # success = interface.move_to_pose_with_feet(target_pose, foot_positions, foot_flags)
     
-    if success:
-        rospy.loginfo("Movement command sent successfully")
-        rospy.sleep(8)  # Wait for movement to complete (longer time for coordinated movement)
+    
+    # if success:
+    #     rospy.loginfo("Movement command sent successfully")
+    #     rospy.sleep(4)  # Wait for movement to complete (longer time for coordinated movement)
         
-        # Get final pose
-        current_pose = interface.get_current_pose()
-        rospy.loginfo(f"Final pose: x={current_pose.position.x:.3f}, y={current_pose.position.y:.3f}, z={current_pose.position.z:.3f}")
+    #     # Get final pose
+    #     current_pose = interface.get_current_pose()
+    #     rospy.loginfo(f"Final pose: x={current_pose.position.x:.3f}, y={current_pose.position.y:.3f}, z={current_pose.position.z:.3f}")
         
-        # Get final foot positions
-        interface._update_footpos_from_plc()  # Update foot positions from PLC
-        final_foot_positions = interface.get_foot_positions()
-        interface.test_footpos_read()  # Read and log current pose from PLC
-        rospy.loginfo("Final foot positions:")
-        for i, pos in enumerate(final_foot_positions):
-            rospy.loginfo(f"  Foot {i+1}: x={pos[0]:.1f}, y={pos[1]:.1f}, z={pos[2]:.1f} mm")
-    else:
-        rospy.logerr("Failed to execute coordinated movement")
+    #     # Get final foot positions
+    #     interface._update_footpos_from_plc()  # Update foot positions from PLC
+    #     final_foot_positions = interface.get_foot_positions()
+    #     interface.test_footpos_read()  # Read and log current pose from PLC
+    #     rospy.loginfo("Final foot positions:")
+    #     for i, pos in enumerate(final_foot_positions):
+    #         rospy.loginfo(f"  Foot {i+1}: x={pos[0]:.1f}, y={pos[1]:.1f}, z={pos[2]:.1f} mm")
+    # else:
+    #     rospy.logerr("Failed to execute coordinated movement")
+    interface.cleanup()
 
 if __name__ == "__main__":
     main()
