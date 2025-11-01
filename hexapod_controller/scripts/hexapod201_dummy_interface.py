@@ -254,9 +254,6 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                         # Linear interpolation for support phase
                         self.foot_positions[i] = self._linear_interpolate_foot(i, progress)
                 
-                # Visualize feet
-                self._vis_feet()
-                
                 if progress >= 1.0:
                     break
                 
@@ -412,9 +409,6 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                         foot_pos_body = rotation_matrix.T.dot(body_relative_pos)
                         
                         self.foot_positions[i] = foot_pos_body * 1000.0  # Convert back to mm
-                
-                # Visualize feet
-                self._vis_feet()
                 
                 if progress >= 1.0:
                     break

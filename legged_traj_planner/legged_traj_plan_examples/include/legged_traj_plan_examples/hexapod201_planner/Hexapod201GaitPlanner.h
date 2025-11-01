@@ -63,7 +63,7 @@ struct Hexapod201TerrainAwareRaibertPlannerConfig
     double searchRadius;
     double gridResolution;
     int maxSearchIterations;
-    double minFootholdScore;
+    double minFootholdHeight;
 
     void loadParams(ros::NodeHandle &nh, std::string ns = "Hexapod201TerrainAwareRaibertPlanner")
     {
@@ -76,7 +76,7 @@ struct Hexapod201TerrainAwareRaibertPlannerConfig
         check_digit &= nh.getParam(ns + "/searchRadius", searchRadius);
         check_digit &= nh.getParam(ns + "/gridResolution", gridResolution);
         check_digit &= nh.getParam(ns + "/maxSearchIterations", maxSearchIterations);
-        check_digit &= nh.getParam(ns + "/minFootholdScore", minFootholdScore);
+        check_digit &= nh.getParam(ns + "/minFootholdHeight", minFootholdHeight);
         if (!check_digit)
         {
             ROS_ERROR("Failed to load Hexapod201TerrainAwareRaibertPlannerConfig.");
@@ -250,14 +250,13 @@ struct Hexapod201TerrainAwareRaibertPlanner
 
                 // Check if this position is a valid foothold
                 // FIXME: actually is not score but height, this should be fixed later
-                double foothold_score = map.at(foothold_layer, *iterator);
-                if (!std::isnan(foothold_score) && foothold_score >= config_.minFootholdScore)
+                double foothold_height = map.at(foothold_layer, *iterator);
+                if (!std::isnan(foothold_height) && foothold_height >= config_.minFootholdHeight)
                 {
                     double distance = (current_pos - target_pos).norm();
                     if (distance < best_distance)
                     {
                         best_distance = distance;
-                        double foothold_height = foothold_score; // Use score as height for now
                         best_foothold = Eigen::Vector3d(current_pos[0], current_pos[1], foothold_height);
                         found_valid_foothold = true;
                     }
@@ -420,15 +419,15 @@ private:
         {
         case WaveGaitPhase::PHASE_01:
             pattern[0] = false; // RF swing
-            pattern[1] = false; // RR swing
+            pattern[5] = false; // RR swing
             break;
         case WaveGaitPhase::PHASE_23:
-            pattern[2] = false; // FL swing
-            pattern[3] = false; // LF swing
+            pattern[1] = false; // FL swing
+            pattern[4] = false; // LF swing
             break;
         case WaveGaitPhase::PHASE_45:
-            pattern[4] = false; // LR swing
-            pattern[5] = false; // RL swing
+            pattern[2] = false; // LR swing
+            pattern[3] = false; // RL swing
             break;
         }
         return pattern;

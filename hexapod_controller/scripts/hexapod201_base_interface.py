@@ -403,14 +403,13 @@ class Hexapod201BaseInterface(ABC):
     
     # Visualization
     def vis_update(self):
+        # Clear previous visualization
+        self.visualizer.del_all()
         self._vis_body()
         self._vis_feet()
 
     def _vis_body(self):
         """Visualize hexapod body as a box in RViz"""
-        # Clear previous visualization
-        # self.visualizer.del_cube()
-        self.visualizer.del_all()
         
         # Create box at current pose
         position = np.array([

@@ -145,10 +145,10 @@ public:
   {
     config_.loadParams(nh_);
     rate_ = ros::Rate(config_.rosRate);
-    
+
     // Initialize gait planner with loaded configuration
     gait_planner_ = std::make_unique<Hexapod201GaitPlanner>(config_.gaitPlannerConfig);
-    
+
     init_time_ = ros::Time::now().toSec();
     cmd_sub_ = nh_.subscribe(
         "/cmd_vel", 1, &Hexapod201StateSequencePlanner::cmd_callback, this);
