@@ -17,7 +17,7 @@
 #include <pinocchio/spatial/se3.hpp>
 #include <grid_map_core/GridMap.hpp>
 #include <grid_map_core/iterators/CircleIterator.hpp>
-#include "legged_traj_plan/GridMapInterface.h"
+#include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include <ros/ros.h>
 
 // Hexapod gait types
