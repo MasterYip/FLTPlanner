@@ -1,0 +1,54 @@
+resolution: 0.05 # 网格地图分辨率
+min_height: 0.0 #
+max_height: 0.3
+min_height_ceiling: 1
+max_height_ceiling: 1
+elevation_layer: elevation_inpainted
+ceiling_layer: ceiling
+map_position_x: 1.5
+map_position_y: 0.0
+
+GridMapInterface: # NOTE: this override config in perception_interface.yaml
+  normalTangentCrtic: 10.0
+  topicName: /elevation_mapping/elevation_map_raw
+  topicNameCeiling: /elevation_mapping/elevation_map_raw
+  groundLayerName: elevation_inpainted
+  sdfEnable: false
+  travErodeRad: 1.7
+  centerBoxAlwaysTrav: true
+  centerBoxWidth: 2.0
+  centerBoxLen: 2.0
+  enableHeightFilter: true
+  maxHeight: 0.6
+  minHeight: -100.0
+  # Foothold map parameters
+  footholdNormalTangentCrtic: 0.4
+  footholdEnableHeightFilter: true
+  footholdMaxHeight: 0.1
+  footholdMinHeight: -100.0
+  footholdErodeRad: 0.1
+  footholdCenterBoxAlwaysTrav: false
+  footholdCenterBoxWidth: 0.8
+  footholdCenterBoxLen: 0.8
+
+grid_map_filters:
+  # Compute surface normals.
+  - name: surface_normals_area
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      input_layer: elevation_inpainted
+      algorithm: area
+      output_layers_prefix: normal_
+      radius: 0.4
+      normal_vector_positive_axis: z
+      parallelization_enabled: true
+      thread_number: 4
+      # thread_number: -1 doesn't limit the number of threads to be used
+  # Compute surface normals.
+  - name: surface_normals_noblur
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      input_layer: elevation_inpainted
+      output_layers_prefix: normal_noblur_
+      radius: 0.1
+      normal_vector_positive_axis: z

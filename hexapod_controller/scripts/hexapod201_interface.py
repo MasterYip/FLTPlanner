@@ -239,7 +239,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
                     [act_pos['X5'], act_pos['Y5'], act_pos['Z5']],
                     [act_pos['X6'], act_pos['Y6'], act_pos['Z6']],
                 ])
-                print("Act Pos", act_pos)
+                # print("Act Pos", act_pos)
         except Exception as e:
             rospy.logwarn(f"Failed to update foot positions from PLC: {str(e)}")
 
@@ -741,7 +741,8 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         # guanjiesudu = self.symbol_QJointVel.value[""]
         
         
-        rospy.loginfo("Joint encoder timer callback triggered")
+        # rospy.loginfo("Joint encoder timer callback triggered")
+        pass
 
     # Setter/Getter
     def robot_is_moving(self):
