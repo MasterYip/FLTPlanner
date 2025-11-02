@@ -20,11 +20,11 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   maxHeight: 0.1
   minHeight: -100.0
   # Foothold map parameters
-  footholdNormalTangentCrtic: 0.2
+  footholdNormalTangentCrtic: 0.4
   footholdEnableHeightFilter: true
   footholdMaxHeight: 0.1
   footholdMinHeight: -100.0
-  footholdErodeRad: 0.05
+  footholdErodeRad: 0.0
   footholdCenterBoxAlwaysTrav: false
   footholdCenterBoxWidth: 0.8
   footholdCenterBoxLen: 0.8

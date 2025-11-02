@@ -492,17 +492,15 @@ public:
             ->setStepCmd(target_pose, footend_positions, contact_states);
       else
         ROS_ERROR("Unsupported robot_interface_type for nav_callback.");
-
+      plc_in_motion_ = true;
+      
       // Wait for step completion
       ros::Duration(step_duration).sleep();
-      
-      // Wait for PLC motion to complete
       while (plc_in_motion_)
       {
         ros::Duration(0.1).sleep();
         ros::spinOnce();
       }
-      
       ros::spinOnce();
     }
     

@@ -22,12 +22,12 @@ StateSequencePlanner:
   tripodStepDuration: 0.6
   tripodStanceDuration: 0.3
   maxStepLength: 0.10
-  maxYawChange: 0.5
+  maxYawChange: 0.1
 
   # Pose control parameters
   keepPoseHorizontal: true
   keepConstBaseFootZ: true # If ture, base height is kept constant too
-  keepConstBaseFootZValue: -0.5
+  keepConstBaseFootZValue: -0.45
 
   # Gait planner configuration
   GaitPlanner:
@@ -40,16 +40,16 @@ StateSequencePlanner:
     Hexapod201RaibertFootholdPlanner:
       stepTime: 0.6
       stanceTime: 0.3
-      velocityGainX: 0.3
-      velocityGainY: 0.3
+      velocityGainX: 0.5
+      velocityGainY: 0.5
       velocityGainZ: 0.0
 
     # Terrain-aware Raibert planner settings
     Hexapod201TerrainAwareRaibertPlanner:
       stepTime: 0.6
       stanceTime: 0.3
-      velocityGainX: 0.1
-      velocityGainY: 0.1
+      velocityGainX: 1.0
+      velocityGainY: 1.0
       velocityGainZ: 0.0
       searchRadius: 0.5
       gridResolution: 0.05
