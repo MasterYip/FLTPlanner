@@ -478,6 +478,7 @@ public:
         else
           ROS_ERROR("Unsupported robot_interface_type for nav_callback.");
 
+        plc_in_motion_ = true;
         ros::Duration(step_duration).sleep(); // Step time, adjust as needed
         while (plc_in_motion_)
         {
