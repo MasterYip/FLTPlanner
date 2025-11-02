@@ -202,6 +202,7 @@ Visualization Manager:
       Namespaces:
         arrow: true
         cube: true
+        sphere: true
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -215,18 +216,153 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
+        LB_FOOT:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LB_HIP:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LB_SHANK:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LB_THIGH:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LF_FOOT:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LF_HIP:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LF_SHANK:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LF_THIGH:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LM_FOOT:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LM_HIP:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LM_SHANK:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        LM_THIGH:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         Link Tree Style: Links in Alphabetic Order
+        RB_FOOT:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RB_HIP:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RB_SHANK:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RB_THIGH:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RF_FOOT:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RF_HIP:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RF_SHANK:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RF_THIGH:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RM_FOOT:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RM_HIP:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RM_SHANK:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        RM_THIGH:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        trunk:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Alpha: 1
       Autocompute Intensity Bounds: true

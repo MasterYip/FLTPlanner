@@ -26,13 +26,13 @@ StateSequencePlanner:
 
   # Pose control parameters
   keepPoseHorizontal: true
-  keepConstBaseFootZ: false # If ture, base height is kept constant too
+  keepConstBaseFootZ: true # If ture, base height is kept constant too
   keepConstBaseFootZValue: -0.5
 
   # Gait planner configuration
   GaitPlanner:
     # Gait type: GAIT_2 (tripod), GAIT_3 (wave), GAIT_6 (single-leg)
-    gaitType: "GAIT_6"
+    gaitType: "GAIT_2"
     stepDuration: 0.6
     stanceDuration: 0.3
 

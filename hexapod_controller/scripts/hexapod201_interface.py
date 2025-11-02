@@ -33,6 +33,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "5.157.100.214.1.1"):
         super().__init__(node_name)
         
+        self.robot_pose_sub = rospy.Subscriber('/Odometry', Odometry, self._robot_pose_sub_callback)
         self.joint_encoder_timer = rospy.Timer(rospy.Duration(0, int(2e7)), self.joint_encoder_timer_callback)
         self.plc_ip = plc_ip
         self.plc = None

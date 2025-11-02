@@ -83,7 +83,7 @@
     </group>
 
     <!-- Robot related -->
-    <param name="robot_description" command="$(find xacro)/xacro $(find robot_assets)/model/elspider_air/xacro/robot.xacro" if="$(arg sim)"/>
+    <param name="robot_description" textfile="$(find el_201_description)/urdf/el_201_with_lidar.urdf" if="$(arg sim)"/>
     <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="$(arg output)" if="$(arg sim)"/>
 
     <!-- Shadow Robot -->
