@@ -71,7 +71,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
                     self.current_pose.position.z = aim_pose.pose.position.z
             
         return True
-    
+
     def move_to_pose(self, target_pose: Pose) -> bool:
         """Simulate movement to target pose"""
         with self.movement_lock:
@@ -90,7 +90,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             self.movement_thread.start()
             
             return True
-    
+
     def _execute_movement(self):
         """Execute movement in blocking manner"""
         try:
@@ -210,7 +210,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             self.movement_thread.start()
             
             return True
-    
+
     def _execute_free_gait_movement(self):
         """Execute free gait movement with foot interpolation"""
         try:
@@ -266,7 +266,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         finally:
             with self.movement_lock:
                 self.is_moving = False
-    
+
     def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
         """Move hexapod to target pose with specific foot positions"""
         with self.movement_lock:
@@ -314,7 +314,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
             self.movement_thread.start()
             
             return True
-    
+
     def _execute_coordinated_movement(self):
         """Execute coordinated body pose and foot position movement"""
         try:
@@ -422,7 +422,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         finally:
             with self.movement_lock:
                 self.is_moving = False
-    
+
     def setCmd(self, **kwargs) -> bool:
         """Set dummy interface parameters"""
         if 'movement_speed' in kwargs:
@@ -432,7 +432,7 @@ class DummyHexapod201Interface(Hexapod201BaseInterface):
         
         rospy.loginfo(f"Dummy interface parameters updated: {kwargs}")
         return True
-    
+
     def stop_movement(self) -> bool:
         """Stop dummy movement"""
         with self.movement_lock:

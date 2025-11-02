@@ -315,12 +315,14 @@ public:
     }
     motion_lock_ = true;
     gridmap_interface_->lockMapUpdate();
+    
     // Get current robot pose (x, y)
     pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
     Eigen::Vector3d pos3d = body_pose.translation();
     Eigen::Vector2d start(pos3d[0], pos3d[1]);
     Eigen::Vector2d goal(msg.pose.position.x, msg.pose.position.y);
     std::vector<Eigen::Vector2d> path2d;
+    
     if (!nav_rrt_planner_.planPath(start, goal, gridmap_interface_, path2d))
     {
       ROS_WARN("2D RRT path planning failed.");
@@ -328,6 +330,7 @@ public:
       gridmap_interface_->unlockMapUpdate();
       return;
     }
+    
     // Visualize the path
     visualizer_.delAll();
     std::vector<Eigen::Vector3d> path3d;
@@ -338,155 +341,180 @@ public:
     }
     visualizer_.visCurve(path3d);
 
-    ROS_INFO_STREAM("2D RRT path found with " << path2d.size()
-                                              << " waypoints.");
+    ROS_INFO_STREAM("2D RRT path found with " << path2d.size() << " waypoints.");
+    
     // Parameters from config
     const double max_step_length = config_.maxStepLength;
     const double max_yaw_change = config_.maxYawChange;
     const double step_duration = config_.navStepDuration;
-
-    // Traverse the path, interpolate if needed
-    for (size_t i = 1; i < path2d.size(); i++)
+    const double position_tolerance = 0.15; // Position tolerance for reaching waypoint
+    const double yaw_tolerance = 0.1; // Yaw tolerance in radians
+    
+    // Current waypoint index
+    size_t current_waypoint = 1; // Start from index 1 (skip start position)
+    
+    while (current_waypoint < path2d.size() && ros::ok())
     {
-      Eigen::Vector2d prev = path2d[i - 1];
-      Eigen::Vector2d curr = path2d[i];
-      Eigen::Vector2d delta = curr - prev;
-      double dist = delta.norm();
-      int num_steps =
-          std::max(1, static_cast<int>(std::ceil(dist / max_step_length)));
-      for (int s = 1; s <= num_steps; ++s)
+      // Get current robot position
+      body_pose = robot_interface_->getBodyPoseFdb();
+      Eigen::Vector2d current_pos(body_pose.translation()[0], body_pose.translation()[1]);
+      Eigen::Vector3d current_rpy = pinocchio::rpy::matrixToRpy(body_pose.rotation());
+      double current_yaw = current_rpy[2];
+      
+      // Current target waypoint
+      Eigen::Vector2d target_waypoint = path2d[current_waypoint];
+      
+      // Check if we've reached the current waypoint
+      double distance_to_waypoint = (target_waypoint - current_pos).norm();
+      if (distance_to_waypoint <= position_tolerance)
       {
-        body_pose = robot_interface_->getBodyPoseFdb();
-        double alpha = static_cast<double>(s) / num_steps;
-        Eigen::Vector2d interp = prev + alpha * delta;
-
-        // Create cmd_vel for this step in world frame
-        geometry_msgs::Twist world_cmd_vel;
-        world_cmd_vel.linear.x =
-            delta[0] / num_steps / config_.tripodStepDuration;
-        world_cmd_vel.linear.y =
-            delta[1] / num_steps / config_.tripodStepDuration;
-        world_cmd_vel.linear.z = 0.0;
-
-        // Set orientation to face direction of movement
-        double move_dir = acos(delta[0] / dist);
-        if (delta[1] < 0)
-        {
-          move_dir = -move_dir; // Adjust for quadrant
-        }
-        pinocchio::SE3 target_pose = body_pose;
-        target_pose.translation()[0] = interp[0];
-        target_pose.translation()[1] = interp[1];
-
-        // Set move_dir in target_pose (keep roll, pitch from body_pose)
-        Eigen::Vector3d rpy = pinocchio::rpy::matrixToRpy(body_pose.rotation());
-        double delta_yaw = move_dir - rpy[2];
-        if (delta_yaw > M_PI)
-          delta_yaw -= 2 * M_PI;
-        if (delta_yaw < -M_PI)
-          delta_yaw += 2 * M_PI;
-        if (delta_yaw > max_yaw_change)
-        {
-          delta_yaw = max_yaw_change;
-        }
-        if (delta_yaw < -max_yaw_change)
-        {
-          delta_yaw = -max_yaw_change;
-        }
-        rpy[2] += delta_yaw; // Update yaw
-        if (rpy[2] > M_PI)
-          rpy[2] -= 2 * M_PI;
-        if (rpy[2] < -M_PI)
-          rpy[2] += 2 * M_PI;
-        target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy);
-
-        world_cmd_vel.angular.z = delta_yaw / config_.tripodStepDuration;
-
-        // Transform world frame velocity to base frame velocity
-        geometry_msgs::Twist step_cmd_vel;
-        Eigen::Matrix3d world_to_base_rotation =
-            body_pose.rotation().transpose();
-        Eigen::Vector3d world_linear_vel(world_cmd_vel.linear.x,
-                                         world_cmd_vel.linear.y,
-                                         world_cmd_vel.linear.z);
-        Eigen::Vector3d base_linear_vel =
-            world_to_base_rotation * world_linear_vel;
-
+        ROS_INFO_STREAM("Reached waypoint " << current_waypoint << " at (" 
+                       << target_waypoint[0] << ", " << target_waypoint[1] << ")");
+        current_waypoint++;
+        continue;
+      }
+      
+      // Calculate direction to waypoint
+      Eigen::Vector2d direction = target_waypoint - current_pos;
+      double distance = direction.norm();
+      direction.normalize();
+      
+      // Calculate desired yaw to face the waypoint
+      double desired_yaw = atan2(direction[1], direction[0]);
+      double yaw_error = desired_yaw - current_yaw;
+      
+      // Normalize yaw error to [-pi, pi]
+      while (yaw_error > M_PI) yaw_error -= 2 * M_PI;
+      while (yaw_error < -M_PI) yaw_error += 2 * M_PI;
+      
+      // Create target pose for this step
+      geometry_msgs::Twist step_cmd_vel;
+      pinocchio::SE3 target_pose = body_pose;
+      
+      // If yaw error is large, prioritize rotation
+      if (abs(yaw_error) > yaw_tolerance)
+      {
+        // Rotation step - limit yaw change
+        double yaw_command = std::max(-max_yaw_change, std::min(max_yaw_change, yaw_error));
+        
+        // Set target orientation
+        Eigen::Vector3d target_rpy = current_rpy;
+        target_rpy[2] += yaw_command;
+        target_pose.rotation() = pinocchio::rpy::rpyToMatrix(target_rpy);
+        
+        // Set angular velocity command
+        step_cmd_vel.angular.z = yaw_command / config_.tripodStepDuration;
+        step_cmd_vel.linear.x = 0.0;
+        step_cmd_vel.linear.y = 0.0;
+        
+        ROS_INFO_STREAM("Rotating toward waypoint " << current_waypoint 
+                       << ", yaw error: " << yaw_error << " rad");
+      }
+      else
+      {
+        // Movement step - limit step length
+        double step_distance = std::min(distance, max_step_length);
+        Eigen::Vector2d step_vector = direction * step_distance;
+        
+        // Set target position
+        target_pose.translation()[0] = current_pos[0] + step_vector[0];
+        target_pose.translation()[1] = current_pos[1] + step_vector[1];
+        
+        // Create cmd_vel in base frame
+        Eigen::Matrix3d world_to_base_rotation = body_pose.rotation().transpose();
+        Eigen::Vector3d world_linear_vel(step_vector[0] / config_.tripodStepDuration,
+                                        step_vector[1] / config_.tripodStepDuration,
+                                        0.0);
+        Eigen::Vector3d base_linear_vel = world_to_base_rotation * world_linear_vel;
+        
         step_cmd_vel.linear.x = base_linear_vel[0];
         step_cmd_vel.linear.y = base_linear_vel[1];
-        step_cmd_vel.linear.z = base_linear_vel[2];
-        step_cmd_vel.angular.x = 0.0;
-        step_cmd_vel.angular.y = 0.0;
-        step_cmd_vel.angular.z =
-            world_cmd_vel.angular.z; // Angular velocity same in both frames
+        step_cmd_vel.linear.z = 0.0;
+        step_cmd_vel.angular.z = 0.0;
+        
+        ROS_INFO_STREAM("Moving toward waypoint " << current_waypoint 
+                       << ", step: " << step_distance << "m, remaining: " << distance << "m");
+      }
+      
+      // Fit the ground
+      gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
+      target_pose = gridmap_extrapolator_.extrapolate(0.0);
 
-        // Fit the ground
-        gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
-        target_pose = gridmap_extrapolator_.extrapolate(0.0);
+      // Apply keepPoseHorizontal: set roll and pitch to 0
+      if (config_.keepPoseHorizontal)
+      {
+        Eigen::Vector3d rpy_horizontal = pinocchio::rpy::matrixToRpy(target_pose.rotation());
+        rpy_horizontal[0] = 0.0; // roll = 0
+        rpy_horizontal[1] = 0.0; // pitch = 0
+        // keep yaw unchanged: rpy_horizontal[2] remains the same
+        target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy_horizontal);
+      }
+      
+      // Apply keepConstBaseFootZ: set base height to constant value
+      if (config_.keepConstBaseFootZ)
+      {
+        target_pose.translation()[2] = 0.0 - config_.keepConstBaseFootZValue;
+      }
 
-        // Apply keepPoseHorizontal: set roll and pitch to 0
-        if (config_.keepPoseHorizontal)
-        {
-          Eigen::Vector3d rpy_horizontal = pinocchio::rpy::matrixToRpy(target_pose.rotation());
-          rpy_horizontal[0] = 0.0; // roll = 0
-          rpy_horizontal[1] = 0.0; // pitch = 0
-          // keep yaw unchanged: rpy_horizontal[2] remains the same
-          target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy_horizontal);
-        }
-        // Apply keepConstBaseFootZ: set base height to constant value
+      // Get current hexapod state for Raibert gait planning
+      legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
+
+      // Generate next state using gait planner
+      legged_traj_plan::hexapod_State next_state = generateNextState(current_state, step_cmd_vel);
+
+      // Convert foot positions from world frame to body frame for setStepCmd
+      std::vector<Eigen::Vector3d> footend_positions(6);
+      std::vector<bool> contact_states(6);
+      for (int leg_idx = 0; leg_idx < 6; leg_idx++)
+      {
+        Eigen::Vector3d world_foot_pos(
+            next_state.feetPositionNow.foot[leg_idx].x,
+            next_state.feetPositionNow.foot[leg_idx].y,
+            next_state.feetPositionNow.foot[leg_idx].z);
+        // Transform from world frame to body frame
+        footend_positions[leg_idx] = point_SE3Act(target_pose, world_foot_pos);
+
+        // Apply keepConstBaseFootZ: set Z in base frame to constant value
         if (config_.keepConstBaseFootZ)
         {
-          target_pose.translation()[2] = 0.0 - config_.keepConstBaseFootZValue;
+          footend_positions[leg_idx][2] = config_.keepConstBaseFootZValue;
         }
 
-        // Get current hexapod state for Raibert gait planning
-        legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
+        contact_states[leg_idx] = next_state.support_State_Now[leg_idx];
+      }
 
-        // Generate next state using gait planner
-        legged_traj_plan::hexapod_State next_state = generateNextState(current_state, step_cmd_vel);
+      // Use setStepCmd to set both body pose and foot positions
+      if (robot_interface_type_ == "Hexapod201ROS")
+        std::dynamic_pointer_cast<Hexapod201InterfaceROS>(robot_interface_)
+            ->setStepCmd(target_pose, footend_positions, contact_states);
+      else if (robot_interface_type_ == "Hexapod201Dummy")
+        std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)
+            ->setStepCmd(target_pose, footend_positions, contact_states);
+      else
+        ROS_ERROR("Unsupported robot_interface_type for nav_callback.");
 
-        // Convert foot positions from world frame to body frame for setStepCmd
-        std::vector<Eigen::Vector3d> footend_positions(6);
-        std::vector<bool> contact_states(6);
-        for (int leg_idx = 0; leg_idx < 6; leg_idx++)
-        {
-          Eigen::Vector3d world_foot_pos(
-              next_state.feetPositionNow.foot[leg_idx].x,
-              next_state.feetPositionNow.foot[leg_idx].y,
-              next_state.feetPositionNow.foot[leg_idx].z);
-          // Transform from world frame to body frame
-          footend_positions[leg_idx] =
-              point_SE3Act(target_pose, world_foot_pos);
-
-          // Apply keepConstBaseFootZ: set Z in base frame to constant value
-          if (config_.keepConstBaseFootZ)
-          {
-            footend_positions[leg_idx][2] = config_.keepConstBaseFootZValue;
-          }
-
-          contact_states[leg_idx] = next_state.support_State_Now[leg_idx];
-        }
-
-        // Use setStepCmd to set both body pose and foot positions
-        if (robot_interface_type_ == "Hexapod201ROS")
-          std::dynamic_pointer_cast<Hexapod201InterfaceROS>(robot_interface_)
-              ->setStepCmd(target_pose, footend_positions, contact_states);
-        else if (robot_interface_type_ == "Hexapod201Dummy")
-          std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(
-              robot_interface_)
-              ->setStepCmd(target_pose, footend_positions, contact_states);
-        else
-          ROS_ERROR("Unsupported robot_interface_type for nav_callback.");
-
-        ros::Duration(step_duration).sleep(); // Step time, adjust as needed
-        while (plc_in_motion_)
-        {
-          ros::Duration(0.1).sleep();
-          ros::spinOnce();
-        }
+      // Wait for step completion
+      ros::Duration(step_duration).sleep();
+      
+      // Wait for PLC motion to complete
+      while (plc_in_motion_)
+      {
+        ros::Duration(0.1).sleep();
         ros::spinOnce();
       }
+      
+      ros::spinOnce();
     }
+    
+    if (current_waypoint >= path2d.size())
+    {
+      ROS_INFO("Navigation completed - reached final waypoint");
+    }
+    else
+    {
+      ROS_WARN("Navigation interrupted");
+    }
+    
     motion_lock_ = false;
     gridmap_interface_->unlockMapUpdate();
   }

@@ -25,7 +25,7 @@ class DummyWithRealCmdHexapod201Interface(DummyHexapod201Interface):
     Hybrid interface that uses dummy feedback but sends commands to real robot via PLC.
     Useful for testing command sequences while getting predictable feedback.
     """
-    
+
     def __init__(self, node_name: str = "dummy_with_real_cmd_hexapod201_interface", plc_ip: str = "5.157.100.214.1.1"):
         # Initialize dummy interface for all feedback and simulation
         super().__init__(node_name)
@@ -183,7 +183,6 @@ class DummyWithRealCmdHexapod201Interface(DummyHexapod201Interface):
             return False
 
     # Override movement methods to send commands to real robot while using dummy feedback
-    
     def move_to_pose(self, target_pose: Pose) -> bool:
         """Send command to real robot PLC and simulate dummy movement"""
         # Send command to real robot PLC if available
@@ -540,7 +539,6 @@ class DummyWithRealCmdHexapod201Interface(DummyHexapod201Interface):
         return dummy_success and plc_success
 
     # Utility methods for debugging and control
-    
     def enable_real_commands(self) -> bool:
         """Enable sending commands to real robot PLC"""
         if not self.plc_connected and PLC_AVAILABLE:

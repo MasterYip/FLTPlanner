@@ -601,7 +601,6 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         rospy.loginfo(f"Started free gait movement with body motion: {body_motion}")
         return True
             
-
     def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
         """Move hexapod to target pose with specific foot positions using free gait"""
         if not self.plc_connected or not self.cpp_connected:
@@ -665,8 +664,6 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         
         return success
         
-
-
     def setCmd(self, **kwargs) -> bool:
         """Set detailed movement parameters"""
         if not self.plc_connected:
@@ -706,7 +703,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         except Exception as e:
             rospy.logerr(f"Failed to set parameters: {str(e)}")
             return False
-    
+
     def stop_movement(self) -> bool:
         """Stop current movement"""
         if not self.plc_connected:
@@ -719,6 +716,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         except Exception as e:
             rospy.logerr(f"Failed to stop movement: {str(e)}")
             return False
+
     def joint_encoder_timer_callback(self, event):
         """Default callback for joint encoder timer."""
         # joint_values: List[float]
