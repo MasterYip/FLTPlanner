@@ -40,16 +40,16 @@ StateSequencePlanner:
     Hexapod201RaibertFootholdPlanner:
       stepTime: 0.6
       stanceTime: 0.3
-      velocityGainX: 0.3
-      velocityGainY: 0.3
+      velocityGainX: 0.5
+      velocityGainY: 0.5
       velocityGainZ: 0.0
 
     # Terrain-aware Raibert planner settings
     Hexapod201TerrainAwareRaibertPlanner:
       stepTime: 0.6
       stanceTime: 0.3
-      velocityGainX: 0.1
-      velocityGainY: 0.1
+      velocityGainX: 1.0
+      velocityGainY: 1.0
       velocityGainZ: 0.0
       searchRadius: 0.5
       gridResolution: 0.05

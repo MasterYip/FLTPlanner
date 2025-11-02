@@ -571,4 +571,7 @@ class DummyWithRealCmdHexapod201Interface(DummyHexapod201Interface):
         Override to always use dummy interface feedback for consistency.
         Real robot movement status is not used for feedback.
         """
-        return super().robot_is_moving()
+        if PLC_AVAILABLE:
+            return not self.symbol_ReqFlag.value
+        else:
+            return super().robot_is_moving()
