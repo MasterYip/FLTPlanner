@@ -108,7 +108,7 @@ planner_cfg:=height_clear_planner \
 use_pyinterface:=true
 ```
 
-3. Real robot with real map
+3. Real robot with real map (DEPRECATED)
 ```bash
 roslaunch legged_traj_plan_examples hexapod201_state_sequence_planner.launch \
 robot_interface_type:=Hexapod201ROS \

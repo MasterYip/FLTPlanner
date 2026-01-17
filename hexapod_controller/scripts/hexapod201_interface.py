@@ -17,6 +17,7 @@ import geometry_msgs.msg  # Add this import for Point and Vector3
 from std_msgs.msg import Header
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 from nav_msgs.msg import Odometry, Path
+import tf2_ros
 import copy
 # Import the ROS visualizer
 from ros_visualizer import ROSVisualizer, VisStyle  # pyright: ignore[reportAttributeAccessIssue]
@@ -32,6 +33,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     
     def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "5.157.100.214.1.1"):
         super().__init__(node_name)
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+        self.world_frame = "world"
+        self.base_frame = "base_link"
         
         self.robot_pose_sub = rospy.Subscriber('/Odometry', Odometry, self._robot_pose_sub_callback)
         self.joint_encoder_timer = rospy.Timer(rospy.Duration(0, int(2e7)), self.joint_encoder_timer_callback)
@@ -181,12 +186,33 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     
     # Callbacks
     def _robot_pose_sub_callback(self, msg: Odometry):
-        self.current_pose.position = msg.pose.pose.position
-        self.current_pose.orientation = msg.pose.pose.orientation
-        print(f"robot current pose updated! "
-              f"x: {self.current_pose.position.x}"
-              f"x: {self.current_pose.position.y}"
-              f"x: {self.current_pose.position.z}")
+        try:
+            transform = self.tf_buffer.lookup_transform(
+                self.world_frame,
+                self.base_frame,
+                msg.header.stamp,
+                rospy.Duration(0.1),
+            )
+        except (
+            tf2_ros.LookupException,
+            tf2_ros.ConnectivityException,
+            tf2_ros.ExtrapolationException,
+        ) as ex:
+            rospy.logwarn_throttle(5.0, f"TF lookup failed: {ex}")
+            return
+
+        translation = transform.transform.translation
+        rotation = transform.transform.rotation
+        self.current_pose.position.x = translation.x
+        self.current_pose.position.y = translation.y
+        self.current_pose.position.z = translation.z
+        self.current_pose.orientation = rotation
+        print(
+            f"robot current pose updated from TF! "
+            f"x: {self.current_pose.position.x}"
+            f"y: {self.current_pose.position.y}"
+            f"z: {self.current_pose.position.z}"
+        )
         return
 
     # Timer callbacks
