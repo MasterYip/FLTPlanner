@@ -68,7 +68,12 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         # 判断一个位置到了没有的容许误差
         self.admit_pose_limit = 0.10 # 0.10m
         self.admit_yaw_limit = 4.0 / 180.0 * math.pi # 4° degree
-                
+        
+        # StateSequencePlanner params
+        self.keepPoseHorizontal = rospy.get_param("~StateSequencePlanner/keepPoseHorizontal", True)
+        self.keepConstBaseFootZ = rospy.get_param("~StateSequencePlanner/keepConstBaseFootZ", True)
+        self.keepConstBaseFootZValue = rospy.get_param("~StateSequencePlanner/keepConstBaseFootZValue", -0.45)
+        
         # Connect to PLC and CPP
         self._connect_plc()
         
@@ -207,12 +212,12 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.current_pose.position.y = translation.y
         self.current_pose.position.z = translation.z
         self.current_pose.orientation = rotation
-        print(
-            f"robot current pose updated from TF! "
-            f"x: {self.current_pose.position.x}"
-            f"y: {self.current_pose.position.y}"
-            f"z: {self.current_pose.position.z}"
-        )
+        # print(
+        #     f"robot current pose updated from TF! "
+        #     f"x: {self.current_pose.position.x}"
+        #     f"y: {self.current_pose.position.y}"
+        #     f"z: {self.current_pose.position.z}"
+        # )
         return
 
     # Timer callbacks
@@ -591,6 +596,8 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             self.ReqPTCmd = self.symbol_ReqPTCmd.read()
         
         # Set body motion
+        if self.keepConstBaseFootZ:
+            body_motion[2] = 0.0  # Keep Z motion zero if flag is set
         self.ReqPTCmd["X"] = body_motion[0]  # mm
         self.ReqPTCmd["Y"] = body_motion[1]  # mm
         self.ReqPTCmd["Z"] = body_motion[2]  # mm
@@ -642,7 +649,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             return False
         
         # Calculate body motion from current to target pose
-        # FIXME: current pose should be read from odom
+        # print("targetpos:", target_pose.position.x,target_pose.position.y,target_pose.position.z)
+        # print("currpos:", self.current_pose.position.x,self.current_pose.position.y,self.current_pose.position.z)
+        # print("foot positions:", foot_positions)
+        # print("foot_flat:", foot_flags)
         pos_diff = np.array([
             (target_pose.position.x - self.current_pose.position.x) * 1000.0,  # Convert to mm
             (target_pose.position.y - self.current_pose.position.y) * 1000.0,

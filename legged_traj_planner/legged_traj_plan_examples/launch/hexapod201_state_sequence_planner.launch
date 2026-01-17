@@ -79,6 +79,7 @@
     <group if="$(arg use_pyinterface)">
         <node pkg="hexapod_controller" type="main.py" name="hexapod201_interface" output="$(arg output)">
             <param name="interface_type" value="$(arg interface_type)" />
+            <rosparam command="load" file="$(find legged_traj_plan_examples)/config/planner/hexapod201_state_sequence_planner.yaml"/>
         </node>
     </group>
 
