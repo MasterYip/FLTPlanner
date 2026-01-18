@@ -27,7 +27,7 @@ StateSequencePlanner:
   # Pose control parameters
   keepPoseHorizontal: true
   keepConstBaseFootZ: true # If ture, base height is kept constant too
-  keepConstBaseFootZValue: -0.45
+  keepConstBaseFootZValue: -0.50
 
   # Gait planner configuration
   GaitPlanner:

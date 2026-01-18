@@ -61,7 +61,7 @@ Visualization Manager:
       Color Layer: elevation_inpainted
       Color Transformer: IntensityLayer
       ColorMap: terrain
-      Enabled: true
+      Enabled: false
       Grid Cell Decimation: 1
       Grid Line Thickness: 0.15000000596046448
       Height Layer: elevation_inpainted
@@ -73,6 +73,30 @@ Visualization Manager:
       Min Color: 0; 0; 0
       Min Intensity: 0
       Name: Image2Gridmap_ground
+      Show Grid Lines: true
+      Topic: /elevation_mapping/elevation_map_raw
+      Unreliable: false
+      Use ColorMap: false
+      Value: false
+    - Alpha: 0.10000000149011612
+      Autocompute Intensity Bounds: true
+      Class: grid_map_rviz_plugin/GridMap
+      Color: 200; 200; 200
+      Color Layer: elevation_inpainted
+      Color Transformer: IntensityLayer
+      ColorMap: terrain
+      Enabled: true
+      Grid Cell Decimation: 1
+      Grid Line Thickness: 0.15000000596046448
+      Height Layer: elevation_inpainted
+      Height Transformer: Layer
+      History Length: 1
+      Invert ColorMap: false
+      Max Color: 255; 255; 255
+      Max Intensity: 10
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: GridMapObsAcross
       Show Grid Lines: true
       Topic: /elevation_mapping/elevation_map_raw
       Unreliable: false
@@ -490,7 +514,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.433906555175781
+      Distance: 2.7204535007476807
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -498,17 +522,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.1531399488449097
-        Y: 0.4010396897792816
-        Z: 0.6971564292907715
+        X: 2.1562061309814453
+        Y: 0.4609195291996002
+        Z: 0.6796983480453491
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7097970247268677
+      Pitch: 0.2647969424724579
       Target Frame: base
-      Yaw: 2.6895344257354736
+      Yaw: 1.359534740447998
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976
