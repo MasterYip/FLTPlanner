@@ -21,13 +21,13 @@ StateSequencePlanner:
   # Tripod gait parameters (primary control method)
   tripodStepDuration: 0.6
   tripodStanceDuration: 0.3
-  maxStepLength: 0.10
+  maxStepLength: 0.20
   maxYawChange: 0.1
 
   # Pose control parameters
   keepPoseHorizontal: true
   keepConstBaseFootZ: true # If ture, base height is kept constant too
-  keepConstBaseFootZValue: -0.50
+  keepConstBaseFootZValue: -0.55
 
   # Gait planner configuration
   GaitPlanner:
