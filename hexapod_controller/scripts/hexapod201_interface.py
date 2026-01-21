@@ -564,13 +564,13 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.cmdTime["TA"] = 1.0  # type: ignore # Acceleration time
         self.cmdTime["TM"] = 1.5  # type: ignore # Movement time
         self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
-        self.cmdTime["TZ"] = 0.5  # type: ignore # Z advance time
+        self.cmdTime["TZ"] = 0.6  # type: ignore # Z advance time
         self.symbol_Cmd_Time.write(self.cmdTime)
         
         # Set gait parameters for free gait
         self.cmdGait["GaitMode"] = 5  # Free gait mode
         self.cmdGait["GaitDF"] = 0.5  # Duty factor
-        self.cmdGait["SwapHigh"] = 100.0  # Swing height (mm)
+        self.cmdGait["SwapHigh"] = 300.0  # Swing height (mm)
         self.cmdGait["LegNum"] = 0  # Leg number
         self.cmdGait["ForceMode"] = 0  # Force control mode
         self.cmdGait["Res"] = 0
@@ -771,7 +771,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
     # Setter/Getter
     def robot_is_moving(self):
         """Check if the robot is currently moving based on PLC state"""
-        return not self.symbol_ReqFlag.value
+        if self.symbol_ReqFlag is not None:
+            return not self.symbol_ReqFlag.value
+        else:
+            return 0
 
     # Debug
     def test_footpos_read(self):

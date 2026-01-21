@@ -29,13 +29,16 @@ Hexapod201InterfaceROS::Hexapod201InterfaceROS(const Hexapod201InterfaceROSConfi
     foot_state_sub_ = nh_.subscribe(config_.footStateTopic, 10,
                                     &Hexapod201InterfaceROS::footStateCallback, this);
 
-    // Initialize nominal footholds
+    // Initialize nominal footholds with configurable shift for symmetry tuning
     nominal_footholds_.clear();
     for (int i = 0; i < 6; i++)
     {
-        Eigen::Vector3d foothold(config_.nominalFootPos[3 * i],
-                                config_.nominalFootPos[3 * i + 1],
-                                config_.nominalFootPos[3 * i + 2]);
+        double shifted_y = config_.nominalFootPos[3 * i + 1];
+        shifted_y += (i < 3 ? -config_.nominalFootPosShift[1] : config_.nominalFootPosShift[1]);
+
+        Eigen::Vector3d foothold(config_.nominalFootPos[3 * i] + config_.nominalFootPosShift[0],
+                                 shifted_y,
+                                 config_.nominalFootPos[3 * i + 2] + config_.nominalFootPosShift[2]);
         nominal_footholds_.push_back(foothold);
     }
 

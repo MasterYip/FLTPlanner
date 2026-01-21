@@ -50,6 +50,7 @@ struct Hexapod201InterfaceROSConfig
 
     // Init parameters
     std::vector<double> nominalFootPos;      // size 18: (xyz in base frame) * 6
+    std::vector<double> nominalFootPosShift; // size 3: (dx dy dz)
     std::vector<double> initBodyPose;        // size 6: (xyzrpy)
 
     void loadParam(ros::NodeHandle &nh, std::string ns = "robotInterface")
@@ -70,6 +71,8 @@ struct Hexapod201InterfaceROSConfig
         check_digit &= nh.getParam(ns + "/odomParentFrame", odomParentFrame);
         check_digit &= nh.getParam(ns + "/nominalFootPos", nominalFootPos);
         check_digit &= nominalFootPos.size() == 18;
+        check_digit &= nh.getParam(ns + "/nominalFootPosShift", nominalFootPosShift);
+        check_digit &= nominalFootPosShift.size() == 3;
         check_digit &= nh.getParam(ns + "/initBodyPose", initBodyPose);
         check_digit &= initBodyPose.size() == 6;
         
