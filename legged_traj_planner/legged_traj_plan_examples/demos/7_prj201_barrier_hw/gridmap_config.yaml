@@ -15,7 +15,7 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   sdfEnable: false
   # TravMap param
   normalTangentCrtic: 100.0
-  travErodeRad: 1.3
+  travErodeRad: 1.0
   centerBoxAlwaysTrav: true
   centerBoxWidth: 2.0
   centerBoxLen: 2.0
@@ -23,11 +23,11 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   maxHeight: 0.4
   minHeight: -100.0
   # Foothold map parameters
-  footholdNormalTangentCrtic: 0.5
+  footholdNormalTangentCrtic: 0.8
   footholdEnableHeightFilter: true
-  footholdMaxHeight: 0.2
+  footholdMaxHeight: 0.15
   footholdMinHeight: -100.0
-  footholdErodeRad: 0.05
+  footholdErodeRad: 0.11
   footholdCenterBoxAlwaysTrav: false
   footholdCenterBoxWidth: 0.8
   footholdCenterBoxLen: 0.8
