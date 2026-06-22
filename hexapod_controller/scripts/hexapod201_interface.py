@@ -328,6 +328,16 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)  # type: ignore 
             
             rospy.loginfo(f"Started movement to pose: {target_pose.position}")
+            time.sleep(0.01)
+            self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV) # type: ignore
+
+            # time.sleep(0.005)
+            # cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            # while cur_beifu_Cmd["FG"] != 0: # type: ignore
+            #     # print(f"cur_beifu_Cmd['FG'] != 0, sendCtrlCmd.STOP_MOV, cur_beifu_Cmd['FG'] is {cur_beifu_Cmd['FG']}")
+            #     cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            #     time.sleep(0.5)
+            #     self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV) # type: ignore
             return True
             
         except Exception as e:
@@ -561,7 +571,7 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             return False
         
         # Set free gait parameters
-        self.cmdTime["TA"] = 1.0  # type: ignore # Acceleration time
+        self.cmdTime["TA"] = 1.5  # type: ignore # Acceleration time
         self.cmdTime["TM"] = 1.5  # type: ignore # Movement time
         self.cmdTime["TD"] = 0.0  # type: ignore # Deceleration overlap
         self.cmdTime["TZ"] = 0.6  # type: ignore # Z advance time
