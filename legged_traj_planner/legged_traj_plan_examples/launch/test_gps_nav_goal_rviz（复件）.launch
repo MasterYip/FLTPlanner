@@ -33,7 +33,7 @@
   <arg name="rtk_heading_convention" default="north_cw" />
   <arg name="rtk_heading_yaw_offset_deg" default="0.0" />
   <!-- If false, heading only affects magenta dashed line, not goal/fix mapping. -->
-  <arg name="use_heading_for_mapping" default="true" />
+  <arg name="use_heading_for_mapping" default="false" />
 
   <!-- Optional: publish a PoseStamped goal for planner/nav_callback integration -->
   <arg name="publish_nav_goal" default="false" />
@@ -41,13 +41,13 @@
   <!-- frame_id for the PoseStamped goal; keep it consistent with planner expectation -->
   <arg name="nav_goal_frame_id" default="rtk_map" />
   <!-- Test-only static TF. Keep false by default to avoid conflict with system TF publishers. -->
-  <arg name="publish_test_world_to_rtk_map_tf" default="false" />
+  <arg name="publish_test_world_to_rtk_map_tf" default="true" />
   <!-- Use quaternion form to avoid yaw/pitch/roll argument-order ambiguity.
     q = [0, 0, sin(45deg), cos(45deg)] => +90deg yaw about Z only. -->
-  <!-- <group if="$(arg publish_test_world_to_rtk_map_tf)">
+  <group if="$(arg publish_test_world_to_rtk_map_tf)">
     <node pkg="tf2_ros" type="static_transform_publisher" name="static_tf_publisher4"
         args="0.3 0.3 0.0 0 0 0.70710678 0.70710678 world rtk_map"/>
-  </group> -->
+  </group>
 
   <node pkg="legged_traj_plan_examples" type="test_gps_nav_goal_rviz" name="test_gps_nav_goal_rviz" output="screen" required="true">
     <param name="frame_id" value="$(arg frame_id)" />

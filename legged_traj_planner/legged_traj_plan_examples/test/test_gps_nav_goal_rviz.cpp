@@ -43,6 +43,7 @@
 #include <geometry_msgs/TransformStamped.h>
 
 #include <visualization_msgs/MarkerArray.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 namespace
 {
@@ -359,6 +360,7 @@ public:
   }
 
 private:
+  tf2_ros::TransformBroadcaster tf_broadcaster_;
   bool getAnchorOriginInFrame(double &ox, double &oy, double &oz)
   {
     if (!use_anchor_as_origin_)
@@ -576,12 +578,44 @@ private:
                                    : 0.0;
     // Yaw offset: align ENU/UTM heading to world using (robot_yaw_world - map_ref_yaw).
     const double yaw_offset = wrapToPi(robot_yaw_world_ - map_ref_yaw);
+    // --- 在这行下面，加入以下代码，把这个角度变成真正的坐标系旋转 ---
+    if (has_mapping_ref) 
+    {
+      geometry_msgs::TransformStamped transformStamped;
+      ROS_WARN_STREAM_THROTTLE(2.0, "DEBUG INFO -> " 
+    << " robot_yaw_world_: " << robot_yaw_world_ 
+    << " map_ref_yaw: " << map_ref_yaw 
+    << " yaw_offset: " << yaw_offset);
+      
+      transformStamped.header.stamp = ros::Time::now();
+      transformStamped.header.frame_id = "world";      // 父坐标系：机器人的建图世界
+      transformStamped.child_frame_id = frame_id_;     // 子坐标系：rtk_map (默认值)
 
-    // Realtime RTK fix position in world frame (same position source for green marker and dashed-line start).
+      // 1. 位置对齐：假设开机时两个世界的中心高度差 1.0 米（保持和你之前参数一致）
+      transformStamped.transform.translation.x = origin_x;
+      transformStamped.transform.translation.y = origin_y;
+      transformStamped.transform.translation.z = origin_z + 1.0; 
+
+      // 2. 朝向对齐：落实你的核心思路！把算出的 heading 偏差转换成四元数
+      tf2::Quaternion q;
+      q.setRPY(0, 0, yaw_offset); // 绕 Z 轴旋转
+      transformStamped.transform.rotation.x = q.x();
+      transformStamped.transform.rotation.y = q.y();
+      transformStamped.transform.rotation.z = q.z();
+      transformStamped.transform.rotation.w = q.w();
+
+      // 3. 向整个 ROS 系统广播：“我现在用真实的 heading 修正了 RTK 的 X 轴方向！”
+      tf_broadcaster_.sendTransform(transformStamped);
+    }
+
+    // =========================================================================
+    // 1. 实时 RTK 定位 (绿球) 的解耦计算
+    // =========================================================================
     bool has_fix_world = false;
-    double fix_x_world = origin_x;
-    double fix_y_world = origin_y;
-    double fix_z_world = origin_z;
+    double fix_x_world = origin_x, fix_y_world = origin_y, fix_z_world = origin_z;
+    double fix_x_rtk = origin_x, fix_y_rtk = origin_y, fix_z_rtk = origin_z;
+    double fix_x_marker = origin_x, fix_y_marker = origin_y, fix_z_marker = origin_z;
+
     if (has_fix_ && has_mapping_ref)
     {
       double fix_dx_east = 0.0;
@@ -590,181 +624,172 @@ private:
 
       const double fix_dist = std::hypot(fix_dx_east, fix_dy_north);
       const double fix_angle_enu = std::atan2(fix_dy_north, fix_dx_east);
-      const double fix_angle_world = wrapToPi(fix_angle_enu + yaw_offset);
 
+      // (A) 真实的 World 坐标 (必须加 yaw_offset)
+      const double fix_angle_world = wrapToPi(fix_angle_enu + yaw_offset);
       fix_x_world = origin_x + fix_dist * std::cos(fix_angle_world);
       fix_y_world = origin_y + fix_dist * std::sin(fix_angle_world);
       fix_z_world = origin_z + (rtk_alt_ - map_ref_alt);
+
+      // (B) 纯粹的 rtk_map 坐标 (纯 ENU 偏差)
+      fix_x_rtk = origin_x + fix_dx_east;
+      fix_y_rtk = origin_y + fix_dy_north;
+      fix_z_rtk = origin_z + (rtk_alt_ - map_ref_alt);
+
       has_fix_world = true;
+
+      // (C) 决定给 RViz 绿球画哪个坐标
+      if (out_frame == frame_id_) // 如果发布在 rtk_map
+      {
+          fix_x_marker = fix_x_rtk;
+          fix_y_marker = fix_y_rtk;
+          fix_z_marker = fix_z_rtk;
+      }
+      else if (out_frame == "world") // 如果发布在 world
+      {
+          fix_x_marker = fix_x_world;
+          fix_y_marker = fix_y_world;
+          fix_z_marker = fix_z_world;
+      }
+      else 
+      {
+          fix_x_marker = fix_x_world;
+          fix_y_marker = fix_y_world;
+          fix_z_marker = fix_z_world;
+          if (!viz_frame_id_.empty())
+          {
+              transformPointFromWorldToFrame(viz_frame_id_, fix_x_world, fix_y_world, fix_z_world, fix_x_marker, fix_y_marker, fix_z_marker);
+          }
+      }
     }
 
-    // RTK heading dashed line (magenta-ish): show realtime RTK heading at realtime RTK fix position.
-    // This is independent from the latched reference used for mapping the goal.
+    // =========================================================================
+    // 2. RTK 航向虚线 (洋红色线)
+    // =========================================================================
     if (has_fix_ && has_yaw_ && (rtk_heading_length_ > 1e-3) && (rtk_heading_dash_len_ > 1e-3))
     {
-      double dash_x = origin_x;
-      double dash_y = origin_y;
-      double dash_z = origin_z;
-
-      // Anchor dashed heading at realtime RTK fix when mapping reference is available; otherwise fallback to origin.
-      if (has_fix_world)
-      {
-        dash_x = fix_x_world;
-        dash_y = fix_y_world;
-        dash_z = fix_z_world;
-      }
-
-      double dash_x_o = dash_x;
-      double dash_y_o = dash_y;
-      double dash_z_o = dash_z;
-      if (!viz_frame_id_.empty())
-      {
-        if (!transformPointFromWorldToFrame(viz_frame_id_, dash_x, dash_y, dash_z, dash_x_o, dash_y_o, dash_z_o))
-        {
-          // fallback to relative-to-origin
-          dash_x_o = dash_x - origin_x;
-          dash_y_o = dash_y - origin_y;
-          dash_z_o = dash_z - origin_z;
-        }
-      }
+      // 这里的原点使用刚才确定好的正确 marker 坐标
+      double dash_x_o = has_fix_world ? fix_x_marker : origin_x;
+      double dash_y_o = has_fix_world ? fix_y_marker : origin_y;
+      double dash_z_o = has_fix_world ? fix_z_marker : origin_z;
 
       arr.markers.push_back(makeDashedLine(out_frame, 5,
                                            dash_x_o, dash_y_o, dash_z_o,
-                                           rtk_yaw_,
+                                           rtk_yaw_, // 因为是在 out_frame 里，不需要加 yaw_offset
                                            rtk_heading_length_,
                                            rtk_heading_dash_len_,
                                            std::max(0.0, rtk_heading_gap_len_),
                                            rtk_heading_width_,
                                            1.0f, 0.0f, 1.0f, 1.0f));
-
-  ROS_INFO_STREAM_THROTTLE(1.0,
-           "[gps_goal_test] dashed heading in frame '" << out_frame
-           << "': yaw=" << (rtk_yaw_ * 180.0 / M_PI)
-           << " deg, start_xyz=(" << dash_x_o << ", " << dash_y_o << ", " << dash_z_o << ")");
     }
 
-    // Mapping reference for goal: prefer latched ref; fallback to /gps_start_position.
+    // =========================================================================
+    // 3. 基础点绘制 (蓝球 & 绿球)
+    // =========================================================================
     if (!has_mapping_ref)
     {
-      ROS_INFO_STREAM_THROTTLE(2.0,
-                               "[gps_goal_test] waiting for mapping reference. "
-                               "Need either a latched reference (goal arrived after fix), or /gps_start_position (or auto_start_from_first_fix). ");
       marker_pub_.publish(arr);
       return;
     }
 
-  // Mapping reference: latched RTK (on goal) or gps_start_position, anchored at origin_x/y/z.
-  const double start_x_world = origin_x;
-  const double start_y_world = origin_y;
-  const double start_z_world = origin_z;
-  const double start_x = viz_frame_id_.empty() ? start_x_world : 0.0;
-  const double start_y = viz_frame_id_.empty() ? start_y_world : 0.0;
-  const double start_z = viz_frame_id_.empty() ? start_z_world : 0.0;
-
     // Start (blue)
-  arr.markers.push_back(makeSphere(out_frame, 4,
-                  start_x, start_y, start_z,
-                                    0.05,
-                                    0.0f, 0.4f, 1.0f, 1.0f));
+    const double start_x = viz_frame_id_.empty() ? origin_x : 0.0;
+    const double start_y = viz_frame_id_.empty() ? origin_y : 0.0;
+    const double start_z = viz_frame_id_.empty() ? origin_z : 0.0;
+    arr.markers.push_back(makeSphere(out_frame, 4, start_x, start_y, start_z, 0.05, 0.0f, 0.4f, 1.0f, 1.0f));
 
-    // RTK fix (green): realtime /gps/fix relative to start.
+    // RTK fix (green)
     if (has_fix_world)
     {
-      double fix_x_o = fix_x_world;
-      double fix_y_o = fix_y_world;
-      double fix_z_o = fix_z_world;
-      if (!viz_frame_id_.empty())
-      {
-        if (!transformPointFromWorldToFrame(viz_frame_id_, fix_x_world, fix_y_world, fix_z_world, fix_x_o, fix_y_o, fix_z_o))
-        {
-          fix_x_o = fix_x_world - origin_x;
-          fix_y_o = fix_y_world - origin_y;
-          fix_z_o = fix_z_world - origin_z;
-        }
-      }
-
-      arr.markers.push_back(makeSphere(out_frame, 6,
-                                      fix_x_o, fix_y_o, fix_z_o,
-                                      0.05,
-                                      0.0f, 1.0f, 0.0f, 1.0f));
+      arr.markers.push_back(makeSphere(out_frame, 6, fix_x_marker, fix_y_marker, fix_z_marker, 0.05, 0.0f, 1.0f, 0.0f, 1.0f));
     }
 
-    // If there's no goal yet, publish what we have (origin + start + optional fix + heading).
     if (!has_goal_)
     {
       marker_pub_.publish(arr);
       return;
     }
 
+    // =========================================================================
+    // 4. 目标点 (黄球) 的解耦计算
+    // =========================================================================
     double dx_east = 0.0;
     double dy_north = 0.0;
-    // Goal in local UTM plane, relative to start.
-  wgs84DeltaToUtmMeters(map_ref_lat, map_ref_lon, goal_lat_, goal_lon_, dx_east, dy_north);
+    wgs84DeltaToUtmMeters(map_ref_lat, map_ref_lon, goal_lat_, goal_lon_, dx_east, dy_north);
 
     const double dist = std::hypot(dx_east, dy_north);
     const double angle_enu = std::atan2(dy_north, dx_east);
 
-    // If yaw not available, assume 0.
-    // NOTE: reuse rtk_yaw/yaw_offset computed above.
+    // (A) 发给机器人底盘的 World 坐标 (必须加 yaw_offset！)
     const double angle_world = wrapToPi(angle_enu + yaw_offset);
+    const double goal_x_world = origin_x + dist * std::cos(angle_world);
+    const double goal_y_world = origin_y + dist * std::sin(angle_world);
+    const double goal_z_world = origin_z + (goal_alt_ - map_ref_alt);
 
-  const double goal_x_world = origin_x + dist * std::cos(angle_world);
-  const double goal_y_world = origin_y + dist * std::sin(angle_world);
+    ROS_INFO_THROTTLE(1.0, 
+      "[GOAL_CALC_DEBUG] "
+      "东向偏移dx=%.4f m, 北向偏移dy=%.4f m, 直线距离dist=%.4f m, "    
+      "原始ENU角度=%.4f rad (%.2f°), 最终世界角度=%.4f rad (%.2f°)",   
+      dx_east, dy_north, dist,
+      angle_enu, angle_enu * 180.0 / M_PI,
+      angle_world, angle_world * 180.0 / M_PI
+    );
 
-    // For this RViz test node, we can't query gridmap elevation. We just visualize Z via GPS delta.
-  const double goal_z_world = origin_z + (goal_alt_ - map_ref_alt);
+    // (B) 发给 RViz 渲染的 rtk_map 坐标 (绝对不能加 yaw_offset！)
+    const double goal_x_rtk = origin_x + dx_east;
+    const double goal_y_rtk = origin_y + dy_north;
+    const double goal_z_rtk = origin_z + (goal_alt_ - map_ref_alt);
 
-    double goal_x = goal_x_world;
-    double goal_y = goal_y_world;
-    double goal_z = goal_z_world;
-    if (!viz_frame_id_.empty())
+    // (C) 决定给 RViz 的黄球画哪个点
+    double goal_x = 0.0, goal_y = 0.0, goal_z = 0.0;
+
+    if (out_frame == frame_id_) // 如果发给 rtk_map
     {
-      if (!transformPointFromWorldToFrame(viz_frame_id_, goal_x_world, goal_y_world, goal_z_world, goal_x, goal_y, goal_z))
-      {
-        goal_x = goal_x_world - origin_x;
-        goal_y = goal_y_world - origin_y;
-        goal_z = goal_z_world - origin_z;
-      }
+        goal_x = goal_x_rtk;
+        goal_y = goal_y_rtk;
+        goal_z = goal_z_rtk;
+    }
+    else if (out_frame == "world") // 如果发给 world
+    {
+        goal_x = goal_x_world;
+        goal_y = goal_y_world;
+        goal_z = goal_z_world;
+    }
+    else 
+    {
+        goal_x = goal_x_world;
+        goal_y = goal_y_world;
+        goal_z = goal_z_world;
+        if (!viz_frame_id_.empty())
+        {
+          transformPointFromWorldToFrame(viz_frame_id_, goal_x_world, goal_y_world, goal_z_world, goal_x, goal_y, goal_z);
+        }
     }
 
     // Goal (yellow)
-  arr.markers.push_back(makeSphere(out_frame, 2,
-                                    goal_x, goal_y, goal_z,
-                                    0.05,
-                                    1.0f, 1.0f, 0.0f, 1.0f));
+    arr.markers.push_back(makeSphere(out_frame, 2, goal_x, goal_y, goal_z, 0.05, 1.0f, 1.0f, 0.0f, 1.0f));
 
-    // Line (cyan): connect start -> goal
-    arr.markers.push_back(makeLine(out_frame, 3,
-                    start_x, start_y, start_z,
-                    goal_x, goal_y, goal_z,
-                    0.06,
-                    0.0f, 1.0f, 1.0f, 1.0f));
+    // Line (cyan)
+    arr.markers.push_back(makeLine(out_frame, 3, start_x, start_y, start_z, goal_x, goal_y, goal_z, 0.06, 0.0f, 1.0f, 1.0f, 1.0f));
 
-    // Reserved interface: publish nav goal pose.
-    // Later you can bridge this into Hexapod201StateSequencePlanner::nav_callback.
+    // =========================================================================
+    // 5. 将真正的底盘坐标发给导航系统
+    // =========================================================================
     if (publish_nav_goal_)
     {
       geometry_msgs::PoseStamped nav_goal;
       nav_goal.header.stamp = ros::Time::now();
-      nav_goal.header.frame_id = nav_goal_frame_id_;
-      if (!viz_frame_id_.empty() && nav_goal_frame_id_ == viz_frame_id_)
-      {
-        nav_goal.pose.position.x = goal_x;
-        nav_goal.pose.position.y = goal_y;
-        nav_goal.pose.position.z = goal_z;
-      }
-      else
-      {
-        nav_goal.pose.position.x = goal_x_world;
-        nav_goal.pose.position.y = goal_y_world;
-        nav_goal.pose.position.z = goal_z_world;
-      }
+      nav_goal.header.frame_id = nav_goal_frame_id_; 
+      
+      // 强制使用带旋转偏移的 world 坐标给机器人！
+      nav_goal.pose.position.x = goal_x_world;
+      nav_goal.pose.position.y = goal_y_world;
+      nav_goal.pose.position.z = goal_z_world;
       nav_goal.pose.orientation.w = 1.0;
       nav_goal_pub_.publish(nav_goal);
     }
 
     marker_pub_.publish(arr);
-
   ROS_INFO_STREAM_THROTTLE(1.0,
                              "[gps_goal_test] origin(param) (x,y,z)= (" << origin_x << ", " << origin_y << ", " << origin_z << ")"
                              << ", rtk(lat,lon,alt)= (" << rtk_lat_ << ", " << rtk_lon_ << ", " << rtk_alt_
