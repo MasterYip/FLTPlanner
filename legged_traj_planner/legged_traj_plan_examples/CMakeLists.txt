@@ -275,8 +275,7 @@ target_link_libraries(test_gps_nav_goal_rviz
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
 )
-add_executable(test_move_10m_30deg src/test_move_10m_30deg.cpp)
-target_link_libraries(test_move_10m_30deg ${catkin_LIBRARIES})
+
 
 
 ## Declare a C++ library
