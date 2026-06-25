@@ -481,7 +481,7 @@ public:
     const double max_yaw_change = config_.maxYawChange;
     const double step_duration = config_.navStepDuration;
     const double position_tolerance = 0.15; // Position tolerance for reaching waypoint
-    const double yaw_tolerance = 0.1; // Yaw tolerance in radians
+    const double yaw_tolerance = 0.5; // Yaw tolerance in radians
     
     // Current waypoint index
     size_t current_waypoint = 1; // Start from index 1 (skip start position)
