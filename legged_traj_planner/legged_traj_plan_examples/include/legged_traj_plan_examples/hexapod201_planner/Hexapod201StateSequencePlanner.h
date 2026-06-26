@@ -481,7 +481,7 @@ public:
     const double max_yaw_change = config_.maxYawChange;
     const double step_duration = config_.navStepDuration;
     const double position_tolerance = 0.15; // Position tolerance for reaching waypoint
-    const double yaw_tolerance = 0.5; // Yaw tolerance in radians
+    const double yaw_tolerance = 0.3; // Yaw tolerance in radians
     
     // Current waypoint index
     size_t current_waypoint = 1; // Start from index 1 (skip start position)
@@ -523,12 +523,12 @@ public:
       // Create target pose for this step
       geometry_msgs::Twist step_cmd_vel;
       pinocchio::SE3 target_pose = body_pose;
+      // Rotation step - limit yaw change
+      double yaw_command = std::max(-max_yaw_change, std::min(max_yaw_change, yaw_error));
       
       // If yaw error is large, prioritize rotation
       if (abs(yaw_error) > yaw_tolerance)
       {
-        // Rotation step - limit yaw change
-        double yaw_command = std::max(-max_yaw_change, std::min(max_yaw_change, yaw_error));
         
         // Set target orientation
         Eigen::Vector3d target_rpy = current_rpy;
@@ -545,28 +545,34 @@ public:
       }
       else
       {
-        // Movement step - limit step length
+        // Movement step - 小角度：边走边转 (同时下发线速度和角速度)
         double step_distance = std::min(distance, max_step_length);
         Eigen::Vector2d step_vector = direction * step_distance;
         
-        // Set target position
+        // 1. 设置平移目标位置
         target_pose.translation()[0] = current_pos[0] + step_vector[0];
         target_pose.translation()[1] = current_pos[1] + step_vector[1];
         
-        // Create cmd_vel in base frame
+        // 2. 设置旋转目标姿态（叠加微小的修正角度）
+        Eigen::Vector3d target_rpy = current_rpy;
+        target_rpy[2] += yaw_command;
+        target_pose.rotation() = pinocchio::rpy::rpyToMatrix(target_rpy);
+        
+        // 3. 计算 Base 坐标系下的线速度
         Eigen::Matrix3d world_to_base_rotation = body_pose.rotation().transpose();
         Eigen::Vector3d world_linear_vel(step_vector[0] / config_.tripodStepDuration,
                                         step_vector[1] / config_.tripodStepDuration,
                                         0.0);
         Eigen::Vector3d base_linear_vel = world_to_base_rotation * world_linear_vel;
         
+        // 4. 同时下发 线速度 和 角速度
         step_cmd_vel.linear.x = base_linear_vel[0];
         step_cmd_vel.linear.y = base_linear_vel[1];
         step_cmd_vel.linear.z = 0.0;
-        step_cmd_vel.angular.z = 0.0;
+        step_cmd_vel.angular.z = yaw_command / config_.tripodStepDuration; // <- 核心改动：不再是 0.0
         
-        ROS_INFO_STREAM("Moving toward waypoint " << current_waypoint 
-                       << ", step: " << step_distance << "m, remaining: " << distance << "m");
+        ROS_INFO_STREAM("Moving & Aligning toward waypoint " << current_waypoint 
+                       << ", step: " << step_distance << "m, yaw_corr: " << yaw_command << "rad");
       }
       
       // Fit the ground

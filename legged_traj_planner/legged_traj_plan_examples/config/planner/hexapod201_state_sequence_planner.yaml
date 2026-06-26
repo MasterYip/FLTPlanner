@@ -22,7 +22,7 @@ StateSequencePlanner:
   tripodStepDuration: 0.6
   tripodStanceDuration: 0.3
   maxStepLength: 0.17
-  maxYawChange: 0.15
+  maxYawChange: 0.10
 
   # Pose control parameters
   keepPoseHorizontal: true
@@ -51,7 +51,7 @@ StateSequencePlanner:
       velocityGainX: 1.0
       velocityGainY: 1.0
       velocityGainZ: 0.0
-      searchRadius: 0.35
+      searchRadius: 0.40
       gridResolution: 0.05
       maxSearchIterations: 2000
       minFootholdHeight: -10.0 # Should not be used
