@@ -96,6 +96,7 @@ void GridMapInterface::update(bool block, double sdf_margin)
         ros::spinOnce();
         ros::Duration(0.5).sleep();
     }
+    ros::spinOnce();
     // Sensor ceiling map
     if (map_ceiling_.exists(ceiling_layer) && !map_ceiling_.get(ceiling_layer).hasNaN())
         map_.add(ceiling_layer, map_ceiling_.get(ceiling_layer));

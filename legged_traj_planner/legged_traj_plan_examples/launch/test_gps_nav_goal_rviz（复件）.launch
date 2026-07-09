@@ -1,0 +1,84 @@
+<launch>
+  <!-- Use a dedicated frame to avoid clashing with robot's own 'world' -->
+  <arg name="frame_id" default="rtk_map" />
+  <!-- If non-empty, publish RViz markers in this TF frame (recommended: base_link) to show relative coordinates -->
+  <arg name="viz_frame_id" default="" />
+  <arg name="rviz" default="true" />
+
+  <!-- Anchor origin policy: use TF(frame_id <- anchor_frame_id) as visualization origin -->
+  <arg name="anchor_frame_id" default="rtk_antenna" />
+  <arg name="use_anchor_as_origin" default="false" />
+  <!-- Offset expressed in anchor local axes: forward=+X, left=+Y, up=+Z (meters) -->
+  <arg name="anchor_origin_offset_forward_m" default="0.01" />
+  <arg name="anchor_origin_offset_left_m" default="0.01" />
+  <arg name="anchor_origin_offset_up_m" default="0.0" />
+
+  <!-- Robot yaw source (for yaw alignment): use TF rtk_map->base_link by default -->
+  <arg name="use_tf_yaw" default="false" />
+  <arg name="tf_world_frame" default="rtk_map" />
+  <arg name="tf_base_frame" default="base_link" />
+  <!-- Fallback yaw when TF is unavailable -->
+  <arg name="robot_yaw_world" default="0.0" />
+
+  <!-- Optional fixed reference origin (gray sphere shown when /gps/utm_pose is available) -->
+  <arg name="world_origin_x" default="0.0" />
+  <arg name="world_origin_y" default="0.0" />
+  <arg name="world_origin_z" default="0.0" />
+
+  <!-- Start/reference policies -->
+  <arg name="auto_start_from_first_fix" default="false" />
+  <arg name="latch_reference_on_goal" default="true" />
+
+  <!-- Heading calibration: corrected_yaw = raw_yaw + rtk_heading_yaw_offset_deg -->
+  <arg name="rtk_heading_convention" default="north_cw" />
+  <arg name="rtk_heading_yaw_offset_deg" default="0.0" />
+  <!-- If false, heading only affects magenta dashed line, not goal/fix mapping. -->
+  <arg name="use_heading_for_mapping" default="false" />
+
+  <!-- Optional: publish a PoseStamped goal for planner/nav_callback integration -->
+  <arg name="publish_nav_goal" default="false" />
+  <arg name="nav_goal_topic" default="/move_base_simple/goal" />
+  <!-- frame_id for the PoseStamped goal; keep it consistent with planner expectation -->
+  <arg name="nav_goal_frame_id" default="rtk_map" />
+  <!-- Test-only static TF. Keep false by default to avoid conflict with system TF publishers. -->
+  <arg name="publish_test_world_to_rtk_map_tf" default="true" />
+  <!-- Use quaternion form to avoid yaw/pitch/roll argument-order ambiguity.
+    q = [0, 0, sin(45deg), cos(45deg)] => +90deg yaw about Z only. -->
+  <group if="$(arg publish_test_world_to_rtk_map_tf)">
+    <node pkg="tf2_ros" type="static_transform_publisher" name="static_tf_publisher4"
+        args="0.3 0.3 0.0 0 0 0.70710678 0.70710678 world rtk_map"/>
+  </group>
+
+  <node pkg="legged_traj_plan_examples" type="test_gps_nav_goal_rviz" name="test_gps_nav_goal_rviz" output="screen" required="true">
+    <param name="frame_id" value="$(arg frame_id)" />
+    <param name="viz_frame_id" value="$(arg viz_frame_id)" />
+    <param name="anchor_frame_id" value="$(arg anchor_frame_id)" />
+    <param name="use_anchor_as_origin" value="$(arg use_anchor_as_origin)" />
+    <param name="anchor_origin_offset_forward_m" value="$(arg anchor_origin_offset_forward_m)" />
+    <param name="anchor_origin_offset_left_m" value="$(arg anchor_origin_offset_left_m)" />
+    <param name="anchor_origin_offset_up_m" value="$(arg anchor_origin_offset_up_m)" />
+    <param name="world_origin_x" value="$(arg world_origin_x)" />
+    <param name="world_origin_y" value="$(arg world_origin_y)" />
+    <param name="world_origin_z" value="$(arg world_origin_z)" />
+
+    <param name="auto_start_from_first_fix" value="$(arg auto_start_from_first_fix)" />
+    <param name="latch_reference_on_goal" value="$(arg latch_reference_on_goal)" />
+
+    <param name="publish_nav_goal" value="$(arg publish_nav_goal)" />
+    <param name="nav_goal_topic" value="$(arg nav_goal_topic)" />
+    <param name="nav_goal_frame_id" value="$(arg nav_goal_frame_id)" />
+
+    <param name="use_tf_yaw" value="$(arg use_tf_yaw)" />
+    <param name="tf_world_frame" value="$(arg tf_world_frame)" />
+    <param name="tf_base_frame" value="$(arg tf_base_frame)" />
+    <param name="robot_yaw_world" value="$(arg robot_yaw_world)" />
+
+    <param name="rtk_heading_yaw_offset_deg" value="$(arg rtk_heading_yaw_offset_deg)" />
+    <param name="rtk_heading_convention" value="$(arg rtk_heading_convention)" />
+    <param name="use_heading_for_mapping" value="$(arg use_heading_for_mapping)" />
+  </node>
+
+  <group if="$(arg rviz)">
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find legged_traj_plan_examples)/config/rviz/test_visualizer.rviz" />
+  </group>
+</launch>

@@ -19,7 +19,14 @@ set(GRIDMAP_DEP
   pcl_ros
   pcl_conversions
 )
-
+set(HEXAPOD_IK_6LEGS_LIBS
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/libikfast_generated_RF.a
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/libikfast_generated_LF.a
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/libikfast_generated_RM.a
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/libikfast_generated_LM.a
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/libikfast_generated_RB.a
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/libikfast_generated_LB.a
+)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -143,6 +150,7 @@ add_subdirectory(mcts_planner)
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  include/legged_traj_plan_examples/ik
   ${OMPL_INCLUDE_DIRS}
 )
 
@@ -184,6 +192,11 @@ target_link_libraries(hexapod201_state_sequence_planner
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
   ${OMPL_LIBRARIES}
+  # ==========================================
+  # 【绝对安全新增】仅在这里把6条腿的库喂给你的节点
+  # ==========================================
+  ${HEXAPOD_IK_6LEGS_LIBS}
+  # ==========================================
 )
 
 # UnitreeA1RaibertPlanner
@@ -256,6 +269,14 @@ target_link_libraries(test_visualizer
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
 )
+
+add_executable(test_gps_nav_goal_rviz test/test_gps_nav_goal_rviz.cpp)
+target_link_libraries(test_gps_nav_goal_rviz
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
