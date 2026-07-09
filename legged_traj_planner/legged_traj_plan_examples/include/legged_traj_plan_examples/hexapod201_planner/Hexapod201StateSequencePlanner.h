@@ -35,6 +35,7 @@
 #include <geometry_msgs/Twist.h>
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
+#include <std_srvs/Empty.h>
 
 #include "Hexapod2dNavRRT.h"
 #include "legged_traj_search/utils/gcs_visualizer.hpp"
@@ -95,6 +96,10 @@ struct Hexapod201StateSequencePlannerConfig
   bool keepConstBaseFootZ;
   double keepConstBaseFootZValue;
 
+  // Clear map on nav complete
+  bool clearMapOnNavComplete;
+  double clearMapDelay;
+
   // Gait planner configuration
   Hexapod201GaitPlannerConfig gaitPlannerConfig;
 
@@ -113,6 +118,10 @@ struct Hexapod201StateSequencePlannerConfig
     check_digit &= nh.getParam(ns + "/keepPoseHorizontal", keepPoseHorizontal);
     check_digit &= nh.getParam(ns + "/keepConstBaseFootZ", keepConstBaseFootZ);
     check_digit &= nh.getParam(ns + "/keepConstBaseFootZValue", keepConstBaseFootZValue);
+
+    // Load clear map on nav complete parameters
+    check_digit &= nh.getParam(ns + "/clearMapOnNavComplete", clearMapOnNavComplete);
+    check_digit &= nh.getParam(ns + "/clearMapDelay", clearMapDelay);
 
     // Load gait planner configuration
     gaitPlannerConfig.loadParams(nh, ns + "/GaitPlanner");
@@ -150,6 +159,7 @@ private:
   ros::Subscriber foot_feedback_sub_;
   ros::Publisher joint_state_pub_;
   ros::Publisher restart_trigger_pub_;
+  ros::ServiceClient clear_map_client_;
   std::vector<std::string> joint_names_ = {
       "LF_HAA", "LF_HFE", "LF_KFE",
       "LM_HAA", "LM_HFE", "LM_KFE",
@@ -294,6 +304,7 @@ public:
         nh_.subscribe("/robot_is_moving", 1,
                       &Hexapod201StateSequencePlanner::plc_in_motion_callback, this);
     joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("/joint_states", 1);
+    clear_map_client_ = nh_.serviceClient<std_srvs::Empty>("/elevation_mapping/clear_map");
 
     PosList pose_sample_pts;
     int len = 6;
@@ -730,7 +741,23 @@ public:
       motion_lock_ = false;
       gridmap_interface_->unlockMapUpdate();
       
-      // 2. 再发布信号！
+      // 2. 延时后清除高程地图，让机器人静止时重新建立干净的地图
+      if (config_.clearMapOnNavComplete)
+      {
+        ROS_INFO("Waiting %.1fs before clearing elevation map...", config_.clearMapDelay);
+        ros::Duration(config_.clearMapDelay).sleep();
+        std_srvs::Empty empty_srv;
+        if (clear_map_client_.call(empty_srv))
+        {
+          ROS_INFO("Elevation map cleared — rebuild with clean stationary scans.");
+        }
+        else
+        {
+          ROS_WARN("Failed to call clear_map service on elevation_mapping node.");
+        }
+      }
+
+      // 3. 再发布重启信号！
       ROS_WARN("Sending signal for FULL SYSTEM RESTART!");
       std_msgs::Empty trigger_msg;
       restart_trigger_pub_.publish(trigger_msg);

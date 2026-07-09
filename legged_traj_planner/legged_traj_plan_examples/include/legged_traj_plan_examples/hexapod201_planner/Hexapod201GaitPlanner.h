@@ -275,11 +275,14 @@ struct Hexapod201TerrainAwareRaibertPlanner
         }
         else
         {
+            // throw exception
+            throw std::runtime_error("No valid foothold found within search radius.");
             ROS_WARN_STREAM("Foothold not found, falling back to default.");
             // No valid foothold found, return nominal with terrain height from ground layer
             grid_map::Position nominal_pos(world_nominal[0], world_nominal[1]);
             double terrain_height = gridmap_interface->value(nominal_pos);
             return Eigen::Vector3d(world_nominal[0], world_nominal[1], terrain_height);
+            
         }
     }
 };

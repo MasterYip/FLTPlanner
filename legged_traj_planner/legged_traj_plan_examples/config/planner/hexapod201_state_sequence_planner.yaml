@@ -29,6 +29,10 @@ StateSequencePlanner:
   keepConstBaseFootZ: true # If ture, base height is kept constant too
   keepConstBaseFootZValue: -0.53
 
+  # Clear map settings
+  clearMapOnNavComplete: true  # Clear elevation map after each nav task completes, so the map rebuilds clean while robot is standing still
+  clearMapDelay: 0.5           # Seconds to wait after stopping before clearing (let robot stabilize)
+
   # Gait planner configuration
   GaitPlanner:
     # Gait type: GAIT_2 (tripod), GAIT_3 (wave), GAIT_6 (single-leg)
