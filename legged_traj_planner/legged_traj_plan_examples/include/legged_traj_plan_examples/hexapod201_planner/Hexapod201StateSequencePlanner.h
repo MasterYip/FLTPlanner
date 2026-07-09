@@ -145,6 +145,7 @@ private:
   geometry_msgs::Twist cmd_;
   ros::Subscriber nav_goal_sub_;
   ros::Subscriber pose2d_sub_;
+  ros::Subscriber pose2d_obs_avoid_sub_;
   ros::Subscriber plc_in_motion_sub_;
 
   // Interface
@@ -300,6 +301,9 @@ public:
     pose2d_sub_ =
         nh_.subscribe("/initialpose", 1,
                       &Hexapod201StateSequencePlanner::pose2d_callback, this);
+    pose2d_obs_avoid_sub_ =
+        nh_.subscribe("/pose2d_obs_avoid", 1,
+                      &Hexapod201StateSequencePlanner::pose2d_obs_avoid_callback, this);
     plc_in_motion_sub_ =
         nh_.subscribe("/robot_is_moving", 1,
                       &Hexapod201StateSequencePlanner::plc_in_motion_callback, this);
@@ -773,7 +777,8 @@ public:
     gridmap_interface_->unlockMapUpdate();
   }
 
-  void pose2d_callback(const geometry_msgs::PoseWithCovarianceStamped &msg)
+  // Old RRT obstacle-avoidance callback — moved to /pose2d_obs_avoid, kept for reference
+  void pose2d_obs_avoid_callback(const geometry_msgs::PoseWithCovarianceStamped &msg)
   {
     if (motion_lock_)
     {
@@ -834,6 +839,229 @@ public:
           ->setStepBodyPathCmd(nav_path);
     motion_lock_ = false;
     gridmap_interface_->unlockMapUpdate();
+  }
+
+  /**
+   * @brief Sequential navigation callback — receives a goal point and navigates
+   *        toward it via safe sub-destinations, clearing the map at each stop.
+   *
+   * If the goal is within the known traversable map, the robot goes directly.
+   * Otherwise it repeatedly finds the farthest traversable point toward the goal,
+   * moves there, clears the elevation map (clean rebuild while stationary),
+   * and continues until the final goal is reached.
+   */
+  void pose2d_callback(const geometry_msgs::PoseWithCovarianceStamped &msg)
+  {
+    if (motion_lock_)
+    {
+      ROS_WARN("Robot is in motion, ignore new sequential nav goal.");
+      return;
+    }
+    motion_lock_ = true;
+
+    V2d final_goal(msg.pose.pose.position.x, msg.pose.pose.position.y);
+    const double position_tolerance = 0.15;
+
+    ROS_INFO_STREAM("Sequential nav: final goal = (" << final_goal.x() << ", " << final_goal.y() << ")");
+
+    // Outer loop: repeat until we reach the final goal
+    while (ros::ok())
+    {
+      //---- Check if we have reached the final goal ----
+      V3d cur_pos = get_cur_position();
+      V2d cur_2d(cur_pos.x(), cur_pos.y());
+      double dist_to_final = (final_goal - cur_2d).norm();
+      if (dist_to_final <= position_tolerance)
+      {
+        ROS_INFO("Sequential nav: reached final goal!");
+        break;
+      }
+
+      //---- Determine sub-destination for this leg ----
+      std::string trav_layer = gridmap_interface_->getTravLayerName();
+      double goal_trav = gridmap_interface_->value(
+          grid_map::Position(final_goal.x(), final_goal.y()), trav_layer);
+      bool goal_is_reachable = (!std::isnan(goal_trav) && goal_trav > 0.0);
+
+      V2d sub_dest;
+
+      if (goal_is_reachable)
+      {
+        // Goal is on traversable terrain — go directly
+        sub_dest = final_goal;
+        ROS_INFO("Sequential nav: goal is within traversable map, going direct.");
+      }
+      else
+      {
+        // Find the farthest traversable point toward the goal
+        if (!findSafeSubDestination(cur_2d, final_goal, sub_dest))
+        {
+          ROS_WARN("Sequential nav: no safe sub-destination found, aborting.");
+          break;
+        }
+        double sub_dist = (sub_dest - cur_2d).norm();
+        ROS_INFO_STREAM("Sequential nav: sub-destination at (" << sub_dest.x()
+                        << ", " << sub_dest.y() << "), " << sub_dist << "m away.");
+      }
+
+      //---- Lock map & plan RRT path to sub-destination ----
+      gridmap_interface_->lockMapUpdate();
+      VEV2d path2d;
+      if (!nav_rrt_planner_.planPath(cur_2d, sub_dest, gridmap_interface_, path2d))
+      {
+        ROS_WARN("Sequential nav: RRT path planning failed, aborting leg.");
+        gridmap_interface_->unlockMapUpdate();
+        break;
+      }
+      path2d = interpolate_path(path2d, config_.maxStepLength);
+
+      ROS_INFO_STREAM("Sequential nav: RRT path has " << path2d.size() << " waypoints.");
+
+      //---- Visualize the path ----
+      visualizer_.delAll();
+      VEV3d path3d;
+      for (const auto &pt : path2d)
+      {
+        path3d.emplace_back(pt[0], pt[1], cur_pos.z());
+        visualizer_.visSphere(Point3D(pt[0], pt[1], cur_pos.z()), 0.05);
+      }
+      visualizer_.visCurve(path3d);
+
+      //---- Follow waypoints (same logic as nav_callback) ----
+      size_t wp_idx = 1;
+      while (wp_idx < path2d.size() && ros::ok())
+      {
+        // Get current robot state
+        pinocchio::SE3 body_pose = robot_interface_->getBodyPoseFdb();
+        V2d current_pos(body_pose.translation().x(), body_pose.translation().y());
+        V3d current_rpy = pinocchio::rpy::matrixToRpy(body_pose.rotation());
+        double current_yaw = current_rpy[2];
+
+        // Target waypoint
+        V2d target_wp = path2d[wp_idx];
+        double dist_to_wp = (target_wp - current_pos).norm();
+        if (dist_to_wp <= position_tolerance)
+        {
+          ROS_INFO_STREAM("Reached waypoint " << wp_idx);
+          wp_idx++;
+          continue;
+        }
+
+        // Direction to waypoint
+        V2d direction = target_wp - current_pos;
+        double distance = direction.norm();
+        direction.normalize();
+
+        // Yaw to face waypoint
+        double desired_yaw = atan2(direction.y(), direction.x());
+        double yaw_error = desired_yaw - current_yaw;
+        while (yaw_error > M_PI) yaw_error -= 2 * M_PI;
+        while (yaw_error < -M_PI) yaw_error += 2 * M_PI;
+        double yaw_cmd = std::max(-config_.maxYawChange, std::min(config_.maxYawChange, yaw_error));
+
+        // Build target pose for this step
+        geometry_msgs::Twist step_cmd_vel;
+        pinocchio::SE3 target_pose = body_pose;
+        double step_dist = std::min(distance, config_.maxStepLength);
+        V2d step_vec = direction * step_dist;
+
+        target_pose.translation().x() = current_pos.x() + step_vec.x();
+        target_pose.translation().y() = current_pos.y() + step_vec.y();
+        V3d target_rpy = current_rpy;
+        target_rpy.z() += yaw_cmd;
+        target_pose.rotation() = pinocchio::rpy::rpyToMatrix(target_rpy);
+
+        // Base-frame velocity command
+        Eigen::Matrix3d world_to_base = body_pose.rotation().transpose();
+        Eigen::Vector3d world_vel(step_vec.x() / config_.tripodStepDuration,
+                                  step_vec.y() / config_.tripodStepDuration, 0.0);
+        Eigen::Vector3d base_vel = world_to_base * world_vel;
+        step_cmd_vel.linear.x = base_vel.x();
+        step_cmd_vel.linear.y = base_vel.y();
+        step_cmd_vel.angular.z = yaw_cmd / config_.tripodStepDuration;
+
+        // Fit ground + apply pose constraints
+        gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
+        target_pose = gridmap_extrapolator_.extrapolate(0.0);
+        if (config_.keepPoseHorizontal)
+        {
+          V3d rpy_h = pinocchio::rpy::matrixToRpy(target_pose.rotation());
+          rpy_h.x() = 0.0; rpy_h.y() = 0.0;
+          target_pose.rotation() = pinocchio::rpy::rpyToMatrix(rpy_h);
+        }
+        if (config_.keepConstBaseFootZ)
+          target_pose.translation().z() = 0.0 - config_.keepConstBaseFootZValue;
+
+        // Generate hexapod state & execute step
+        legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
+        legged_traj_plan::hexapod_State next_state = generateNextState(current_state, step_cmd_vel);
+
+        std::vector<Eigen::Vector3d> footend_positions(6);
+        std::vector<bool> contact_states(6);
+        for (int leg = 0; leg < 6; leg++)
+        {
+          Eigen::Vector3d world_foot(
+              next_state.feetPositionNow.foot[leg].x,
+              next_state.feetPositionNow.foot[leg].y,
+              next_state.feetPositionNow.foot[leg].z);
+          footend_positions[leg] = point_SE3Act(target_pose, world_foot);
+          if (config_.keepConstBaseFootZ)
+            footend_positions[leg].z() = config_.keepConstBaseFootZValue;
+          contact_states[leg] = next_state.support_State_Now[leg];
+        }
+
+        if (robot_interface_type_ == "Hexapod201ROS")
+          std::dynamic_pointer_cast<Hexapod201InterfaceROS>(robot_interface_)
+              ->setStepCmd(target_pose, footend_positions, contact_states);
+        else if (robot_interface_type_ == "Hexapod201Dummy")
+          std::dynamic_pointer_cast<DummyHexapod201InterfaceROS>(robot_interface_)
+              ->setStepCmd(target_pose, footend_positions, contact_states);
+
+        plc_in_motion_ = true;
+
+        // Wait for step completion with IK visualization
+        ros::Time step_start = ros::Time::now();
+        while (ros::ok() && (plc_in_motion_ ||
+               (ros::Time::now() - step_start).toSec() < config_.tripodStepDuration))
+        {
+          // IK visualization during motion
+          legged_traj_plan::FootState rt_foot = robot_interface_->getFootStateFdb();
+          std::vector<Eigen::Vector3d> rt_correct(6);
+          for (int i = 0; i < 6; i++)
+            rt_correct[i] = getFootPosInBaseMinusHipZ_Correct(rt_foot, i);
+
+          std::vector<double> q_sol;
+          if (computeAllLegsIk(rt_correct, q_sol))
+          {
+            sensor_msgs::JointState js;
+            js.header.stamp = ros::Time::now();
+            js.name = joint_names_;
+            js.position = q_sol;
+            joint_state_pub_.publish(js);
+          }
+          ros::Duration(0.02).sleep();
+          ros::spinOnce();
+        }
+      } // end waypoint loop
+
+      //---- Leg complete: unlock, clear map for clean rebuild ----
+      gridmap_interface_->unlockMapUpdate();
+
+      if (config_.clearMapOnNavComplete)
+      {
+        ROS_INFO("Sequential nav: delaying %.1fs before clearing map...", config_.clearMapDelay);
+        ros::Duration(config_.clearMapDelay).sleep();
+        std_srvs::Empty empty_srv;
+        if (clear_map_client_.call(empty_srv))
+          ROS_INFO("Sequential nav: elevation map cleared — clean rebuild while stationary.");
+        else
+          ROS_WARN("Sequential nav: failed to call clear_map service.");
+      }
+
+      // Loop back to check if we've reached the final goal
+    }
+
+    motion_lock_ = false;
   }
 
   void plc_in_motion_callback(const std_msgs::Bool::ConstPtr &msg)
@@ -1092,6 +1320,41 @@ public:
     //   }
     // }
   }
+  /**
+   * @brief Find the farthest traversable point from current position toward goal.
+   *        Samples along the ray, returning the most distant cell that is on
+   *        traversable terrain (trav_layer > 0). This gives a safe sub-destination
+   *        when the final goal is outside the known safe map.
+   * @return true if a safe point was found.
+   */
+  bool findSafeSubDestination(const V2d& current, const V2d& goal, V2d& sub_dest) const
+  {
+    V2d dir = goal - current;
+    double total_dist = dir.norm();
+    if (total_dist < 0.01) return false;
+    dir /= total_dist;
+
+    // Clamp search distance to a reasonable fraction of the map extent
+    auto range = gridmap_interface_->getRange();
+    double map_diag = std::sqrt(range.x() * range.x() + range.y() * range.y());
+    double search_dist = std::min(total_dist, map_diag * 0.45);
+
+    std::string trav_layer = gridmap_interface_->getTravLayerName();
+    const double step = 0.3; // sample resolution [m]
+
+    for (double d = search_dist; d >= step; d -= step)
+    {
+      V2d pt = current + dir * d;
+      double trav = gridmap_interface_->value(grid_map::Position(pt.x(), pt.y()), trav_layer);
+      if (!std::isnan(trav) && trav > 0.0)
+      {
+        sub_dest = pt;
+        return true;
+      }
+    }
+    return false;
+  }
+
   void printHexapodState(const legged_traj_plan::hexapod_State& state)
   {
     std::cout << "===== Hexapod Current State =====" << std::endl;

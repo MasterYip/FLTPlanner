@@ -1,0 +1,52 @@
+resolution: 0.05             # 网格地图分辨率
+min_height: 0.0               # 地面高度 (pixel 0 → 0.0m)
+max_height: 1.5               # 最大编码高度 (pixel 65535 → 1.5m)
+min_height_ceiling: 1
+max_height_ceiling: 1
+elevation_layer: elevation_inpainted
+ceiling_layer: ceiling
+map_position_x: 0.0            # 地图中心在 world 坐标系中的 X
+map_position_y: 0.0            # 地图中心在 world 坐标系中的 Y
+
+GridMapInterface:
+  normalTangentCrtic: 0.5      # 法线切向阈值 (0.2m 障碍物边缘 ~0.5，中心平坦可通行)
+  groundLayerName: elevation_inpainted
+  sdfEnable: false
+  # 高度滤波：>1m 的障碍物被标记为不可通行，0.2m 的栅栏可通行
+  enableHeightFilter: true
+  maxHeight: 0.30              # 高于此值 → 不可通行
+  minHeight: -100.0
+  travErodeRad: 0.1            # 轻微侵蚀平滑边界
+  centerBoxAlwaysTrav: false
+  centerBoxWidth: 1.6
+  centerBoxLen: 1.6
+  # 落足点地图参数
+  footholdNormalTangentCrtic: 0.4
+  footholdEnableHeightFilter: true
+  footholdMaxHeight: 0.25      # 允许在 0.2m 栅栏上落足
+  footholdMinHeight: -100.0
+  footholdErodeRad: 0.0
+  footholdCenterBoxAlwaysTrav: false
+  footholdCenterBoxWidth: 0.8
+  footholdCenterBoxLen: 0.8
+
+grid_map_filters:
+  # 大半径法线计算 (用于可通行性判断，平滑处理)
+  - name: surface_normals_area
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      input_layer: elevation_inpainted
+      algorithm: area
+      output_layers_prefix: normal_
+      radius: 0.4
+      normal_vector_positive_axis: z
+      parallelization_enabled: true
+      thread_number: 4
+  # 小半径法线计算 (用于落足点判断，保留细节)
+  - name: surface_normals_noblur
+    type: gridMapFilters/NormalVectorsFilter
+    params:
+      input_layer: elevation_inpainted
+      output_layers_prefix: normal_noblur_
+      radius: 0.1
+      normal_vector_positive_axis: z
