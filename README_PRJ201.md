@@ -119,6 +119,37 @@ planner_cfg:=height_clear_planner \
 use_pyinterface:=true
 ```
 
+### Sequential Long-Distance Navigation (Simulation with fake map)
+
+This demo tests the sequential navigation behavior: give a pose2d goal (possibly **outside** the known fake map), and watch the robot pick safe sub-destinations near the traversable area boundary and navigate step by step.
+
+The `7_prj201_nav` demo provides a 16m × 6m fake map with obstacles and a barrier. The traversability layer is computed from the static terrain image, so "outside the map" means any cell whose height is unknown (NaN) — the robot will find the farthest traversable point and walk there.
+
+```bash
+roslaunch legged_traj_plan_examples hexapod201_state_sequence_planner.launch \
+  robot_interface_type:=Hexapod201ROS \
+  sim:=true \
+  teleop_type:=keyboard \
+  demo_name:=7_prj201_nav \
+  planner_cfg:=height_clear_planner \
+  use_pyinterface:=true
+```
+
+**In RViz**:
+
+1. Click **`2D Pose Estimate`** (not `2D Nav Goal`) to set a target point.
+2. If the target is within the traversable map → the robot plans an RRT path and walks directly there.
+3. If the target is **outside** the traversable map (beyond the map edge or inside an obstacle) → the planner:
+   - Calls `findSafeSubDestination()` to find the farthest traversable point along the direction to the goal
+   - Plans an RRT path to that sub-destination
+   - Walks there using the tripod gait
+   - Since `sim:=true`, the fake map does **not** update, so the next iteration will again find a sub-destination at the same boundary. On hardware the map would rebuild from fresh stationary LiDAR scans.
+
+**What to observe**:
+- The sub-destination should be near the map/terrain boundary, on **flat safe ground** (traversable cells with no NaN).
+- All six feet stay within the traversable region — no footstep planned on unknown/obstacle cells.
+- The robot stops briefly at each sub-destination, then continues toward the goal.
+
 ### Cpp Dummy interface (Base motion & Foothold):
 
 ![alt text](doc/hexapod201_foothold.png)

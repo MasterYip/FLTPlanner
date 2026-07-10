@@ -146,6 +146,7 @@ public:
     void updateFootholdMap(void);
     void updateSDF(const std::string &layer_name, uint index = 0, double margin = 0.2);
     double value(const grid_map::Position &position, const std::string &layer_name = "");
+    double valueStrict(const grid_map::Position &position, const std::string &layer_name = "");
     double sdfValue(const grid_map::Position3 &position, const std::string &mode = "min");
     Derivative3 minSdfDerivative(const grid_map::Position3 &position);
     Derivative3 sdfDerivative(const grid_map::Position3 &position, size_t index = 0);

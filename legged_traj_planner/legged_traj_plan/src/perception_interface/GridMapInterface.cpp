@@ -357,6 +357,23 @@ double GridMapInterface::value(const grid_map::Position &position, const std::st
     }
 }
 
+double GridMapInterface::valueStrict(const grid_map::Position &position, const std::string &layer_name)
+{
+    // Same as value() but returns NaN instead of 0.0 when the position is
+    // outside the map or the layer doesn't exist.
+    try
+    {
+        if (layer_name.empty())
+            return map_.atPosition(ground_layer, position);
+        else
+            return map_.atPosition(layer_name, position);
+    }
+    catch (const std::exception &e)
+    {
+        return std::nan("");
+    }
+}
+
 double GridMapInterface::sdfValue(const grid_map::Position3 &position, const std::string &mode)
 {
     if (mode == "min")
