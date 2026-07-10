@@ -22,102 +22,83 @@ public:
   Hexapod2dNavRRT() = default;
   ~Hexapod2dNavRRT() = default;
 
-  // Plan a 2D path from start to goal using OMPL RRTConnect
-  // with traversability-layer-based state validity checking.
-  // Falls back to straight-line path on OMPL failure.
-  // start, goal: Eigen::Vector2d (x, y) in world frame
-  // gridmap: pointer to GridMapInterface (provides traversability map)
-  // output_path: vector of Eigen::Vector2d waypoints
-  // Returns true always (fallback ensures a path is always produced)
+  // Plan a 2D path from start to goal using the traversability layer
+  // start, goal: Eigen::Vector2d (x, y)
+  // gridmap: pointer to GridMapInterface
+  // output_path: vector of Eigen::Vector2d
+  // Returns true if path found
   bool planPath(const Eigen::Vector2d &start, const Eigen::Vector2d &goal,
                 std::shared_ptr<GridMapInterface> gridmap,
                 std::vector<Eigen::Vector2d> &output_path,
-                double step_size = 0.2, double timeout = 3.0) const {
-    // --- Fallback: simple straight-line path ---
-    auto fallback = [&]() {
-      output_path.clear();
-      double dist = (goal - start).norm();
-      int num_steps = std::max(1, static_cast<int>(dist / step_size));
-      for (int i = 0; i <= num_steps; ++i) {
-        double ratio = static_cast<double>(i) / num_steps;
-        output_path.push_back(start + (goal - start) * ratio);
-      }
-    };
+                double step_size = 0.2, double timeout = 2.0) const {
+    auto space = std::make_shared<ob::RealVectorStateSpace>(2);
+    ob::RealVectorBounds bounds(2);
+    // Set bounds from gridmap (or use large default)
+    // print gridmap range
+    auto range = gridmap->getRange();
+    auto position = gridmap->getMap().getPosition();
+    printf("GridMap range: [%f, %f]\n", range.x(), range.y());
+    printf("GridMap position: [%f, %f]\n", position.x(), position.y());
+    bounds.setLow(0, position.x() - range.x() / 2);
+    bounds.setLow(1, position.y() - range.y() / 2);
+    bounds.setHigh(0, position.x() + range.x() / 2);
+    bounds.setHigh(1, position.y() + range.y() / 2);
 
-    if (!gridmap) {
-      ROS_WARN("Hexapod2dNavRRT: null gridmap, using straight-line fallback.");
-      fallback();
-      return true;
+    space->setBounds(bounds);
+    // Create space information
+    og::SimpleSetup ss(space);
+    // State validity checker: traversability > threshold
+    ss.setStateValidityChecker([gridmap](const ob::State *state) {
+      const auto *s = state->as<ob::RealVectorStateSpace::StateType>();
+      double x = s->values[0];
+      double y = s->values[1];
+      // Use traversability layer (e.g. "traversability" or
+      // "elevation_inpainted")
+      double trav =
+          gridmap->value(grid_map::Position(x, y), gridmap->getTravLayerName());
+      return !std::isnan(trav);
+    });
+    ob::ScopedState<> start_state(space);
+    start_state[0] = start.x();
+    start_state[1] = start.y();
+    ob::ScopedState<> goal_state(space);
+    goal_state[0] = goal.x();
+    goal_state[1] = goal.y();
+    ss.setStartAndGoalStates(start_state, goal_state);
+    ss.setOptimizationObjective(
+        std::make_shared<ob::PathLengthOptimizationObjective>(
+            ss.getSpaceInformation()));
+    auto planner = std::make_shared<og::RRTConnect>(ss.getSpaceInformation());
+    planner->setRange(step_size);
+    ss.setPlanner(planner);
+    if (!ss.solve(timeout))
+      return false;
+    ss.simplifySolution();
+    const auto &path = ss.getSolutionPath().getStates();
+    output_path.clear();
+    for (const auto *state : path) {
+      const auto *s = state->as<ob::RealVectorStateSpace::StateType>();
+      output_path.emplace_back(s->values[0], s->values[1]);
     }
-
-    try {
-      auto space = std::make_shared<ob::RealVectorStateSpace>(2);
-      ob::RealVectorBounds bounds(2);
-
-      // Set bounds from gridmap with a small margin
-      auto range = gridmap->getRange();
-      grid_map::Position position = gridmap->getMap().getPosition();
-      double margin = 0.5;
-      bounds.setLow(0,  position.x() - range.x() / 2.0 - margin);
-      bounds.setLow(1,  position.y() - range.y() / 2.0 - margin);
-      bounds.setHigh(0, position.x() + range.x() / 2.0 + margin);
-      bounds.setHigh(1, position.y() + range.y() / 2.0 + margin);
-      space->setBounds(bounds);
-
-      // State validity: traversable cells have trav > 0.0
-      std::string trav_layer = gridmap->getTravLayerName();
-      og::SimpleSetup ss(space);
-      ss.setStateValidityChecker(
-          [gridmap, trav_layer](const ob::State *state) {
-            const auto *s = state->as<ob::RealVectorStateSpace::StateType>();
-            double x = s->values[0];
-            double y = s->values[1];
-            double trav =
-                gridmap->value(grid_map::Position(x, y), trav_layer);
-            // Valid only if traversable (value > 0, not NaN)
-            return (!std::isnan(trav) && trav > 0.0);
-          });
-
-      ob::ScopedState<> start_state(space);
-      start_state[0] = start.x();
-      start_state[1] = start.y();
-      ob::ScopedState<> goal_state(space);
-      goal_state[0] = goal.x();
-      goal_state[1] = goal.y();
-      ss.setStartAndGoalStates(start_state, goal_state);
-
-      ss.setOptimizationObjective(
-          std::make_shared<ob::PathLengthOptimizationObjective>(
-              ss.getSpaceInformation()));
-
-      auto planner =
-          std::make_shared<og::RRTConnect>(ss.getSpaceInformation());
-      planner->setRange(step_size);
-      ss.setPlanner(planner);
-
-      if (!ss.solve(timeout)) {
-        ROS_WARN("Hexapod2dNavRRT: RRTConnect timeout, using fallback.");
-        fallback();
-        return true;
-      }
-
-      ss.simplifySolution();
-      const auto &path_states = ss.getSolutionPath().getStates();
-      output_path.clear();
-      for (const auto *state : path_states) {
-        const auto *s = state->as<ob::RealVectorStateSpace::StateType>();
-        output_path.emplace_back(s->values[0], s->values[1]);
-      }
-
-      ROS_INFO_STREAM("Hexapod2dNavRRT: RRTConnect path ("
-                      << output_path.size() << " waypoints, obstacle-aware).");
-      return true;
-
-    } catch (const std::exception &e) {
-      ROS_WARN("Hexapod2dNavRRT: OMPL exception '%s', using fallback.",
-               e.what());
-      fallback();
-      return true;
-    }
+    return true;
   }
+//   bool planPath(const Eigen::Vector2d &start, 
+//               const Eigen::Vector2d &goal,
+//               std::shared_ptr<GridMapInterface> gridmap,  // 留着也不影响，反正不用了
+//               std::vector<Eigen::Vector2d> &output_path,
+//               double step_size = 0.2) const {
+    
+//     // 1. 直接清空输出，生成直线（完全忽略地图）
+//     output_path.clear();
+//     double dist = (goal - start).norm();
+//     // 至少生成1段，避免距离为0时路径为空
+//     int num_steps = std::max(1, static_cast<int>(dist / step_size));
+    
+//     for (int i = 0; i <= num_steps; ++i) {
+//         double ratio = static_cast<double>(i) / num_steps;
+//         output_path.push_back(start + (goal - start) * ratio);
+//     }
+    
+//     return true; 
+//}
 };
