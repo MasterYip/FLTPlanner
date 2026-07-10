@@ -1010,6 +1010,17 @@ public:
           contact_states[leg] = next_state.support_State_Now[leg];
         }
 
+        // Visualize swing foot targets (same as nav_callback)
+        for (int leg_idx = 0; leg_idx < 6; leg_idx++)
+        {
+          if (!contact_states[leg_idx])
+          {
+            Eigen::Vector3d foot_world = target_pose.translation() +
+                                        target_pose.rotation() * footend_positions[leg_idx];
+            visualizer_.visSphere(Point3D(foot_world.x(), foot_world.y(), foot_world.z()), 0.05);
+          }
+        }
+
         if (robot_interface_type_ == "Hexapod201ROS")
           std::dynamic_pointer_cast<Hexapod201InterfaceROS>(robot_interface_)
               ->setStepCmd(target_pose, footend_positions, contact_states);
@@ -1019,10 +1030,10 @@ public:
 
         plc_in_motion_ = true;
 
-        // Wait for step completion with IK visualization
-        ros::Time step_start = ros::Time::now();
-        while (ros::ok() && (plc_in_motion_ ||
-               (ros::Time::now() - step_start).toSec() < config_.tripodStepDuration))
+      // Wait for step completion with IK visualization
+      ros::Time step_start = ros::Time::now();
+      while (ros::ok() && (plc_in_motion_ ||
+             (ros::Time::now() - step_start).toSec() < config_.navStepDuration))
         {
           // IK visualization during motion
           legged_traj_plan::FootState rt_foot = robot_interface_->getFootStateFdb();
@@ -1358,8 +1369,7 @@ public:
     const double half_band = 1.5;      // half-width of the sampling band [m]
     const double step_lateral = 0.5;   // lateral step within the band [m]
     const double safe_radius = 0.6;    // radius of the safety disk around the point [m]
-    const double ring_step = 0.3;      // radial spacing for ring checks [m]
-    const int    ring_pts = 8;         // points per ring
+    const int    ring_pts = 8;         // points per ring (for debug viz only)
 
     // Type alias and constants used for optional debug visualization
     using VStyle = ros_visualizer::VisStyle;
@@ -1387,23 +1397,26 @@ public:
           continue;
         }
 
-        // 2. Surrounding disk must be foot-placeable
+        // 2. Surrounding disk must be foot-placeable — dense grid fill
         bool area_ok = true;
-        for (double r = ring_step; r <= safe_radius + 1e-3; r += ring_step)
         {
-          for (int ai = 0; ai < ring_pts; ai++)
+          const double check_res = 0.05; // grid spacing within the disk [m]
+          for (double ox = -safe_radius; ox <= safe_radius + 1e-3; ox += check_res)
           {
-            double a = ai * 2.0 * M_PI / ring_pts;
-            V2d cp = pt + V2d(std::cos(a), std::sin(a)) * r;
-            double fh = gridmap_interface_->valueStrict(
-                grid_map::Position(cp.x(), cp.y()), foothold_layer);
-            if (std::isnan(fh))
+            for (double oy = -safe_radius; oy <= safe_radius + 1e-3; oy += check_res)
             {
-              area_ok = false;
-              break;
+              if (std::sqrt(ox * ox + oy * oy) > safe_radius) continue;
+              V2d cp = pt + V2d(ox, oy);
+              double fh = gridmap_interface_->valueStrict(
+                  grid_map::Position(cp.x(), cp.y()), foothold_layer);
+              if (std::isnan(fh))
+              {
+                area_ok = false;
+                break;
+              }
             }
+            if (!area_ok) break;
           }
-          if (!area_ok) break;
         }
 
         if (!area_ok)
