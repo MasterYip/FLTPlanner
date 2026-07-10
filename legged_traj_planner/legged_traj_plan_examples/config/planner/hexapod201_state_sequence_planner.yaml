@@ -33,6 +33,16 @@ StateSequencePlanner:
   clearMapOnNavComplete: true  # Clear elevation map after each nav task completes, so the map rebuilds clean while robot is standing still
   clearMapDelay: 0.5           # Seconds to wait after stopping before clearing (let robot stabilize)
 
+  # Sub-destination search parameters
+  SubDestinationSearch:
+    stepAlong: 0.5             # Step along the ray toward goal [m]
+    halfBand: 2.0              # Maximum half-width of sampling band [m] (tapers to 0 at both ends)
+    stepLateral: 0.5           # Lateral step within the band [m]
+    safeRadius: 0.6            # Radius of safety disk for foothold check [m]
+    checkResolution: 0.05      # Grid spacing within safety disk [m]
+    mapExtentFraction: 0.45    # Fraction of map diagonal to clamp search distance
+    minSearchDist: 0.3         # Minimum search distance [m]
+
   # Gait planner configuration
   GaitPlanner:
     # Gait type: GAIT_2 (tripod), GAIT_3 (wave), GAIT_6 (single-leg)

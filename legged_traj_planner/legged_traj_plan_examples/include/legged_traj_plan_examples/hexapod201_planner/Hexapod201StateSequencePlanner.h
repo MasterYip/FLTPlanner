@@ -103,6 +103,29 @@ struct Hexapod201StateSequencePlannerConfig
   // Gait planner configuration
   Hexapod201GaitPlannerConfig gaitPlannerConfig;
 
+  // Sub-destination search configuration
+  struct SubDestinationSearchConfig
+  {
+    double stepAlong;
+    double halfBand;
+    double stepLateral;
+    double safeRadius;
+    double checkResolution;
+    double mapExtentFraction;
+    double minSearchDist;
+
+    void loadParams(ros::NodeHandle &nh, std::string ns = "SubDestinationSearch")
+    {
+      nh.getParam(ns + "/stepAlong", stepAlong);
+      nh.getParam(ns + "/halfBand", halfBand);
+      nh.getParam(ns + "/stepLateral", stepLateral);
+      nh.getParam(ns + "/safeRadius", safeRadius);
+      nh.getParam(ns + "/checkResolution", checkResolution);
+      nh.getParam(ns + "/mapExtentFraction", mapExtentFraction);
+      nh.getParam(ns + "/minSearchDist", minSearchDist);
+    }
+  } subDestSearchConfig;
+
   void loadParams(ros::NodeHandle &nh, std::string ns = "StateSequencePlanner")
   {
     bool check_digit = true;
@@ -125,6 +148,9 @@ struct Hexapod201StateSequencePlannerConfig
 
     // Load gait planner configuration
     gaitPlannerConfig.loadParams(nh, ns + "/GaitPlanner");
+
+    // Load sub-destination search configuration
+    subDestSearchConfig.loadParams(nh, ns + "/SubDestinationSearch");
 
     if (!check_digit)
     {
@@ -267,6 +293,7 @@ private:
   // Visualizer
   GCSVisualizer visualizer_;
   GCSVisualizer foothold_vis_;
+  GCSVisualizer band_vis_;
   Hexapod2dNavRRT nav_rrt_planner_;
 
 public:
@@ -276,6 +303,7 @@ public:
                                 robot_interface_),
         visualizer_(nh_, "world", "visualizer_markers"),
         foothold_vis_(nh_, "world", "foothold_vis_markers"),
+        band_vis_(nh_, "world", "band_vis_markers"),
         rate_(100)
   {
     legs_params_ik_ = {{
@@ -881,17 +909,40 @@ public:
 
       //---- Determine sub-destination for this leg ----
       std::string trav_layer = gridmap_interface_->getTravLayerName();
+      std::string foothold_layer = gridmap_interface_->getFootholdLayerName();
       double goal_trav = gridmap_interface_->value(
           grid_map::Position(final_goal.x(), final_goal.y()), trav_layer);
       bool goal_is_reachable = (!std::isnan(goal_trav) && goal_trav > 0.0);
+
+      // Also check that the goal's surrounding disk has valid footholds
+      // (barriers are traversable but not foot-placeable — require ALL cells valid)
+      if (goal_is_reachable)
+      {
+        const auto& scfg = config_.subDestSearchConfig;
+        goal_is_reachable = true; // assume reachable until a NaN is found
+        for (double ox = -scfg.safeRadius; ox <= scfg.safeRadius + 1e-3 && goal_is_reachable; ox += scfg.checkResolution)
+        {
+          for (double oy = -scfg.safeRadius; oy <= scfg.safeRadius + 1e-3 && goal_is_reachable; oy += scfg.checkResolution)
+          {
+            if (std::sqrt(ox * ox + oy * oy) > scfg.safeRadius) continue;
+            V2d cp = final_goal + V2d(ox, oy);
+            double fh = gridmap_interface_->valueStrict(
+                grid_map::Position(cp.x(), cp.y()), foothold_layer);
+            if (std::isnan(fh))
+            {
+              goal_is_reachable = false;
+            }
+          }
+        }
+      }
 
       V2d sub_dest;
 
       if (goal_is_reachable)
       {
-        // Goal is on traversable terrain — go directly
+        // Goal is on traversable terrain with valid footholds — go directly
         sub_dest = final_goal;
-        ROS_INFO("Sequential nav: goal is within traversable map, going direct.");
+        ROS_INFO("Sequential nav: goal area is traversable with valid footholds, going direct.");
       }
       else
       {
@@ -1012,16 +1063,16 @@ public:
           contact_states[leg] = next_state.support_State_Now[leg];
         }
 
-        // Visualize swing foot targets (same as nav_callback)
-        for (int leg_idx = 0; leg_idx < 6; leg_idx++)
-        {
-          if (!contact_states[leg_idx])
-          {
-            Eigen::Vector3d foot_world = target_pose.translation() +
-                                        target_pose.rotation() * footend_positions[leg_idx];
-            visualizer_.visSphere(Point3D(foot_world.x(), foot_world.y(), foot_world.z()), 0.05);
-          }
-        }
+        // // Visualize swing foot targets (same as nav_callback)
+        // for (int leg_idx = 0; leg_idx < 6; leg_idx++)
+        // {
+        //   if (!contact_states[leg_idx])
+        //   {
+        //     Eigen::Vector3d foot_world = target_pose.translation() +
+        //                                 target_pose.rotation() * footend_positions[leg_idx];
+        //     visualizer_.visSphere(Point3D(foot_world.x(), foot_world.y(), foot_world.z()), 0.05);
+        //   }
+        // }
 
         if (robot_interface_type_ == "Hexapod201ROS")
           std::dynamic_pointer_cast<Hexapod201InterfaceROS>(robot_interface_)
@@ -1344,142 +1395,153 @@ public:
   /**
    * @brief Find a safe sub-destination near the traversable frontier.
    *
-   * Samples points within a band (corridor) along the direction toward goal,
-   * from far to near. A point is valid if:
-   *   1. It lies on traversable terrain (robot base can stand there).
-   *   2. A surrounding disk of radius `safe_radius` is all foot-placeable
-   *      (foothold layer > 0), so all six feet have room to land.
+   * First checks the user-specified goal point. If invalid, searches a
+   * tapered band from goal toward current — band width is 0 at start and
+   * goal, maximum in the middle. The first valid point is returned.
    *
-   * Among valid points the one closest to the goal is returned.
+   * All sampling parameters come from config_.subDestSearchConfig.
    *
-   * @param debug_vis  If true, draw RViz markers for sample points, winner, and safety disk.
+   * @param debug_vis  If true, draw RViz markers on band_vis_ for sample points,
+   *                   winner, and safety disk.
    * @return true if a valid sub-destination was found.
    */
   bool findSafeSubDestination(const V2d& current, const V2d& goal, V2d& sub_dest,
                               bool debug_vis = true)
   {
+    const auto& cfg = config_.subDestSearchConfig;
+
     V2d dir = goal - current;
     double total_dist = dir.norm();
     if (total_dist < 0.01) return false;
     dir /= total_dist;
-    V2d perp(-dir.y(), dir.x()); // perpendicular direction
+    V2d perp(-dir.y(), dir.x());
 
-    // Clamp search distance to a reasonable fraction of the map extent
+    // Clamp search distance
     auto range = gridmap_interface_->getRange();
     double map_diag = std::sqrt(range.x() * range.x() + range.y() * range.y());
-    double search_dist = std::min(total_dist, map_diag * 0.45);
-    if (search_dist < 0.3) return false;
+    double search_dist = std::min(total_dist, map_diag * cfg.mapExtentFraction);
+    if (search_dist < cfg.minSearchDist) return false;
 
     std::string trav_layer = gridmap_interface_->getTravLayerName();
     std::string foothold_layer = gridmap_interface_->getFootholdLayerName();
 
-    // Sampling parameters
-    const double step_along = 0.5;     // step along the ray [m]
-    const double half_band = 1.5;      // half-width of the sampling band [m]
-    const double step_lateral = 0.5;   // lateral step within the band [m]
-    const double safe_radius = 0.6;    // radius of the safety disk around the point [m]
-    const int    ring_pts = 8;         // points per ring (for debug viz only)
-
-    // Type alias and constants used for optional debug visualization
+    // Type alias for debug visualization
     using VStyle = ros_visualizer::VisStyle;
     const double z_viz = 0.0;
 
-    double best_dist = std::numeric_limits<double>::max();
-    bool found = false;
-
-    for (double d = search_dist; d >= step_along; d -= step_along)
+    //---- First: check the user-specified goal point ----
     {
-      for (double w = -half_band; w <= half_band + 1e-3; w += step_lateral)
+      double gtrav = gridmap_interface_->valueStrict(
+          grid_map::Position(goal.x(), goal.y()), trav_layer);
+      bool goal_ok = !std::isnan(gtrav);
+      if (goal_ok)
+      {
+        for (double ox = -cfg.safeRadius; ox <= cfg.safeRadius + 1e-3 && goal_ok; ox += cfg.checkResolution)
+        {
+          for (double oy = -cfg.safeRadius; oy <= cfg.safeRadius + 1e-3 && goal_ok; oy += cfg.checkResolution)
+          {
+            if (std::sqrt(ox * ox + oy * oy) > cfg.safeRadius) continue;
+            V2d cp = goal + V2d(ox, oy);
+            double fh = gridmap_interface_->valueStrict(
+                grid_map::Position(cp.x(), cp.y()), foothold_layer);
+            if (std::isnan(fh)) goal_ok = false;
+          }
+        }
+      }
+      if (goal_ok)
+      {
+        sub_dest = goal;
+        if (debug_vis)
+        {
+          band_vis_.visSphere(Eigen::Vector3d(goal.x(), goal.y(), z_viz), 0.20,
+                              VStyle(0.0, 1.0, 0.0, 0.9, 0.20));
+          for (int ai = 0; ai < 16; ai++)
+          {
+            double a = ai * 2.0 * M_PI / 16;
+            V2d rp = goal + V2d(std::cos(a), std::sin(a)) * cfg.safeRadius;
+            band_vis_.visSphere(Eigen::Vector3d(rp.x(), rp.y(), z_viz), 0.04,
+                                VStyle(0.0, 0.8, 0.4, 0.7, 0.04));
+          }
+        }
+        ROS_INFO_STREAM("findSafeSubDestination: goal itself is valid, using goal directly.");
+        return true;
+      }
+    }
+
+    //---- Fallback: search tapered band from goal toward start ----
+    // Band width tapers to 0 at both ends (goal and start), max in middle
+    for (double d = search_dist; d >= cfg.stepAlong; d -= cfg.stepAlong)
+    {
+      // Sine taper: 0 at d=0, max at d=search_dist/2, 0 at d=search_dist
+      double taper = std::sin(M_PI * d / search_dist);
+      double w_max = cfg.halfBand * taper;
+
+      for (double w = -w_max; w <= w_max + 1e-3; w += cfg.stepLateral)
       {
         V2d pt = current + dir * d + perp * w;
 
-        // 1. Main point must be traversable (robot base)
-        //    The trav layer stores ground elevation for valid cells, NaN for non-traversable.
+        // 1. Main point must be traversable
         double trav = gridmap_interface_->valueStrict(
             grid_map::Position(pt.x(), pt.y()), trav_layer);
-
         if (std::isnan(trav))
         {
           if (debug_vis)
-            visualizer_.visSphere(Eigen::Vector3d(pt.x(), pt.y(), z_viz), 0.04,
-                                  VStyle(0.8, 0.2, 0.2, 0.5, 0.04));
+            band_vis_.visSphere(Eigen::Vector3d(pt.x(), pt.y(), z_viz), 0.04,
+                                VStyle(0.8, 0.2, 0.2, 0.5, 0.04));
           continue;
         }
 
-        // 2. Surrounding disk must be foot-placeable — dense grid fill
+        // 2. Surrounding disk must be fully foot-placeable
         bool area_ok = true;
         {
-          const double check_res = 0.05; // grid spacing within the disk [m]
-          for (double ox = -safe_radius; ox <= safe_radius + 1e-3; ox += check_res)
+          for (double ox = -cfg.safeRadius; ox <= cfg.safeRadius + 1e-3 && area_ok; ox += cfg.checkResolution)
           {
-            for (double oy = -safe_radius; oy <= safe_radius + 1e-3; oy += check_res)
+            for (double oy = -cfg.safeRadius; oy <= cfg.safeRadius + 1e-3 && area_ok; oy += cfg.checkResolution)
             {
-              if (std::sqrt(ox * ox + oy * oy) > safe_radius) continue;
+              if (std::sqrt(ox * ox + oy * oy) > cfg.safeRadius) continue;
               V2d cp = pt + V2d(ox, oy);
               double fh = gridmap_interface_->valueStrict(
                   grid_map::Position(cp.x(), cp.y()), foothold_layer);
-              if (std::isnan(fh))
-              {
-                area_ok = false;
-                break;
-              }
+              if (std::isnan(fh)) area_ok = false;
             }
-            if (!area_ok) break;
           }
         }
 
         if (!area_ok)
         {
           if (debug_vis)
-            visualizer_.visSphere(Eigen::Vector3d(pt.x(), pt.y(), z_viz), 0.04,
-                                  VStyle(0.9, 0.7, 0.1, 0.6, 0.04));
+            band_vis_.visSphere(Eigen::Vector3d(pt.x(), pt.y(), z_viz), 0.04,
+                                VStyle(0.9, 0.7, 0.1, 0.6, 0.04));
           continue;
         }
 
-        // Valid candidate — bright green dot
+        // First valid point (closest to goal) — accept immediately
+        sub_dest = pt;
+
         if (debug_vis)
-          visualizer_.visSphere(Eigen::Vector3d(pt.x(), pt.y(), z_viz), 0.06,
-                                VStyle(0.2, 0.8, 0.2, 0.8, 0.06));
-
-        // Candidate closer to the goal wins
-        double dg = (pt - goal).norm();
-        if (dg < best_dist)
         {
-          best_dist = dg;
-          sub_dest = pt;
-          found = true;
-        }
-      }
-    }
-
-    if (found)
-    {
-      if (debug_vis)
-      {
-        // Winner: large bright-green sphere
-        visualizer_.visSphere(Eigen::Vector3d(sub_dest.x(), sub_dest.y(), z_viz), 0.20,
+          band_vis_.visSphere(Eigen::Vector3d(sub_dest.x(), sub_dest.y(), z_viz), 0.20,
                               VStyle(0.0, 1.0, 0.0, 0.9, 0.20));
-
-        // Safety disk: ring of small green dots at safe_radius
-        for (int ai = 0; ai < ring_pts * 2; ai++)
-        {
-          double a = ai * 2.0 * M_PI / (ring_pts * 2);
-          V2d rp = sub_dest + V2d(std::cos(a), std::sin(a)) * safe_radius;
-          visualizer_.visSphere(Eigen::Vector3d(rp.x(), rp.y(), z_viz), 0.04,
+          for (int ai = 0; ai < 16; ai++)
+          {
+            double a = ai * 2.0 * M_PI / 16;
+            V2d rp = sub_dest + V2d(std::cos(a), std::sin(a)) * cfg.safeRadius;
+            band_vis_.visSphere(Eigen::Vector3d(rp.x(), rp.y(), z_viz), 0.04,
                                 VStyle(0.0, 0.8, 0.4, 0.7, 0.04));
+          }
+          band_vis_.visSphere(Eigen::Vector3d(goal.x(), goal.y(), z_viz), 0.15,
+                              VStyle(1.0, 0.9, 0.1, 0.7, 0.15));
         }
 
-        // Goal: yellow sphere
-        visualizer_.visSphere(Eigen::Vector3d(goal.x(), goal.y(), z_viz), 0.15,
-                              VStyle(1.0, 0.9, 0.1, 0.7, 0.15));
+        double dist_to_goal = (sub_dest - goal).norm();
+        ROS_INFO_STREAM("findSafeSubDestination: picked (" << sub_dest.x() << ", "
+                        << sub_dest.y() << "), " << dist_to_goal << "m from goal");
+        return true;
       }
-
-      ROS_INFO_STREAM("findSafeSubDestination: picked (" << sub_dest.x() << ", "
-                      << sub_dest.y() << "), " << best_dist << "m from goal");
     }
-    else
-      ROS_WARN("findSafeSubDestination: no valid point found in band.");
-    return found;
+
+    ROS_WARN("findSafeSubDestination: no valid point found in band.");
+    return false;
   }
 
   void printHexapodState(const legged_traj_plan::hexapod_State& state)

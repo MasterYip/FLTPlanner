@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /Vis_SwingTrajPlanner1/Namespaces1
+        - /VIs_SubGoalSearch1
         - /Vis_PyInterface1/Namespaces1
       Splitter Ratio: 0.4445544481277466
     Tree Height: 1786
@@ -209,7 +210,15 @@ Visualization Manager:
       Marker Topic: /hexapod201_state_sequence_planner/foothold_vis_markers
       Name: Vis_FootHoldPlanner
       Namespaces:
-        sphere: true
+        {}
+      Queue Size: 1
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /hexapod201_state_sequence_planner/band_vis_markers
+      Name: VIs_SubGoalSearch
+      Namespaces:
+        {}
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -508,7 +517,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.372509479522705
+      Distance: 14.211679458618164
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -516,17 +525,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.352962613105774
-        Y: 1.1498003005981445
-        Z: 0.5511795282363892
+        X: 0.7385018467903137
+        Y: -7.025707244873047
+        Z: 1.7142895460128784
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9547972679138184
+      Pitch: 1.3097970485687256
       Target Frame: base
-      Yaw: 1.6145364046096802
+      Yaw: 6.2377238273620605
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976
