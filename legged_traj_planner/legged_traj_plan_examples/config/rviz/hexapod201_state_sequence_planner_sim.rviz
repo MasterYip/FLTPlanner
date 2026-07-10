@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /Vis_SwingTrajPlanner1/Namespaces1
-        - /Vis_SSPlanner1
         - /Vis_PyInterface1/Namespaces1
       Splitter Ratio: 0.4445544481277466
     Tree Height: 1786
@@ -184,7 +183,8 @@ Visualization Manager:
       Marker Topic: /hexapod201_state_sequence_planner/visualizer_markers
       Name: ros_viz
       Namespaces:
-        {}
+        curve: true
+        sphere: true
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -200,7 +200,16 @@ Visualization Manager:
       Marker Topic: /hexapod201_state_sequence_planner/visualizer_markers
       Name: Vis_SSPlanner
       Namespaces:
-        {}
+        curve: true
+        sphere: true
+      Queue Size: 1
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /hexapod201_state_sequence_planner/foothold_vis_markers
+      Name: Vis_FootHoldPlanner
+      Namespaces:
+        sphere: true
       Queue Size: 1
       Value: true
     - Class: rviz/MarkerArray
@@ -499,7 +508,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.377603530883789
+      Distance: 3.372509479522705
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -507,17 +516,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.6061046719551086
-        Y: -0.32137298583984375
-        Z: 1.744128704071045
+        X: 1.352962613105774
+        Y: 1.1498003005981445
+        Z: 0.5511795282363892
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8197973370552063
+      Pitch: 0.9547972679138184
       Target Frame: base
-      Yaw: 1.4945365190505981
+      Yaw: 1.6145364046096802
     Saved:
       - Class: rviz/Orbit
         Distance: 1.063480257987976

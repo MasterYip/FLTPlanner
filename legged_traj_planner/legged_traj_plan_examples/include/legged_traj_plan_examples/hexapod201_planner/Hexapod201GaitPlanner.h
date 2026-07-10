@@ -19,6 +19,7 @@
 #include <grid_map_core/iterators/CircleIterator.hpp>
 #include "legged_traj_plan/perception_interface/GridMapInterface.h"
 #include <ros/ros.h>
+#include <legged_traj_search/utils/gcs_visualizer.hpp>
 
 // Hexapod gait types
 enum class HexapodGaitType
@@ -200,7 +201,8 @@ struct Hexapod201TerrainAwareRaibertPlanner
                                            const Eigen::Vector3d &body_velocity,
                                            const Eigen::Vector3d &nominal_foothold,
                                            std::shared_ptr<GridMapInterface> gridmap_interface,
-                                           int leg_index)
+                                           int leg_index,
+                                           GCSVisualizer* vis = nullptr)
     {
         // Step 1: Compute Raibert heuristic target
         double foothold_time = config_.stepTime / 2.0 + config_.stanceTime / 2.0;
@@ -233,6 +235,14 @@ struct Hexapod201TerrainAwareRaibertPlanner
             return Eigen::Vector3d(raibert_target[0], raibert_target[1], foothold_height);
         }
 
+        // === Debug Visualization: Raibert target ===
+        if (vis)
+        {
+            ros_visualizer::VisStyle orange(1.0, 0.5, 0.0, 1.0, 0.02);
+            vis->visSphere(Eigen::Vector3d(raibert_target[0], raibert_target[1], raibert_target[2]),
+                         0.10, orange);
+        }
+
         // Step 3: Use circle iterator to find closest valid foothold
         double best_distance = std::numeric_limits<double>::max();
         Eigen::Vector3d best_foothold = world_nominal; // Fallback to nominal
@@ -251,6 +261,26 @@ struct Hexapod201TerrainAwareRaibertPlanner
                 // Check if this position is a valid foothold
                 // FIXME: actually is not score but height, this should be fixed later
                 double foothold_height = map.at(foothold_layer, *iterator);
+
+                // === Debug Visualization: checked cell ===
+                if (vis)
+                {
+                    printf("Checking cell at (%.2f, %.2f), foothold height: %.3f\n",
+                           current_pos.x(), current_pos.y(), foothold_height);
+                    if (std::isnan(foothold_height))
+                    {
+                        ros_visualizer::VisStyle red(1.0, 0.0, 0.0, 0.6, 0.02);
+                        vis->visSphere(Eigen::Vector3d(current_pos[0], current_pos[1], 0.0),
+                                     0.03, red);
+                    }
+                    else
+                    {
+                        ros_visualizer::VisStyle green(0.0, 1.0, 0.0, 0.6, 0.02);
+                        vis->visSphere(Eigen::Vector3d(current_pos[0], current_pos[1], foothold_height),
+                                     0.03, green);
+                    }
+                }
+
                 if (!std::isnan(foothold_height) && foothold_height >= config_.minFootholdHeight)
                 {
                     double distance = (current_pos - target_pos).norm();
@@ -271,6 +301,13 @@ struct Hexapod201TerrainAwareRaibertPlanner
         // Step 4: Return result
         if (found_valid_foothold)
         {
+            // === Debug Visualization: winner foothold ===
+            if (vis)
+            {
+                ros_visualizer::VisStyle bright_green(0.0, 1.0, 0.2, 1.0, 0.02);
+                vis->visSphere(Eigen::Vector3d(best_foothold[0], best_foothold[1], best_foothold[2]),
+                             0.15, bright_green);
+            }
             return best_foothold;
         }
         else
@@ -372,10 +409,11 @@ public:
                                                 const Eigen::Vector3d &body_velocity,
                                                 const Eigen::Vector3d &nominal_foothold,
                                                 std::shared_ptr<GridMapInterface> gridmap_interface,
-                                                int leg_index)
+                                                int leg_index,
+                                                GCSVisualizer* vis = nullptr)
     {
         return terrain_aware_planner_.computeOptimalFoothold(body_pose, body_velocity,
-                                                             nominal_foothold, gridmap_interface, leg_index);
+                                                             nominal_foothold, gridmap_interface, leg_index, vis);
     }
 
 private:

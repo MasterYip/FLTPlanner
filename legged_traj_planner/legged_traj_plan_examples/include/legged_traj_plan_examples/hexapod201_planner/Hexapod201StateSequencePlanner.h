@@ -266,6 +266,7 @@ private:
 
   // Visualizer
   GCSVisualizer visualizer_;
+  GCSVisualizer foothold_vis_;
   Hexapod2dNavRRT nav_rrt_planner_;
 
 public:
@@ -274,6 +275,7 @@ public:
         state_sequence_planner_(swing_traj_planner_, gridmap_interface_,
                                 robot_interface_),
         visualizer_(nh_, "world", "visualizer_markers"),
+        foothold_vis_(nh_, "world", "foothold_vis_markers"),
         rate_(100)
   {
     legs_params_ik_ = {{
@@ -612,11 +614,11 @@ public:
 
       // Get current hexapod state for Raibert gait planning
       legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
-      printHexapodState(current_state);
+      // printHexapodState(current_state);
   
 
       // Generate next state using gait planner
-      legged_traj_plan::hexapod_State next_state = generateNextState(current_state, step_cmd_vel);
+      legged_traj_plan::hexapod_State next_state = generateNextState(current_state, step_cmd_vel, true);
 
       // Convert foot positions from world frame to body frame for setStepCmd
       std::vector<Eigen::Vector3d> footend_positions(6);
@@ -638,32 +640,32 @@ public:
         contact_states[leg_idx] = next_state.support_State_Now[leg_idx];
       }
        /* ===================== 插入 START ===================== */
-      ROS_INFO_STREAM("========== Footend Positions Debug ==========");
-      ROS_INFO_STREAM("Target Pose Translation: [" 
-                      << target_pose.translation().transpose() << "]");
-      ROS_INFO_STREAM("Target Pose RPY: [" 
-                      << pinocchio::rpy::matrixToRpy(target_pose.rotation()).transpose() << "]");
+      // ROS_INFO_STREAM("========== Footend Positions Debug ==========");
+      // ROS_INFO_STREAM("Target Pose Translation: [" 
+      //                 << target_pose.translation().transpose() << "]");
+      // ROS_INFO_STREAM("Target Pose RPY: [" 
+      //                 << pinocchio::rpy::matrixToRpy(target_pose.rotation()).transpose() << "]");
 
-      for (int leg_idx = 0; leg_idx < 6; leg_idx++)
-      {
-        ROS_INFO_STREAM("Leg[" << leg_idx << "] "
-                      << (contact_states[leg_idx] ? "SUPPORT" : "SWING   ")
-                      << " | Body: [" << footend_positions[leg_idx].transpose() << "]"
-                      << " | Norm: " << footend_positions[leg_idx].norm());
-      }
+      // for (int leg_idx = 0; leg_idx < 6; leg_idx++)
+      // {
+      //   ROS_INFO_STREAM("Leg[" << leg_idx << "] "
+      //                 << (contact_states[leg_idx] ? "SUPPORT" : "SWING   ")
+      //                 << " | Body: [" << footend_positions[leg_idx].transpose() << "]"
+      //                 << " | Norm: " << footend_positions[leg_idx].norm());
+      // }
 
-      {
-        double min_z = std::numeric_limits<double>::max();
-        double max_z = std::numeric_limits<double>::lowest();
-        for (int i = 0; i < 6; i++)
-        {
-          min_z = std::min(min_z, footend_positions[i][2]);
-          max_z = std::max(max_z, footend_positions[i][2]);
-        }
-        ROS_INFO_STREAM("Foot Z range: min=" << min_z << ", max=" << max_z);
-      }
-      ROS_INFO_STREAM("=============================================");
-      /* ===================== 插入 END ======================= */
+      // {
+      //   double min_z = std::numeric_limits<double>::max();
+      //   double max_z = std::numeric_limits<double>::lowest();
+      //   for (int i = 0; i < 6; i++)
+      //   {
+      //     min_z = std::min(min_z, footend_positions[i][2]);
+      //     max_z = std::max(max_z, footend_positions[i][2]);
+      //   }
+      //   ROS_INFO_STREAM("Foot Z range: min=" << min_z << ", max=" << max_z);
+      // }
+      // ROS_INFO_STREAM("=============================================");
+      // /* ===================== 插入 END ======================= */
 
       // 清除所有标记
     visualizer_.delAll();
@@ -994,7 +996,7 @@ public:
 
         // Generate hexapod state & execute step
         legged_traj_plan::hexapod_State current_state = getCurrentHexapodState();
-        legged_traj_plan::hexapod_State next_state = generateNextState(current_state, step_cmd_vel);
+        legged_traj_plan::hexapod_State next_state = generateNextState(current_state, step_cmd_vel, true);
 
         std::vector<Eigen::Vector3d> footend_positions(6);
         std::vector<bool> contact_states(6);
@@ -1153,7 +1155,8 @@ public:
   // Generate next state using the gait planner
   legged_traj_plan::hexapod_State
   generateNextState(const legged_traj_plan::hexapod_State &current_state,
-                    const geometry_msgs::Twist &cmd_vel)
+                    const geometry_msgs::Twist &cmd_vel,
+                    bool debug_viz = true)
   {
     legged_traj_plan::hexapod_State next_state = current_state;
 
@@ -1175,13 +1178,19 @@ public:
 
     // Update foot positions for swing legs using terrain-aware planning
     Eigen::Vector3d velocity(cmd_vel.linear.x, cmd_vel.linear.y, 0.0);
+
+    // Clear previous foothold debug markers from the independent visualizer
+    if (debug_viz)
+      foothold_vis_.delAll();
+
     for (int i = 0; i < 6; i++)
     {
       if (!contact_pattern[i]) // Swing leg
       {
         Eigen::Vector3d nominal_foothold = robot_interface_->getNominalFoothold(i);
         Eigen::Vector3d target_foothold = gait_planner_->computeTerrainAwareFoothold(
-            next_pose, velocity, nominal_foothold, gridmap_interface_, i);
+            next_pose, velocity, nominal_foothold, gridmap_interface_, i,
+            debug_viz ? &foothold_vis_ : nullptr);
 
         // Set target foothold in world frame with terrain-aware height
         next_state.feetPositionNow.foot[i].x = target_foothold[0];

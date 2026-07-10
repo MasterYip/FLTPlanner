@@ -23,7 +23,7 @@ GridMapInterface:
   # 落足点地图参数
   footholdNormalTangentCrtic: 0.4
   footholdEnableHeightFilter: true
-  footholdMaxHeight: 0.25      # 允许在 0.2m 栅栏上落足
+  footholdMaxHeight: 0.1      # 允许在 0.2m 栅栏上落足
   footholdMinHeight: -100.0
   footholdErodeRad: 0.0
   footholdCenterBoxAlwaysTrav: false
