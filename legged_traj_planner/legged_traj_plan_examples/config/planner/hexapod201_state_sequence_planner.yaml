@@ -36,12 +36,12 @@ StateSequencePlanner:
   # Sub-destination search parameters
   SubDestinationSearch:
     stepAlong: 0.5             # Step along the ray toward goal [m]
-    halfBand: 2.0              # Maximum half-width of sampling band [m] (tapers to 0 at both ends)
+    halfBand: 2.0              # Maximum half-width of sampling band [m]
     stepLateral: 0.5           # Lateral step within the band [m]
-    safeRadius: 0.6            # Radius of safety disk for foothold check [m]
+    taperRatio: 0.4            # Proportion of total distance for width taper at each end (0.0 = full width everywhere, 0.5 = taper over half the distance, linear ramp)
+    safeRadius: 1.0            # Radius of safety disk for foothold check [m]
     checkResolution: 0.05      # Grid spacing within safety disk [m]
-    mapExtentFraction: 0.45    # Fraction of map diagonal to clamp search distance
-    minSearchDist: 0.3         # Minimum search distance [m]
+    minSearchDist: 0.3         # Minimum goal distance to trigger band search [m]
 
   # Gait planner configuration
   GaitPlanner:

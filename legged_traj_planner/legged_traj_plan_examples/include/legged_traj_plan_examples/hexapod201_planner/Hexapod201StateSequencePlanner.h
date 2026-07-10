@@ -111,7 +111,7 @@ struct Hexapod201StateSequencePlannerConfig
     double stepLateral;
     double safeRadius;
     double checkResolution;
-    double mapExtentFraction;
+    double taperRatio;
     double minSearchDist;
 
     void loadParams(ros::NodeHandle &nh, std::string ns = "SubDestinationSearch")
@@ -121,7 +121,7 @@ struct Hexapod201StateSequencePlannerConfig
       nh.getParam(ns + "/stepLateral", stepLateral);
       nh.getParam(ns + "/safeRadius", safeRadius);
       nh.getParam(ns + "/checkResolution", checkResolution);
-      nh.getParam(ns + "/mapExtentFraction", mapExtentFraction);
+      nh.getParam(ns + "/taperRatio", taperRatio);
       nh.getParam(ns + "/minSearchDist", minSearchDist);
     }
   } subDestSearchConfig;
@@ -1416,11 +1416,7 @@ public:
     dir /= total_dist;
     V2d perp(-dir.y(), dir.x());
 
-    // Clamp search distance
-    auto range = gridmap_interface_->getRange();
-    double map_diag = std::sqrt(range.x() * range.x() + range.y() * range.y());
-    double search_dist = std::min(total_dist, map_diag * cfg.mapExtentFraction);
-    if (search_dist < cfg.minSearchDist) return false;
+    if (total_dist < cfg.minSearchDist) return false;
 
     std::string trav_layer = gridmap_interface_->getTravLayerName();
     std::string foothold_layer = gridmap_interface_->getFootholdLayerName();
@@ -1469,13 +1465,24 @@ public:
     }
 
     //---- Fallback: search tapered band from goal toward start ----
-    // Band width tapers to 0 at both ends (goal and start), max in middle
-    for (double d = search_dist; d >= cfg.stepAlong; d -= cfg.stepAlong)
+    // Width: 0 at goal and start, full in the middle.
+    // taperRatio controls how much of the total distance is used for the taper zone at each end.
+    for (double d = total_dist; d >= cfg.stepAlong; d -= cfg.stepAlong)
     {
-      // Sine taper: 0 at d=0, max at d=search_dist/2, 0 at d=search_dist
-      double taper = std::sin(M_PI * d / search_dist);
-      double w_max = cfg.halfBand * taper;
+      double d_from_goal = total_dist - d;
+      double taper_len = cfg.taperRatio * total_dist;
+      double w_max = cfg.halfBand;
+      if (taper_len > 0.0)
+      {
+        if (d_from_goal < taper_len)
+          w_max *= d_from_goal / taper_len;        // ramp up from goal
+        else if (d < taper_len)
+          w_max *= d / taper_len;                   // ramp down toward start
+      }
 
+      // Sweep the entire lateral line — pick the point closest to the ray (smallest |w|)
+      double best_w = std::numeric_limits<double>::max();
+      V2d best_pt;
       for (double w = -w_max; w <= w_max + 1e-3; w += cfg.stepLateral)
       {
         V2d pt = current + dir * d + perp * w;
@@ -1515,8 +1522,19 @@ public:
           continue;
         }
 
-        // First valid point (closest to goal) — accept immediately
-        sub_dest = pt;
+        // Valid — track by closeness to the central ray
+        double aw = std::abs(w);
+        if (aw < best_w)
+        {
+          best_w = aw;
+          best_pt = pt;
+        }
+      }
+
+      // After sweeping the full lateral line, accept if any valid point found at this d
+      if (best_w < std::numeric_limits<double>::max())
+      {
+        sub_dest = best_pt;
 
         if (debug_vis)
         {
