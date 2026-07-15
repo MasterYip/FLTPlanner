@@ -76,7 +76,7 @@ Hexapod 接口提供了一个统一的接口，用于控制真实和模拟的六
 roslaunch hexapod_controller hexapod_demo.launch use_dummy:=true
 
 # 使用真实六足机器人（需要 PLC 连接）
-roslaunch hexapod_controller hexapod_demo.launch use_dummy:=false plc_ip:=5.157.100.214.1.1
+roslaunch hexapod_controller hexapod_demo.launch use_dummy:=false plc_ip:=10.1.180.190.1.1
 
 # 运行特定的演示类型
 roslaunch hexapod_controller hexapod_demo.launch demo_type:=velocity
@@ -95,20 +95,24 @@ rosrun hexapod_controller hexapod_gait_demo.py --dummy --demo velocity
 ### 演示类型
 
 1. **速度演示**：展示速度指令积分
+
    - 前进/后退运动
    - 左转/右转
    - 横向运动
 
 2. **位姿演示**：展示直接位姿指令
+
    - 移动到特定位置
    - 旋转到特定方向
    - 复杂的运动序列
 
 3. **圆形演示**：展示连续运动
+
    - 圆形路径跟随
    - 动态方向控制
 
 4. **步态参数演示**：展示步态配置（仅限真实六足机器人）
+
    - 不同的步态模式
    - 参数调节
 
@@ -119,11 +123,13 @@ rosrun hexapod_controller hexapod_gait_demo.py --dummy --demo velocity
 ### 命令行参数
 
 #### hexapod201_interface.py
+
 - `--dummy`：使用模拟接口进行仿真
-- `--plc_ip`：PLC 的 IP 地址（默认：5.157.100.214.1.1）
+- `--plc_ip`：PLC 的 IP 地址（默认：10.1.180.190.1.1）
 - `--node_name`：ROS 节点名称（默认：hexapod201_interface）
 
 #### hexapod_gait_demo.py
+
 - `--dummy`：使用模拟接口进行仿真
 - `--plc_ip`：PLC 的 IP 地址
 - `--demo`：演示类型（velocity, pose, circle, gait, interactive）
@@ -180,7 +186,7 @@ def __init__(self, node_name: str = "dummy_hexapod201_interface"):
 ```python
 def setCmd(self, **kwargs) -> bool:
     """设置模拟接口参数
-    
+
     参数:
         movement_speed: 运动速度（单位：m/s）
         rotation_speed: 旋转速度（单位：rad/s）
@@ -192,7 +198,7 @@ def setCmd(self, **kwargs) -> bool:
 #### 构造函数
 
 ```python
-def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "5.157.100.214.1.1"):
+def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "10.1.180.190.1.1"):
     """初始化真实六足机器人接口"""
 ```
 
@@ -201,7 +207,7 @@ def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "5.157
 ```python
 def setCmd(self, **kwargs) -> bool:
     """设置详细的运动参数
-    
+
     参数:
         TA: 加速时间（单位：秒）
         TM: 运动时间（单位：秒）
@@ -225,6 +231,7 @@ def setCmd(self, **kwargs) -> bool:
 ### RViz 配置
 
 演示包含一个预配置的 RViz 设置，包含：
+
 - 网格显示
 - 标记数组可视化
 - 位姿显示
@@ -234,7 +241,7 @@ def setCmd(self, **kwargs) -> bool:
 
 ### 连接参数
 
-- **IP 地址**：5.157.100.214.1.1（可配置）
+- **IP 地址**：10.1.180.190.1.1（可配置）
 - **端口**：851（默认 pyads 端口）
 - **符号**：访问 PLC 变量以进行控制和反馈
 
@@ -262,11 +269,13 @@ def setCmd(self, **kwargs) -> bool:
 ### 常见问题
 
 1. **PLC 连接失败**
+
    - 检查网络连接
    - 验证 PLC IP 地址
    - 确保 PLC 正在运行且可访问
 
 2. **运动未执行**
+
    - 检查六足机器人是否已启用
    - 验证参数值是否在范围内
    - 监控 ROS 话题以获取指令
@@ -279,11 +288,13 @@ def setCmd(self, **kwargs) -> bool:
 ### 调试
 
 启用调试日志：
+
 ```bash
 export ROS_LOG_LEVEL=DEBUG
 ```
 
 监控话题：
+
 ```bash
 rostopic echo /hexapod/current_pose
 rostopic echo /cmd_vel

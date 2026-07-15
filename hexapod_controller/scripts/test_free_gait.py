@@ -8,13 +8,13 @@ def main():
     """Main function to run hexapod interface"""
     # Initialize ROS node first
     rospy.init_node('hexapod201_interface', anonymous=True)
-    
+
     # Get parameters from ROS parameter server
     interface_type = rospy.get_param('~interface_type', None)
     use_dummy = rospy.get_param('~dummy', False)
-    plc_ip = rospy.get_param('~plc_ip', '5.157.100.214.1.1')
+    plc_ip = rospy.get_param('~plc_ip', '10.1.180.190.1.1')
     node_name = rospy.get_param('~node_name', 'hexapod201_interface')
-    
+
     try:
         # Prefer interface_type param if set
         if interface_type is not None:
@@ -34,10 +34,10 @@ def main():
             else:
                 interface = Hexapod201Interface(str(node_name), str(plc_ip))
                 print("Hexapod201Interface")
-        
+
         rospy.loginfo("Hexapod interface started")
         rospy.spin()
-        
+
     except KeyboardInterrupt:
         rospy.loginfo("Shutting down hexapod interface")
         if hasattr(interface, 'cleanup'):
@@ -45,9 +45,10 @@ def main():
     except Exception as e:
         rospy.logerr(f"Error in main: {str(e)}")
 
+
 def test_interface():
     rospy.init_node('test_hexapod201_interface', anonymous=True)
-    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="5.157.100.214.1.1")
+    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="10.1.180.190.1.1")
     pose = Pose()
     pose.position.x = 0.1
     pose.position.y = 0.0
@@ -62,11 +63,12 @@ def test_interface():
     current_pose = interface.get_current_pose()
     rospy.loginfo(f"Current pose after movement: {current_pose}")
 
+
 def test_pose_with_feet(gait2phase=0):
     """Test move_to_pose_with_feet method"""
     rospy.init_node('test_hexapod_pose_with_feet', anonymous=True)
-    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="5.157.100.214.1.1")
-    
+    interface = Hexapod201Interface(node_name="hexapod201_interface", plc_ip="10.1.180.190.1.1")
+
     input("Press Enter to continue")
     # Define target pose - move forward 0.2m and turn 30 degrees
     target_pose = Pose()
@@ -74,7 +76,7 @@ def test_pose_with_feet(gait2phase=0):
     target_pose.position.y = 0.0
     # FIXME
     target_pose.position.z = 0.405  # Lift body slightly
-    
+
     # Convert 30 degrees to radians and create quaternion
     yaw_angle = 0  # 30 degrees in radians
     quat = quaternion_from_euler(0.0, 0.0, yaw_angle)
@@ -82,21 +84,21 @@ def test_pose_with_feet(gait2phase=0):
     target_pose.orientation.y = quat[1]
     target_pose.orientation.z = quat[2]
     target_pose.orientation.w = quat[3]
-    
+
     # Define custom foot positions (in mm, body frame)
     # Move some feet to new positions for stepping pattern
     foot_positions = np.array([
         [660, -997, -500],   # Foot 1 - step forward
         [0, -1232, -500],     # Foot 2 - keep in place
-        [-660, -997, -500], # Foot 3 - step back slightly
+        [-660, -997, -500],  # Foot 3 - step back slightly
         [660, 997, -500],  # Foot 4 - step forward
-        [0, 1232, -500],   # Foot 5 - keep in place  
+        [0, 1232, -500],   # Foot 5 - keep in place
         [-660, 997, -500]  # Foot 6 - step back slightly
     ])
-    
+
     # Define foot support flags (0=support, 1=swing)
     # Alternate pattern: feet 1, 3, 5 swing, feet 2, 4, 6 support
-    if gait2phase==0:
+    if gait2phase == 0:
         foot_flags = np.array([1, 0, 1, 0, 1, 0])
     else:
         foot_flags = np.array([0, 1, 0, 1, 0, 1])
@@ -105,21 +107,20 @@ def test_pose_with_feet(gait2phase=0):
     rospy.loginfo(f"Target pose: x={target_pose.position.x}, y={target_pose.position.y}, z={target_pose.position.z}")
     rospy.loginfo(f"Target yaw: {yaw_angle} rad ({np.degrees(yaw_angle)} deg)")
     rospy.loginfo(f"Swing feet: {np.where(foot_flags == 1)[0] + 1}")  # +1 for 1-indexed foot numbering
-    
+
     # Execute coordinated movement
     success = interface.move_to_pose_with_feet(target_pose, foot_positions, foot_flags)
     rospy.sleep(4)
     # success = interface.move_to_pose_with_feet(target_pose, foot_positions, foot_flags)
-    
-    
+
     # if success:
     #     rospy.loginfo("Movement command sent successfully")
     #     rospy.sleep(4)  # Wait for movement to complete (longer time for coordinated movement)
-        
+
     #     # Get final pose
     #     current_pose = interface.get_current_pose()
     #     rospy.loginfo(f"Final pose: x={current_pose.position.x:.3f}, y={current_pose.position.y:.3f}, z={current_pose.position.z:.3f}")
-        
+
     #     # Get final foot positions
     #     interface._update_footpos_from_plc()  # Update foot positions from PLC
     #     final_foot_positions = interface.get_foot_positions()
@@ -130,6 +131,7 @@ def test_pose_with_feet(gait2phase=0):
     # else:
     #     rospy.logerr("Failed to execute coordinated movement")
     interface.cleanup()
+
 
 if __name__ == "__main__":
     # main()

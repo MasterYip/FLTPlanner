@@ -76,7 +76,7 @@ Real robot interface using PLC communication:
 roslaunch hexapod_controller hexapod_demo.launch use_dummy:=true
 
 # Run with real hexapod (requires PLC connection)
-roslaunch hexapod_controller hexapod_demo.launch use_dummy:=false plc_ip:=5.157.100.214.1.1
+roslaunch hexapod_controller hexapod_demo.launch use_dummy:=false plc_ip:=10.1.180.190.1.1
 
 # Run specific demo type
 roslaunch hexapod_controller hexapod_demo.launch demo_type:=velocity
@@ -95,20 +95,24 @@ rosrun hexapod_controller hexapod_gait_demo.py --dummy --demo velocity
 ### Demo Types
 
 1. **Velocity Demo**: Demonstrates velocity command integration
+
    - Forward/backward movement
    - Turning left/right
    - Sideways movement
 
 2. **Pose Demo**: Demonstrates direct pose commands
+
    - Move to specific positions
    - Rotate to specific orientations
    - Complex movement sequences
 
 3. **Circle Demo**: Demonstrates continuous movement
+
    - Circular path following
    - Dynamic orientation control
 
 4. **Gait Parameter Demo**: Demonstrates gait configuration (real hexapod only)
+
    - Different gait modes
    - Parameter tuning
 
@@ -119,11 +123,13 @@ rosrun hexapod_controller hexapod_gait_demo.py --dummy --demo velocity
 ### Command Line Arguments
 
 #### hexapod201_interface.py
+
 - `--dummy`: Use dummy interface for simulation
-- `--plc_ip`: PLC IP address (default: 5.157.100.214.1.1)
+- `--plc_ip`: PLC IP address (default: 10.1.180.190.1.1)
 - `--node_name`: ROS node name (default: hexapod201_interface)
 
 #### hexapod_gait_demo.py
+
 - `--dummy`: Use dummy interface for simulation
 - `--plc_ip`: PLC IP address
 - `--demo`: Demo type (velocity, pose, circle, gait, interactive)
@@ -180,7 +186,7 @@ def __init__(self, node_name: str = "dummy_hexapod201_interface"):
 ```python
 def setCmd(self, **kwargs) -> bool:
     """Set dummy interface parameters
-    
+
     Args:
         movement_speed: Movement speed in m/s
         rotation_speed: Rotation speed in rad/s
@@ -192,7 +198,7 @@ def setCmd(self, **kwargs) -> bool:
 #### Constructor
 
 ```python
-def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "5.157.100.214.1.1"):
+def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "10.1.180.190.1.1"):
     """Initialize real hexapod interface"""
 ```
 
@@ -201,7 +207,7 @@ def __init__(self, node_name: str = "hexapod201_interface", plc_ip: str = "5.157
 ```python
 def setCmd(self, **kwargs) -> bool:
     """Set detailed movement parameters
-    
+
     Args:
         TA: Acceleration time (s)
         TM: Movement time (s)
@@ -225,6 +231,7 @@ The interface provides real-time visualization in RViz:
 ### RViz Configuration
 
 The demo includes a pre-configured RViz setup with:
+
 - Grid display
 - Marker array visualization
 - Pose display
@@ -234,7 +241,7 @@ The demo includes a pre-configured RViz setup with:
 
 ### Connection Parameters
 
-- **IP Address**: 5.157.100.214.1.1 (configurable)
+- **IP Address**: 10.1.180.190.1.1 (configurable)
 - **Port**: 851 (default pyads port)
 - **Symbols**: Access to PLC variables for control and feedback
 
@@ -262,11 +269,13 @@ The interface includes comprehensive error handling:
 ### Common Issues
 
 1. **PLC Connection Failed**
+
    - Check network connectivity
    - Verify PLC IP address
    - Ensure PLC is running and accessible
 
 2. **Movement Not Executing**
+
    - Check if hexapod is enabled
    - Verify parameter values are within bounds
    - Monitor ROS topics for commands
@@ -279,11 +288,13 @@ The interface includes comprehensive error handling:
 ### Debugging
 
 Enable debug logging:
+
 ```bash
 export ROS_LOG_LEVEL=DEBUG
 ```
 
 Monitor topics:
+
 ```bash
 rostopic echo /hexapod/current_pose
 rostopic echo /cmd_vel
@@ -315,4 +326,4 @@ When contributing to this interface:
 2. Add comprehensive documentation
 3. Include unit tests for new features
 4. Test with both dummy and real interfaces
-5. Update this documentation as needed 
+5. Update this documentation as needed

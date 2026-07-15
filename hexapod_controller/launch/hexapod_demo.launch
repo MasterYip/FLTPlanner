@@ -4,7 +4,7 @@
   
   <!-- Arguments -->
   <arg name="use_dummy" default="true" doc="Use dummy interface for simulation"/>
-  <arg name="plc_ip" default="5.157.100.214.1.1" doc="PLC IP address for real hexapod"/>
+  <arg name="plc_ip" default="10.1.180.190.1.1" doc="PLC IP address for real hexapod"/>
   <arg name="demo_type" default="interactive" doc="Demo type: velocity, pose, circle, gait, interactive"/>
   <arg name="rviz" default="true" doc="Launch RViz for visualization"/>
   <arg name="rviz_config" default="$(find hexapod_controller)/config/hexapod_demo.rviz" doc="RViz config file"/>

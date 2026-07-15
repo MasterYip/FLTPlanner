@@ -74,13 +74,13 @@ stPose_def = (
     ("Roll", pyads.PLCTYPE_REAL, 1),
     ("Pitch", pyads.PLCTYPE_REAL, 1),
     ("Yaw", pyads.PLCTYPE_REAL, 1),
-    ("FG", pyads.PLCTYPE_DINT, 1),#FIXME: ?
-    ("Res", pyads.PLCTYPE_DINT, 1),#FIXME: ?
+    ("FG", pyads.PLCTYPE_DINT, 1),  # FIXME: ?
+    ("Res", pyads.PLCTYPE_DINT, 1),  # FIXME: ?
 
-    ("X1", pyads.PLCTYPE_REAL, 1),# 1号腿足端位置
+    ("X1", pyads.PLCTYPE_REAL, 1),  # 1号腿足端位置
     ("Y1", pyads.PLCTYPE_REAL, 1),
     ("Z1", pyads.PLCTYPE_REAL, 1),
-    ("SF1", pyads.PLCTYPE_DINT, 1),# 1号腿支撑项还是摆动项#FIXME: 支撑0?1?
+    ("SF1", pyads.PLCTYPE_DINT, 1),  # 1号腿支撑项还是摆动项#FIXME: 支撑0?1?
 
     ("X2", pyads.PLCTYPE_REAL, 1),
     ("Y2", pyads.PLCTYPE_REAL, 1),
@@ -154,7 +154,7 @@ class RLController:
             # )
 
             # 建立连接
-            self.plc = pyads.Connection('5.157.100.214.1.1', pyads.PORT_TC3PLC1)
+            self.plc = pyads.Connection('10.1.180.190.1.1', pyads.PORT_TC3PLC1)
             self.plc.open()
 
             # 运动控制参数变量
