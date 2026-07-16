@@ -23,6 +23,7 @@ StateSequencePlanner:
   tripodStanceDuration: 0.3
   maxStepLength: 0.17
   maxYawChange: 0.10
+  maxYawChangeWalk: 0.04 # Smaller yaw correction while walking (gentler than pure rotation)
 
   # Pose control parameters
   keepPoseHorizontal: true
