@@ -23,9 +23,9 @@ GridMapInterface: # NOTE: this override config in perception_interface.yaml
   maxHeight: 0.4
   minHeight: -100.0
   # Foothold map parameters
-  footholdNormalTangentCrtic: 0.8
+  footholdNormalTangentCrtic: 1.0
   footholdEnableHeightFilter: true
-  footholdMaxHeight: 0.15
+  footholdMaxHeight: 0.25
   footholdMinHeight: -100.0
   footholdErodeRad: 0.11
   footholdCenterBoxAlwaysTrav: false
@@ -51,5 +51,5 @@ grid_map_filters:
     params:
       input_layer: elevation_inpainted
       output_layers_prefix: normal_noblur_
-      radius: 0.1
+      radius: 0.15
       normal_vector_positive_axis: z

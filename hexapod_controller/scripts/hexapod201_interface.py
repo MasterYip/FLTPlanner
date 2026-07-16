@@ -485,8 +485,16 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             rospy.loginfo("[IncCmd] dX=%.3f, dY=%.3f, dZ=%.3f, dYaw=%.2f°",
                           dx_body, dy_body, dz_body, math.degrees(d_yaw))
             if abs(d_yaw) > 0.001:
+                # 获取当前偏航角并叠加旋转增量
+                cur_yaw = self.calPosYaw2d(cur_pose)
+                target_yaw = cur_yaw + d_yaw
+                # 构造目标朝向四元数
+                target_quat = self._calQuanfromyaw(target_yaw)
+                # 构造目标位姿
                 yaw_target_pose = PoseStamped()
-                yaw_target_pose.pose = cur_pose
+                yaw_target_pose.pose = Pose()
+                yaw_target_pose.pose.position = cur_pose.position
+                yaw_target_pose.pose.orientation = target_quat
                 self.move_to_yaw(cur_pose, yaw_target_pose, use_virtual_odom=False)
             if abs(dx_body) > 0.001 or abs(dy_body) > 0.001 or abs(dz_body) > 0.001:
                 self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=False)
