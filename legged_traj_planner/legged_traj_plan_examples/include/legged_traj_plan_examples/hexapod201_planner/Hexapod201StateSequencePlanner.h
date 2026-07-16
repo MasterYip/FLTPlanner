@@ -100,6 +100,7 @@ struct Hexapod201StateSequencePlannerConfig
   // Clear map on nav complete
   bool clearMapOnNavComplete;
   double clearMapDelay;
+  double clearMapRebuildWait;
 
   // Gait planner configuration
   Hexapod201GaitPlannerConfig gaitPlannerConfig;
@@ -147,6 +148,7 @@ struct Hexapod201StateSequencePlannerConfig
     // Load clear map on nav complete parameters
     check_digit &= nh.getParam(ns + "/clearMapOnNavComplete", clearMapOnNavComplete);
     check_digit &= nh.getParam(ns + "/clearMapDelay", clearMapDelay);
+    check_digit &= nh.getParam(ns + "/clearMapRebuildWait", clearMapRebuildWait);
 
     // Load gait planner configuration
     gaitPlannerConfig.loadParams(nh, ns + "/GaitPlanner");
@@ -1149,7 +1151,10 @@ public:
         ros::Duration(config_.clearMapDelay).sleep();
         std_srvs::Empty empty_srv;
         if (clear_map_client_.call(empty_srv))
-          ROS_INFO("Sequential nav: elevation map cleared — clean rebuild while stationary.");
+        {
+          ROS_INFO("Sequential nav: elevation map cleared — waiting %.1fs for clean rebuild while stationary.", config_.clearMapRebuildWait);
+          ros::Duration(config_.clearMapRebuildWait).sleep();
+        }
         else
           ROS_WARN("Sequential nav: failed to call clear_map service.");
       }
