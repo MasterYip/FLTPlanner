@@ -33,6 +33,7 @@ StateSequencePlanner:
   # Clear map settings
   clearMapOnNavComplete: true  # Clear elevation map after each nav task completes, so the map rebuilds clean while robot is standing still
   clearMapDelay: 0.5           # Seconds to wait after stopping before clearing (let robot stabilize)
+  clearMapRebuildWait: 10.0   # Seconds to wait after clearing for map to rebuild from stationary scans
 
   # Sub-destination search parameters
   SubDestinationSearch:
