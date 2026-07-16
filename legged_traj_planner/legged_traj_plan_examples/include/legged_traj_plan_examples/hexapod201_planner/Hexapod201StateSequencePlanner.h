@@ -89,6 +89,7 @@ struct Hexapod201StateSequencePlannerConfig
   // Navigation parameters
   double maxStepLength;
   double maxYawChange;
+  double maxYawChangeWalk;
   double navStepDuration;
 
   // Pose control parameters
@@ -136,6 +137,7 @@ struct Hexapod201StateSequencePlannerConfig
     check_digit &= nh.getParam(ns + "/tripodStanceDuration", tripodStanceDuration);
     check_digit &= nh.getParam(ns + "/maxStepLength", maxStepLength);
     check_digit &= nh.getParam(ns + "/maxYawChange", maxYawChange);
+    check_digit &= nh.getParam(ns + "/maxYawChangeWalk", maxYawChangeWalk);
     check_digit &= nh.getParam(ns + "/navStepDuration", navStepDuration);
     // Load new pose control parameters
     check_digit &= nh.getParam(ns + "/keepPoseHorizontal", keepPoseHorizontal);
@@ -524,6 +526,7 @@ public:
     // Parameters from config
     const double max_step_length = config_.maxStepLength;
     const double max_yaw_change = config_.maxYawChange;
+    const double max_yaw_change_walk = config_.maxYawChangeWalk;
     const double step_duration = config_.navStepDuration;
     const double position_tolerance = 0.15; // Position tolerance for reaching waypoint
     const double yaw_tolerance = 0.3; // Yaw tolerance in radians
@@ -568,55 +571,57 @@ public:
       // Create target pose for this step
       geometry_msgs::Twist step_cmd_vel;
       pinocchio::SE3 target_pose = body_pose;
-      // Rotation step - limit yaw change
-      double yaw_command = std::max(-max_yaw_change, std::min(max_yaw_change, yaw_error));
-      
+
       // If yaw error is large, prioritize rotation
       if (abs(yaw_error) > yaw_tolerance)
       {
-        
+        // Pure rotation: use maxYawChange (full-speed turning)
+        double yaw_command = std::max(-max_yaw_change, std::min(max_yaw_change, yaw_error));
+
         // Set target orientation
         Eigen::Vector3d target_rpy = current_rpy;
         target_rpy[2] += yaw_command;
         target_pose.rotation() = pinocchio::rpy::rpyToMatrix(target_rpy);
-        
+
         // Set angular velocity command
         step_cmd_vel.angular.z = yaw_command / config_.tripodStepDuration;
         step_cmd_vel.linear.x = 0.0;
         step_cmd_vel.linear.y = 0.0;
-        
-        ROS_INFO_STREAM("Rotating toward waypoint " << current_waypoint 
+
+        ROS_INFO_STREAM("Rotating toward waypoint " << current_waypoint
                        << ", yaw error: " << yaw_error << " rad");
       }
       else
       {
         // Movement step - 小角度：边走边转 (同时下发线速度和角速度)
+        // Use maxYawChangeWalk (gentler correction while walking)
+        double yaw_command = std::max(-max_yaw_change_walk, std::min(max_yaw_change_walk, yaw_error));
         double step_distance = std::min(distance, max_step_length);
         Eigen::Vector2d step_vector = direction * step_distance;
-        
+
         // 1. 设置平移目标位置
         target_pose.translation()[0] = current_pos[0] + step_vector[0];
         target_pose.translation()[1] = current_pos[1] + step_vector[1];
-        
+
         // 2. 设置旋转目标姿态（叠加微小的修正角度）
         Eigen::Vector3d target_rpy = current_rpy;
         target_rpy[2] += yaw_command;
         target_pose.rotation() = pinocchio::rpy::rpyToMatrix(target_rpy);
-        
+
         // 3. 计算 Base 坐标系下的线速度
         Eigen::Matrix3d world_to_base_rotation = body_pose.rotation().transpose();
         Eigen::Vector3d world_linear_vel(step_vector[0] / config_.tripodStepDuration,
                                         step_vector[1] / config_.tripodStepDuration,
                                         0.0);
         Eigen::Vector3d base_linear_vel = world_to_base_rotation * world_linear_vel;
-        
+
         // 4. 同时下发 线速度 和 角速度
         step_cmd_vel.linear.x = base_linear_vel[0];
         step_cmd_vel.linear.y = base_linear_vel[1];
         step_cmd_vel.linear.z = 0.0;
-        step_cmd_vel.angular.z = yaw_command / config_.tripodStepDuration; // <- 核心改动：不再是 0.0
-        
-        ROS_INFO_STREAM("Moving & Aligning toward waypoint " << current_waypoint 
+        step_cmd_vel.angular.z = yaw_command / config_.tripodStepDuration;
+
+        ROS_INFO_STREAM("Moving & Aligning toward waypoint " << current_waypoint
                        << ", step: " << step_distance << "m, yaw_corr: " << yaw_command << "rad");
       }
       
@@ -1010,28 +1015,55 @@ public:
         double yaw_error = desired_yaw - current_yaw;
         while (yaw_error > M_PI) yaw_error -= 2 * M_PI;
         while (yaw_error < -M_PI) yaw_error += 2 * M_PI;
-        double yaw_cmd = std::max(-config_.maxYawChange, std::min(config_.maxYawChange, yaw_error));
 
         // Build target pose for this step
         geometry_msgs::Twist step_cmd_vel;
         pinocchio::SE3 target_pose = body_pose;
-        double step_dist = std::min(distance, config_.maxStepLength);
-        V2d step_vec = direction * step_dist;
+        double yaw_tolerance = 0.3; // Yaw tolerance in radians
 
-        target_pose.translation().x() = current_pos.x() + step_vec.x();
-        target_pose.translation().y() = current_pos.y() + step_vec.y();
-        V3d target_rpy = current_rpy;
-        target_rpy.z() += yaw_cmd;
-        target_pose.rotation() = pinocchio::rpy::rpyToMatrix(target_rpy);
+        // If yaw error is large, prioritize rotation (same as nav_callback)
+        if (abs(yaw_error) > yaw_tolerance)
+        {
+          // Pure rotation: use maxYawChange (full-speed turning)
+          double yaw_command = std::max(-config_.maxYawChange, std::min(config_.maxYawChange, yaw_error));
 
-        // Base-frame velocity command
-        Eigen::Matrix3d world_to_base = body_pose.rotation().transpose();
-        Eigen::Vector3d world_vel(step_vec.x() / config_.tripodStepDuration,
-                                  step_vec.y() / config_.tripodStepDuration, 0.0);
-        Eigen::Vector3d base_vel = world_to_base * world_vel;
-        step_cmd_vel.linear.x = base_vel.x();
-        step_cmd_vel.linear.y = base_vel.y();
-        step_cmd_vel.angular.z = yaw_cmd / config_.tripodStepDuration;
+          V3d target_rpy = current_rpy;
+          target_rpy.z() += yaw_command;
+          target_pose.rotation() = pinocchio::rpy::rpyToMatrix(target_rpy);
+
+          step_cmd_vel.angular.z = yaw_command / config_.tripodStepDuration;
+          step_cmd_vel.linear.x = 0.0;
+          step_cmd_vel.linear.y = 0.0;
+
+          ROS_INFO_STREAM("Rotating toward waypoint " << wp_idx
+                         << ", yaw error: " << yaw_error << " rad");
+        }
+        else
+        {
+          // Small yaw error: walk forward + gentle yaw correction
+          // Use maxYawChangeWalk (gentler correction while walking)
+          double yaw_command = std::max(-config_.maxYawChangeWalk, std::min(config_.maxYawChangeWalk, yaw_error));
+          double step_dist = std::min(distance, config_.maxStepLength);
+          V2d step_vec = direction * step_dist;
+
+          target_pose.translation().x() = current_pos.x() + step_vec.x();
+          target_pose.translation().y() = current_pos.y() + step_vec.y();
+          V3d target_rpy = current_rpy;
+          target_rpy.z() += yaw_command;
+          target_pose.rotation() = pinocchio::rpy::rpyToMatrix(target_rpy);
+
+          // Base-frame velocity command
+          Eigen::Matrix3d world_to_base = body_pose.rotation().transpose();
+          Eigen::Vector3d world_vel(step_vec.x() / config_.tripodStepDuration,
+                                    step_vec.y() / config_.tripodStepDuration, 0.0);
+          Eigen::Vector3d base_vel = world_to_base * world_vel;
+          step_cmd_vel.linear.x = base_vel.x();
+          step_cmd_vel.linear.y = base_vel.y();
+          step_cmd_vel.angular.z = yaw_command / config_.tripodStepDuration;
+
+          ROS_INFO_STREAM("Moving & Aligning toward waypoint " << wp_idx
+                         << ", step: " << step_dist << "m, yaw_corr: " << yaw_command << "rad");
+        }
 
         // Fit ground + apply pose constraints
         gridmap_extrapolator_.update(target_pose, geometry_msgs::Twist{});
