@@ -55,6 +55,10 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         self.cpp = None
         self.cpp_connected = False
 
+        # Port lock for thread-safe ADS communication
+        # Only one thread may read/write the PLC/CPP port at a time.
+        self._port_lock = threading.RLock()
+
         # PLC symbols
         self.symbol_Cmd_Time = None
         self.symbol_Cmd_Gait = None
@@ -90,20 +94,21 @@ class Hexapod201Interface(Hexapod201BaseInterface):
 
     def cleanup(self):
         """Cleanup PLC and CPP connections"""
-        if self.plc_connected and self.plc:
-            try:
-                self.symbol_State.write(State.DISENABLE)  # type: ignore
-                self.plc.close()
-                rospy.loginfo("PLC connection closed")
-            except Exception as e:
-                rospy.logerr(f"Error closing PLC connection: {str(e)}")
+        with self._port_lock:
+            if self.plc_connected and self.plc:
+                try:
+                    self.symbol_State.write(State.DISENABLE)  # type: ignore
+                    self.plc.close()
+                    rospy.loginfo("PLC connection closed")
+                except Exception as e:
+                    rospy.logerr(f"Error closing PLC connection: {str(e)}")
 
-        if self.cpp_connected and self.cpp:
-            try:
-                self.cpp.close()
-                rospy.loginfo("CPP connection closed")
-            except Exception as e:
-                rospy.logerr(f"Error closing CPP connection: {str(e)}")
+            if self.cpp_connected and self.cpp:
+                try:
+                    self.cpp.close()
+                    rospy.loginfo("CPP connection closed")
+                except Exception as e:
+                    rospy.logerr(f"Error closing CPP connection: {str(e)}")
 
     # PLC related methods
     def _connect_plc(self):
@@ -154,30 +159,32 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         rospy.loginfo("PLC and CPP connections established")
 
     def _is_plc_enabled(self):
-        return self.symbol_QState.value == State.FEEDMOV
+        with self._port_lock:
+            return self.symbol_QState.value == State.FEEDMOV
 
     def _enable_plc(self):
         """Enable PLC for movement"""
         if not self.plc_connected:
             return False
-        if self._is_plc_enabled():
-            return True
-        try:
-            print("start self.symbol_State.write(State.ENABLE)")
-            self.symbol_State.write(State.ENABLE)  # pyright: ignore[reportOptionalMemberAccess]
-            print("finish self.symbol_State.write(State.ENABLE)")
-            timeout = 10.0
-            start_time = rospy.Time.now()
-            while (rospy.Time.now() - start_time).to_sec() < timeout:
-                if self.symbol_QState.value == State.FEEDMOV:  # type: ignore
-                    rospy.loginfo("PLC enabled successfully")
-                    return True
-                rospy.sleep(0.1)
-            rospy.logwarn("PLC enable timeout")
-            return False
-        except Exception as e:
-            rospy.logerr(f"PLC enable failed: {str(e)}")
-            return False
+        with self._port_lock:
+            if self._is_plc_enabled():
+                return True
+            try:
+                print("start self.symbol_State.write(State.ENABLE)")
+                self.symbol_State.write(State.ENABLE)  # pyright: ignore[reportOptionalMemberAccess]
+                print("finish self.symbol_State.write(State.ENABLE)")
+                timeout = 10.0
+                start_time = rospy.Time.now()
+                while (rospy.Time.now() - start_time).to_sec() < timeout:
+                    if self.symbol_QState.value == State.FEEDMOV:  # type: ignore
+                        rospy.loginfo("PLC enabled successfully")
+                        return True
+                    rospy.sleep(0.1)
+                rospy.logwarn("PLC enable timeout")
+                return False
+            except Exception as e:
+                rospy.logerr(f"PLC enable failed: {str(e)}")
+                return False
 
     # ★ 新增：使能回调
     def _enable_callback(self, msg: Bool):
@@ -230,17 +237,18 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         if not self.plc_connected:
             return
 
-        # ★ 无论使能与否，都发布当前 PLC 状态，供通信桥使用
-        try:
-            qstate = self.symbol_QState.value
-            self.plc_state_pub.publish(UInt64(data=qstate))
-        except Exception as e:
-            rospy.logwarn_throttle(10.0, f"Failed to publish PLC state: {e}")
+        with self._port_lock:
+            # ★ 无论使能与否，都发布当前 PLC 状态，供通信桥使用
+            try:
+                qstate = self.symbol_QState.value
+                self.plc_state_pub.publish(UInt64(data=qstate))
+            except Exception as e:
+                rospy.logwarn_throttle(10.0, f"Failed to publish PLC state: {e}")
 
-        if not self._is_plc_enabled():
-            return
-        # Update foot positions
-        self._update_footpos_from_plc()
+            if not self._is_plc_enabled():
+                return
+            # Update foot positions
+            self._update_footpos_from_plc()
 
     @deprecated("PLC pose is not correct, update from odom instead.")
     def _update_current_pose_from_plc(self):
@@ -265,16 +273,17 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         """Update foot positions from PLC feedback"""
         if not self.plc_connected or not self._is_plc_enabled():
             return
-        act_pos = self.symbol_PTActPos.read()
-        if act_pos:
-            self.foot_positions = np.array([
-                [act_pos['X1'], act_pos['Y1'], act_pos['Z1']],
-                [act_pos['X2'], act_pos['Y2'], act_pos['Z2']],
-                [act_pos['X3'], act_pos['Y3'], act_pos['Z3']],
-                [act_pos['X4'], act_pos['Y4'], act_pos['Z4']],
-                [act_pos['X5'], act_pos['Y5'], act_pos['Z5']],
-                [act_pos['X6'], act_pos['Y6'], act_pos['Z6']],
-            ])
+        with self._port_lock:
+            act_pos = self.symbol_PTActPos.read()
+            if act_pos:
+                self.foot_positions = np.array([
+                    [act_pos['X1'], act_pos['Y1'], act_pos['Z1']],
+                    [act_pos['X2'], act_pos['Y2'], act_pos['Z2']],
+                    [act_pos['X3'], act_pos['Y3'], act_pos['Z3']],
+                    [act_pos['X4'], act_pos['Y4'], act_pos['Z4']],
+                    [act_pos['X5'], act_pos['Y5'], act_pos['Z5']],
+                    [act_pos['X6'], act_pos['Y6'], act_pos['Z6']],
+                ])
 
     # Motion Interface
     # Simple movement methods
@@ -283,9 +292,48 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         if not self.plc_connected:
             rospy.logerr("PLC not connected")
             return False
-        try:
-            if not self._enable_plc():
+        with self._port_lock:
+            try:
+                if not self._enable_plc():
+                    return False
+                if not self._read_plc_parameters():
+                    return False
+                self.cmdTime["TA"] = 1.5
+                self.cmdTime["TM"] = 1.5
+                self.cmdTime["TD"] = 0.0
+                self.cmdTime["TZ"] = 0.2
+                self.symbol_Cmd_Time.write(self.cmdTime)
+                self.cmdGait["GaitMode"] = 1
+                self.cmdGait["GaitDF"] = 0.5
+                self.cmdGait["SwapHigh"] = 100.0
+                self.cmdGait["LegNum"] = 0
+                self.cmdGait["ForceMode"] = 0
+                self.cmdGait["Res"] = 0
+                self.symbol_Cmd_Gait.write(self.cmdGait)
+                self.cmdPose["X"] = min(400, target_pose.position.x * 1000)
+                self.cmdPose["Y"] = min(200, target_pose.position.y * 1000)
+                self.cmdPose["Z"] = target_pose.position.z * 1000
+                euler = euler_from_quaternion([
+                    target_pose.orientation.x,
+                    target_pose.orientation.y,
+                    target_pose.orientation.z,
+                    target_pose.orientation.w
+                ])
+                self.cmdPose["Roll"] = euler[0]
+                self.cmdPose["Pitch"] = euler[1]
+                self.cmdPose["Yaw"] = euler[2]
+                self.cmdPose["FG"] = 0
+                self.cmdPose["Res"] = 0
+                self.symbol_Cmd_Pose.write(self.cmdPose)
+                self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)
+                rospy.loginfo(f"Started movement to pose: {target_pose.position}")
+                return True
+            except Exception as e:
+                rospy.logerr(f"Movement failed: {str(e)}")
                 return False
+
+    def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped, use_virtual_odom):
+        with self._port_lock:
             if not self._read_plc_parameters():
                 return False
             self.cmdTime["TA"] = 1.5
@@ -300,145 +348,110 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             self.cmdGait["ForceMode"] = 0
             self.cmdGait["Res"] = 0
             self.symbol_Cmd_Gait.write(self.cmdGait)
-            self.cmdPose["X"] = min(400, target_pose.position.x * 1000)
-            self.cmdPose["Y"] = min(200, target_pose.position.y * 1000)
-            self.cmdPose["Z"] = target_pose.position.z * 1000
-            euler = euler_from_quaternion([
-                target_pose.orientation.x,
-                target_pose.orientation.y,
-                target_pose.orientation.z,
-                target_pose.orientation.w
-            ])
-            self.cmdPose["Roll"] = euler[0]
-            self.cmdPose["Pitch"] = euler[1]
-            self.cmdPose["Yaw"] = euler[2]
+            self.cmdPose["X"] = max(-380, min(380, (aim_pose.pose.position.x - cur_pose.position.x) * 1000))
+            self.cmdPose["Y"] = max(-100, min(100, (aim_pose.pose.position.y - cur_pose.position.y) * 1000))
+            self.cmdPose["Z"] = max(-50, min(50, (aim_pose.pose.position.z - cur_pose.position.z) * 1000))
+            print(f"[move to] cmdPose set is: x: {(aim_pose.pose.position.x - cur_pose.position.x) * 1000}, y: {(aim_pose.pose.position.y - cur_pose.position.y) * 1000}")
+            print(f"[move to] cmdPose set is clamped to: x: {self.cmdPose['X']}, y: {self.cmdPose['Y']}")
+            if use_virtual_odom:
+                self.current_pose.position.x += max(-0.38, min(0.38, aim_pose.pose.position.x - cur_pose.position.x))
+                self.current_pose.position.y += max(-0.1, min(0.1, aim_pose.pose.position.y - cur_pose.position.y))
+                self.current_pose.position.z = aim_pose.pose.position.z
+            self.cmdPose["Roll"] = 0.0
+            self.cmdPose["Pitch"] = 0.0
+            self.cmdPose["Yaw"] = 0.0
             self.cmdPose["FG"] = 0
             self.cmdPose["Res"] = 0
             self.symbol_Cmd_Pose.write(self.cmdPose)
             self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)
-            rospy.loginfo(f"Started movement to pose: {target_pose.position}")
-            return True
-        except Exception as e:
-            rospy.logerr(f"Movement failed: {str(e)}")
-            return False
-
-    def move_to_pos(self, cur_pose: Pose, aim_pose: PoseStamped, use_virtual_odom):
-        if not self._read_plc_parameters():
-            return False
-        self.cmdTime["TA"] = 1.5
-        self.cmdTime["TM"] = 1.5
-        self.cmdTime["TD"] = 0.0
-        self.cmdTime["TZ"] = 0.2
-        self.symbol_Cmd_Time.write(self.cmdTime)
-        self.cmdGait["GaitMode"] = 1
-        self.cmdGait["GaitDF"] = 0.5
-        self.cmdGait["SwapHigh"] = 100.0
-        self.cmdGait["LegNum"] = 0
-        self.cmdGait["ForceMode"] = 0
-        self.cmdGait["Res"] = 0
-        self.symbol_Cmd_Gait.write(self.cmdGait)
-        self.cmdPose["X"] = max(-380, min(380, (aim_pose.pose.position.x - cur_pose.position.x) * 1000))
-        self.cmdPose["Y"] = max(-100, min(100, (aim_pose.pose.position.y - cur_pose.position.y) * 1000))
-        self.cmdPose["Z"] = max(-50, min(50, (aim_pose.pose.position.z - cur_pose.position.z) * 1000))
-        print(f"[move to] cmdPose set is: x: {(aim_pose.pose.position.x - cur_pose.position.x) * 1000}, y: {(aim_pose.pose.position.y - cur_pose.position.y) * 1000}")
-        print(f"[move to] cmdPose set is clamped to: x: {self.cmdPose['X']}, y: {self.cmdPose['Y']}")
-        if use_virtual_odom:
-            self.current_pose.position.x += max(-0.38, min(0.38, aim_pose.pose.position.x - cur_pose.position.x))
-            self.current_pose.position.y += max(-0.1, min(0.1, aim_pose.pose.position.y - cur_pose.position.y))
-            self.current_pose.position.z = aim_pose.pose.position.z
-        self.cmdPose["Roll"] = 0.0
-        self.cmdPose["Pitch"] = 0.0
-        self.cmdPose["Yaw"] = 0.0
-        self.cmdPose["FG"] = 0
-        self.cmdPose["Res"] = 0
-        self.symbol_Cmd_Pose.write(self.cmdPose)
-        self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)
-        time.sleep(0.005)
-        cur_beifu_Cmd = self.symbol_PTCmdPos.read()
-        while cur_beifu_Cmd["FG"] != 0:
-            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
             time.sleep(0.005)
-            self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV)
-        return True
+            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            while cur_beifu_Cmd["FG"] != 0:
+                cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+                time.sleep(0.005)
+                self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV)
+            return True
 
     def move_to_yaw(self, cur_pose: Pose, aim_pose: PoseStamped, use_virtual_odom):
-        if not self._read_plc_parameters():
-            return False
-        self.cmdTime["TA"] = 1.5
-        self.cmdTime["TM"] = 1.5
-        self.cmdTime["TD"] = 0.0
-        self.cmdTime["TZ"] = 0.2
-        self.symbol_Cmd_Time.write(self.cmdTime)
-        self.cmdGait["GaitMode"] = 1
-        self.cmdGait["GaitDF"] = 0.5
-        self.cmdGait["SwapHigh"] = 100.0
-        self.cmdGait["LegNum"] = 0
-        self.cmdGait["ForceMode"] = 0
-        self.cmdGait["Res"] = 0
-        self.symbol_Cmd_Gait.write(self.cmdGait)
-        self.cmdPose["X"] = 0.0
-        self.cmdPose["Y"] = 0.0
-        self.cmdPose["Z"] = 0.0
-        self.cmdPose["Roll"] = 0.0
-        self.cmdPose["Pitch"] = 0.0
-        yaw_diff: float = self.calPosYawDiff2d(aim_pose.pose, self.current_pose)
-        yaw_control = -yaw_diff
-        self.cmdPose["Yaw"] = max(-5.0 / 180.0 * math.pi, min(5.0 / 180.0 * math.pi, yaw_control))
-        print(f"[move to] cmdPose set is: yaw: {yaw_control}")
-        print(f"[move to] cmdPose set is clamped to: yaw: {self.cmdPose['Yaw']}")
-        if use_virtual_odom:
-            last_yaw: float = self.calPosYaw2d(self.current_pose)
-            cur_yaw: float = last_yaw + self.cmdPose['Yaw']
-            cur_yaw_quant = self._calQuanfromyaw(cur_yaw)
-            self.current_pose.orientation = cur_yaw_quant
-        self.cmdPose["FG"] = 0
-        self.cmdPose["Res"] = 0
-        self.symbol_Cmd_Pose.write(self.cmdPose)
-        self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)
-        time.sleep(0.005)
-        cur_beifu_Cmd = self.symbol_PTCmdPos.read()
-        while cur_beifu_Cmd["FG"] != 0:
-            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+        with self._port_lock:
+            if not self._read_plc_parameters():
+                return False
+            self.cmdTime["TA"] = 1.5
+            self.cmdTime["TM"] = 1.5
+            self.cmdTime["TD"] = 0.0
+            self.cmdTime["TZ"] = 0.2
+            self.symbol_Cmd_Time.write(self.cmdTime)
+            self.cmdGait["GaitMode"] = 1
+            self.cmdGait["GaitDF"] = 0.5
+            self.cmdGait["SwapHigh"] = 100.0
+            self.cmdGait["LegNum"] = 0
+            self.cmdGait["ForceMode"] = 0
+            self.cmdGait["Res"] = 0
+            self.symbol_Cmd_Gait.write(self.cmdGait)
+            self.cmdPose["X"] = 0.0
+            self.cmdPose["Y"] = 0.0
+            self.cmdPose["Z"] = 0.0
+            self.cmdPose["Roll"] = 0.0
+            self.cmdPose["Pitch"] = 0.0
+            yaw_diff: float = self.calPosYawDiff2d(aim_pose.pose, self.current_pose)
+            yaw_control = -yaw_diff
+            self.cmdPose["Yaw"] = max(-5.0 / 180.0 * math.pi, min(5.0 / 180.0 * math.pi, yaw_control))
+            print(f"[move to] cmdPose set is: yaw: {yaw_control}")
+            print(f"[move to] cmdPose set is clamped to: yaw: {self.cmdPose['Yaw']}")
+            if use_virtual_odom:
+                last_yaw: float = self.calPosYaw2d(self.current_pose)
+                cur_yaw: float = last_yaw + self.cmdPose['Yaw']
+                cur_yaw_quant = self._calQuanfromyaw(cur_yaw)
+                self.current_pose.orientation = cur_yaw_quant
+            self.cmdPose["FG"] = 0
+            self.cmdPose["Res"] = 0
+            self.symbol_Cmd_Pose.write(self.cmdPose)
+            self.symbol_CtrlCmd.write(CtrlCmd.MODAL_MOV)
             time.sleep(0.005)
-            self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV)
-        return True
+            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+            while cur_beifu_Cmd["FG"] != 0:
+                cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+                time.sleep(0.005)
+                self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV)
+            return True
 
     def follow_trajectory(self, trajectory: Path) -> bool:
         print("entered: [follow_trajectory]")
         if trajectory.poses is None:
             rospy.logerr("Trajectory poses are None")
             return False
-        while self.symbol_QState.value != 2:
-            print(f"cur symbol_QState is: {self.symbol_QState}, try to enable PLC")
-            if self.symbol_QState.value == 7:
-                print(f"try to enable plc")
-                if self._enable_plc():
-                    print("enable plc success, continue")
-                else:
-                    print("enable plc failed")
-            else:
-                print(f"error symbol_QState: {self.symbol_QState}, can't enbale PLC, return false")
-                return False
-        cur_step: int = 0
-        while cur_step < len(trajectory.poses):
-            aim_pose = trajectory.poses[cur_step]
-            print(f"[follow_traj]aim_pose x= {aim_pose.pose.position.x}"
-                  f"y= {aim_pose.pose.position.y} z= {aim_pose.pose.position.z}"
-                  f"yaw= {self.calPosYaw2d(aim_pose)/math.pi*180.0} cur_step= {cur_step} ")
-            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
-            if cur_beifu_Cmd["FG"] == CtrlCmd.IDLE:
-                cur_pose: Pose = self.get_current_pose()
-                print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
-                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYaw2d(cur_pose)) < self.admit_yaw_limit:
-                    print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
-                    cur_step += 1
-                else:
-                    if abs(self.calPosYaw2d(cur_pose)) > self.admit_yaw_limit:
-                        print(f"[follow_traj]begin move to yaw: 0.0")
-                        self.move_to_yaw(cur_pose, aim_pose, use_virtual_odom=False)
+        with self._port_lock:
+            while self.symbol_QState.value != 2:
+                print(f"cur symbol_QState is: {self.symbol_QState}, try to enable PLC")
+                if self.symbol_QState.value == 7:
+                    print(f"try to enable plc")
+                    if self._enable_plc():
+                        print("enable plc success, continue")
                     else:
-                        print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
-                        self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=False)
+                        print("enable plc failed")
+                else:
+                    print(f"error symbol_QState: {self.symbol_QState}, can't enbale PLC, return false")
+                    return False
+            cur_step: int = 0
+            while cur_step < len(trajectory.poses):
+                aim_pose = trajectory.poses[cur_step]
+                print(f"[follow_traj]aim_pose x= {aim_pose.pose.position.x}"
+                      f"y= {aim_pose.pose.position.y} z= {aim_pose.pose.position.z}"
+                      f"yaw= {self.calPosYaw2d(aim_pose)/math.pi*180.0} cur_step= {cur_step} ")
+                cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+                if cur_beifu_Cmd["FG"] == CtrlCmd.IDLE:
+                    cur_pose: Pose = self.get_current_pose()
+                    print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
+                    if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYaw2d(cur_pose)) < self.admit_yaw_limit:
+                        print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                        cur_step += 1
+                    else:
+                        if abs(self.calPosYaw2d(cur_pose)) > self.admit_yaw_limit:
+                            print(f"[follow_traj]begin move to yaw: 0.0")
+                            self.move_to_yaw(cur_pose, aim_pose, use_virtual_odom=False)
+                        else:
+                            print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                            self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=False)
         finished_msg = Bool()
         finished_msg.data = True
         self.task_status_pub.publish(finished_msg)
@@ -451,7 +464,8 @@ class Hexapod201Interface(Hexapod201BaseInterface):
             return
         self.is_moving = True
         try:
-            current_state = self.symbol_QState.value
+            with self._port_lock:
+                current_state = self.symbol_QState.value
             if current_state == 7:
                 rospy.logwarn("PLC is disabled (state=7), trying to enable automatically...")
                 if self._enable_plc():
@@ -509,37 +523,38 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         if trajectory.poses is None:
             rospy.logerr("Trajectory poses are None")
             return False
-        while self.symbol_QState.value != 2:
-            print(f"cur symbol_QState is: {self.symbol_QState}, try to enable PLC")
-            if self.symbol_QState.value == 7:
-                print(f"try to enable plc")
-                if self._enable_plc():
-                    print("enable plc success, continue")
-                else:
-                    print("enable plc failed")
-            else:
-                print(f"error symbol_QState: {self.symbol_QState}, cann't enbale PCL, return false")
-                return False
-        cur_step: int = 0
-        while cur_step < len(trajectory.poses):
-            aim_pose = trajectory.poses[cur_step]
-            print(f"[follow_traj]aim_pose x= {aim_pose.pose.position.x}"
-                  f"y= {aim_pose.pose.position.y} z= {aim_pose.pose.position.z}"
-                  f"yaw= {self.calPosYaw2d(aim_pose)/math.pi*180.0} cur_step= {cur_step} ")
-            cur_beifu_Cmd = self.symbol_PTCmdPos.read()
-            if cur_beifu_Cmd["FG"] == CtrlCmd.IDLE:
-                cur_pose: Pose = self.get_current_pose()
-                print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
-                if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYaw2d(cur_pose)) < self.admit_yaw_limit:
-                    print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
-                    cur_step += 1
-                else:
-                    if abs(self.calPosYaw2d(cur_pose)) > self.admit_yaw_limit:
-                        print(f"[follow_traj]begin move to yaw: 0.0")
-                        self.move_to_yaw(cur_pose, aim_pose, use_virtual_odom=True)
+        with self._port_lock:
+            while self.symbol_QState.value != 2:
+                print(f"cur symbol_QState is: {self.symbol_QState}, try to enable PLC")
+                if self.symbol_QState.value == 7:
+                    print(f"try to enable plc")
+                    if self._enable_plc():
+                        print("enable plc success, continue")
                     else:
-                        print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
-                        self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=True)
+                        print("enable plc failed")
+                else:
+                    print(f"error symbol_QState: {self.symbol_QState}, cann't enbale PCL, return false")
+                    return False
+            cur_step: int = 0
+            while cur_step < len(trajectory.poses):
+                aim_pose = trajectory.poses[cur_step]
+                print(f"[follow_traj]aim_pose x= {aim_pose.pose.position.x}"
+                      f"y= {aim_pose.pose.position.y} z= {aim_pose.pose.position.z}"
+                      f"yaw= {self.calPosYaw2d(aim_pose)/math.pi*180.0} cur_step= {cur_step} ")
+                cur_beifu_Cmd = self.symbol_PTCmdPos.read()
+                if cur_beifu_Cmd["FG"] == CtrlCmd.IDLE:
+                    cur_pose: Pose = self.get_current_pose()
+                    print(f"[follow_traj]cur_pose x= {cur_pose.position.x} y= {cur_pose.position.y} z= {cur_pose.position.z} yaw= {self.calPosYaw2d(cur_pose)/math.pi*180.0}")
+                    if self.calPosDisDiff2d(aim_pose, cur_pose) <= self.admit_pose_limit and abs(self.calPosYaw2d(cur_pose)) < self.admit_yaw_limit:
+                        print(f"[follow_traj]has arrived aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                        cur_step += 1
+                    else:
+                        if abs(self.calPosYaw2d(cur_pose)) > self.admit_yaw_limit:
+                            print(f"[follow_traj]begin move to yaw: 0.0")
+                            self.move_to_yaw(cur_pose, aim_pose, use_virtual_odom=True)
+                        else:
+                            print(f"[follow_traj]begin move to aim_pose x: {aim_pose.pose.position.x}, y: {aim_pose.pose.position.y}, z: {aim_pose.pose.position.z}")
+                            self.move_to_pos(cur_pose, aim_pose, use_virtual_odom=True)
         return True
 
     # Free gait methods
@@ -547,164 +562,170 @@ class Hexapod201Interface(Hexapod201BaseInterface):
         if not self.plc_connected or not self.cpp_connected:
             rospy.logerr("PLC or CPP not connected")
             return False
-        if not self._enable_plc():
-            return False
-        if not self._read_plc_parameters():
-            return False
-        self.cmdTime["TA"] = 1.0
-        self.cmdTime["TM"] = 1.5
-        self.cmdTime["TD"] = 0.0
-        self.cmdTime["TZ"] = 0.6
-        self.symbol_Cmd_Time.write(self.cmdTime)
-        self.cmdGait["GaitMode"] = 5
-        self.cmdGait["GaitDF"] = 0.5
-        self.cmdGait["SwapHigh"] = 300.0
-        self.cmdGait["LegNum"] = 0
-        self.cmdGait["ForceMode"] = 0
-        self.cmdGait["Res"] = 0
-        self.symbol_Cmd_Gait.write(self.cmdGait)
-        self.symbol_CtrlCmd.write(CtrlCmd.REMOTE_MOV)
-        timeout = 5.0
-        start_time = rospy.Time.now()
-        self.symbol_ReqFlag.write(0)
-        while (rospy.Time.now() - start_time).to_sec() < timeout:
-            if self.symbol_ReqFlag.value == 1:
-                break
-            rospy.sleep(0.1)
-        if self.symbol_ReqFlag.value != 1:
-            rospy.logwarn("CPP not ready for free gait command")
-            return False
-        if self.ReqPTCmd is None:
-            self.ReqPTCmd = self.symbol_ReqPTCmd.read()
-        if self.keepConstBaseFootZ:
-            body_motion[2] = 0.0
-        self.ReqPTCmd["X"] = body_motion[0]
-        self.ReqPTCmd["Y"] = body_motion[1]
-        self.ReqPTCmd["Z"] = body_motion[2]
-        self.ReqPTCmd["Roll"] = body_motion[3]
-        self.ReqPTCmd["Pitch"] = body_motion[4]
-        self.ReqPTCmd["Yaw"] = body_motion[5]
-        self.ReqPTCmd["FG"] = 0
-        self.ReqPTCmd["Res"] = 0
-        for j in range(6):
-            i = FOOT_REMAP[j]
-            x_key = f"X{i+1}"
-            y_key = f"Y{i+1}"
-            z_key = f"Z{i+1}"
-            sf_key = f"SF{i+1}"
-            self.ReqPTCmd[x_key] = foot_positions[j, 0]
-            self.ReqPTCmd[y_key] = foot_positions[j, 1]
-            self.ReqPTCmd[z_key] = foot_positions[j, 2]
-            self.ReqPTCmd[sf_key] = foot_flags[j]
-        self.symbol_ReqPTCmd.write(self.ReqPTCmd)
-        self.symbol_ReqFlag.write(2)
-        self._update_footpos_from_plc()
-        self.target_foot_positions = foot_positions.copy()
-        self.foot_support_flags = foot_flags.copy()
-        rospy.loginfo(f"Started free gait movement with body motion: {body_motion}")
-        return True
+        with self._port_lock:
+            if not self._enable_plc():
+                return False
+            if not self._read_plc_parameters():
+                return False
+            self.cmdTime["TA"] = 1.0
+            self.cmdTime["TM"] = 1.5
+            self.cmdTime["TD"] = 0.0
+            self.cmdTime["TZ"] = 0.6
+            self.symbol_Cmd_Time.write(self.cmdTime)
+            self.cmdGait["GaitMode"] = 5
+            self.cmdGait["GaitDF"] = 0.5
+            self.cmdGait["SwapHigh"] = 300.0
+            self.cmdGait["LegNum"] = 0
+            self.cmdGait["ForceMode"] = 0
+            self.cmdGait["Res"] = 0
+            self.symbol_Cmd_Gait.write(self.cmdGait)
+            self.symbol_CtrlCmd.write(CtrlCmd.REMOTE_MOV)
+            timeout = 5.0
+            start_time = rospy.Time.now()
+            self.symbol_ReqFlag.write(0)
+            while (rospy.Time.now() - start_time).to_sec() < timeout:
+                if self.symbol_ReqFlag.value == 1:
+                    break
+                rospy.sleep(0.1)
+            if self.symbol_ReqFlag.value != 1:
+                rospy.logwarn("CPP not ready for free gait command")
+                return False
+            if self.ReqPTCmd is None:
+                self.ReqPTCmd = self.symbol_ReqPTCmd.read()
+            if self.keepConstBaseFootZ:
+                body_motion[2] = 0.0
+            self.ReqPTCmd["X"] = body_motion[0]
+            self.ReqPTCmd["Y"] = body_motion[1]
+            self.ReqPTCmd["Z"] = body_motion[2]
+            self.ReqPTCmd["Roll"] = body_motion[3]
+            self.ReqPTCmd["Pitch"] = body_motion[4]
+            self.ReqPTCmd["Yaw"] = body_motion[5]
+            self.ReqPTCmd["FG"] = 0
+            self.ReqPTCmd["Res"] = 0
+            for j in range(6):
+                i = FOOT_REMAP[j]
+                x_key = f"X{i+1}"
+                y_key = f"Y{i+1}"
+                z_key = f"Z{i+1}"
+                sf_key = f"SF{i+1}"
+                self.ReqPTCmd[x_key] = foot_positions[j, 0]
+                self.ReqPTCmd[y_key] = foot_positions[j, 1]
+                self.ReqPTCmd[z_key] = foot_positions[j, 2]
+                self.ReqPTCmd[sf_key] = foot_flags[j]
+            self.symbol_ReqPTCmd.write(self.ReqPTCmd)
+            self.symbol_ReqFlag.write(2)
+            self._update_footpos_from_plc()
+            self.target_foot_positions = foot_positions.copy()
+            self.foot_support_flags = foot_flags.copy()
+            rospy.loginfo(f"Started free gait movement with body motion: {body_motion}")
+            return True
 
     def move_to_pose_with_feet(self, target_pose: Pose, foot_positions: np.ndarray, foot_flags: np.ndarray) -> bool:
         if not self.plc_connected or not self.cpp_connected:
             rospy.logerr("PLC or CPP not connected")
             return False
-        if not self._enable_plc():
-            return False
-        if not self._read_plc_parameters():
-            return False
-        pos_diff = np.array([
-            (target_pose.position.x - self.current_pose.position.x) * 1000.0,
-            (target_pose.position.y - self.current_pose.position.y) * 1000.0,
-            (target_pose.position.z - self.current_pose.position.z) * 1000.0
-        ])
-        current_euler = euler_from_quaternion([
-            self.current_pose.orientation.x,
-            self.current_pose.orientation.y,
-            self.current_pose.orientation.z,
-            self.current_pose.orientation.w,
-        ])
-        target_euler = euler_from_quaternion([
-            target_pose.orientation.x,
-            target_pose.orientation.y,
-            target_pose.orientation.z,
-            target_pose.orientation.w,
-        ])
-        angle_diff = np.array([
-            target_euler[0] - current_euler[0],
-            target_euler[1] - current_euler[1],
-            target_euler[2] - current_euler[2]
-        ])
-        if angle_diff[2] > math.pi:
-            angle_diff[2] -= 2 * math.pi
-        elif angle_diff[2] < -math.pi:
-            angle_diff[2] += 2 * math.pi
-        body_motion = np.concatenate([pos_diff, angle_diff])
-        success = self.move_free_gait(body_motion, foot_positions, foot_flags)
-        if success:
-            rospy.loginfo("Coordinated pose and foot movement completed")
-        return success
+        with self._port_lock:
+            if not self._enable_plc():
+                return False
+            if not self._read_plc_parameters():
+                return False
+            pos_diff = np.array([
+                (target_pose.position.x - self.current_pose.position.x) * 1000.0,
+                (target_pose.position.y - self.current_pose.position.y) * 1000.0,
+                (target_pose.position.z - self.current_pose.position.z) * 1000.0
+            ])
+            current_euler = euler_from_quaternion([
+                self.current_pose.orientation.x,
+                self.current_pose.orientation.y,
+                self.current_pose.orientation.z,
+                self.current_pose.orientation.w,
+            ])
+            target_euler = euler_from_quaternion([
+                target_pose.orientation.x,
+                target_pose.orientation.y,
+                target_pose.orientation.z,
+                target_pose.orientation.w,
+            ])
+            angle_diff = np.array([
+                target_euler[0] - current_euler[0],
+                target_euler[1] - current_euler[1],
+                target_euler[2] - current_euler[2]
+            ])
+            if angle_diff[2] > math.pi:
+                angle_diff[2] -= 2 * math.pi
+            elif angle_diff[2] < -math.pi:
+                angle_diff[2] += 2 * math.pi
+            body_motion = np.concatenate([pos_diff, angle_diff])
+            success = self.move_free_gait(body_motion, foot_positions, foot_flags)
+            if success:
+                rospy.loginfo("Coordinated pose and foot movement completed")
+            return success
 
     def setCmd(self, **kwargs) -> bool:
         if not self.plc_connected:
             rospy.logerr("PLC not connected")
             return False
-        try:
-            if 'TA' in kwargs:
-                self.cmdTime["TA"] = kwargs['TA']
-            if 'TM' in kwargs:
-                self.cmdTime["TM"] = kwargs['TM']
-            if 'TD' in kwargs:
-                self.cmdTime["TD"] = kwargs['TD']
-            if 'TZ' in kwargs:
-                self.cmdTime["TZ"] = kwargs['TZ']
-            if 'GaitMode' in kwargs:
-                self.cmdGait["GaitMode"] = kwargs['GaitMode']
-            if 'GaitDF' in kwargs:
-                self.cmdGait["GaitDF"] = kwargs['GaitDF']
-            if 'SwapHigh' in kwargs:
-                self.cmdGait["SwapHigh"] = kwargs['SwapHigh']
-            if 'ForceMode' in kwargs:
-                self.cmdGait["ForceMode"] = kwargs['ForceMode']
-            if self.cmdTime:
-                self.symbol_Cmd_Time.write(self.cmdTime)
-            if self.cmdGait:
-                self.symbol_Cmd_Gait.write(self.cmdGait)
-            rospy.loginfo(f"Movement parameters updated: {kwargs}")
-            return True
-        except Exception as e:
-            rospy.logerr(f"Failed to set parameters: {str(e)}")
-            return False
+        with self._port_lock:
+            try:
+                if 'TA' in kwargs:
+                    self.cmdTime["TA"] = kwargs['TA']
+                if 'TM' in kwargs:
+                    self.cmdTime["TM"] = kwargs['TM']
+                if 'TD' in kwargs:
+                    self.cmdTime["TD"] = kwargs['TD']
+                if 'TZ' in kwargs:
+                    self.cmdTime["TZ"] = kwargs['TZ']
+                if 'GaitMode' in kwargs:
+                    self.cmdGait["GaitMode"] = kwargs['GaitMode']
+                if 'GaitDF' in kwargs:
+                    self.cmdGait["GaitDF"] = kwargs['GaitDF']
+                if 'SwapHigh' in kwargs:
+                    self.cmdGait["SwapHigh"] = kwargs['SwapHigh']
+                if 'ForceMode' in kwargs:
+                    self.cmdGait["ForceMode"] = kwargs['ForceMode']
+                if self.cmdTime:
+                    self.symbol_Cmd_Time.write(self.cmdTime)
+                if self.cmdGait:
+                    self.symbol_Cmd_Gait.write(self.cmdGait)
+                rospy.loginfo(f"Movement parameters updated: {kwargs}")
+                return True
+            except Exception as e:
+                rospy.logerr(f"Failed to set parameters: {str(e)}")
+                return False
 
     def stop_movement(self) -> bool:
         if not self.plc_connected:
             return False
-        try:
-            self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV)
-            rospy.loginfo("Movement stopped")
-            return True
-        except Exception as e:
-            rospy.logerr(f"Failed to stop movement: {str(e)}")
-            return False
+        with self._port_lock:
+            try:
+                self.symbol_CtrlCmd.write(CtrlCmd.STOP_MOV)
+                rospy.loginfo("Movement stopped")
+                return True
+            except Exception as e:
+                rospy.logerr(f"Failed to stop movement: {str(e)}")
+                return False
 
     def joint_encoder_timer_callback(self, event):
         pass
 
     def robot_is_moving(self):
-        if self.symbol_ReqFlag is not None:
-            return not self.symbol_ReqFlag.value
-        else:
-            return 0
+        with self._port_lock:
+            if self.symbol_ReqFlag is not None:
+                return not self.symbol_ReqFlag.value
+            else:
+                return 0
 
     def test_footpos_read(self):
         if not self.plc_connected:
             rospy.logerr("PLC not connected")
             return
-        try:
-            act_pos = self.symbol_PTActPos.read()
-            if act_pos:
-                rospy.loginfo(f"Current Pose from PLC: X={act_pos['X']}, Y={act_pos['Y']}, Z={act_pos['Z']}, "
-                              f"Roll={act_pos['Roll']}, Pitch={act_pos['Pitch']}, Yaw={act_pos['Yaw']}")
-            else:
-                rospy.logwarn("No pose data received from PLC")
-        except Exception as e:
-            rospy.logerr(f"Failed to read pose from PLC: {str(e)}")
+        with self._port_lock:
+            try:
+                act_pos = self.symbol_PTActPos.read()
+                if act_pos:
+                    rospy.loginfo(f"Current Pose from PLC: X={act_pos['X']}, Y={act_pos['Y']}, Z={act_pos['Z']}, "
+                                  f"Roll={act_pos['Roll']}, Pitch={act_pos['Pitch']}, Yaw={act_pos['Yaw']}")
+                else:
+                    rospy.logwarn("No pose data received from PLC")
+            except Exception as e:
+                rospy.logerr(f"Failed to read pose from PLC: {str(e)}")
